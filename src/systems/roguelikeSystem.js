@@ -7,6 +7,9 @@ const { appId, db, doc, initialGameState, playerAvatarUrl, playerName, setAppMod
             const newRoomId = Math.random().toString(36).substring(2, 7).toUpperCase();
             const state = initialGameState();
             state.players.p1 = playerName;
+            state.playerUids.p1 = user.uid;
+            state.hostHeartbeatAt = Date.now();
+            state.phaseStartedAt = Date.now();
             state.playerAvatars.p1 = playerAvatarUrl;
             state.inventory.p1 = { pozione: 2, resurrezione: 1 };
             state.isRoguelikeCoop = true;
