@@ -1,4 +1,5 @@
 export const CHAR_PRICES = {
+            'superboy': 250,
             'orsobianco': 250, 'bugsbunny': 250, 'daffyduck': 200, 'diamante': 350,
             'diamantebianco': 350, 'goku': 350, 'kratos': 350, 'godzilla': 350, 'cell': 350, 'nito': 350, 'ryuk': 350, 'rias': 350, 'utopia': 350, 'bort': 350,
             'mahito': 250, 'laxus': 250, 'zabuza': 250, 'naruto': 250, 'sasuke': 250, 'pyra': 250, 'natsu': 250, 'aang': 250, 'yugo': 250, 'garnet': 250, 'nightwing': 250, 'soundwave': 250, 'brago': 250, 'sailormercury': 250, 'alphonse': 250, 'shinobu': 250, 'nicole': 250, 'yoshi': 250, 'ainz': 250, 'entoma': 250, 'neon': 250, 'doraemon': 250, 'dante': 250, 'arievicente': 250, 'meliodas': 250, 'ban': 250, 'sans': 250, 'roxy': 250, 'perla': 250,
