@@ -25,7 +25,8 @@ export function findJoinableSlot(room,required){
  const max=Math.min(8,Math.max(2,required||4));
  return PLAYER_KEYS.slice(1,max).find(p=>!room.players?.[p]||room.isBot?.[p])||null;
 }
-const playable=(c)=>c&&c.hp>0&&!c.isSummonOnly;
+const alive=(c)=>c&&c.hp>0;
+const playable=(c)=>alive(c)&&!c.isSummonOnly;
 const fieldSize=(room)=>room.gameMode==='multipla'?1:Math.max(1,Number(room.settings?.fieldSize)||1);
 export function getRequiredSwitches(room,players){
  const need={};const valid={};const bench={};const field={};
@@ -33,12 +34,12 @@ export function getRequiredSwitches(room,players){
   const team=room.teams?.[p]||[];
   const seen=new Set();
   const existing=(room.field?.[p]||[]).filter(i=>{
-   if(!Number.isInteger(i)||seen.has(i)||!playable(team[i]))return false;
+   if(!Number.isInteger(i)||seen.has(i)||!alive(team[i]))return false;
    seen.add(i);return true;
   });
   field[p]=existing;
   bench[p]=team.map((c,i)=>({c,i})).filter(({c,i})=>playable(c)&&!seen.has(i)).map(x=>x.i);
-  need[p]=Math.min(Math.max(0,fieldSize(room)-existing.filter(i=>!team[i].isSummonOnly).length),bench[p].length);
+  need[p]=Math.min(Math.max(0,fieldSize(room)-existing.filter(i=>playable(team[i])).length),bench[p].length);
   valid[p]=Array.isArray(room.switchActions?.[p])?room.switchActions[p].filter((i,j,arr)=>bench[p].includes(i)&&arr.indexOf(i)===j).slice(0,need[p]):[];
  }
  return {need,valid,bench,field,any:Object.values(need).some(x=>x>0)};
@@ -48,7 +49,7 @@ export function isHostFresh(room,now=Date.now()){
  return typeof heartbeat==='number'&&Number.isFinite(heartbeat)&&now-heartbeat<ROOM_HOST_TIMEOUT_MS&&heartbeat<now+30000;
 }
 export function canRecoverRoom(room,playerRole,now=Date.now()){
- return playerRole==='p1'||(!isHostFresh(room,now) && GAME_IN_PROGRESS.includes(room.status));
+ return PLAYER_KEYS.includes(playerRole) && (playerRole==='p1'||(!isHostFresh(room,now) && GAME_IN_PROGRESS.includes(room.status)));
 }
 export function phaseIsStale(room,now=Date.now(),observedAt=null){
  const base=Number.isFinite(room.phaseStartedAt)?room.phaseStartedAt:observedAt;
