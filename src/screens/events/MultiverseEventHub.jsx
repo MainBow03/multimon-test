@@ -180,7 +180,10 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
    const snapshot=current.current;
    if(snapshot?.activeBattle?.turn!==b.turn||snapshot?.activeBattle?.matchId!==b.matchId)return;
    const bots=new Set((snapshot.bots||[]).map(x=>x.id));
-   if(!b.owners[b.side].every(id=>bots.has(id)||commands[id]))return;
+   // Dopo un KO un membro di una coppia può non avere più Multimon
+   // attivi: non aspettare comandi impossibili da inviare.
+   const activeOwners=new Set(activeEventFighters(b,b.side,snapshot.settings).map(x=>x.owner));
+   if(!b.owners[b.side].filter(id=>activeOwners.has(id)).every(id=>bots.has(id)||commands[id]))return;
    resolving.current=true;
    try{
     await hostUpdate(activeId,uid,old=>{
