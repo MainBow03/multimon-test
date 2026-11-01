@@ -70,7 +70,7 @@ export function prepareEmergencySwitch(room,players,now=Date.now()){
  const replacement=getRequiredSwitches(room,players);
  if(replacement.any){
   const blank=Object.fromEntries(PLAYER_KEYS.map(p=>[p,0]));
-  return {status:'switching_phase',phaseStartedAt:now,
+  return {status:'switching_phase',phaseStartedAt:now,turnCalculationOwner:null,turnCalculationStartedAt:null,
     field:{...(room.field||{}),...replacement.field},
     pendingSwitches:{...blank,...replacement.need},
     switchActions:Object.fromEntries(PLAYER_KEYS.map(p=>[p,[]])),
