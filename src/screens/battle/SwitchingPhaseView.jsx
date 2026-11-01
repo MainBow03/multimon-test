@@ -1,8 +1,12 @@
+import { getRequiredSwitches } from '../../systems/roomRecovery.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderSwitchingPhaseView(ctx) {
-const { Loader2, LogOut, TYPE_STYLES, appMode, gameState, getActivePlayers, getTournamentMatchOpponents, leaveRoom, playerRole, renderHealthBar, setPlayerRole, setShowLeaveConfirm, updateState } = ctx;
+const { Loader2, LogOut, TYPE_STYLES, appMode, gameState, getActivePlayers, getTournamentMatchOpponents, leaveRoom, playerRole, renderHealthBar, setPlayerRole, setShowLeaveConfirm, chooseReplacement, forceCompleteSwitches, canForceSwitch } = ctx;
 if (gameState.status === 'switching_phase') {
-        const isMyTurnToSwitch = !gameState.isBot[playerRole] && (gameState.pendingSwitches[playerRole] || 0) > (gameState.switchActions[playerRole]?.length || 0);
+        const needed=getRequiredSwitches(gameState,[playerRole]);
+        const required=needed.need[playerRole]||0;
+        const chosen=needed.valid[playerRole]||[];
+        const isMyTurnToSwitch = playerRole!=='spectator' && !gameState.isBot?.[playerRole] && required>chosen.length;
 
         // Identifica gli avversari per mostrare chi hanno in campo
         const activeMatchPlayers = getActivePlayers();
