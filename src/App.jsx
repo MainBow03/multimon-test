@@ -1164,13 +1164,41 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
     const handleNextTournamentMatch = (...__args) => handleNextTournamentMatchImpl({ appMode, gameState, setCombatLog, setCommandingIdx, setIsLogOpen, setPlayerRole, updateState }, ...__args);
 
+    // onSnapshot può arrivare più volte (heartbeat incluso) durante
+    // la stessa animazione: NON far ripartire il filmato ad ogni snapshot.
     useEffect(() => {
-        if (gameState.status === 'executing' && !isPlayingEvents && gameState.events.length > 0) {
-            playEventsAnimation();
+        if(gameState.status!=='executing'){
+            playbackKeyRef.current=null;
+            return;
         }
-    }, [gameState.status, gameState.events]);
+        if(!gameState.events?.length)return;
+        const key=`${appMode}:${roomId||'local'}:${gameState.phaseStartedAt||gameState.turnExpiresAt||'old'}:${gameState.postExecStatus}:${gameState.events.length}`;
+        if(playbackKeyRef.current===key)return;
+        playbackKeyRef.current=key;
+        playEventsAnimation();
+    },[appMode,roomId,gameState.status,gameState.events,
+       gameState.phaseStartedAt,gameState.postExecStatus]);
 
-    const playEventsAnimation = (...__args) => playEventsAnimationImpl({ appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, setCombatLog, setCommandingIdx, setDisplayField, setDisplayTeams, setEventPlaybackPassive, setEventPlaybackText, setIsPlayingEvents, setPlayerRole, setScreenFlash, updateState }, ...__args);
+    const advanceOnlinePhase = async (expectedStartedAt) => {
+        if(appMode!=='online_room'||!roomId||!user?.uid)return;
+        const ref=doc(db,'artifacts',appId,'public','data','rooms',roomId);
+        return runTransaction(db,async tx=>{
+            const snap=await tx.get(ref);
+            if(!snap.exists())return;
+            const current=snap.data();
+            if(current.status!=='executing'||current.phaseStartedAt!==expectedStartedAt)return;
+            if(playerRole!=='p1'&&!canRecoverRoom(current,playerRole))return;
+            if(current.playerUids?.[playerRole]&&current.playerUids[playerRole]!==user.uid)return;
+            const players=getActivePlayersImpl({gameState:current});
+            const patch=nextPhaseAfterExecution(current,players,Date.now());
+            if(patch)tx.update(ref,patch);
+        });
+    };
+
+    const playEventsAnimation = (...__args) => playEventsAnimationImpl({ appMode, gameState,
+        getActivePlayers, playerRole, setActionMenuMode, setCombatLog, setCommandingIdx,
+        setDisplayField, setDisplayTeams, setEventPlaybackPassive, setEventPlaybackText,
+        setIsPlayingEvents, setPlayerRole, setScreenFlash, updateState, advanceOnlinePhase }, ...__args);
 
     // --- RECUPERO STANZA + SOSTITUZIONI DOPO KO ---
     const recoverRoomPhase = async (force=false) => {
