@@ -1,3 +1,4 @@
+import './EventClassicBattleView.css';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { activeEventFighters } from '../../systems/multiverseEventEngine.js';
@@ -31,7 +32,7 @@ function BattleSprite({ unit, selected, clickable, onClick, enemy, turn }) {
     <div className="relative h-[118px] sm:h-[170px] lg:h-[215px] w-full flex items-end justify-center">
       <div className={`absolute bottom-0 inset-x-3 h-6 rounded-[100%] blur-sm ${enemy?'bg-rose-500/35':'bg-cyan-400/35'}`}/>
       <img src={unit.img} alt="" draggable={false}
-        className={`relative h-[110px] sm:h-[160px] lg:h-[205px] max-w-full w-full object-contain drop-shadow-[0_12px_12px_rgba(0,0,0,.95)] transition-all duration-500 ${unit.hp===0?'grayscale opacity-30 scale-75': 'animate-[battle-entrance_.45s_ease-out]'} ${unit.isHyper?'drop-shadow-[0_0_20px_rgba(251,191,36,.85)]':''} ${unit.transformed?'hue-rotate-[260deg] drop-shadow-[0_0_18px_rgba(217,70,239,.9)]':''}`}/>
+        className={`relative h-[110px] sm:h-[160px] lg:h-[205px] max-w-full w-full object-contain drop-shadow-[0_12px_12px_rgba(0,0,0,.95)] transition-all duration-500 ${unit.hp===0?'grayscale opacity-30 scale-75': 'event-battle-entrance'} ${unit.isHyper?'drop-shadow-[0_0_20px_rgba(251,191,36,.85)]':''} ${unit.transformed?'hue-rotate-[260deg] drop-shadow-[0_0_18px_rgba(217,70,239,.9)]':''}`}/>
       {unit.isHyper && <span className="absolute top-1 right-1 bg-amber-400 text-black font-black rounded-full text-[9px] px-1.5 py-0.5">IPER</span>}
       {unit.heldItem==='iperband'&&<div className="absolute bottom-8 right-0 rounded-full border border-violet-300/70 bg-slate-950/90 p-0.5"><ItemArtwork id="iperband" size={25}/></div>}
       {selected&&<span className="absolute -top-2 bg-amber-400 text-black rounded-lg px-2 py-1 font-black text-[10px] animate-bounce">BERSAGLIO</span>}
@@ -92,7 +93,7 @@ export function EventClassicBattleView({battle,settings,participants,currentUid,
     </div>
     <div className="relative overflow-hidden rounded-[26px] border-2 border-cyan-500/40 bg-slate-950 shadow-[0_0_38px_rgba(34,211,238,.10)] min-h-[530px]">
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_50%_40%,rgba(14,165,233,.15),transparent_65%),linear-gradient(180deg,#122142_0%,#1b2545_52%,#12172d_53%,#0a1223_100%)]"/>
-      <div className="absolute left-[-20%] bottom-[9%] w-[140%] h-[28%] rounded-[100%] border-4 border-cyan-300/15 bg-cyan-600/10 pointer-events-none"/>
+      <div className="absolute left-[-20%] bottom-[9%] w-[140%] h-[28%] rounded-[100%] border-4 border-cyan-300/15 bg-cyan-600/10 pointer-events-none event-battle-light"/>
       <div className="absolute left-[10%] right-[10%] top-[51%] h-[1px] bg-white/15 pointer-events-none"/>
       {announcement&&<div className="absolute z-40 top-[43%] inset-x-3 pointer-events-none text-center">
         <span className="inline-block max-w-2xl rounded-2xl border border-amber-400/60 bg-black/85 px-4 py-2 text-base sm:text-xl font-black text-amber-300 shadow-2xl animate-pulse">{announcement}</span>
