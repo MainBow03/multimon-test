@@ -313,6 +313,7 @@ const { gameState, updateState } = ctx;
             const botNum = Object.values(gameState.isBot).filter(Boolean).length + 1;
             updateState({
                 [`players.${slot}`]: `CPU Bot ${botNum}`,
+                [`playerUids.${slot}`]: null,
                 [`playerAvatars.${slot}`]: `https://api.dicebear.com/7.x/bottts/svg?seed=CpuBot${botNum}&backgroundColor=020617`,
                 [`isBot.${slot}`]: true,
                 [`inventory.${slot}`]: { cura_totale: 1 }
