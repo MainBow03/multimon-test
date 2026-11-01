@@ -178,6 +178,10 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                 borderClass = 'border-yellow-400 shadow-[0_0_25px_rgba(250,204,21,0.8)] z-40';
             }
             
+            if (char.mahitoTransformed && !isHyper && !isJuggernaut) {
+                borderClass = 'border-fuchsia-400 shadow-[0_0_25px_rgba(217,70,239,0.85)]';
+            }
+
             if (isTargetedNow) {
                 borderClass = 'border-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.8)] scale-105 cursor-pointer z-20';
             } else if (isTargetable) {
@@ -203,6 +207,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
             // --- LOGICA CAMBIO IMMAGINE TRASFORMAZIONI + ANIMAZIONE ---
             let formLevel = 0;
             let displayImg = char.img;
+            if (char.mahitoTransformed) formLevel = 'soul';
             
             if (char.id === 'ponygon' && char.statuses) {
                 if (char.statuses.some(s => s.type === 'Dioemuru')) {
@@ -313,7 +318,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                         <div className="font-bold text-sm truncate text-gray-100 mb-1">
                             {char.name} 
                             {isJuggernaut && <span className="text-[10px] text-rose-500 ml-1">(BOSS)</span>}
-                            {isHyper && <span className="text-[10px] text-yellow-400 font-black ml-1">(IPER)</span>} 
+                            {isHyper && <span className="text-[10px] text-yellow-400 font-black ml-1">(IPER)</span>}
+                            {char.mahitoTransformed && <span className="text-[10px] text-fuchsia-300 font-black ml-1">(TRASFIGURATO)</span>} 
                         </div>
                         
                         <div className="flex gap-1 justify-center mb-1 flex-wrap">
