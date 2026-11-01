@@ -1019,6 +1019,10 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
               if (isHostOrLocal && gameState.status === 'battling') {
                   const activePlayers = getActivePlayers();
+                  // Se un KO ha lasciato vuoto il campo, NON trattare
+                  // "nessuna azione mancante" come "tutti pronti".
+                  // La fase va riparata dalla procedura di sostituzione.
+                  if(prepareEmergencySwitch(gameState,activePlayers))return;
                   let humansReady = true;
 
                   activePlayers.forEach(p => {
