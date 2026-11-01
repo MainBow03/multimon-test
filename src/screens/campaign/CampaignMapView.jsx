@@ -1,3 +1,4 @@
+import { getCampaignHealthSummary } from '../../systems/campaignRoster.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignMapView(ctx) {
 const { ArrowLeft, CHARACTERS, Coins, TYPE_STYLES, Users, activeCampaignId, activeMission, activeSector, appMode, campaignState, loadCampaign, renderHealthBar, setAppMode, setCampaignDialogueIdx, setCampaignSelectedTeam, setCampaignState } = ctx;
@@ -6,9 +7,9 @@ if (appMode === 'campaign_map') {
         const mission = activeMission;
         
         // Calcolo per l'avviso salute
-        const aliveHeroes = campaignState.roster.filter(id => campaignState.rosterStats[id] > 0);
-        const totalHpPercentage = aliveHeroes.reduce((acc, id) => acc + (campaignState.rosterStats[id] / CHARACTERS.find(c=>c.id===id).maxHp), 0) / Math.max(1, aliveHeroes.length);
-        const lowHealthWarning = aliveHeroes.length > 0 && totalHpPercentage < 0.4;
+        const { lowHealthWarning } = getCampaignHealthSummary(
+            campaignState.roster, campaignState.rosterStats, CHARACTERS
+        );
         
         return (
             <div className={`min-h-screen flex flex-col p-6 text-white ${sector.bg} relative overflow-hidden`}>
