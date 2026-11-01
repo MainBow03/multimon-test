@@ -1,7 +1,7 @@
 export const MOVES_DB = {
           'Trasfigurazione Oziosa': { name: 'Trasfigurazione Oziosa', type: 'Spettro', power: 0, accuracy: 1, target: 'self', transformMahito: true, strictUses: true, maxUses: 1, desc: 'Mahito cambia forma e aumenta Attacco e Attacco Speciale di uno stadio (+50%). Una volta per battaglia.' },
           'Tocco dell’Anima': { name: 'Tocco dell’Anima', type: 'Spettro', power: 95, accuracy: 1, contact: true, desc: 'Potenza 95; danni doppi contro bersagli con Anima Distorta.' },
-          'Polimorfismo Mostruoso': { name: 'Polimorfismo Mostruoso', type: 'Folletto', power: 75, targetCount: 4, statusEffect: { type: 'Confuso', chance: 0.1, turns: 3 }, desc: 'Colpisce tutti i nemici. Ogni bersaglio ha il 10% di probabilità di essere confuso.' },
+          'Polimorfismo Mostruoso': { name: 'Polimorfismo Mostruoso', type: 'Folletto', power: 75, special: true, targetCount: 4, statusEffect: { type: 'Confuso', chance: 0.1, turns: 3 }, desc: 'Colpisce tutti i nemici. Ogni bersaglio ha il 10% di probabilità di essere confuso.' },
           'Forma Verdetto Istantaneo': { name: 'Forma Verdetto Istantaneo', type: 'Spettro', power: 120, maxUses: 1, contact: true, selfStatBuff: { spd: 1.5 }, desc: 'Mossa suprema: potenza 120 e Velocità +50%. Un solo utilizzo per battaglia.' },
           'Azione': { name: 'Azione', type: 'Normale', power: 40, desc: 'Un attacco fisico rapido e diretto.' },
           'Pugno': { name: 'Pugno Duro', type: 'Lotta', power: 60, desc: 'Sferra un pugno devastante al bersaglio.' },
