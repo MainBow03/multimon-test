@@ -1,3 +1,4 @@
+import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { canEquipHeldItem } from '../../systems/heldEquipment.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
@@ -682,7 +683,7 @@ if (appMode === 'campaign_team_select') {
                     })()}
                 </div>
                 {campaignSelectedTeam.length > 0 && <div className="w-full max-w-6xl bg-slate-950/80 border border-violet-500/50 rounded-2xl p-4 mb-4">
-                  <div className="font-black text-violet-300 text-lg mb-2">🎒 Strumenti da battaglia</div>
+                  <div className="font-black text-violet-300 text-lg mb-2"><ItemArtwork id="iperband" size={25} className="inline-block align-middle mr-2"/> Strumenti da battaglia</div>
                   <div className="text-xs text-slate-400 mb-3">Seleziona prima la squadra, poi assegna gli strumenti acquistati nello shop. Non si consumano.</div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     {campaignSelectedTeam.map(id => {
@@ -692,7 +693,7 @@ if (appMode === 'campaign_team_select') {
                         <span className="min-w-0 flex-1"><span className="text-xs font-bold block truncate">{character.name}</span>
                         <select aria-label={`Strumento per ${character.name}`} className="w-full bg-slate-800 p-2 text-xs rounded-lg mt-1" value={campaignHeldItems[id] || ''} onChange={event => assignCampaignItem(id, event.target.value)}>
                           <option value="">Nessuno</option>
-                          {Object.values(ITEMS_DB).filter(item => item.type === 'held' && equipInventory[item.id] > 0).map(item => <option key={item.id} value={item.id}>{item.icon} {item.name} (x{equipInventory[item.id]})</option>)}
+                          {Object.values(ITEMS_DB).filter(item => item.type === 'held' && equipInventory[item.id] > 0).map(item => <option key={item.id} value={item.id}>{item.name} (x{equipInventory[item.id]})</option>)}
                         </select></span>
                       </label> : null;
                     })}
