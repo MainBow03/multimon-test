@@ -868,7 +868,7 @@ const { appMode, calculateTurn, gameState, getActivePlayers, playerRole } = ctx;
           
 };
 
-export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, isFirstAttackOfTurn = false) => {
+export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, isFirstAttackOfTurn = false, random = Math.random) => {
 
             let pwr = move.power * getHeldPowerFactor(attacker, move);
             if (move.speedScaling) pwr += Math.floor(attacker.spd / 3);
@@ -898,7 +898,7 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             // FORMULA BILANCIATA: Divisore aumentato da 50 a 85 per ridurre i danni globali del ~40%
             // In questo modo si evitano i "one-shot" e gli scontri diventano più lunghi e strategici
             const baseDamage = ((2 * 50 / 5 + 2) * pwr * (attackValue / defValue)) / 85 + 2;
-            const randomFactor = (Math.floor(Math.random() * 16) + 85) / 100;
+            const randomFactor = (Math.floor(random() * 16) + 85) / 100;
             const weakenFactor = attacker.statuses?.some(s => s.type === 'Indebolito') ? 0.75 : 1;
             const teamDefFactor = defender.statuses?.some(s => s.type === 'Scudo Team') ? 0.33 : 1;
 

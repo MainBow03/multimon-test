@@ -1,9 +1,9 @@
 import React, {useState,useEffect,useRef,useMemo} from 'react';
 import { CHARACTERS } from '../../data/characters.js';
-import { ItemArtwork } from '../../components/ItemArtwork.jsx';
+import { EventClassicBattleView } from './EventClassicBattleView.jsx';
 import { normalizeEventSettings,validTeam,makeEventEntrants,makeEventBracket,nextEventMatch,buildEventBattle,activeEventFighters,
- botActions,eventTurn,completeEventMatch,eventPlacements,simulateBots,EVENT_PRIZES } from '../../systems/multiverseEventEngine.js';
-import {watchEvents,watchEvent,watchPlayers,watchCommands,createEvent,joinEvent,saveTeam,sendMoves,hostUpdate} from '../../firebase/multiverseEvents.js';
+ botActions,eventTurn,completeEventMatch,eventPlacements,simulateBots,EVENT_PRIZES,isLiveEvent,EVENT_INACTIVITY_MS } from '../../systems/multiverseEventEngine.js';
+import {watchEvents,watchEvent,watchPlayers,watchCommands,createEvent,joinEvent,saveTeam,sendMoves,hostUpdate,heartbeatEvent,cancelAndPurgeEvent,purgeStaleEvent} from '../../firebase/multiverseEvents.js';
 
 const available=CHARACTERS.filter(c=>!c.isSummonOnly&&!c.isSecretUnlock);
 const index=Object.fromEntries(CHARACTERS.map(c=>[c.id,c]));
@@ -12,63 +12,90 @@ const gray='rounded-xl px-4 py-2.5 font-bold bg-slate-800 border border-slate-70
 const inp='w-full rounded-xl border border-slate-700 bg-slate-950 p-2.5 text-white';
 const card='rounded-2xl border border-slate-700 bg-slate-900/90 p-4';
 
+// Bracket con abbinamenti ben visibili, avanzamento e collegamenti fra turni.
 function Bracket({matches,current}){
- const levels=[...new Set(matches.map(m=>m.round))];
- return <div className="w-full overflow-x-auto pb-3 custom-scrollbar"><div className="flex gap-4 min-w-max">
- {levels.map(round=><div key={round} className="w-64 space-y-3"><h3 className="font-black text-violet-300 text-sm uppercase">{round===levels.length-1?'Finali':'Turno '+(round+1)}</h3>
- {matches.filter(x=>x.round===round).map(m=><div key={m.id} className={`p-3 rounded-xl border ${current===m.id?'bg-violet-950 border-fuchsia-400':'bg-slate-950 border-slate-700'}`}>
- <div className="uppercase text-[10px] text-slate-500 font-black">{m.stage==='bronze'?'Terzo posto':m.stage==='final'?'Finalissima':m.id}</div>
- {['sideA','sideB'].map(k=><div key={k} className={`truncate text-sm py-1 ${m.winner?.id===m[k]?.id?'text-emerald-300 font-black':''}`}>{m[k]?.name||'Da determinare'}</div>)}
- </div>)}</div>)}
- </div></div>;
-}
-function Champion({c,isActive}){
- return <div className={`rounded-xl border p-2 ${c.hp===0?'opacity-35 grayscale':isActive?'border-fuchsia-400 bg-violet-950/50':'border-slate-700 bg-slate-950'}`}>
- <div className="flex items-center gap-2"><img src={c.img} alt="" className="w-11 h-11 object-cover rounded-full"/><div className="min-w-0 flex-1"><b className="text-xs block truncate">{c.name}</b>
- <div className="text-[9px] text-slate-400 truncate">{c.owner.slice(0,14)}</div>{c.hyper&&<div className="text-[9px] text-amber-300">IPER</div>}</div>
- {c.heldItem==='iperband'&&<ItemArtwork id="iperband" size={24}/>}</div>
- <div className="h-2 mt-2 rounded-full bg-slate-800 overflow-hidden"><div className="h-full bg-gradient-to-r from-rose-500 to-emerald-400" style={{width:`${Math.max(0,c.hp/c.maxHp*100)}%`}}/></div>
- <div className="text-[10px] text-right text-slate-400">{c.hp}/{c.maxHp} PS</div>
- {c.statuses.length>0&&<div className="text-[10px] text-fuchsia-300 truncate">{c.statuses.join(', ')}</div>}
+ const levels=[...new Set(matches.map(m=>m.round))].sort((a,b)=>a-b);
+ const cardFor=(m,round)=> <div key={m.id}
+   className={`relative w-60 shrink-0 overflow-visible rounded-2xl border-2 p-3 shadow-xl transition-all ${current===m.id?'border-fuchsia-400 bg-fuchsia-950/90 ring-2 ring-fuchsia-400/40':'border-slate-700 bg-slate-950/95'}`}>
+   <div className="flex justify-between gap-2 text-[10px] font-black uppercase tracking-widest text-amber-300 mb-2">
+     <span>{m.stage==='bronze'?'🥉 TERZO POSTO':m.stage==='final'?'🏆 FINALISSIMA':'⚔️ '+m.id}</span>
+     {current===m.id&&<span className="text-fuchsia-300 animate-pulse">IN DIRETTA</span>}
+     {m.winner&&<span className="text-emerald-400">FINITO</span>}
+   </div>
+   {['sideA','sideB'].map((key,i)=><div key={key}
+     className={`flex items-center gap-2 rounded-lg p-2 mb-1.5 border ${m.winner?.id===m[key]?.id?'bg-emerald-900/35 border-emerald-400/60':'bg-slate-900/80 border-slate-700/40'}`}>
+      <div className={`rounded-lg w-7 h-7 grid place-items-center font-black text-xs ${i?'bg-rose-700':'bg-cyan-700'}`}>{m[key]?.name?.[0]?.toUpperCase()||'?'}</div>
+      <span className="truncate flex-1 text-sm font-bold">{m[key]?.name||'Da determinare'}</span>
+      {m.winner?.id===m[key]?.id&&<span className="text-amber-300">★</span>}
+   </div>)}
+   {round<levels.length-1&&m.stage!=='bronze'&&<span className="absolute -right-4 top-1/2 w-4 border-t-2 border-violet-400/65"/>}
+ </div>;
+ return <div className="relative overflow-x-auto overflow-y-visible custom-scrollbar p-3 rounded-xl border border-violet-500/30 bg-[radial-gradient(ellipse_at_top,#24143b_0%,#0b1022_65%)]">
+  <div className="flex gap-7 items-stretch min-w-max py-3">
+   {levels.map(round=>{
+    const curr=matches.filter(m=>m.round===round);
+    return <div key={round} className="w-60 shrink-0 flex flex-col">
+      <div className="mb-5 p-2 border-b border-violet-400/50 text-center font-black uppercase tracking-[.15em] text-sm text-fuchsia-300">
+        {round===levels.length-1?'🏆 FINALE':'ROUND '+(round+1)}
+      </div>
+      <div className="flex-1 flex flex-col justify-around gap-4" style={{minHeight:`${Math.max(185,curr.length*164)}px`}}>
+        {curr.map(m=>cardFor(m,round))}
+      </div>
+    </div>;
+   })}
+  </div>
  </div>;
 }
-function Arena({battle,settings,uid,view,setView,orders,setOrders,submit,force,isHost,busy}){
- const playing=battle.owners[battle.side].includes(uid)&&!battle.finished;
- const my=playing?activeEventFighters(battle,battle.side,settings).filter(x=>x.owner===uid):[];
- const targets=activeEventFighters(battle,battle.side==='A'?'B':'A',settings);
- const update=(key,field,value)=>setOrders(old=>({...old,[key]:{...old[key],[field]:value}}));
- const send=()=>submit(my.map(c=>({actor:c.key,moveIndex:+(orders[c.key]?.moveIndex||0),
- target:orders[c.key]?.target||targets[0]?.key||null,hyper:!!orders[c.key]?.hyper})));
- return <div className="space-y-4">
- <div className="flex flex-wrap justify-between gap-3 items-center"><b className="text-xl text-fuchsia-300">Turno {battle.turn} · Lato {battle.side} in azione</b>
- <div className="flex gap-2"><button onClick={()=>setView('A')} className={view==='A'?btn:gray}>Vista A</button><button onClick={()=>setView('B')} className={view==='B'?btn:gray}>Vista B</button></div></div>
- <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">{(view==='A'?['A','B']:['B','A']).map(side=><div key={side} className={card}><h3 className="mb-2 font-black text-cyan-300">Lato {side}</h3>
- <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">{battle.teams[side].map(c=><Champion key={c.key} c={c} isActive={activeEventFighters(battle,side,settings).some(x=>x.key===c.key)}/>)}</div>
- </div>)}</div>
- {playing&&<div className={`${card} border-fuchsia-500/50`}><h3 className="text-fuchsia-300 font-black mb-3">Scegli le mosse della squadra</h3>
- {my.map(c=><div key={c.key} className="grid sm:grid-cols-3 gap-2 py-2 border-b border-slate-700/50 items-center"><b className="text-xs">{c.name}</b>
- <select className={inp} value={orders[c.key]?.moveIndex||'0'} onChange={e=>update(c.key,'moveIndex',e.target.value)}>
- {c.moves.map((m,i)=><option key={i} value={i} disabled={m.uses===0}>{m.name} {m.power?'· '+m.power+' pot.':'· Stato'}</option>)}</select>
- <select className={inp} value={orders[c.key]?.target||targets[0]?.key||''} onChange={e=>update(c.key,'target',e.target.value)}>
- {targets.map(t=><option key={t.key} value={t.key}>Bersaglio: {t.name}</option>)}</select>
- {settings.allowHyper&&<label className="text-xs sm:col-span-3 text-amber-300"><input type="checkbox" disabled={!!battle.hyperUsed[uid]} checked={!!orders[c.key]?.hyper} onChange={e=>update(c.key,'hyper',e.target.checked)}/> Forma Iper (una a incontro)</label>}
- </div>)}<button className={`${btn} mt-3`} disabled={busy} onClick={send}>Invia le mosse</button></div>}
- {!playing&&!battle.finished&&<p className="text-center text-sm text-slate-400">Sei spettatore o in attesa del tuo turno. Cambia prospettiva quando vuoi.</p>}
- {battle.finished&&<div className="rounded-xl p-4 border border-emerald-500/50 text-center font-black text-emerald-300">🏆 Ha vinto il lato {battle.winner}!</div>}
- {isHost&&!battle.finished&&<button className={gray} disabled={busy} onClick={force}>Host: forza il turno se un partecipante è assente</button>}
- <div className={`${card} max-h-72 overflow-y-auto custom-scrollbar`}><b className="text-xs uppercase text-slate-400">Cronaca in diretta</b>{[...battle.log].reverse().map((line,i)=><div key={i} className="text-sm text-slate-300 py-1 border-b border-slate-800">{line}</div>)}</div>
- </div>;
+
+function Arena({battle,settings,uid,view,setView,orders,setOrders,submit,force,isHost,busy,participants}){
+ // Il torneo usa i dati sincronizzati dell'evento, ma la presentazione
+ // riprende il campo, i PNG e i comandi a pulsanti delle battaglie normali.
+ const asUnit=u=>({...u,isHyper:u.hyper||u.isHyper,transformed:u.transformed||u.mahitoTransformed,
+    moves:u.moves.map(m=>({...m,remainingUses:m.uses??m.remainingUses??null}))});
+ const normalized={...battle,
+    squads:{A:battle.teams.A.map(asUnit),B:battle.teams.B.map(asUnit)},
+    members:battle.owners,winningSide:battle.winner};
+ return <EventClassicBattleView battle={normalized} settings={settings}
+   participants={participants||[]} currentUid={uid} perspective={view}
+   setPerspective={setView} moveDraft={orders} setMoveDraft={setOrders}
+   submit={submit} hostForce={force} busy={busy} isHost={isHost}/>;
 }
+
 export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getPlayerData,updateLocalStats}){
  const [opened,open]=useState(false),[createScreen,showCreate]=useState(false),[activeId,setId]=useState('');
  const [events,setEvents]=useState([]),[event,setEvent]=useState(null),[players,setPlayers]=useState([]);
+ const [clock,setClock]=useState(Date.now());
  const [settings,setSettings]=useState(normalizeEventSettings()),[draft,setDraft]=useState([]),[held,setHeld]=useState({});
  const [botName,setBotName]=useState(''),[editing,setEditing]=useState(''),[editName,setEditName]=useState(''),[editRoster,setEditRoster]=useState([]);
  const [perspective,setPerspective]=useState('A'),[orders,setOrders]=useState({}),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const resolving=useRef(false),current=useRef(null);current.current=event;
  const uid=user?.uid||'',isHost=event?.hostId===uid;
  const mine=players.find(p=>p.uid===uid),count=players.length+(event?.bots?.length||0),capacity=event?event.settings.entrants*(event.settings.doubles?2:1):0;
- const live=events.filter(e=>['lobby','running'].includes(e.status)&&Date.now()-e.createdAt<86400000).sort((a,b)=>b.createdAt-a.createdAt);
+ const live=events.filter(e=>isLiveEvent(e,clock)).sort((a,b)=>b.createdAt-a.createdAt);
+ const hostingId=events.find(e=>e.hostId===uid&&isLiveEvent(e,clock))?.id||'';
+ useEffect(()=>{const t=setInterval(()=>setClock(Date.now()),12000);return()=>clearInterval(t)},[]);
+ // Il torneo rimane online durante le battaglie: scade solo se l'host
+ // scompare senza aggiornare la propria presenza per cinque minuti.
+ useEffect(()=>{
+  if(!hostingId||!uid)return;
+  const ping=()=>heartbeatEvent(hostingId,uid).catch(e=>console.warn('Heartbeat torneo:',e));
+  ping();
+  const t=setInterval(ping,25000);
+  return()=>clearInterval(t);
+ },[hostingId,uid]);
+ // Il client di qualsiasi spettatore può ripulire un torneo abbandonato.
+ // Le regole Firestore decidono se è davvero scaduto, usando l'orologio server.
+ useEffect(()=>{
+  for(const e of events.filter(x=>['lobby','running','cancelled','finished'].includes(x.status)
+    && !isLiveEvent(x,clock)&&(clock-(x.updatedAt||x.createdAt)>EVENT_INACTIVITY_MS)).slice(0,2)){
+   purgeStaleEvent(e,clock).catch(()=>{});
+  }
+ },[events,clock]);
+ useEffect(()=>{
+   if(event&&['lobby','running'].includes(event.status)&&!isLiveEvent(event,clock)){
+     setEvent(null);setId('');open(false);
+   }
+ },[event?.id,event?.status,event?.updatedAt,event?.hostHeartbeatAt,clock]);
  const ordered=useMemo(()=>{
   if(!event)return[];
   const all=[...players,...event.bots].map(p=>({...p,id:p.id||p.uid})),map=new Map(all.map(p=>[p.id,p]));
@@ -83,6 +110,14 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
  const off2=watchPlayers(activeId,setPlayers,e=>setError('Partecipanti: '+e.message));return()=>{off1();off2()};},[activeId,user?.uid]);
  const operate=async fn=>{if(busy)return;setBusy(true);setError('');try{await fn()}catch(e){setError(e.message||String(e))}finally{setBusy(false)}};
  const updateHost=fn=>hostUpdate(activeId,uid,old=>old.status==='lobby'?fn(old):null);
+ const closeEvent=()=>{
+  if(isHost&&event&&['lobby','running'].includes(event.status)){
+   operate(async()=>{
+     await cancelAndPurgeEvent(activeId,uid);
+     setId('');setEvent(null);open(false);
+   });
+  }else{open(false);setError('');}
+ };
  const join=()=>operate(async()=>{if(!event||event.status!=='lobby'||count>=capacity)throw Error('Iscrizioni chiuse.');
  if(!mine)await joinEvent(activeId,{uid,name:playerName.trim(),avatar:playerAvatarUrl||''});});
  const create=()=>operate(async()=>{if(!user||!playerName.trim())throw Error('Connettiti e inserisci un nome nel menu');
@@ -145,7 +180,10 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
    const snapshot=current.current;
    if(snapshot?.activeBattle?.turn!==b.turn||snapshot?.activeBattle?.matchId!==b.matchId)return;
    const bots=new Set((snapshot.bots||[]).map(x=>x.id));
-   if(!b.owners[b.side].every(id=>bots.has(id)||commands[id]))return;
+   // Dopo un KO un membro di una coppia può non avere più Multimon
+   // attivi: non aspettare comandi impossibili da inviare.
+   const activeOwners=new Set(activeEventFighters(b,b.side,snapshot.settings).map(x=>x.owner));
+   if(!b.owners[b.side].filter(id=>activeOwners.has(id)).every(id=>bots.has(id)||commands[id]))return;
    resolving.current=true;
    try{
     await hostUpdate(activeId,uid,old=>{
@@ -172,7 +210,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
  {live.length>0&&!opened&&playerName.trim()&&<button className="fixed z-[90] bottom-5 right-5 bg-gradient-to-r from-fuchsia-700 to-violet-700 border border-fuchsia-300 shadow-2xl rounded-xl p-4 font-black text-white animate-pulse" onClick={()=>openEvent(live[0])}>🏆 TORNEO DEL MULTIVERSO · {live[0].status==='lobby'?'UNISCITI':'GUARDA'}</button>}
  {!opened&&appMode==='menu'&&<button className="fixed z-[80] bottom-5 left-5 bg-slate-950 border border-amber-400 rounded-xl px-4 py-3 font-black text-amber-300" onClick={()=>{open(true);showCreate(true);setId('')}}>🏆 Torneo del Multiverso</button>}
  {opened&&<div className="fixed inset-0 z-[100] overflow-y-auto custom-scrollbar bg-black/95 text-white" role="dialog" aria-modal="true" aria-label="Torneo del Multiverso"><div className="max-w-[1800px] mx-auto p-4 sm:p-8 space-y-5">
- <header className="flex flex-wrap justify-between gap-3 border-b border-fuchsia-500/40 pb-4"><div><div className="text-amber-300 text-xs tracking-widest font-black">EVENTO GLOBALE</div><h1 className="text-3xl sm:text-5xl font-black text-fuchsia-300">IL TORNEO DEL MULTIVERSO</h1></div><button className={gray} onClick={()=>{open(false);setError('')}}>Chiudi</button></header>
+ <header className="flex flex-wrap justify-between gap-3 border-b border-fuchsia-500/40 pb-4"><div><div className="text-amber-300 text-xs tracking-widest font-black">EVENTO GLOBALE</div><h1 className="text-3xl sm:text-5xl font-black text-fuchsia-300">IL TORNEO DEL MULTIVERSO</h1></div><button className={gray} onClick={closeEvent}>{isHost&&['lobby','running'].includes(event?.status)?'Esci e termina torneo':'Chiudi'}</button></header>
  {error&&<div className="rounded-xl p-4 bg-red-950 text-rose-200 border border-red-500/50 text-sm">{error}<div className="text-xs mt-2">Se vedi «Missing or insufficient permissions», integra prima le regole Firebase del torneo.</div></div>}
  {!user&&<p>Connessione a Firebase in corso…</p>}
  {(!event||createScreen)&&<div className={card}><h2 className="font-black text-xl mb-3">Crea un torneo globale</h2><div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -196,7 +234,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
  {event.settings.allowItems&&<div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-3">{draft.map(id=><label key={id} className="text-xs">{index[id]?.name}<select className={inp} value={held[id]||''} onChange={e=>setHeld(v=>({...v,[id]:e.target.value}))}><option value="">Nessuno</option>{(getPlayerData().inventory?.iperband||0)>0&&<option value="iperband">Iperband</option>}</select></label>)}</div>}
  <button className={`${btn} mt-4`} disabled={busy||draft.length!==event.settings.teamSize} onClick={save}>Conferma squadra · Pronto!</button>
  </>}</div>}
- {isHost&&<div className={`${card} border-amber-400/40 space-y-3`}><div className="flex justify-between"><h2 className="text-xl text-amber-300 font-black">Pannello host</h2><button className={gray} onClick={()=>operate(()=>hostUpdate(activeId,uid,o=>o.status==='lobby'?{status:'cancelled'}:null))}>Annulla evento</button></div>
+ {isHost&&<div className={`${card} border-amber-400/40 space-y-3`}><div className="flex justify-between"><h2 className="text-xl text-amber-300 font-black">Pannello host</h2><button className={gray} onClick={()=>operate(async()=>{await cancelAndPurgeEvent(activeId,uid);setId('');setEvent(null);open(false);})}>Annulla evento</button></div>
  <div className="flex gap-2 flex-wrap"><input className={`${inp} max-w-xs`} placeholder="Nome del bot" value={botName} onChange={e=>setBotName(e.target.value)}/><button className={btn} onClick={addBot} disabled={busy||count>=capacity}>Aggiungi bot</button></div>
  {event.bots.map(bot=><div key={bot.id} className="flex gap-2 flex-wrap items-center bg-slate-950 p-2 rounded-xl text-xs"><b className="flex-1">{bot.name} · {bot.teamIds.map(id=>index[id]?.name).join(', ')}</b><button className={gray} onClick={()=>botEdit(bot)}>Modifica squadra</button><button className={gray} onClick={()=>removeBot(bot.id)}>Rimuovi</button></div>)}
  {editing&&<div className="rounded-xl border border-violet-500 p-3 space-y-2"><input className={inp} value={editName} onChange={e=>setEditName(e.target.value)}/>
@@ -209,7 +247,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
  </>}
  {event.status!=='lobby'&&<>
  <div className={card}><h2 className="text-xl font-black mb-3">Bracket del Multiverso</h2><Bracket matches={event.matches} current={event.activeBattle?.matchId}/></div>
- {event.activeBattle&&<Arena key={event.activeBattle.matchId} battle={event.activeBattle} settings={event.settings} uid={uid} view={perspective} setView={setPerspective} orders={orders} setOrders={setOrders} submit={send} force={force} isHost={isHost} busy={busy}/>}
+ {event.activeBattle&&<Arena key={event.activeBattle.matchId+'-'+event.activeBattle.turn} participants={[...players,...event.bots.map(b=>({uid:b.id,name:b.name}))]} battle={event.activeBattle} settings={event.settings} uid={uid} view={perspective} setView={setPerspective} orders={orders} setOrders={setOrders} submit={send} force={force} isHost={isHost} busy={busy}/>}
  {isHost&&event.status==='running'&&event.activeBattle?.finished&&<button className={btn} onClick={next} disabled={busy}>Avvia il prossimo incontro →</button>}
  {event.status==='finished'&&event.placements&&<div className={`${card} border-amber-400/50 text-center`}><h2 className="text-3xl text-amber-300 font-black mb-3">🏆 Il Torneo è finito!</h2>
  {event.entrants.map(e=><div key={e.id} className="p-2 border-b border-slate-700 text-sm">{e.name} · #{event.placements.entrants[e.id]||4} · {EVENT_PRIZES[event.placements.entrants[e.id]]||50} monete</div>)}

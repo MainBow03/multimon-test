@@ -1,5 +1,6 @@
 import { CHARACTERS } from '../data/characters.js';
 import { getMultiplier } from './typeSystem.js';
+import { calculateDamageImpl } from './battleSystem.js';
 export const EVENT_PRIZES={1:400,2:200,3:140,other:50};
 export function normalizeEventSettings(s={}){
  const n=+s.entrants,team=+s.teamSize,field=+s.fieldSize,doubles=!!s.doubles;
@@ -15,9 +16,27 @@ export function makeEventEntrants(players,bots,s,order=[]){
  const n=s.doubles?2:1;
  return Array.from({length:s.entrants},(_,i)=>{const slice=sorted.slice(i*n,i*n+n);return{id:'entrant-'+i,name:slice.map(x=>x.name).join(' & '),members:slice.map(x=>x.id)}});
 }
-export function makeEventBracket(entrants){
- const matches=[],n=Math.log2(entrants.length);
- for(let r=0;r<n;r++)for(let i=0;i<entrants.length/(2**(r+1));i++)matches.push({id:'r'+r+'-m'+i,round:r,slot:i,stage:r===n-1?'final':'normal',sideA:r===0?entrants[2*i]:null,sideB:r===0?entrants[2*i+1]:null,winner:null,loser:null});
+// Mantieni le coppie impostate dall'host, ma distribuiscile casualmente nel primo turno.
+export function shuffleEventEntrants(entrants,random=Math.random){
+ const shuffled=[...entrants];
+ for(let i=shuffled.length-1;i>0;i--){
+  const j=Math.max(0,Math.min(i,Math.floor(random()*(i+1))));
+  [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+ }
+ return shuffled;
+}
+export const EVENT_INACTIVITY_MS=5*60*1000;
+export function isLiveEvent(e,now=Date.now()){
+ if(!e||!['lobby','running'].includes(e.status))return false;
+ const heartbeat=e.hostHeartbeatAt?.toMillis?.() ??
+  (typeof e.hostHeartbeatAt?.seconds==='number'?e.hostHeartbeatAt.seconds*1000:(e.updatedAt||e.createdAt));
+ return Number.isFinite(heartbeat)&&heartbeat<=now+30000&&now-heartbeat<EVENT_INACTIVITY_MS;
+}
+export function makeEventBracket(entrants,random=Math.random){
+ if(![4,8,16,32].includes(entrants.length))throw Error('Numero di squadre non valido.');
+ const seed=shuffleEventEntrants(entrants,random);
+ const matches=[],n=Math.log2(seed.length);
+ for(let r=0;r<n;r++)for(let i=0;i<entrants.length/(2**(r+1));i++)matches.push({id:'r'+r+'-m'+i,round:r,slot:i,stage:r===n-1?'final':'normal',sideA:r===0?seed[2*i]:null,sideB:r===0?seed[2*i+1]:null,winner:null,loser:null});
  matches.splice(matches.length-1,0,{id:'bronze',round:n-1,slot:-1,stage:'bronze',sideA:null,sideB:null,winner:null,loser:null});
  return matches;
 }
@@ -44,10 +63,11 @@ export function eventPlacements(matches,entrants){
 function fighter(id,owner,item){
  const c=CHARACTERS.find(x=>x.id===id);if(!c)throw Error('Multimon mancante: '+id);
  return{key:owner+'-'+id,id,owner,name:c.name,img:c.img,types:c.types||[],hp:c.maxHp,maxHp:c.maxHp,
- atk:c.atk,def:c.def,spd:c.spd,spAtk:c.spAtk||c.atk,heldItem:item||null,hyper:false,statuses:[],
+ atk:c.atk,def:c.def,baseDef:c.def,spd:c.spd,spAtk:c.spAtk||c.atk,passive:c.passive||null,heldItem:item||null,hyper:false,statuses:[],
  moves:c.moves.map(m=>({name:m.name,type:m.type,power:m.power||0,accuracy:m.accuracy??100,
  targetCount:m.targetCount||1,uses:m.maxUses??null,contact:!!m.contact,
- special:!!m.special,transform:!!m.transformMahito,effect:m.statusEffect||null,buff:m.selfStatBuff||null}))}
+ special:!!m.special,transform:!!m.transformMahito,effect:m.statusEffect||null,buff:m.selfStatBuff||null,
+ ignoreDefBuffs:!!m.ignoreDefBuffs,speedScaling:!!m.speedScaling}))}
 }
 export function buildEventBattle(match,people,s){
  const make=side=>side.members.flatMap(uid=>people[uid].teamIds.map(id=>fighter(id,uid,s.allowItems?people[uid].heldItems?.[id]:null)));
@@ -84,9 +104,12 @@ export function eventTurn(b,submissions,s,random=Math.random){
   let targets=m.targetCount>1?visible:visible.filter(v=>v.key===command.target).slice(0,1);
   if(!targets.length&&visible.length)targets=[visible[0]];
   for(const t of targets){
-   const type=getMultiplier(m.type,t.types);let dmg=type===0?0:Math.max(1,Math.floor((22*m.power*( (m.special?actor.spAtk:actor.atk)/Math.max(1,t.def))/85+2)*(.85+random()*.15)*type*(actor.types.includes(m.type)?1.5:1)));
-   if(actor.id==='mahito'&&t.statuses.includes('Anima Distorta'))dmg=Math.floor(dmg*1.25*(m.name==='Tocco dell’Anima'?2:1));
-   if(s.allowItems&&actor.heldItem==='iperband'&&dmg>0)dmg=Math.floor(dmg*1.3);
+   // Formula IDENTICA alla battaglia classica: passiva, STAB, resistenze,
+   // Iperband, Mahito, bonus danno e difesa. Status in formato classico.
+   const type=getMultiplier(m.type,t.types);
+   const wrap=u=>({...u,statuses:(u.statuses||[]).map(status=>({type:status})),
+      heldItem:s.allowItems?u.heldItem:null});
+   const dmg=type===0?0:calculateDamageImpl({},wrap(actor),wrap(t),m,type,false,random);
    t.hp=Math.max(0,t.hp-dmg);log.push(actor.name+' usa '+m.name+' su '+t.name+': '+dmg+' danni'+(t.hp?'':' KO!'));
    if(t.hp&&actor.id==='mahito'&&m.contact&&random()<.3&&!t.statuses.includes('Anima Distorta')){t.statuses.push('Anima Distorta');log.push('Anima Distorta su '+t.name);}
    if(t.hp&&m.effect&&random()<(m.effect.chance||0))t.statuses.push(m.effect.type);
