@@ -781,6 +781,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
           useEffect(() => {
               const saveableModes = ['local_room', 'online_room'];
+              if (appMode==='online_room' && (!user?.uid || !roomId || !playerRole)) return;
               if (saveableModes.includes(appMode)) {
                   localStorage.setItem(ROOM_SESSION_KEY, JSON.stringify({
                       appMode,
@@ -940,18 +941,42 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
             }
           }, [gameState.teams, gameState.field, isPlayingEvents, gameState.status]);
 
+          // Ricollegamento: il documento server è la fonte di verità.
+          // Nessun reset della partita al semplice errore di connessione.
           useEffect(() => {
-            if (appMode === 'online_room' && roomId && user) {
-              const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
-              const unsubscribe = onSnapshot(roomRef, (snapshot) => {
-                if (snapshot.exists()) {
-                  const data = snapshot.data();
-                  setGameState(data);
-                }
-              }, (err) => console.error(err));
-              return () => unsubscribe();
-            }
-          }, [appMode, roomId, user]);
+            if (appMode !== 'online_room' || !roomId || !user?.uid) return;
+            const roomRef=doc(db,'artifacts',appId,'public','data','rooms',roomId);
+            const unsubscribe=onSnapshot(roomRef,snapshot=>{
+              if(!snapshot.exists()){
+                setSystemAlert('La stanza non esiste più. Se è stata eliminata, non è possibile riprenderla.');
+                return;
+              }
+              const data=snapshot.data();
+              if(playerRole && playerRole!=='spectator' && data.playerUids?.[playerRole]
+                 && data.playerUids[playerRole]!==user.uid){
+                setSystemAlert('Questo posto appartiene a un altro account. Per rientrare accedi con l’account originale.');
+                setRoomId(null);setPlayerRole(null);setAppMode('menu');
+                return;
+              }
+              setGameState(data);
+            },err=>{
+              console.error('Problema di sincronizzazione stanza:',err);
+              setSystemAlert('Connessione alla partita interrotta. Il tuo posto resta prenotato: verifica la rete e ricarica per rientrare. '+(err.message||''));
+            });
+            return()=>unsubscribe();
+          },[appMode,roomId,user?.uid,playerRole]);
+
+          // Host presente: heartbeat discreto, per permettere a un altro
+          // giocatore di riparare una partita bloccata se l'host sparisce.
+          useEffect(()=>{
+            if(appMode!=='online_room'||playerRole!=='p1'||!roomId||!user?.uid)return;
+            const ref=doc(db,'artifacts',appId,'public','data','rooms',roomId);
+            const ping=()=>updateDoc(ref,{hostHeartbeatAt:Date.now()}).catch(e=>
+              console.warn('Heartbeat della stanza non riuscito:',e));
+            ping();
+            const timer=setInterval(ping,20000);
+            return()=>clearInterval(timer);
+          },[appMode,roomId,playerRole,user?.uid]);
 
           // Listener per sbloccare il turno quando arrivano i dati o i bot calcolano
           useEffect(() => {
