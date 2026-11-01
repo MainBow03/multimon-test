@@ -812,7 +812,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
 
                                         {actionMenuMode === 'items' && (() => {
                                             const myInventory = gameState.inventory?.[playerRole] || {};
-                                            const itemsToRender = Object.keys(myInventory).filter(itemId => myInventory[itemId] > 0);
+                                            const itemsToRender = Object.keys(myInventory).filter(itemId => myInventory[itemId] > 0 && ITEMS_DB[itemId] && ITEMS_DB[itemId].type !== 'held');
                                             
                                             if (itemsToRender.length === 0) {
                                                 return <div className="flex justify-center items-center h-full pt-4 text-slate-400 font-bold">Il tuo zaino è vuoto! Fai acquisti nel Negozio.</div>;
