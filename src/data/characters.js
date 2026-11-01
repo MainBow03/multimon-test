@@ -2,6 +2,11 @@ import { CHAR_PRICES } from './prices.js';
 import { MOVES_DB } from './moves.js';
 
 export const CHARACTERS = [
+          { id:'superboy',name:'Superboy',types:['Luce','Lotta'],hp:115,maxHp:115,atk:117,def:100,spd:108,
+            img:'https://i.pinimg.com/1200x/c0/d6/0b/c0d60bee10b5a61fdd406cb2ecd12449.jpg',
+            passive:{name:'DNA Ibrido',type:'on_hp_threshold',threshold:0.25,statBuff:{atk:1.2,spd:1.2},maxUses:1,
+              desc:'La prima volta che scende sotto il 25% dei PS, Attacco e Velocità aumentano del 20%.'},
+            moves:[MOVES_DB['Raggio Solare'],MOVES_DB['Pugno Tattico'],MOVES_DB['Impatto Kryptoniano'],MOVES_DB['Volo Supersonico']] },
           { id:'orsobianco', name:'Orso Bianco', types:['Ghiaccio','Roccia'], hp:135,maxHp:135,atk:112,def:108,spDef:100,spd:65,
             img:'https://image.pngaaa.com/242/1770242-middle.png',
             passive:{name:'Resistenza al Freddo',type:'cold_resistance',desc:'Durante una tempesta di neve recupera il 5% dei PS massimi a fine turno.'},
