@@ -1172,108 +1172,86 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
     const playEventsAnimation = (...__args) => playEventsAnimationImpl({ appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, setCombatLog, setCommandingIdx, setDisplayField, setDisplayTeams, setEventPlaybackPassive, setEventPlaybackText, setIsPlayingEvents, setPlayerRole, setScreenFlash, updateState }, ...__args);
 
-    // --- EFFECT PER LA FASE DI SOSTITUZIONE ---
-    useEffect(() => {
-        if (gameState.status === 'switching_phase' && (appMode === 'local_room' || playerRole === 'p1')) {
-            let allReady = true;
-            const active = getActivePlayers();
-            
-            let updatedActions = { ...gameState.switchActions };
-            let changed = false;
-
-            active.forEach(p => {
-                const needed = gameState.pendingSwitches[p] || 0;
-                
-                // Assicuriamoci che l'azione esista e sia un array
-                if (!Array.isArray(updatedActions[p])) updatedActions[p] = [];
-                
-                const picked = updatedActions[p].length;
-                
-                if (gameState.isBot[p] && needed > picked) {
-                    const aliveBench = gameState.teams[p]
-                        .map((c, i) => ({c, i}))
-                        .filter(o => o.c.hp > 0 && !gameState.field[p].includes(o.i) && !o.c.isSummonOnly && !updatedActions[p].includes(o.i));
-                    
-                    const howManyToPick = Math.min(needed - picked, aliveBench.length);
-                    for (let i = 0; i < howManyToPick; i++) {
-                        updatedActions[p].push(aliveBench[i].i);
-                        changed = true;
+    // --- RECUPERO STANZA + SOSTITUZIONI DOPO KO ---
+    const recoverRoomPhase = async (force=false) => {
+        if(recoveryBusyRef.current)return;
+        const active=getActivePlayers();
+        if(appMode==='local_room'){
+            if(gameState.status==='switching_phase'){
+                const result=resolveSwitchingRoom(gameState,active,Date.now(),force,
+                    (char,p,i,teams,field,events,room)=>applyOnEnterPassive(
+                        char,p,i,teams,field,events,room.gameMode,room.settings,room.isCampaignBattle));
+                if(result?.patch){
+                    await updateState(result.patch);
+                    if(result.kind==='resolved'){
+                        const ready=active.filter(p=>!gameState.isBot?.[p] && (result.patch.field[p]||[]).length);
+                        if(ready.length){setPlayerRole(ready[0]);setCommandingIdx(0);setActionMenuMode('moves');}
                     }
                 }
-                
-                if (updatedActions[p].length < needed) {
-                    allReady = false;
-                }
-            });
-
-            if (changed) {
-                // Ritardo per prevenire spamming sincrono su Firebase
-                setTimeout(() => updateState({ switchActions: updatedActions }), 50);
-                return; 
+            }else if(gameState.status==='battling'){
+                const patch=prepareEmergencySwitch(gameState,active);
+                if(patch)await updateState(patch);
             }
-
-            if (allReady) {
-                let newField = JSON.parse(JSON.stringify(gameState.field));
-                let newEvents = [];
-                let newTeams = JSON.parse(JSON.stringify(gameState.teams)); // Clona team per aggiornare "revealed"
-
-                active.forEach(p => {
-                    if (gameState.switchActions[p] && gameState.switchActions[p].length > 0) {
-                        gameState.switchActions[p].forEach(idx => {
-                            newField[p].push(idx);
-                            if (newTeams[p][idx]) {
-                                newTeams[p][idx].revealed = true; // Segna come rivelato!
-                                
-                                // GESTIONE ABILITÀ PASSIVE 'on_enter' (Durante la sostituzione)
-                                const char = newTeams[p][idx];
-                                if (char.passive && char.passive.type === 'on_enter' && (char.passiveUses || 0) < (char.passive.maxUses || 1)) {
-                                    char.passiveUses = (char.passiveUses || 0) + 1;
-                                    applyOnEnterPassive(char, p, idx, newTeams, newField, newEvents, gameState.gameMode, gameState.settings, gameState.isCampaignBattle);
-                                }
-                            }
-                        });
-                    }
-                });
-                
-                let nextSwitchState = { 
-                    field: newField, 
-                    teams: newTeams,
-                    pendingSwitches: { p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0, p7: 0, p8: 0 },
-                    switchActions: { p1: [], p2: [], p3: [], p4: [], p5: [], p6: [], p7: [], p8: [] }
-                };
-
-                if (newEvents.length > 0) {
-                    nextSwitchState.status = 'executing';
-                    nextSwitchState.postExecStatus = 'battling';
-                    nextSwitchState.events = newEvents;
-                    nextSwitchState.turnExpiresAt = Date.now() + 92000;
-                } else {
-                    nextSwitchState.status = 'battling';
-                    nextSwitchState.turnExpiresAt = Date.now() + 92000;
-                }
-
-                updateState(nextSwitchState).then(() => {
-                    if (appMode === 'local_room') {
-                        const humans = active.filter(p => !gameState.isBot[p] && newField[p] && newField[p].length > 0);
-                        if (humans.length > 0) {
-                            setPlayerRole(humans[0]);
-                            setCommandingIdx(0);
-                            setActionMenuMode('moves');
-                        } else {
-                            setCommandingIdx(-1);
-                        }
-                    } else {
-                        if (!gameState.isBot[playerRole] && newField[playerRole] && newField[playerRole].length > 0) {
-                            setCommandingIdx(0);
-                            setActionMenuMode('moves');
-                        } else {
-                            setCommandingIdx(-1);
-                        }
-                    }
-                });
-            }
+            return;
         }
-    }, [gameState.status, gameState.switchActions, gameState.pendingSwitches, gameState.field, gameState.teams, appMode, playerRole, gameState.isBot]);
+        if(appMode!=='online_room'||!roomId||!user?.uid)return;
+        if(!canRecoverRoom(gameState,playerRole) && !force)return;
+        recoveryBusyRef.current=true;
+        try{
+            const ref=doc(db,'artifacts',appId,'public','data','rooms',roomId);
+            await runTransaction(db,async tx=>{
+                const snap=await tx.get(ref);
+                if(!snap.exists())return;
+                const current=snap.data(),now=Date.now();
+                if(!canRecoverRoom(current,playerRole,now))return;
+                if(current.playerUids?.[playerRole] &&
+                   current.playerUids[playerRole]!==user.uid)return;
+                const involved=getActivePlayersImpl({gameState:current});
+                let patch=null;
+                if(current.status==='switching_phase'){
+                    const forced=force || phaseIsStale(current,now,recoveryObservedRef.current.at);
+                    const result=resolveSwitchingRoom(current,involved,now,forced,
+                        (char,p,i,teams,field,events,room)=>applyOnEnterPassive(
+                            char,p,i,teams,field,events,room.gameMode,room.settings,room.isCampaignBattle));
+                    patch=result?.patch||null;
+                }else if(current.status==='battling'){
+                    patch=prepareEmergencySwitch(current,involved,now);
+                }else if(current.status==='executing' &&
+                         phaseIsStale(current,now,recoveryObservedRef.current.at) &&
+                         !isHostFresh(current,now)){
+                    patch=nextPhaseAfterExecution(current,involved,now);
+                }else if(current.status==='pre_battle' &&
+                         phaseIsStale(current,now,recoveryObservedRef.current.at) &&
+                         !isHostFresh(current,now)){
+                    patch={status:current.events?.length?'executing':'battling',
+                        postExecStatus:'battling',phaseStartedAt:now,
+                        turnExpiresAt:now+92000};
+                }
+                if(patch)tx.update(ref,patch);
+            });
+        }catch(error){
+            console.error('Recupero stato della partita:',error);
+            if(force)setSystemAlert('Non riesco a sbloccare la sostituzione: '+error.message);
+        }finally{recoveryBusyRef.current=false;}
+    };
+
+    useEffect(()=>{
+        if(!['switching_phase','executing','battling','pre_battle'].includes(gameState.status))return;
+        const marker=roomId+'|'+gameState.status+'|'+String(gameState.phaseStartedAt||'legacy');
+        if(recoveryObservedRef.current.marker!==marker)
+            recoveryObservedRef.current={marker,at:Date.now()};
+        const check=()=>{recoverRoomPhase(false).catch(err=>console.error('Recupero:',err));};
+        check();
+        const timer=setInterval(check,8000);
+        return()=>clearInterval(timer);
+    },[appMode,roomId,playerRole,user?.uid,gameState.status,
+       gameState.phaseStartedAt,gameState.field,gameState.teams,
+       gameState.switchActions,gameState.pendingSwitches,gameState.isBot,
+       gameState.hostHeartbeatAt]);
+
+    // L'host può completare le sostituzioni AFK senza avviare un turno
+    // con il campo vuoto. Anche l'host di una stanza legacy può usarlo.
+    const forceCompleteSwitches = () => recoverRoomPhase(true);
 
     // --- RENDERERS ---
 
