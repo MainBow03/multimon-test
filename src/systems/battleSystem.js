@@ -254,7 +254,7 @@ const { CHARACTERS } = ctx;
                           if (workingField[ep]) {
                               workingField[ep].forEach(eIdx => {
                                   const enemy = workingTeams[ep][eIdx];
-                                  if (enemy && enemy.hp > 0) {
+                                  if (enemy && enemy.hp > 0 && !immuneToStatDrops(enemy)) {
                                       possibleTargets.push({ player: ep, idx: eIdx, char: enemy });
                                   }
                               });
