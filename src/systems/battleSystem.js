@@ -1895,7 +1895,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                     let isRedirectedDmgReduced = false;
                     let inGroppaStatus = t.char.statuses.find(s => s.type === 'In_Groppa');
                     // MODIFICA: Yoshi devia l'attacco SOLO se non è un attacco ad area (altrimenti verrebbe colpito due volte dalla stessa esplosione!)
-                    if (inGroppaStatus && inGroppaStatus.protectorIdx !== undefined) {
+                    if (!move.ignoreTaunt && inGroppaStatus && inGroppaStatus.protectorIdx !== undefined) {
                         if (!move.targetCount || move.targetCount < 4) {
                             const pPlayer = inGroppaStatus.protectorPlayer || t.player;
                             const protectorChar = workingTeams[pPlayer]?.[inGroppaStatus.protectorIdx];
@@ -1920,7 +1920,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                     // --- END REDIRECT LOGIC ---
 
                     // --- REDIRECT LOGIC (BODYGUARD PASSIVA - Es. Scheletro) ---
-                    if (!move.targetCount || move.targetCount < 4) {
+                    if (!move.ignoreTaunt && (!move.targetCount || move.targetCount < 4)) {
                         let hasBodyguard = false;
                         let protectorFieldIdx = -1;
                         let protectorCharIdx = -1;
