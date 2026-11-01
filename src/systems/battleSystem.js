@@ -1,3 +1,4 @@
+import { prepareEmergencySwitch } from './roomRecovery.js';
 import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense, endRefractionTurn, snowstormOutcome, randomBuff, randomDebuff, daffyCelebration } from './championEffects.js';
 import { ignoresShields, immuneToStatDrops, powerForAccordo, effectiveTaserPower,
   incomingRockEnchantmentFactor, affectedOpponents, addStickyTrap, trapEntries,
@@ -7,6 +8,21 @@ import { getHeldPowerFactor, getHeldRecoil, getMahitoMultiplier, canDistortSoul,
 export const handleForceSkipImpl = (ctx) => {
 const { calculateTurn, gameState, generateCPUActionsForPlayer, getActivePlayers, isCalculatingRef, setActionMenuMode, setCommandingIdx, setPendingHyper, setSystemAlert, setTargetingMoveIdx, updateState } = ctx;
 
+              if(gameState.status!=='battling'){
+                setSystemAlert('Il turno non è in fase di lotta. Per i KO usa la schermata di sostituzione.');
+                return;
+              }
+              // Non provare a calcolare nuovi attacchi quando il campo è vuoto:
+              // un KO con riserve disponibili richiede prima una sostituzione.
+              const emergency=prepareEmergencySwitch(gameState,getActivePlayers(),Date.now());
+              if(emergency){
+                updateState(emergency).catch(e=>{
+                  isCalculatingRef.current=false;
+                  setSystemAlert('Non riesco a recuperare il campo: '+e.message);
+                });
+                return;
+              }
+              if(isCalculatingRef.current)return;
               let updates = {};
               let stateUpdated = false;
               let finalActions = JSON.parse(JSON.stringify(gameState.actions || {}));
@@ -401,6 +417,7 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
 
             let nextState = {
               status: 'pre_battle',
+              phaseStartedAt: Date.now(),
               battleWeather: null,
               fieldTraps: {},
               fieldTrapSeen: {}, 
@@ -3347,6 +3364,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
 
         updateState({
           status: 'executing', 
+          phaseStartedAt: Date.now(),
           postExecStatus: nextStatus,
           winner,
           survivalRound: currentSurvivalRound, 
