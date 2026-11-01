@@ -115,6 +115,7 @@ export function AccountGate({children}) {
     const local=collectProgress();saveLocalBackup(GUEST_BACKUP_KEY);
     const credential=EmailAuthProvider.credential(email.trim(),password);
     const linked=await linkWithCredential(auth.currentUser,credential);
+    await linked.user.getIdToken(true);
     await uploadCloudSave(linked.user.uid,local);
     activate(linked.user.uid,local);
     setNotice('Registrazione riuscita. I progressi ospite sono sul cloud.');
@@ -166,6 +167,8 @@ export function AccountGate({children}) {
     await uploadCloudSave(previousUid,collectProgress());
     saveLocalBackup(LOCAL_ACCOUNT_BACKUP_PREFIX+previousUid);
    }
+   // Smonta App prima di sostituire i progressi del browser.
+   setSession({type:'loading',uid:''});
    restoreProgress(readLocalBackup(GUEST_BACKUP_KEY)||{});
    localStorage.removeItem(ACTIVE_ACCOUNT_KEY);
    localStorage.removeItem('multiverse_rpg_session');
