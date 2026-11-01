@@ -15,9 +15,27 @@ export function makeEventEntrants(players,bots,s,order=[]){
  const n=s.doubles?2:1;
  return Array.from({length:s.entrants},(_,i)=>{const slice=sorted.slice(i*n,i*n+n);return{id:'entrant-'+i,name:slice.map(x=>x.name).join(' & '),members:slice.map(x=>x.id)}});
 }
-export function makeEventBracket(entrants){
- const matches=[],n=Math.log2(entrants.length);
- for(let r=0;r<n;r++)for(let i=0;i<entrants.length/(2**(r+1));i++)matches.push({id:'r'+r+'-m'+i,round:r,slot:i,stage:r===n-1?'final':'normal',sideA:r===0?entrants[2*i]:null,sideB:r===0?entrants[2*i+1]:null,winner:null,loser:null});
+// Mantieni le coppie impostate dall'host, ma distribuiscile casualmente nel primo turno.
+export function shuffleEventEntrants(entrants,random=Math.random){
+ const shuffled=[...entrants];
+ for(let i=shuffled.length-1;i>0;i--){
+  const j=Math.max(0,Math.min(i,Math.floor(random()*(i+1))));
+  [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+ }
+ return shuffled;
+}
+export const EVENT_INACTIVITY_MS=5*60*1000;
+export function isLiveEvent(e,now=Date.now()){
+ if(!e||!['lobby','running'].includes(e.status))return false;
+ const heartbeat=e.hostHeartbeatAt?.toMillis?.() ??
+  (typeof e.hostHeartbeatAt?.seconds==='number'?e.hostHeartbeatAt.seconds*1000:(e.updatedAt||e.createdAt));
+ return Number.isFinite(heartbeat)&&heartbeat<=now+30000&&now-heartbeat<EVENT_INACTIVITY_MS;
+}
+export function makeEventBracket(entrants,random=Math.random){
+ if(![4,8,16,32].includes(entrants.length))throw Error('Numero di squadre non valido.');
+ const seed=shuffleEventEntrants(entrants,random);
+ const matches=[],n=Math.log2(seed.length);
+ for(let r=0;r<n;r++)for(let i=0;i<entrants.length/(2**(r+1));i++)matches.push({id:'r'+r+'-m'+i,round:r,slot:i,stage:r===n-1?'final':'normal',sideA:r===0?seed[2*i]:null,sideB:r===0?seed[2*i+1]:null,winner:null,loser:null});
  matches.splice(matches.length-1,0,{id:'bronze',round:n-1,slot:-1,stage:'bronze',sideA:null,sideB:null,winner:null,loser:null});
  return matches;
 }
