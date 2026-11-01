@@ -1,4 +1,4 @@
-import { roomRoleForUid, recoverableLegacyRole, findJoinableSlot, ROOM_SESSION_KEY } from './roomRecovery.js';
+import { roomRoleForUid, recoverableLegacyRole, findJoinableSlot, getRequiredSwitches, ROOM_SESSION_KEY } from './roomRecovery.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleAvatarUploadImpl = (ctx, e) => {
 const { setPlayerAvatarUrl } = ctx;
@@ -305,6 +305,42 @@ const { appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, play
     console.error('Impossibile unirsi/rientrare:',error);
     setSystemAlert(error.message||'Impossibile collegarsi alla stanza. Riprova.');
   }
+};
+
+export const commitReplacementChoiceImpl = async (ctx,idx) => {
+ const {appMode,appId,db,doc,gameState,playerRole,roomId,runTransaction,
+   setSystemAlert,updateState,user}=ctx;
+ if(!playerRole||playerRole==='spectator')return;
+ const pick=(state)=>{
+  if(state.status!=='switching_phase')throw Error('La fase di sostituzione non è più attiva.');
+  if(state.isBot?.[playerRole])throw Error('I bot vengono sostituiti automaticamente.');
+  const required=getRequiredSwitches(state,[playerRole]);
+  const available=required.bench[playerRole]||[];
+  const chosen=required.valid[playerRole]||[];
+  if(!available.includes(idx))throw Error('Il personaggio scelto non è disponibile.');
+  if(chosen.includes(idx)||chosen.length>=required.need[playerRole])
+   throw Error('Hai già completato questa sostituzione.');
+  return [...chosen,idx];
+ };
+ try{
+  if(appMode==='online_room'&&roomId){
+   if(!user?.uid)throw Error('Accedi di nuovo a Firebase per poter scegliere.');
+   const ref=doc(db,'artifacts',appId,'public','data','rooms',roomId);
+   await runTransaction(db,async tx=>{
+    const snap=await tx.get(ref);
+    if(!snap.exists())throw Error('Questa stanza non esiste più.');
+    const current=snap.data();
+    if(current.playerUids?.[playerRole] && current.playerUids[playerRole]!==user.uid)
+     throw Error('Questo posto appartiene a un altro account.');
+    tx.update(ref,{[`switchActions.${playerRole}`]:pick(current)});
+   });
+  }else{
+   const value=pick(gameState);
+   await updateState({[`switchActions.${playerRole}`]:value});
+  }
+ }catch(error){
+  setSystemAlert(error.message||'Impossibile confermare la sostituzione.');
+ }
 };
 
 export const handleAddBotImpl = (ctx, slot) => {
