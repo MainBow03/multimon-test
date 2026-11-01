@@ -174,7 +174,7 @@ const { CHARACTERS } = ctx;
                           if (workingField[ep]) {
                               workingField[ep].forEach(eIdx => {
                                   const enemy = workingTeams[ep][eIdx];
-                                  if (enemy && enemy.hp > 0) {
+                                  if (enemy && enemy.hp > 0 && !immuneToStatDrops(enemy)) {
                                       if (char.passive.enemyStatDebuff.atk) {
                                           if (enemy.passive && enemy.passive.type === 'immune_to_atk_debuff') {
                                               eventsArr.push({ type: 'text', text: `🛡️ ${enemy.name} è immune al calo di Attacco grazie a ${enemy.passive.name}!`, isPassive: true, passiveChar: enemy.name, passiveName: enemy.passive.name });
