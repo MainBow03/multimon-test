@@ -333,6 +333,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     </div>
                     <div className="relative">
                         <img key={`img-${char.id}-form-${formLevel}`} src={displayImg} style={{ filter: char.imageFilter || 'none' }} className={`${isJuggernaut ? 'w-48 h-48 md:w-56 md:h-56' : 'w-28 h-28'} object-cover rounded-xl border-4 ${borderClass} transition-all ${extraAnimClass}`} alt="" />
+                        {char.heldItem === 'iperband' && <span title="Iperband equipaggiato" className="absolute -top-2 -right-2 bg-violet-700 border border-violet-300 text-base rounded-full w-8 h-8 flex items-center justify-center z-20 shadow-lg">💪</span>}
                         {char.juggHitsRemaining > 0 && (
                             <div className="absolute inset-0 border-[6px] border-cyan-400 rounded-xl shadow-[inset_0_0_20px_rgba(34,211,238,0.8),_0_0_20px_rgba(34,211,238,0.8)] z-30 animate-pulse pointer-events-none flex items-center justify-center bg-cyan-900/30">
                                 <span className="text-cyan-100 text-6xl font-black drop-shadow-[0_4px_4px_black]">{char.juggHitsRemaining}</span>
