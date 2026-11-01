@@ -41,6 +41,18 @@ if (gameState.status === 'switching_phase') {
                 </button>
                 <div className="bg-slate-800/90 backdrop-blur-xl p-8 rounded-3xl w-full max-w-3xl border border-slate-700/50 shadow-2xl text-center z-10">
                     <h2 className="text-4xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">Sostituzione Personaggio</h2>
+                    {canForceSwitch && <div className="mb-5 flex justify-center gap-2">
+                        <button onClick={forceCompleteSwitches}
+                            className="rounded-xl border border-amber-400/60 bg-amber-950/70 px-4 py-2 text-amber-200 text-xs font-black hover:bg-amber-900/80">
+                            🛠️ Sblocca sostituzioni bloccate
+                        </button>
+                        <span className="text-xs text-slate-400 self-center max-w-40">
+                            Assegna automaticamente le riserve vive ai giocatori che non rispondono
+                        </span>
+                    </div>}
+                    <p className="text-sm text-slate-300 mb-4">
+                        Il campo verrà riempito con i Multimon ancora vivi; chi ha esaurito la squadra non deve scegliere.
+                    </p>
                     
                     {isMyTurnToSwitch ? (
                         <>
@@ -65,13 +77,13 @@ if (gameState.status === 'switching_phase') {
                             <p className="text-lg text-slate-300 mb-6">Un tuo personaggio è esausto! Scegli chi mandare in campo.</p>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 {gameState.teams[playerRole].map((char, i) => {
-                                    const isAliveBench = char.hp > 0 && !gameState.field[playerRole].includes(i) && !char.isSummonOnly && !(gameState.switchActions[playerRole] || []).includes(i);
+                                    const isAliveBench = char.hp > 0 && !gameState.field[playerRole].includes(i) && !char.isSummonOnly && !chosen.includes(i);
                                     if (!isAliveBench) return null;
                                     return (
                                         <button key={i} onClick={() => {
                                             const currentActions = gameState.switchActions[playerRole] || [];
                                             const newActions = [...currentActions, i];
-                                            updateState({ [`switchActions.${playerRole}`]: newActions }).then(() => {
+                                            chooseReplacement(i).then(() => {
                                                 if (appMode === 'local_room') {
                                                     const nextActive = getActivePlayers().filter(p => !gameState.isBot[p] && (p === playerRole ? newActions.length < gameState.pendingSwitches[p] : gameState.pendingSwitches[p] > (gameState.switchActions[p]?.length || 0)));
                                                     if (nextActive.length > 0) {
