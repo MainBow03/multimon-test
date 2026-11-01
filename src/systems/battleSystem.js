@@ -3365,6 +3365,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
         updateState({
           status: 'executing', 
           phaseStartedAt: Date.now(),
+          turnCalculationOwner: null,
+          turnCalculationStartedAt: null,
           postExecStatus: nextStatus,
           winner,
           survivalRound: currentSurvivalRound, 
