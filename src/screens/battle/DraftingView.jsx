@@ -92,7 +92,7 @@ if (gameState.status === 'drafting') {
                 </div>
 
                 {isReady ? (
-                    <div className="flex-1 flex flex-col items-center justify-center bg-slate-950/60 rounded-3xl z-10 border border-slate-800/50 backdrop-blur-sm">
+                    <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col items-center justify-start bg-slate-950/60 rounded-3xl z-10 border border-slate-800/50 backdrop-blur-sm py-3">
                          <div className="w-full max-w-5xl mb-5 rounded-2xl bg-slate-900/90 border border-violet-500/50 p-3 sm:p-4 max-h-[45vh] overflow-y-auto custom-scrollbar">
                            <h3 className="text-lg sm:text-xl font-black text-violet-300 mb-1">🎒 Assegna strumenti alla squadra</h3>
                            <p className="text-xs text-slate-400 mb-3">Gli strumenti acquistati al negozio non si consumano. Una copia può essere assegnata a un solo campione per battaglia.</p>
