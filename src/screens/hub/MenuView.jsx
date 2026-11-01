@@ -1,0 +1,170 @@
+// Schermata estratta senza alterare la struttura JSX originale.
+export function renderMenuView(ctx) {
+const { BarChart, BookOpen, CHARACTERS, GridIcon, IS_PREVIEW, ImageIcon, Shield, ShoppingCart, Swords, Target, Trophy, Upload, Users, Wifi, appMode, getDefaultAvatar, getPlayerData, handleAvatarUpload, handleCreateRoguelikeCoop, handleCreateRoom, handleJoinRoom, handleLocalStart, handleSurvivalStart, handleVsCpuStart, onlineUsers, playerAvatarUrl, playerName, roguelikeState, roomIdInput, sessionId, setAppMode, setPlayerAvatarUrl, setPlayerName, setRoguelikeDraftChoices, setRoguelikeState, setRoomIdInput, setShowOnlinePlayers, setSystemAlert } = ctx;
+if (appMode === 'menu') {
+            const playerData = getPlayerData();
+            
+            // Calcolo Leaderboard Live
+            const me = {
+                sessionId: sessionId,
+                name: playerName || "Tu",
+                avatar: playerAvatarUrl || getDefaultAvatar(playerName || "Tu"),
+                wins: playerData.wins || 0,
+                matches: playerData.matches || 0,
+                isMe: true
+            };
+            const allForLeaderboard = playerName.trim() ? [...onlineUsers, me] : onlineUsers;
+            const top5Users = allForLeaderboard.sort((a, b) => (b.wins || 0) - (a.wins || 0)).slice(0, 5);
+
+            return (
+                <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                <button onClick={() => { if(!playerName.trim()) setSystemAlert("Inserisci prima il tuo nome per vedere gli altri!"); else setShowOnlinePlayers(true); }} className="absolute top-4 right-4 bg-slate-900/80 hover:bg-slate-800 border border-cyan-500/50 text-cyan-400 font-bold py-2 px-4 rounded-xl flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] backdrop-blur-sm z-20 hover:-translate-y-0.5">
+                    <Users size={18}/> Giocatori Online
+                </button>
+                
+                <h1 className="text-6xl md:text-7xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 flex items-center gap-4 z-10 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)] text-center leading-tight">
+                    <Swords size={64} className="text-cyan-400 drop-shadow-lg hidden md:block" />
+                    Multiverse RPG
+                    <Swords size={64} className="text-purple-500 drop-shadow-lg hidden md:block" />
+                </h1>
+                <p className="text-slate-400 mb-12 text-center text-lg z-10 max-w-lg font-medium">Scegli i tuoi campioni. Domina il multiverso in tattiche battaglie a turni in diverse modalità!</p>
+                
+                {IS_PREVIEW && (
+                    <div className="bg-amber-500/20 border border-amber-500 text-amber-400 font-bold px-6 py-2 rounded-xl mb-6 z-10 animate-pulse text-sm text-center shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                        🛠️ MODALITÀ ANTEPRIMA ATTIVA<br/>Tutti i personaggi sono temporaneamente sbloccati per i test!
+                    </div>
+                )}
+                
+                {/* --- TOP 5 ONLINE UMANI --- */}
+                <div className="absolute top-20 right-6 w-72 bg-slate-900/80 backdrop-blur-xl border border-amber-500/50 rounded-2xl p-4 shadow-[0_0_30px_rgba(245,158,11,0.15)] hidden xl:block z-20 transition-all hover:scale-[1.02]">
+                    <h3 className="text-amber-400 font-black flex items-center justify-between mb-4 border-b border-amber-500/30 pb-2 uppercase tracking-widest text-sm">
+                        <span className="flex items-center gap-2"><Trophy size={18}/> Top 5 Online</span>
+                        <span className="text-[10px] bg-amber-900/50 px-2 py-0.5 rounded text-amber-200 border border-amber-500/30 animate-pulse">Live</span>
+                    </h3>
+                    <div className="flex flex-col gap-2.5">
+                        {top5Users.length === 0 ? (
+                            <div className="text-xs text-slate-500 italic text-center py-4">Nessun giocatore online...</div>
+                        ) : top5Users.map((p, i) => (
+                            <div key={p.sessionId} className={`flex items-center gap-3 p-2 rounded-xl border transition-colors ${p.isMe ? 'bg-amber-900/40 border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'bg-slate-950/60 border-slate-800 hover:border-slate-600'}`}>
+                                <div className={`font-black text-xl w-6 text-center ${i === 0 ? 'text-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.8)]' : i === 1 ? 'text-slate-300' : i === 2 ? 'text-orange-500' : 'text-slate-600'}`}>{i + 1}°</div>
+                                <img src={p.avatar} className={`w-10 h-10 rounded-full border-2 ${p.isMe ? 'border-amber-400' : (i===0 ? 'border-yellow-400' : i===1 ? 'border-slate-300' : i===2 ? 'border-orange-500' : 'border-slate-600')} object-cover bg-slate-900 shrink-0`} />
+                                <div className="flex-1 min-w-0">
+                                    <div className={`font-bold text-xs truncate ${p.isMe ? 'text-amber-300' : 'text-slate-200'}`}>{p.name}</div>
+                                    <div className="text-[10px] text-slate-400 font-medium mt-0.5 flex justify-between">
+                                        <span>Vittorie:</span> <span className="text-emerald-400 font-black">{p.wins || 0}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                {/* --------------------------- */}
+                
+                <div className="bg-slate-900/80 backdrop-blur-xl p-8 rounded-3xl w-full max-w-md border border-slate-700/50 shadow-[0_0_50px_rgba(0,0,0,0.5)] space-y-5 z-10">
+                    <div>
+                        <label className="block text-xs uppercase tracking-widest font-bold text-slate-400 mb-2">Tuo Nome</label>
+                        <input type="text" value={playerName} onChange={e => setPlayerName(e.target.value)} className="w-full bg-slate-950/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition-all" placeholder="Inserisci il tuo nome..." />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs uppercase tracking-widest font-bold text-slate-400 mb-2 flex items-center gap-2"><ImageIcon size={14}/> URL Avatar o Carica da Tablet</label>
+                        <div className="flex gap-3 items-center">
+                            <img src={playerAvatarUrl || getDefaultAvatar(playerName)} 
+                                 onError={(e) => { e.target.onerror = null; e.target.src = getDefaultAvatar(playerName); }}
+                                 className="w-14 h-14 rounded-full border-2 border-slate-600 object-cover bg-slate-900 shrink-0 shadow-inner" 
+                                 alt="Preview" />
+                            <div className="flex-1 flex flex-col gap-2">
+                                <input type="text" value={playerAvatarUrl} onChange={e => setPlayerAvatarUrl(e.target.value)} className="w-full bg-slate-950/50 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition-all text-sm" placeholder="Es: https://.../img.jpg" />
+                                <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-xs font-bold py-2 px-3 rounded-lg text-center border border-slate-600 transition-colors text-slate-300 flex items-center justify-center gap-2 shadow-md">
+                                    <Upload size={14} /> Carica Immagine dal Dispositivo
+                                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-800 space-y-4">
+                        <button onClick={handleCreateRoom} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5">
+                             <Wifi size={20}/> Crea Stanza Online (Host)
+                        </button>
+                        <div className="flex gap-2">
+                            <input type="text" value={roomIdInput} onChange={e => setRoomIdInput(e.target.value)} placeholder="Codice Stanza" className="w-1/2 bg-slate-950/50 border border-slate-700 rounded-xl px-4 py-2 text-white text-center font-mono uppercase focus:border-purple-500 outline-none transition-all" />
+                            <button onClick={handleJoinRoom} className="w-1/2 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white font-bold py-2 rounded-xl transition-all shadow-lg hover:-translate-y-0.5">
+                                Unisciti
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-800">
+                         <button onClick={() => {
+                             setAppMode('campaign_select');
+                         }} className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5 mb-3">
+                             <BookOpen size={20}/> Modalità Campagne
+                         </button>
+                         <button onClick={handleVsCpuStart} className="w-full mb-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5">
+                             <Target size={20}/> Gioca vs CPU (Bot IA)
+                        </button>
+                        
+                        {/* --- PULSANTI ROGUELIKE --- */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                            <button onClick={() => {
+                                if (roguelikeState.isStarted && roguelikeState.roster.length > 0) {
+                                    setAppMode('roguelike_map');
+                                } else {
+                                    const available = CHARACTERS.filter(c => !c.isSummonOnly && !c.isSecretUnlock);
+                                    const shuffled = [...available].sort(() => 0.5 - Math.random());
+                                    setRoguelikeDraftChoices(shuffled.slice(0, 6)); // Scegli 3 tra 6 casuali
+                                    setRoguelikeState({ isStarted: true, floor: 1, roster: [], rosterStats: {}, maxFloor: 50, coins: 0, inventory: { pozione: 1 }, isMerchantNext: false, recruitBonus: 0.02, relics: [], encounteredEnemies: [] });
+                                    setAppMode('roguelike_draft');
+                                }
+                            }} className="relative w-full bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5">
+                                 <Trophy size={20}/> Roguelike (Solo)
+                                 {roguelikeState.isStarted && roguelikeState.roster.length > 0 && (
+                                     <div className="absolute top-0 right-0 -mt-2 -mr-2 text-[10px] font-black bg-black/80 border border-fuchsia-400 px-2 py-1 rounded-lg text-fuchsia-200">
+                                         P. {roguelikeState.floor}
+                                     </div>
+                                 )}
+                            </button>
+
+                            <button onClick={handleCreateRoguelikeCoop} className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5">
+                                 <Users size={20}/> Roguelike (Co-op)
+                            </button>
+                        </div>
+                        {/* ------------------------------- */}
+
+                        {/* --- AGGIUNTO IL PULSANTE SOPRAVVIVENZA --- */}
+                         <button onClick={handleSurvivalStart} className="relative w-full mb-3 bg-gradient-to-r from-violet-700 to-purple-700 hover:from-violet-600 hover:to-purple-600 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5">
+                             <Shield size={20}/> Modalità Sopravvivenza (Infinita)
+                             {playerData.maxSurvivalRound > 0 && (
+                                 <div className="absolute right-4 text-xs font-black bg-black/40 border border-violet-400/50 px-2 py-1 rounded-lg text-violet-200 shadow-inner">
+                                     Max: {playerData.maxSurvivalRound}
+                                 </div>
+                             )}
+                        </button>
+                        {/* ------------------------------------------ */}
+
+                         <button onClick={handleLocalStart} className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5">
+                             <Users size={20}/> Gioca in Locale (Stesso PC)
+                        </button>
+                        <div className="grid grid-cols-2 gap-3 mt-4">
+                            <button onClick={() => setAppMode('catalog')} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:-translate-y-0.5 text-sm shadow-md">
+                                 <BookOpen size={20}/> Catalogo
+                            </button>
+                            <button onClick={() => setAppMode('type_chart')} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:-translate-y-0.5 text-sm shadow-md">
+                                 <GridIcon size={20}/> Tabella Tipi
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 mt-3">
+                            <button onClick={() => { if(!playerName.trim()) setSystemAlert("Inserisci il tuo nome per usare lo Shop!"); else setAppMode('shop'); }} className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 text-sm shadow-md">
+                                 <ShoppingCart size={20}/> Negozio
+                            </button>
+                            <button onClick={() => { if(!playerName.trim()) setSystemAlert("Inserisci il tuo nome per vedere le tue statistiche!"); else setAppMode('stats'); }} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 text-sm shadow-md">
+                                 <BarChart size={20}/> Statistiche
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+}

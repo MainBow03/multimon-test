@@ -1,0 +1,435 @@
+{
+  "extractedSystemFunctions": [
+    {
+      "type": "system",
+      "name": "handleForceSkip",
+      "group": "battleSystem.js",
+      "deps": 11,
+      "lines": 52
+    },
+    {
+      "type": "system",
+      "name": "loadCampaign",
+      "group": "campaignFlow.js",
+      "deps": 4,
+      "lines": 50
+    },
+    {
+      "type": "system",
+      "name": "handleAvatarUpload",
+      "group": "multiplayerSystem.js",
+      "deps": 1,
+      "lines": 36
+    },
+    {
+      "type": "system",
+      "name": "advanceCampaign",
+      "group": "campaignFlow.js",
+      "deps": 5,
+      "lines": 39
+    },
+    {
+      "type": "system",
+      "name": "handleObserve",
+      "group": "battleSystem.js",
+      "deps": 4,
+      "lines": 6
+    },
+    {
+      "type": "system",
+      "name": "updateLocalStats",
+      "group": "profileSystem.js",
+      "deps": 1,
+      "lines": 36
+    },
+    {
+      "type": "system",
+      "name": "leaveRoom",
+      "group": "multiplayerSystem.js",
+      "deps": 7,
+      "lines": 9
+    },
+    {
+      "type": "system",
+      "name": "handleConfirmLeave",
+      "group": "multiplayerSystem.js",
+      "deps": 12,
+      "lines": 72
+    },
+    {
+      "type": "system",
+      "name": "renderHealthBar",
+      "group": "uiHelpers.jsx",
+      "deps": 0,
+      "lines": 12
+    },
+    {
+      "type": "system",
+      "name": "updateState",
+      "group": "multiplayerSystem.js",
+      "deps": 7,
+      "lines": 25
+    },
+    {
+      "type": "system",
+      "name": "getRequiredPlayers",
+      "group": "multiplayerSystem.js",
+      "deps": 0,
+      "lines": 5
+    },
+    {
+      "type": "system",
+      "name": "getActivePlayers",
+      "group": "multiplayerSystem.js",
+      "deps": 1,
+      "lines": 38
+    },
+    {
+      "type": "system",
+      "name": "isAllPlayersJoined",
+      "group": "multiplayerSystem.js",
+      "deps": 2,
+      "lines": 14
+    },
+    {
+      "type": "system",
+      "name": "handleCreateRoom",
+      "group": "multiplayerSystem.js",
+      "deps": 13,
+      "lines": 16
+    },
+    {
+      "type": "system",
+      "name": "handleCreateRoguelikeCoop",
+      "group": "roguelikeSystem.js",
+      "deps": 13,
+      "lines": 31
+    },
+    {
+      "type": "system",
+      "name": "handleJoinRoom",
+      "group": "multiplayerSystem.js",
+      "deps": 16,
+      "lines": 54
+    },
+    {
+      "type": "system",
+      "name": "handleAddBot",
+      "group": "multiplayerSystem.js",
+      "deps": 2,
+      "lines": 9
+    },
+    {
+      "type": "system",
+      "name": "handleRemovePlayer",
+      "group": "multiplayerSystem.js",
+      "deps": 1,
+      "lines": 8
+    },
+    {
+      "type": "system",
+      "name": "handleLocalStart",
+      "group": "multiplayerSystem.js",
+      "deps": 7,
+      "lines": 9
+    },
+    {
+      "type": "system",
+      "name": "handleVsCpuStart",
+      "group": "multiplayerSystem.js",
+      "deps": 7,
+      "lines": 13
+    },
+    {
+      "type": "system",
+      "name": "handleSurvivalStart",
+      "group": "roguelikeSystem.js",
+      "deps": 7,
+      "lines": 15
+    },
+    {
+      "type": "system",
+      "name": "handlePick",
+      "group": "multiplayerSystem.js",
+      "deps": 6,
+      "lines": 33
+    },
+    {
+      "type": "system",
+      "name": "handleDraftReroll",
+      "group": "multiplayerSystem.js",
+      "deps": 6,
+      "lines": 26
+    },
+    {
+      "type": "system",
+      "name": "handleSharedPick",
+      "group": "multiplayerSystem.js",
+      "deps": 2,
+      "lines": 28
+    },
+    {
+      "type": "system",
+      "name": "applyOnEnterPassive",
+      "group": "battleSystem.js",
+      "deps": 1,
+      "lines": 210
+    },
+    {
+      "type": "system",
+      "name": "startBattle",
+      "group": "battleSystem.js",
+      "deps": 12,
+      "lines": 162
+    },
+    {
+      "type": "system",
+      "name": "getTournamentMatchOpponents",
+      "group": "tournamentSystem.js",
+      "deps": 1,
+      "lines": 16
+    },
+    {
+      "type": "system",
+      "name": "generateCPUActionsForPlayer",
+      "group": "battleSystem.js",
+      "deps": 5,
+      "lines": 244
+    },
+    {
+      "type": "system",
+      "name": "commitAction",
+      "group": "battleSystem.js",
+      "deps": 14,
+      "lines": 74
+    },
+    {
+      "type": "system",
+      "name": "handleSelectMoveTarget",
+      "group": "battleSystem.js",
+      "deps": 9,
+      "lines": 74
+    },
+    {
+      "type": "system",
+      "name": "checkTurnReady",
+      "group": "battleSystem.js",
+      "deps": 5,
+      "lines": 14
+    },
+    {
+      "type": "system",
+      "name": "calculateDamage",
+      "group": "battleSystem.js",
+      "deps": 0,
+      "lines": 35
+    },
+    {
+      "type": "system",
+      "name": "calculateTurn",
+      "group": "battleSystem.js",
+      "deps": 12,
+      "lines": 2251
+    },
+    {
+      "type": "system",
+      "name": "handleNextTournamentMatch",
+      "group": "tournamentSystem.js",
+      "deps": 7,
+      "lines": 88
+    },
+    {
+      "type": "system",
+      "name": "playEventsAnimation",
+      "group": "battleSystem.js",
+      "deps": 15,
+      "lines": 127
+    }
+  ],
+  "extractedScreens": [
+    {
+      "condition": "appMode === 'menu'",
+      "group": "hub",
+      "file": "screens/hub/MenuView.jsx",
+      "deps": 38,
+      "lines": 166
+    },
+    {
+      "condition": "appMode === 'campaign_select'",
+      "group": "campaign",
+      "file": "screens/campaign/CampaignSelectView.jsx",
+      "deps": 5,
+      "lines": 40
+    },
+    {
+      "condition": "appMode === 'campaign_intro'",
+      "group": "campaign",
+      "file": "screens/campaign/CampaignIntroView.jsx",
+      "deps": 6,
+      "lines": 28
+    },
+    {
+      "condition": "appMode === 'campaign_select_protagonist'",
+      "group": "campaign",
+      "file": "screens/campaign/CampaignSelectProtagonistView.jsx",
+      "deps": 6,
+      "lines": 34
+    },
+    {
+      "condition": "appMode === 'campaign_map'",
+      "group": "campaign",
+      "file": "screens/campaign/CampaignMapView.jsx",
+      "deps": 16,
+      "lines": 119
+    },
+    {
+      "condition": "appMode === 'campaign_dialogue'",
+      "group": "campaign",
+      "file": "screens/campaign/CampaignDialogueView.jsx",
+      "deps": 13,
+      "lines": 73
+    },
+    {
+      "condition": "appMode === 'campaign_post_dialogue'",
+      "group": "campaign",
+      "file": "screens/campaign/CampaignPostDialogueView.jsx",
+      "deps": 9,
+      "lines": 52
+    },
+    {
+      "condition": "appMode === 'campaign_choice'",
+      "group": "campaign",
+      "file": "screens/campaign/CampaignChoiceView.jsx",
+      "deps": 11,
+      "lines": 58
+    },
+    {
+      "condition": "appMode === 'campaign_resolution_dialogue'",
+      "group": "campaign",
+      "file": "screens/campaign/CampaignResolutionDialogueView.jsx",
+      "deps": 7,
+      "lines": 37
+    },
+    {
+      "condition": "appMode === 'campaign_team_select'",
+      "group": "campaign",
+      "file": "screens/campaign/CampaignTeamSelectView.jsx",
+      "deps": 31,
+      "lines": 676
+    },
+    {
+      "condition": "appMode === 'campaign_shop'",
+      "group": "campaign",
+      "file": "screens/campaign/CampaignShopView.jsx",
+      "deps": 9,
+      "lines": 104
+    },
+    {
+      "condition": "appMode === 'campaign_ending'",
+      "group": "campaign",
+      "file": "screens/campaign/CampaignEndingView.jsx",
+      "deps": 10,
+      "lines": 33
+    },
+    {
+      "condition": "appMode === 'roguelike_draft'",
+      "group": "roguelike",
+      "file": "screens/roguelike/RoguelikeDraftView.jsx",
+      "deps": 7,
+      "lines": 39
+    },
+    {
+      "condition": "appMode === 'roguelike_map'",
+      "group": "roguelike",
+      "file": "screens/roguelike/RoguelikeMapView.jsx",
+      "deps": 18,
+      "lines": 236
+    },
+    {
+      "condition": "appMode === 'roguelike_coop_lobby'",
+      "group": "roguelike",
+      "file": "screens/roguelike/RoguelikeCoopLobbyView.jsx",
+      "deps": 13,
+      "lines": 101
+    },
+    {
+      "condition": "appMode === 'shop'",
+      "group": "hub",
+      "file": "screens/hub/ShopView.jsx",
+      "deps": 22,
+      "lines": 144
+    },
+    {
+      "condition": "appMode === 'stats'",
+      "group": "hub",
+      "file": "screens/hub/StatsView.jsx",
+      "deps": 9,
+      "lines": 98
+    },
+    {
+      "condition": "appMode === 'type_chart'",
+      "group": "hub",
+      "file": "screens/hub/TypeChartView.jsx",
+      "deps": 6,
+      "lines": 80
+    },
+    {
+      "condition": "appMode === 'catalog'",
+      "group": "hub",
+      "file": "screens/hub/CatalogView.jsx",
+      "deps": 15,
+      "lines": 232
+    },
+    {
+      "condition": "gameState.status === 'lobby'",
+      "group": "battle",
+      "file": "screens/battle/LobbyView.jsx",
+      "deps": 23,
+      "lines": 345
+    },
+    {
+      "condition": "gameState.status === 'drafting'",
+      "group": "battle",
+      "file": "screens/battle/DraftingView.jsx",
+      "deps": 34,
+      "lines": 346
+    },
+    {
+      "condition": "gameState.status === 'switching_phase'",
+      "group": "battle",
+      "file": "screens/battle/SwitchingPhaseView.jsx",
+      "deps": 13,
+      "lines": 98
+    },
+    {
+      "condition": "gameState.status === 'battling' || gameState.status === 'executing'",
+      "group": "battle",
+      "file": "screens/battle/BattlingView.jsx",
+      "deps": 48,
+      "lines": 961
+    },
+    {
+      "condition": "gameState.status === 'gameover'",
+      "group": "battle",
+      "file": "screens/battle/GameoverView.jsx",
+      "deps": 20,
+      "lines": 477
+    },
+    {
+      "condition": "gameState.status === 'intermission'",
+      "group": "battle",
+      "file": "screens/battle/IntermissionView.jsx",
+      "deps": 8,
+      "lines": 115
+    },
+    {
+      "condition": "gameState.status === 'pre_battle'",
+      "group": "battle",
+      "file": "screens/battle/PreBattleView.jsx",
+      "deps": 6,
+      "lines": 240
+    }
+  ],
+  "originalLines": 10204,
+  "newAppLines": 1513
+}
