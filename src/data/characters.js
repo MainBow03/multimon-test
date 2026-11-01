@@ -6,7 +6,7 @@ export const CHARACTERS = [
             img:'https://i.pinimg.com/1200x/c0/d6/0b/c0d60bee10b5a61fdd406cb2ecd12449.jpg',
             passive:{name:'DNA Ibrido',type:'on_hp_threshold',threshold:0.25,statBuff:{atk:1.2,spd:1.2},maxUses:1,
               desc:'La prima volta che scende sotto il 25% dei PS, Attacco e Velocità aumentano del 20%.'},
-            moves:[MOVES_DB['Raggio Solare'],MOVES_DB['Pugno Tattico'],MOVES_DB['Impatto Kryptoniano'],MOVES_DB['Volo Supersonico']] },
+            moves:[MOVES_DB['Raggio Solare'],MOVES_DB['Pugno Tattico'],MOVES_DB['Impatto Kryptoniano'],MOVES_DB['Volo Supersonico (Superboy)']] },
           { id:'orsobianco', name:'Orso Bianco', types:['Ghiaccio','Roccia'], hp:135,maxHp:135,atk:112,def:108,spDef:100,spd:65,
             img:'https://icon2.cleanpng.com/lnd/20241204/gx/a75a26509cca81ccdddbe4f4793c86.webp',
             passive:{name:'Resistenza al Freddo',type:'cold_resistance',desc:'Durante una tempesta di neve recupera il 5% dei PS massimi a fine turno.'},
