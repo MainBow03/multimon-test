@@ -109,6 +109,8 @@ export function resolveSwitchingRoom(room,players,now=Date.now(),force=false,app
   for(const i of choices[p]||[]){
    if(field[p].includes(i)||!playable(teams[p]?.[i]))continue;
    field[p].push(i);teams[p][i].revealed=true;
+   events.push({type:'switch',player:p,pos:field[p].length-1,newIdx:i,
+     text:teams[p][i].name+' entra in campo dopo il KO!'});
    if(typeof applyOnEnter==='function' && teams[p][i].passive?.type==='on_enter' &&
       (teams[p][i].passiveUses||0)<(teams[p][i].passive.maxUses||1)){
      const ch=teams[p][i];ch.passiveUses=(ch.passiveUses||0)+1;
@@ -134,7 +136,10 @@ export function resolveSwitchingRoom(room,players,now=Date.now(),force=false,app
  const winner=resolveMultiplayerWinner(nextRoom,players);
  const post=winner?'gameover':'battling';
  return {kind:'resolved',patch:{
-   field,teams,status:events.length?'executing':post,
+   field,teams,startOfTurnTeams:structuredClone(room.teams||{}),
+   startOfTurnField:structuredClone(sanitizedField),
+   fieldTrapSeen:Object.fromEntries(Object.keys(field).map(p=>[p,[...field[p]]])),
+   status:events.length?'executing':post,
    postExecStatus:events.length?post:null,events,
    pendingSwitches:reset,switchActions:resetActions,
    ...(winner?{winner}:{}),
