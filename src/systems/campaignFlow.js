@@ -1,8 +1,10 @@
 import { reconcileCampaignRoster } from './campaignRoster.js';
+import { completeCampaign, isCampaignUnlocked } from './campaignUnlocks.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const loadCampaignImpl = (ctx, campId) => {
 const { CHARACTERS, getCampaignStoryCharacters, setActiveCampaignId, setCampaignState } = ctx;
 
+              if (!isCampaignUnlocked(campId)) return null;
               setActiveCampaignId(campId);
               
               let defaultRoster = [];
@@ -80,6 +82,7 @@ const { activeCampaign, activeCampaignId, campaignState, setAppMode, setCampaign
               // Un indice fuori dalla lista faceva ricadere activeSector sulla PRIMA area.
               const campaignCompleted = nextSectorIdx >= activeCampaign.sectors.length;
               if (campaignCompleted) {
+                  completeCampaign(activeCampaignId);
                   nextSectorIdx = activeCampaign.sectors.length - 1;
                   nextMissionIdx = activeCampaign.sectors[nextSectorIdx].missions.length - 1;
                   nextAppMode = 'campaign_ending';
