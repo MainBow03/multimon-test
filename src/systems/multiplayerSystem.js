@@ -1,3 +1,4 @@
+import { roomRoleForUid, recoverableLegacyRole, findJoinableSlot, ROOM_SESSION_KEY } from './roomRecovery.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleAvatarUploadImpl = (ctx, e) => {
 const { setPlayerAvatarUrl } = ctx;
@@ -233,6 +234,9 @@ const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, player
             const newRoomId = Math.random().toString(36).substring(2, 7).toUpperCase();
             const state = initialGameState();
             state.players.p1 = playerName;
+            state.playerUids.p1 = user.uid;
+            state.hostHeartbeatAt = Date.now();
+            state.phaseStartedAt = Date.now();
             state.playerAvatars.p1 = playerAvatarUrl;
             state.inventory.p1 = getPlayerData().inventory;
             
@@ -246,61 +250,61 @@ const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, player
 };
 
 export const handleJoinRoomImpl = async (ctx) => {
-const { appId, db, doc, getDoc, getPlayerData, getRequiredPlayers, playerAvatarUrl, playerName, roomIdInput, setAppMode, setCoopRoomId, setPlayerRole, setRoomId, setSystemAlert, updateDoc, user } = ctx;
+const { appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, playerName,
+  roomIdInput, setAppMode, setCoopRoomId, setPlayerRole, setRoomId,
+  setSystemAlert, runTransaction, user } = ctx;
 
-            if (!playerName.trim() || !roomIdInput.trim()) return setSystemAlert("Inserisci nome e codice stanza!");
-            if (!user) return setSystemAlert("Connessione in corso...");
-            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomIdInput.toUpperCase());
-            const snap = await getDoc(roomRef);
-            if (!snap.exists()) return setSystemAlert("Stanza non trovata!");
-            
-            const data = snap.data();
-
-            // --- GESTIONE ACCESSO REALE ALLA STANZA ROGUELIKE CO-OP ---
-            if (data.isRoguelikeCoop) {
-                let assignedRole = null;
-                if (!data.players.p2) assignedRole = 'p2';
-                else if (!data.players.p3) assignedRole = 'p3';
-                
-                if (!assignedRole) return setSystemAlert("Stanza Co-op piena o spedizione già iniziata!");
-
-                await updateDoc(roomRef, {
-                    [`players.${assignedRole}`]: playerName,
-                    [`playerAvatars.${assignedRole}`]: playerAvatarUrl,
-                    [`isBot.${assignedRole}`]: false,
-                    [`inventory.${assignedRole}`]: { pozione: 2, resurrezione: 1 } // FIX: Oggetti iniziali
-                });
-                setRoomId(roomIdInput.toUpperCase());
-                setPlayerRole(assignedRole);
-                setCoopRoomId(roomIdInput.toUpperCase());
-                setAppMode('roguelike_coop_lobby');
-                return;
-            }
-            // ----------------------------------------------------------
-
-            let assignedRole = null;
-            const req = getRequiredPlayers(data.gameMode, data.settings);
-            
-            let slotsToCheck = ['p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8'].slice(0, req - 1);
-
-            slotsToCheck.forEach(slot => {
-                 if (!assignedRole && (!data.players[slot] || data.isBot[slot])) {
-                      assignedRole = slot;
-                 }
-            });
-
-            if (!assignedRole) return setSystemAlert("Stanza piena o partita in corso!");
-
-            await updateDoc(roomRef, { 
-                [`players.${assignedRole}`]: playerName,
-                [`playerAvatars.${assignedRole}`]: playerAvatarUrl,
-                [`isBot.${assignedRole}`]: false,
-                [`inventory.${assignedRole}`]: getPlayerData().inventory
-            });
-            setRoomId(roomIdInput.toUpperCase());
-            setPlayerRole(assignedRole);
-            setAppMode('online_room');
-          
+  if(!playerName.trim()||!roomIdInput.trim())return setSystemAlert('Inserisci nome e codice stanza!');
+  if(!user)return setSystemAlert('Connessione ai server in corso...');
+  const code=roomIdInput.trim().toUpperCase();
+  const ref=doc(db,'artifacts',appId,'public','data','rooms',code);
+  let session=null;
+  try{session=JSON.parse(localStorage.getItem(ROOM_SESSION_KEY)||'null');}catch{}
+  try{
+    // Transazione: due amici non possono occupare lo stesso posto
+    // se cliccano "Unisciti" nello stesso istante.
+    const joined=await runTransaction(db,async tx=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists())throw new Error('Stanza non trovata!');
+      const room=snap.data();
+      const existing=roomRoleForUid(room,user.uid)||
+        recoverableLegacyRole(room,session,code,playerName.trim(),user.uid);
+      if(existing){
+        if(room.playerUids?.[existing]!==user.uid)
+          tx.update(ref,{[`playerUids.${existing}`]:user.uid});
+        return {role:existing,returning:true,coop:!!room.isRoguelikeCoop};
+      }
+      // Mai prendere il posto di un giocatore che si è disconnesso:
+      // il suo UID mantiene la proprietà fino alla fine della stanza.
+      if(room.status!=='lobby')throw new Error(
+        'La partita è già iniziata. Per rientrare devi usare lo stesso account Firebase del tuo posto originale.'
+      );
+      let slot;
+      if(room.isRoguelikeCoop){
+        slot=['p2','p3'].find(p=>!room.players?.[p])||null;
+      }else{
+        slot=findJoinableSlot(room,getRequiredPlayers(room.gameMode,room.settings));
+      }
+      if(!slot)throw new Error('Stanza piena! Se eri già dentro, accedi con il tuo account originale.');
+      tx.update(ref,{
+        [`players.${slot}`]:playerName.trim(),
+        [`playerUids.${slot}`]:user.uid,
+        [`playerAvatars.${slot}`]:playerAvatarUrl,
+        [`isBot.${slot}`]:false,
+        [`inventory.${slot}`]:room.isRoguelikeCoop
+          ?{pozione:2,resurrezione:1}:getPlayerData().inventory
+      });
+      return {role:slot,returning:false,coop:!!room.isRoguelikeCoop};
+    });
+    setRoomId(code);
+    setPlayerRole(joined.role);
+    if(joined.coop)setCoopRoomId(code);
+    setAppMode(joined.coop?'roguelike_coop_lobby':'online_room');
+    if(joined.returning)setSystemAlert('Rientro riuscito! Hai ripreso il tuo posto e la tua squadra.');
+  }catch(error){
+    console.error('Impossibile unirsi/rientrare:',error);
+    setSystemAlert(error.message||'Impossibile collegarsi alla stanza. Riprova.');
+  }
 };
 
 export const handleAddBotImpl = (ctx, slot) => {
