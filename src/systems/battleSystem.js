@@ -229,7 +229,7 @@ const { CHARACTERS } = ctx;
                           const rTarget = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
                           const sType = char.passive.applyStatusToRandomEnemy.type;
                           
-                          const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Anima Distorta'].includes(sType);
+                          const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'].includes(sType);
                           if (isNegative && rTarget.char.passive && rTarget.char.passive.immuneToNegativeStatuses) {
                               eventsArr.push({ type: 'text', text: `🛡️ ${char.name} attiva ${char.passive.name}, ma ${rTarget.char.name} è immune a ${sType} grazie a ${rTarget.char.passive.name}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                           } else {
@@ -908,8 +908,9 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
 
             // STAB (Same-Type Attack Bonus): Danno aumentato del 50% se il tipo mossa coincide con il tipo attaccante
             const stabFactor = attacker.types.includes(move.type) ? 1.5 : 1;
+            const fasterTargetBonus = move.bonusAgainstFaster && defender.spd > attacker.spd ? move.bonusAgainstFaster : 1;
 
-            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * teamDefFactor * stabFactor * getMahitoMultiplier(attacker, defender, move) * (defender.passive?.type === 'petrosapien_armor' ? 0.8 : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1)));
+            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * teamDefFactor * stabFactor * getMahitoMultiplier(attacker, defender, move) * fasterTargetBonus * (defender.passive?.type === 'petrosapien_armor' ? 0.8 : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1)));
           
 };
 
@@ -1074,7 +1075,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
 
                         // AGGIUNTO: GESTIONE PURIFICAZIONE STATUS (es. Zazan - Corazza Mutante)
                         if (target.passive.removeNegativeStatuses) {
-                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Anima Distorta'];
+                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'];
                             const originalLength = target.statuses.length;
                             target.statuses = target.statuses.filter(s => !negatives.includes(s.type));
                             
@@ -1444,7 +1445,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                               if (itemDef.stat === 'spd') attacker.spd = Math.floor(attacker.spd * itemDef.value);
                               events.push({ type: 'text', text: `${gameState.players[player]} usa ${itemDef.name}! Le statistiche di ${attacker.name} aumentano.` });
                           } else if (itemDef.type === 'heal_status') {
-                              const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Anima Distorta'];
+                              const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'];
                               attacker.statuses = attacker.statuses.filter(s => !negatives.includes(s.type));
                               updateStatusUI(player, charTeamIdx);
                               events.push({ type: 'text', text: `${gameState.players[player]} usa ${itemDef.name}! Gli status di ${attacker.name} sono curati.` });
@@ -1690,6 +1691,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 }
 
                 let finalAccuracy = (move.accuracy !== undefined ? move.accuracy : 1.0) * (attacker.acc || 1.0);
+                if (attacker.statuses?.some(s=>s.type==='Accecato')) finalAccuracy *= 0.8;
                 if (finalAccuracy < 1.0 && Math.random() > finalAccuracy) {
                     events.push({ type: 'text', text: `${attacker.name} usa ${move.name}, ma manca clamorosamente il bersaglio!` });
                     
@@ -2382,7 +2384,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                         }
 
                         if (move.removeNegativeStatuses) {
-                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Anima Distorta'];
+                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'];
                             const originalLength = t.char.statuses.length;
                             t.char.statuses = t.char.statuses.filter(s => !negatives.includes(s.type));
                             if (t.char.statuses.length < originalLength) {
@@ -2444,7 +2446,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
 
                         let effects = move.statusEffects || (move.statusEffect ? [move.statusEffect] : []);
                         for (let effect of effects) {
-                            const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Anima Distorta'].includes(effect.type);
+                            const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'].includes(effect.type);
                             
                             // FIX CRITICO: Se la mossa non ha una "chance" specificata, assumiamo che sia 1.0 (100% garantita)!
                             const chanceToApply = effect.chance !== undefined ? effect.chance : 1.0;
@@ -2796,7 +2798,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                                     if (enemy && enemy.hp > 0 && Math.random() < char.passive.enemyStatusEffect.chance) {
                                         const sType = char.passive.enemyStatusEffect.type;
                                         
-                                        const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Anima Distorta'].includes(sType);
+                                        const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'].includes(sType);
                                         if (isNegative && enemy.passive && enemy.passive.immuneToNegativeStatuses) {
                                             return; 
                                         }
@@ -2861,7 +2863,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 char.juggTurnCount = (char.juggTurnCount || 0) + 1;
                 if (char.juggTurnCount >= 2) {
                     char.juggTurnCount = 0; // Reset contatore
-                    const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Anima Distorta'];
+                    const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'];
                     const hasNegative = char.statuses.some(s => negatives.includes(s.type));
                     if (hasNegative) {
                         char.statuses = char.statuses.filter(s => !negatives.includes(s.type));
@@ -2917,6 +2919,16 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                     char.statuses.splice(rifIdx, 1);
                     updateStatusUI(target.player, target.charTeamIdx);
                     events.push({ type: 'text', text: `La barriera di vento di ${char.name} svanisce!` });
+                }
+            }
+
+            let blindIdx = char.statuses.findIndex(s => s.type === 'Accecato');
+            if (blindIdx !== -1) {
+                char.statuses[blindIdx].turns = (char.statuses[blindIdx].turns || 3) - 1;
+                if (char.statuses[blindIdx].turns <= 0) {
+                    char.statuses.splice(blindIdx,1);
+                    updateStatusUI(target.player,target.charTeamIdx);
+                    events.push({type:'text',text:`✨ ${char.name} torna a vedere chiaramente!`});
                 }
             }
 
