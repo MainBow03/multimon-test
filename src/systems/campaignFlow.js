@@ -1,3 +1,4 @@
+import { reconcileCampaignRoster } from './campaignRoster.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const loadCampaignImpl = (ctx, campId) => {
 const { CHARACTERS, getCampaignStoryCharacters, setActiveCampaignId, setCampaignState } = ctx;
@@ -32,6 +33,7 @@ const { CHARACTERS, getCampaignStoryCharacters, setActiveCampaignId, setCampaign
                       if (parsed.sectorIdx === undefined) parsed.sectorIdx = 0;
                       if (parsed.missionIdx === undefined) parsed.missionIdx = 0;
                       if (parsed.coins === undefined) parsed.coins = 50;
+                      parsed = reconcileCampaignRoster(parsed, CHARACTERS);
                       setCampaignState(parsed);
                       return parsed; 
                   } catch(e){}

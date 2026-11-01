@@ -1,3 +1,4 @@
+import { partitionCampaignUnlocks } from '../../systems/campaignRoster.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderGameoverView(ctx) {
 const { CHARACTERS, ChevronRight, Coins, RotateCcw, Trophy, activeCampaign, activeCampaignId, campaignState, gameState, getDefaultAvatar, leaveRoom, playerName, roguelikeState, setAppMode, setCampaignDialogueIdx, setCampaignSelectedTeam, setCampaignState, setRoguelikeState, setSystemAlert, updateLocalStats } = ctx;
@@ -61,8 +62,13 @@ if (gameState.status === 'gameover') {
                                     const newRoster = [...campaignState.roster];
                                     let unlockedThisTime = [];
 
+                                    const { valid: validUnlocks, unavailable: unavailableUnlocks } =
+                                        partitionCampaignUnlocks(mission.unlock, newRoster, CHARACTERS);
+                                    if (unavailableUnlocks.length) {
+                                        console.warn('Multimon: personaggi senza scheda:', unavailableUnlocks);
+                                    }
                                     if (mission.randomUnlockCount) {
-                                        const available = (mission.unlock || []).filter(id => !newRoster.includes(id));
+                                        const available = validUnlocks;
                                         if (available.length > 0) {
                                             // Sceglie a caso solo 1 personaggio dalla lista (es. o Max o Chloe)
                                             const pickedId = available[Math.floor(Math.random() * available.length)];
@@ -72,12 +78,10 @@ if (gameState.status === 'gameover') {
                                             saveGlobalUnlock(pickedId);
                                         }
                                     } else if (!mission.choiceUnlock) {
-                                        (mission.unlock || []).forEach(id => {
-                                            if (!newRoster.includes(id)) {
-                                                newRoster.push(id);
-                                                newRosterStats[id] = CHARACTERS.find(c=>c.id===id)?.maxHp ?? 100;
-                                                unlockedThisTime.push(id);
-                                            }
+                                        validUnlocks.forEach(id => {
+                                            newRoster.push(id);
+                                            newRosterStats[id] = CHARACTERS.find(c=>c.id===id).maxHp;
+                                            unlockedThisTime.push(id);
                                             saveGlobalUnlock(id);
                                         });
                                     }
@@ -100,6 +104,9 @@ if (gameState.status === 'gameover') {
                                         roster: newRoster,
                                         faintedInLastBattle: faintedThisBattle, 
                                         lastUnlocked: unlockedThisTime,
+                                        unavailableRosterIds: [...new Set([
+                                            ...(prev.unavailableRosterIds || []), ...unavailableUnlocks
+                                        ])],
                                         currentBossState: null // Pulisce lo stato del boss alla vittoria!
                                     }));
                                     setCampaignDialogueIdx(0);
