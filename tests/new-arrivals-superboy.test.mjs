@@ -43,7 +43,7 @@ test('Superboy: abbagliamento, controattacco più veloce, impatto e volo',()=>{
  assert.equal(MOVES_DB['Pugno Tattico'].bonusAgainstFaster,1.5);
  assert.equal(MOVES_DB['Impatto Kryptoniano'].power,120);
  assert.equal(MOVES_DB['Impatto Kryptoniano'].accuracy,.7);
- assert.equal(MOVES_DB['Volo Supersonico'].selfStatBuff.spd,1.2);
+ assert.equal(CHARACTERS.find(c=>c.id==='superboy').moves[3].selfStatBuff.spd,1.2);
  const attacker={id:'superboy',name:'Superboy',maxHp:110,atk:100,def:80,spd:90,types:['Lotta','Luce'],statuses:[]};
  const defender={id:'other',name:'Altro',def:100,baseDef:100,spd:150,types:['Normale'],statuses:[]};
  const move=MOVES_DB['Pugno Tattico'];
