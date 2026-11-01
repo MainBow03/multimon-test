@@ -1,3 +1,4 @@
+import { calculateDamageImpl } from '../src/systems/battleSystem.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { getEquippedCount, canEquipHeldItem, getHeldPowerFactor, getHeldRecoil,
@@ -54,4 +55,20 @@ test('Mahito distorted soul multiplies damage and causes 5% end-of-turn loss', (
   assert.equal(canDistortSoul({ id: 'mahito' }, { power: 95, contact: true }, defender, 0.29), true);
   assert.equal(canDistortSoul({ id: 'mahito' }, { power: 95, contact: true }, defender, 0.31), false);
   assert.equal(canDistortSoul({ id: 'mahito' }, { power: 75 }, defender, 0.1), false);
+});
+
+test('Trasfigurazione boosts actual special-move damage of Mahito', () => {
+  const attacker = CHARACTERS.find(c => c.id === 'mahito');
+  const defender = { def: 100, statuses: [], types: ['Normale'] };
+  const specialMove = MOVES_DB['Polimorfismo Mostruoso'];
+  assert.equal(specialMove.special, true);
+  const originalRandom = Math.random;
+  Math.random = () => 0.5;
+  try {
+    const before = calculateDamageImpl({}, attacker, defender, specialMove, 1);
+    const boosted = calculateDamageImpl({}, { ...attacker, spAtk: Math.floor(attacker.spAtk * 1.5) }, defender, specialMove, 1);
+    assert.ok(boosted > before, `Expected ${boosted} > ${before}`);
+  } finally {
+    Math.random = originalRandom;
+  }
 });
