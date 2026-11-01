@@ -2448,6 +2448,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 
                 if (attackSucceeded && move.transformMahito && attacker.id === 'mahito' && !attacker.mahitoTransformed) {
                     attacker.mahitoTransformed = true;
+                    attacker.imageFilter = 'hue-rotate(285deg) saturate(1.6) contrast(1.2) drop-shadow(0 0 17px rgba(217,70,239,0.95))';
                     attacker.atk = Math.floor(attacker.atk * 1.5);
                     attacker.spAtk = Math.floor((attacker.spAtk || attacker.atk) * 1.5);
                     events.push({ type: 'text', text: '👁️ Mahito usa Trasfigurazione Oziosa! Cambia forma e aumenta Attacco e Attacco Speciale di uno stadio!' });
