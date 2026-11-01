@@ -38,9 +38,10 @@ export async function purgeEvent(id){
  const ref=event(id);
  const [ps,cs]=await Promise.all([getDocs(players(id)),getDocs(commands(id))]);
  const docs=[...ps.docs,...cs.docs];
- for(let i=0;i<docs.length;i+=400){
+ // Le regole Firestore eseguono get() per ogni eliminazione: batch piccoli evitano i limiti di accesso.
+ for(let i=0;i<docs.length;i+=10){
   const batch=writeBatch(db);
-  for(const docSnap of docs.slice(i,i+400))batch.delete(docSnap.ref);
+  for(const docSnap of docs.slice(i,i+10))batch.delete(docSnap.ref);
   await batch.commit();
  }
  await deleteDoc(ref);
