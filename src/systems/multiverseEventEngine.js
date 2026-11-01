@@ -1,6 +1,8 @@
 import { CHARACTERS } from '../data/characters.js';
 import { getMultiplier } from './typeSystem.js';
 import { calculateDamageImpl } from './battleSystem.js';
+import { ignoresShields, immuneToStatDrops, powerForAccordo,
+  effectiveTaserPower, stickyTrapEntryDamage } from './rockstarAgentEffects.js';
 import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense,
   endRefractionTurn, snowstormOutcome, randomBuff, randomDebuff, daffyCelebration } from './championEffects.js';
 export const EVENT_PRIZES={1:400,2:200,3:140,other:50};
@@ -65,20 +67,22 @@ export function eventPlacements(matches,entrants){
 function fighter(id,owner,item){
  const c=CHARACTERS.find(x=>x.id===id);if(!c)throw Error('Multimon mancante: '+id);
  return{key:owner+'-'+id,id,owner,name:c.name,img:c.img,types:c.types||[],hp:c.maxHp,maxHp:c.maxHp,
- atk:c.atk,def:c.def,baseDef:c.def,spDef:c.spDef||c.def,baseSpDef:c.spDef||c.def,spd:c.spd,spAtk:c.spAtk||c.atk,passive:c.passive||null,heldItem:item||null,hyper:false,statuses:[],
+ atk:c.atk,def:c.def,baseDef:c.def,spDef:c.spDef||c.def,baseSpDef:c.spDef||c.def,spd:c.spd,baseSpd:c.spd,spAtk:c.spAtk||c.atk,passive:c.passive||null,heldItem:item||null,hyper:false,statuses:[],
  moves:c.moves.map(m=>({name:m.name,type:m.type,power:m.power||0,accuracy:m.accuracy??100,
  targetCount:m.targetCount||1,uses:m.maxUses??null,contact:!!m.contact,
  special:!!m.special,transform:!!m.transformMahito,effect:m.statusEffect||null,buff:m.selfStatBuff||m.statBuff||null,
  heal:m.heal||0,enemyDebuff:m.targetStatDebuff||null,snowstormTurns:m.snowstormTurns||0,
  evasionGain:m.evasionGain||0,crystalShieldPercent:m.crystalShieldPercent||0,
  refractionTurns:m.refractionTurns||0,bonusAgainstFaster:m.bonusAgainstFaster||0,
+ priority:m.priority||0,ignoreShields:!!m.ignoreShields,ignoreTaunt:!!m.ignoreTaunt,
+ placeStickyTrap:!!m.placeStickyTrap,scalingEnemyCount:!!m.scalingEnemyCount,bonusIfSlowed:m.bonusIfSlowed||0,
  ignoreDefBuffs:!!m.ignoreDefBuffs,speedScaling:!!m.speedScaling}))}
 }
 export function buildEventBattle(match,people,s){
  const make=side=>side.members.flatMap(uid=>people[uid].teamIds.map(id=>fighter(id,uid,s.allowItems?people[uid].heldItems?.[id]:null)));
  return{matchId:match.id,side:'A',turn:1,teams:{A:make(match.sideA),B:make(match.sideB)},
  owners:{A:match.sideA.members,B:match.sideB.members},hyperUsed:{},finished:false,winner:null,
- weather:null,log:['Inizia '+match.sideA.name+' contro '+match.sideB.name+'!']};
+ weather:null,traps:{},log:['Inizia '+match.sideA.name+' contro '+match.sideB.name+'!']};
 }
 export function activeEventFighters(b,side,s){
  return b.owners[side].flatMap(uid=>b.teams[side].filter(x=>x.owner===uid&&x.hp>0).slice(0,s.fieldSize));
@@ -94,6 +98,22 @@ export function botActions(b,uid,s){
 export function eventTurn(b,submissions,s,random=Math.random){
  if(b.finished)throw Error('Partita terminata');
  const x=structuredClone(b),side=x.side,oppo=side==='A'?'B':'A',log=[];
+ x.traps ||= {};
+ // Applica le trappole quando entra un NUOVO personaggio, non a chi era
+ // già in campo al momento del piazzamento.
+ for(const team of ['A','B']){
+  const trap=x.traps[team];
+  if(!trap)continue;
+  const active=activeEventFighters(x,team,s);
+  const previous=new Set(trap.seen||[]);
+  for(const unit of active){
+   if(previous.has(unit.key))continue;
+   const dmg=stickyTrapEntryDamage(unit);
+   unit.hp=Math.max(0,unit.hp-dmg);
+   log.push('Trappola Segreta: '+unit.name+' perde '+dmg+' PS entrando in campo!');
+  }
+  trap.seen=activeEventFighters(x,team,s).map(u=>u.key);
+ }
  const commands=new Map(x.owners[side].flatMap(uid=>submissions[uid]||[]).map(c=>[c.actor,c]));
  const applyBuff=(actor,buffs)=>{
   if(!buffs)return;
@@ -106,6 +126,7 @@ export function eventTurn(b,submissions,s,random=Math.random){
   const name=effect.type;
   if(!target.statuses.includes(name))target.statuses.push(name);
   if(name==='Accecato')target.blindTurns=effect.turns||3;
+  if(name==='Incantato'){target.enchantedTurns=effect.turns||10;target.enchantedFresh=true;}
   log.push(target.name+' riceve lo stato '+name+'!');
  };
  const hurt=(attacker,target,m)=>{
@@ -115,7 +136,7 @@ export function eventTurn(b,submissions,s,random=Math.random){
   const wrap=u=>({...u,statuses:(u.statuses||[]).map(type=>({type})),
     heldItem:s.allowItems?u.heldItem:null});
   const raw=calculateDamageImpl({},wrap(attacker),wrap(target),m,multiplier,false,random);
-  const defense=directHitAfterCrystalDefense(target,raw);
+  const defense=ignoresShields(attacker,m)?{damage:raw,absorbed:0,refracted:false}:directHitAfterCrystalDefense(target,raw);
   target.hp=Math.max(0,target.hp-defense.damage);
   if(defense.refracted)log.push('Rifrazione dimezza il primo colpo su '+target.name+'!');
   if(defense.absorbed)log.push('Scudo di '+target.name+': '+defense.absorbed+' danni assorbiti.');
@@ -133,7 +154,11 @@ export function eventTurn(b,submissions,s,random=Math.random){
   }
   return defense.damage;
  };
- for(const actor of activeEventFighters(x,side,s).sort((a,b)=>b.spd-a.spd)){
+ for(const actor of activeEventFighters(x,side,s).sort((a,b)=>{
+  const ma=a.moves[Number(commands.get(a.key)?.moveIndex)||0];
+  const mb=b.moves[Number(commands.get(b.key)?.moveIndex)||0];
+  return (mb?.priority||0)-(ma?.priority||0)||b.spd-a.spd;
+ })){
   if(actor.hp<=0)continue;
   const command=commands.get(actor.key);
   if(!command){log.push(actor.name+' passa.');continue;}
@@ -156,9 +181,16 @@ export function eventTurn(b,submissions,s,random=Math.random){
    if(m.evasionGain){addEvasion(actor);log.push(actor.name+' aumenta l’elusione!');}
    if(m.crystalShieldPercent){crystalShield(actor);log.push(actor.name+' innalza un Muro Cristallino!');}
    if(m.refractionTurns){beginRefraction(actor);log.push(actor.name+' attiva Rifrazione!');}
+   if(m.placeStickyTrap){
+     x.traps[oppo]={seen:activeEventFighters(x,oppo,s).map(u=>u.key)};
+     log.push(actor.name+' piazza una Trappola Segreta sul campo avversario!');
+   }
    const enemies=activeEventFighters(x,oppo,s).filter(u=>u.hp>0);
    const t=enemies.find(v=>v.key===command.target)||enemies[0];
-   if(t&&m.enemyDebuff){applyBuff(t,m.enemyDebuff);log.push(t.name+' subisce un calo di statistiche!');}
+   if(t&&m.enemyDebuff){
+     if(immuneToStatDrops(t))log.push(t.name+' è immune ai cali di statistiche!');
+     else{applyBuff(t,m.enemyDebuff);log.push(t.name+' subisce un calo di statistiche!');}
+   }
    if(t)status(t,m.effect);
    log.push(actor.name+' usa '+m.name);
    continue;
@@ -176,12 +208,17 @@ export function eventTurn(b,submissions,s,random=Math.random){
    if(t.hp<=0)continue;
    if(t.evasionBonus&&random()<t.evasionBonus){log.push(t.name+' schiva il colpo!');continue;}
    hitAny=true;
-   const damage=hurt(actor,t,m);
+   const actualMove=m.scalingEnemyCount?{...m,power:powerForAccordo(visible.length)}:
+     m.bonusIfSlowed?{...m,power:effectiveTaserPower(t)}:m;
+   const damage=hurt(actor,t,actualMove);
    if(t.hp&&damage&&actor.id==='mahito'&&m.contact&&random()<.3&&!t.statuses.includes('Anima Distorta')){
      t.statuses.push('Anima Distorta');log.push('Anima Distorta su '+t.name);
    }
    if(t.hp)status(t,m.effect);
-   if(t.hp&&m.enemyDebuff){applyBuff(t,m.enemyDebuff);log.push(t.name+' perde statistiche!');}
+   if(t.hp&&m.enemyDebuff){
+     if(immuneToStatDrops(t))log.push(t.name+' è immune ai cali di statistiche!');
+     else{applyBuff(t,m.enemyDebuff);log.push(t.name+' perde statistiche!');}
+   }
   }
   if(hitAny&&m.buff)applyBuff(actor,m.buff);
   if(hitAny&&m.snowstormTurns){x.weather={type:'snowstorm',turns:m.snowstormTurns};log.push('Una tempesta di neve investe il campo!');}
@@ -199,6 +236,13 @@ export function eventTurn(b,submissions,s,random=Math.random){
      log.push(u.name+' perde '+d+' PS per Anima Distorta.');
    }
    if(u.hp<=0)continue;
+   if(u.enchantedTurns>0){
+     if(u.enchantedFresh)u.enchantedFresh=false;
+     else if(--u.enchantedTurns<=0){
+       u.statuses=u.statuses.filter(z=>z!=='Incantato');
+       log.push(u.name+' non è più incantato!');
+     }
+   }
    if(u.blindTurns>0){
      u.blindTurns--;if(!u.blindTurns)u.statuses=u.statuses.filter(z=>z!=='Accecato');
    }
@@ -206,7 +250,8 @@ export function eventTurn(b,submissions,s,random=Math.random){
      if(random()<.5){const stat=randomBuff(u,random);log.push(u.name+' aumenta '+stat+' del 15%!');}
      const enemies=activeEventFighters(x,team==='A'?'B':'A',s).filter(v=>v.hp>0);
      if(enemies.length){const target=enemies[Math.floor(random()*enemies.length)];
-       const stat=randomDebuff(target,random);log.push(u.name+' abbassa '+stat+' di '+target.name+'!');}
+       if(immuneToStatDrops(target))log.push(target.name+' resiste al calo di statistiche!');
+       else{const stat=randomDebuff(target,random);log.push(u.name+' abbassa '+stat+' di '+target.name+'!');}}
    }
   }
  }
