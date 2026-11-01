@@ -1,4 +1,13 @@
 export const MOVES_DB = {
+          // Danny Phantom / T.U.F.F. Puppy: Ember e Kitty
+          'Assolo Spettrale': { name:'Assolo Spettrale',type:'Suono',power:90,accuracy:1,statusEffect:{type:'Confuso',chance:0.2,turns:3},desc:'Potenza 90. Ha il 20% di confondere.' },
+          'Onda Fantasma': { name:'Onda Fantasma',type:'Spettro',power:85,accuracy:1,desc:'Onda spettrale, potenza 85.' },
+          'Ipnosi Rock': { name:'Ipnosi Rock',type:'Suono',power:0,accuracy:1,statusEffect:{type:'Incantato',chance:0.5,turns:10},desc:'50% di incantare un avversario per 10 turni; un nemico incantato infligge il 25% di danni in meno.' },
+          'Accordo Distruttivo': { name:'Accordo Distruttivo',type:'Suono',power:60,accuracy:0.8,scalingEnemyCount:true,desc:'Potenza 60 con un bersaglio avversario in campo; 80 con 2, 100 con 3 e 120 con 4 o più. Precisione 80%.' },
+          'Passo Felino': { name:'Passo Felino',type:'Folletto',power:75,accuracy:1,priority:1,contact:true,desc:'Potenza 75, precisione 100, priorità +1.' },
+          'Infiltrazione': { name:'Infiltrazione',type:'Buio',power:90,accuracy:1,ignoreShields:true,ignoreTaunt:true,desc:'Potenza 90: ignora scudi, protezioni e provocazioni.' },
+          'Taser T.U.F.F.': { name:'Taser T.U.F.F.',type:'Buio',power:80,accuracy:1,bonusIfSlowed:120,statusEffect:{type:'Elettrizzato',chance:0.3},desc:'Potenza 80, oppure 120 contro bersagli con Velocità ridotta; 30% di paralizzare.' },
+          'Trappola Segreta': { name:'Trappola Segreta',type:'Buio',power:0,accuracy:1,target:'self',placeStickyTrap:true,desc:'Posiziona sul campo avversario una trappola appiccicosa permanente: chi entra in campo perde il 10% dei PS massimi.' },
           'Raggio Solare': { name:'Raggio Solare',type:'Luce',power:90,accuracy:1,statusEffect:{type:'Accecato',chance:0.20,turns:3},desc:'Potenza 90, precisione 100. Ha il 20% di accecare il bersaglio (precisione -20% per 3 turni).' },
           'Pugno Tattico': { name:'Pugno Tattico',type:'Lotta',power:85,accuracy:1,contact:true,bonusAgainstFaster:1.5,desc:'Potenza 85. Se il bersaglio è più veloce, infligge il 50% di danno extra.' },
           'Impatto Kryptoniano': { name:'Impatto Kryptoniano',type:'Lotta',power:120,accuracy:0.7,contact:true,desc:'Potenza 120, precisione 70.' },

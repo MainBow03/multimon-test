@@ -2,6 +2,16 @@ import { CHAR_PRICES } from './prices.js';
 import { MOVES_DB } from './moves.js';
 
 export const CHARACTERS = [
+          { id:'embermclain',name:'Ember McLain',types:['Spettro','Suono'],
+            hp:105,maxHp:105,atk:108,spAtk:124,def:81,spd:112,
+            img:'https://i.pinimg.com/1200x/ad/c8/cc/adc8cccaee66fa6a65a4f2bea2534c49.jpg',
+            passive:{name:'Rockstar Fantasma',type:'ghost_rockstar',desc:'Le mosse Suono infliggono il 25% di danni extra e ignorano scudi e protezioni.'},
+            moves:[MOVES_DB['Assolo Spettrale'],MOVES_DB['Onda Fantasma'],MOVES_DB['Ipnosi Rock'],MOVES_DB['Accordo Distruttivo']] },
+          { id:'kitty',name:'Kitty',types:['Folletto','Buio'],
+            hp:100,maxHp:100,atk:109,def:94,spd:119,
+            img:'https://i.pinimg.com/736x/ba/be/cf/babecf95179ccc3a2290209d92e539b5.jpg',
+            passive:{name:'Agente Sotto Copertura',type:'undercover_agent',desc:'È immune a tutte le riduzioni delle statistiche: Attacco, Difesa, Difesa Speciale, Velocità, Precisione ed elusione.'},
+            moves:[MOVES_DB['Passo Felino'],MOVES_DB['Infiltrazione'],MOVES_DB['Taser T.U.F.F.'],MOVES_DB['Trappola Segreta']] },
           { id:'superboy',name:'Superboy',types:['Luce','Lotta'],hp:115,maxHp:115,atk:117,def:100,spd:108,
             img:'https://i.pinimg.com/1200x/c0/d6/0b/c0d60bee10b5a61fdd406cb2ecd12449.jpg',
             passive:{name:'DNA Ibrido',type:'on_hp_threshold',threshold:0.25,statBuff:{atk:1.2,spd:1.2},maxUses:1,

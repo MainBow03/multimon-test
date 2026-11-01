@@ -1,4 +1,7 @@
 import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense, endRefractionTurn, snowstormOutcome, randomBuff, randomDebuff, daffyCelebration } from './championEffects.js';
+import { ignoresShields, immuneToStatDrops, powerForAccordo, effectiveTaserPower,
+  incomingRockEnchantmentFactor, affectedOpponents, addStickyTrap, trapEntries,
+  stickyTrapEntryDamage } from './rockstarAgentEffects.js';
 import { getHeldPowerFactor, getHeldRecoil, getMahitoMultiplier, canDistortSoul, getDistortedSoulDamage } from './heldEquipment.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleForceSkipImpl = (ctx) => {
@@ -171,7 +174,7 @@ const { CHARACTERS } = ctx;
                           if (workingField[ep]) {
                               workingField[ep].forEach(eIdx => {
                                   const enemy = workingTeams[ep][eIdx];
-                                  if (enemy && enemy.hp > 0) {
+                                  if (enemy && enemy.hp > 0 && !immuneToStatDrops(enemy)) {
                                       if (char.passive.enemyStatDebuff.atk) {
                                           if (enemy.passive && enemy.passive.type === 'immune_to_atk_debuff') {
                                               eventsArr.push({ type: 'text', text: `🛡️ ${enemy.name} è immune al calo di Attacco grazie a ${enemy.passive.name}!`, isPassive: true, passiveChar: enemy.name, passiveName: enemy.passive.name });
@@ -229,7 +232,7 @@ const { CHARACTERS } = ctx;
                           const rTarget = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
                           const sType = char.passive.applyStatusToRandomEnemy.type;
                           
-                          const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'].includes(sType);
+                          const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'].includes(sType);
                           if (isNegative && rTarget.char.passive && rTarget.char.passive.immuneToNegativeStatuses) {
                               eventsArr.push({ type: 'text', text: `🛡️ ${char.name} attiva ${char.passive.name}, ma ${rTarget.char.name} è immune a ${sType} grazie a ${rTarget.char.passive.name}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                           } else {
@@ -251,7 +254,7 @@ const { CHARACTERS } = ctx;
                           if (workingField[ep]) {
                               workingField[ep].forEach(eIdx => {
                                   const enemy = workingTeams[ep][eIdx];
-                                  if (enemy && enemy.hp > 0) {
+                                  if (enemy && enemy.hp > 0 && !immuneToStatDrops(enemy)) {
                                       possibleTargets.push({ player: ep, idx: eIdx, char: enemy });
                                   }
                               });
@@ -397,7 +400,10 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
             });
 
             let nextState = {
-              status: 'pre_battle', 
+              status: 'pre_battle',
+              battleWeather: null,
+              fieldTraps: {},
+              fieldTrapSeen: {}, 
               teams: teams,
               field: field,
               events: initialEvents,
@@ -872,6 +878,7 @@ const { appMode, calculateTurn, gameState, getActivePlayers, playerRole } = ctx;
 export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, isFirstAttackOfTurn = false, random = Math.random) => {
 
             let pwr = move.power * getHeldPowerFactor(attacker, move);
+            if (attacker.passive?.type === 'ghost_rockstar' && move.type === 'Suono') pwr *= 1.25;
             if (move.speedScaling) pwr += Math.floor(attacker.spd / 3);
             
             // --- GESTIONE PASSIVE: POTENZIAMENTO MOSSE ---
@@ -904,13 +911,14 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             const baseDamage = ((2 * 50 / 5 + 2) * pwr * (attackValue / defValue)) / 85 + 2;
             const randomFactor = (Math.floor(random() * 16) + 85) / 100;
             const weakenFactor = attacker.statuses?.some(s => s.type === 'Indebolito') ? 0.75 : 1;
-            const teamDefFactor = defender.statuses?.some(s => s.type === 'Scudo Team') ? 0.33 : 1;
+            const teamDefFactor = !ignoresShields(attacker,move) && defender.statuses?.some(s => s.type === 'Scudo Team') ? 0.33 : 1;
 
             // STAB (Same-Type Attack Bonus): Danno aumentato del 50% se il tipo mossa coincide con il tipo attaccante
             const stabFactor = attacker.types.includes(move.type) ? 1.5 : 1;
+            const enchantedDamageFactor = incomingRockEnchantmentFactor(attacker);
             const fasterTargetBonus = move.bonusAgainstFaster && defender.spd > attacker.spd ? move.bonusAgainstFaster : 1;
 
-            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * teamDefFactor * stabFactor * getMahitoMultiplier(attacker, defender, move) * fasterTargetBonus * (defender.passive?.type === 'petrosapien_armor' ? 0.8 : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1)));
+            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * teamDefFactor * stabFactor * enchantedDamageFactor * getMahitoMultiplier(attacker, defender, move) * fasterTargetBonus * (defender.passive?.type === 'petrosapien_armor' ? 0.8 : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1)));
           
 };
 
@@ -928,6 +936,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
             let workingHyperUsed = JSON.parse(JSON.stringify(gameState.hyperUsed || {})); // <--- AGGIUNTO PER FORMA IPER
             // Meteo condiviso: si salva nello stato partita, non sul singolo personaggio.
             let workingWeather = gameState.battleWeather ? {...gameState.battleWeather} : null;
+            let workingFieldTraps = {...(gameState.fieldTraps||{})};
+            let workingTrapSeen = JSON.parse(JSON.stringify(gameState.fieldTrapSeen||{}));
             const activeMatchPlayers = getActivePlayers();
 
             const handleFaint = (targetPlayer, targetIdx) => {
@@ -997,7 +1007,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
             };
 
             const applyDamage = (target, dmg, targetPlayer, targetIdx, text, options = {}) => {
-                if (dmg > 0 && options.directAttack) {
+                if (dmg > 0 && options.directAttack && !options.bypassShields) {
                     const defense = directHitAfterCrystalDefense(target, dmg);
                     dmg = defense.damage;
                     if (defense.refracted) events.push({type:'text',text:`💎 Rifrazione di ${target.name}: il primo attacco del turno viene dimezzato!`});
@@ -1075,7 +1085,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
 
                         // AGGIUNTO: GESTIONE PURIFICAZIONE STATUS (es. Zazan - Corazza Mutante)
                         if (target.passive.removeNegativeStatuses) {
-                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'];
+                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'];
                             const originalLength = target.statuses.length;
                             target.statuses = target.statuses.filter(s => !negatives.includes(s.type));
                             
@@ -1348,6 +1358,18 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
             });
             // ---------------------------------------------------------------
 
+            // Chi entra sul campo DOPO la Trappola Segreta perde il 10% PS.
+            // La lista seen viene aggiornata a ogni turno; un ingresso
+            // successivo dello stesso personaggio viene colpito di nuovo.
+            for(const entry of trapEntries(workingFieldTraps,workingTrapSeen,workingField)){
+                const char=workingTeams[entry.player]?.[entry.idx];
+                if(!char||char.hp<=0)continue;
+                const dmg=stickyTrapEntryDamage(char);
+                applyDamage(char,dmg,entry.player,entry.idx,
+                    `🪤 Trappola Segreta! ${char.name} perde ${dmg} PS entrando in campo!`);
+            }
+            for(const p of Object.keys(workingField))workingTrapSeen[p]=[...(workingField[p]||[])];
+
             // --- 2. COSTRUZIONE CODA DEI TURNI E INIZIATIVA ---
             let turnQueue = [];
             activeMatchPlayers.forEach(player => {
@@ -1360,7 +1382,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 const action = currentActions[player][charTeamIdxStr];
                 
                 let effSpd = char.spd;
-                if (char.statuses && char.statuses.some(s => s.type === 'Elettrizzato')) effSpd = Math.floor(effSpd / 2);
+                if (!immuneToStatDrops(char) && char.statuses && char.statuses.some(s => s.type === 'Elettrizzato')) effSpd = Math.floor(effSpd / 2);
                 
                 const move = action.type === 'attack' ? char.moves[action.moveIdx] : null;
                 let priority = (action.type === 'switch' || action.type === 'use_item') ? 6 : (move ? (move.priority || 0) : 0);
@@ -1445,7 +1467,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                               if (itemDef.stat === 'spd') attacker.spd = Math.floor(attacker.spd * itemDef.value);
                               events.push({ type: 'text', text: `${gameState.players[player]} usa ${itemDef.name}! Le statistiche di ${attacker.name} aumentano.` });
                           } else if (itemDef.type === 'heal_status') {
-                              const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'];
+                              const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'];
                               attacker.statuses = attacker.statuses.filter(s => !negatives.includes(s.type));
                               updateStatusUI(player, charTeamIdx);
                               events.push({ type: 'text', text: `${gameState.players[player]} usa ${itemDef.name}! Gli status di ${attacker.name} sono curati.` });
@@ -1491,8 +1513,18 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                       // -----------------------------------------------------------
 
                       workingField[player][fieldPos] = action.toIdx;
-                      workingTeams[player][action.toIdx].revealed = true; // Segna come rivelato!
-                      events.push({ type: 'switch', player, pos: fieldPos, newIdx: action.toIdx, text: `${gameState.players[player]} ritira ${attacker.name} e manda in campo ${workingTeams[player][action.toIdx].name}!` });
+                      const entering=workingTeams[player][action.toIdx];
+                      entering.revealed = true;
+                      events.push({ type: 'switch', player, pos: fieldPos, newIdx: action.toIdx,
+                        text: `${gameState.players[player]} ritira ${attacker.name} e manda in campo ${entering.name}!` });
+                      // Prima mostriamo l'ingresso, poi eventuali danni
+                      // della trappola e un KO: niente sprite fantasma.
+                      if(workingFieldTraps[player] && entering?.hp>0){
+                        const dmg=stickyTrapEntryDamage(entering);
+                        applyDamage(entering,dmg,player,action.toIdx,
+                          `🪤 Trappola Segreta! ${entering.name} perde ${dmg} PS entrando in campo!`);
+                      }
+                      workingTrapSeen[player]=[...(workingField[player]||[])];
                   }
                   continue;
               }
@@ -1863,7 +1895,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                     let isRedirectedDmgReduced = false;
                     let inGroppaStatus = t.char.statuses.find(s => s.type === 'In_Groppa');
                     // MODIFICA: Yoshi devia l'attacco SOLO se non è un attacco ad area (altrimenti verrebbe colpito due volte dalla stessa esplosione!)
-                    if (inGroppaStatus && inGroppaStatus.protectorIdx !== undefined) {
+                    if (!move.ignoreTaunt && inGroppaStatus && inGroppaStatus.protectorIdx !== undefined) {
                         if (!move.targetCount || move.targetCount < 4) {
                             const pPlayer = inGroppaStatus.protectorPlayer || t.player;
                             const protectorChar = workingTeams[pPlayer]?.[inGroppaStatus.protectorIdx];
@@ -1888,7 +1920,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                     // --- END REDIRECT LOGIC ---
 
                     // --- REDIRECT LOGIC (BODYGUARD PASSIVA - Es. Scheletro) ---
-                    if (!move.targetCount || move.targetCount < 4) {
+                    if (!move.ignoreTaunt && (!move.targetCount || move.targetCount < 4)) {
                         let hasBodyguard = false;
                         let protectorFieldIdx = -1;
                         let protectorCharIdx = -1;
@@ -1947,7 +1979,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                          isEnemyTarget = getTournamentMatchOpponents(player).includes(t.player);
                     }
 
-                    let isProtectedFromEnemy = isEnemyTarget && t.char.statuses.some(s => s.type === 'Protetto' || s.type === 'Rashield');
+                    const bypassEnemyShields = ignoresShields(attacker,move);
+                    let isProtectedFromEnemy = !bypassEnemyShields && isEnemyTarget && t.char.statuses.some(s => s.type === 'Protetto' || s.type === 'Rashield');
 
                     let isInvincibleShield = false;
                     let isPerfectBarrier = false;
@@ -1977,7 +2010,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                         isFirstHitImmunity = true;
                     }
 
-                    if (isProtectedFromEnemy || isInvincibleShield || isPerfectBarrier || isFirstHitImmunity) {
+                    if (!bypassEnemyShields && (isProtectedFromEnemy || isInvincibleShield || isPerfectBarrier || isFirstHitImmunity)) {
                         if (isProtectedFromEnemy) {
                             events.push({ type: 'text', text: `🛡️ ${t.char.name} si è protetto dall'attacco di ${attacker.name}!` });
                             if (t.char.statuses.some(s => s.type === 'Rashield') && attacker.hp > 0 && move.power > 0) {
@@ -2074,7 +2107,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                         }
                         // -----------------------------------------------------------
                         
-                        if (t.char.juggHitsRemaining > 0) {
+                        if (!bypassEnemyShields && t.char.juggHitsRemaining > 0) {
                             t.char.juggHitsRemaining -= 1;
                             if (t.char.juggHitsRemaining === 0) {
                                 events.push({ type: 'text', text: `🛡️ Lo Scudo di ${t.char.name} si è infranto!` });
@@ -2097,7 +2130,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                         let juggHitsAbsorbed = 0;
 
                         for (let i = 0; i < hits; i++) {
-                            if (t.char.juggHitsRemaining > 0) {
+                            if (!bypassEnemyShields && t.char.juggHitsRemaining > 0) {
                                 t.char.juggHitsRemaining -= 1;
                                 juggHitsAbsorbed++;
                                 actualHits++;
@@ -2111,6 +2144,12 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             }
 
                             let currentMoveForDmg = move;
+                            if(move.scalingEnemyCount){
+                              const opp=affectedOpponents(player,gameState.gameMode,activeMatchPlayers,getTournamentMatchOpponents,gameState.settings);
+                              const n=opp.reduce((sum,p)=>sum+(workingField[p]||[]).filter(i=>workingTeams[p]?.[i]?.hp>0).length,0);
+                              currentMoveForDmg={...move,power:powerForAccordo(n)};
+                            }
+                            if(move.bonusIfSlowed)currentMoveForDmg={...currentMoveForDmg,power:effectiveTaserPower(t.char)};
                             let isCritical = false;
                             let critMultiplier = 1.0;
 
@@ -2179,7 +2218,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             totalDmg += hitDmg;
                             actualHits++;
                             
-                            if (move.hitStatDebuff && Math.random() < move.hitStatDebuff.chance) {
+                            if (move.hitStatDebuff && !immuneToStatDrops(t.char) && Math.random() < move.hitStatDebuff.chance) {
                                 let statTexts = [];
                                 if (move.hitStatDebuff.def) { t.char.def = Math.floor(t.char.def * move.hitStatDebuff.def); statTexts.push("la Difesa"); }
                                 if (move.hitStatDebuff.atk) { 
@@ -2221,14 +2260,14 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             events.push({ type: 'text', text: `${attacker.name} usa ${move.name} su ${t.char.name}... ma ${absTxt} (${t.char.juggHitsRemaining} cariche scudo rimaste)` });
                         } else if (totalDmg > 0) {
                             let shieldTxt = juggHitsAbsorbed > 0 ? ` (Lo scudo ha assorbito ${juggHitsAbsorbed} colpi).` : '';
-                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText}${hitText}${magText}${groppaText} Infligge ${totalDmg} danni.${shieldTxt}`, {directAttack:true});
+                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText}${hitText}${magText}${groppaText} Infligge ${totalDmg} danni.${shieldTxt}`, {directAttack:true,bypassShields:bypassEnemyShields});
                             if (canDistortSoul(attacker, move, t.char) && !t.char.statuses.some(s => s.type === 'Anima Distorta')) {
                                 t.char.statuses.push({ type: 'Anima Distorta', turns: 99 });
                                 updateStatusUI(t.player, t.idx);
                                 events.push({ type: 'text', text: `👁️ ${attacker.name} distorce l'anima di ${t.char.name}! Perde il 5% dei PS ogni turno e subisce più danni da Mahito.` });
                             }
                         } else {
-                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText} Infligge ${totalDmg} danni.`, {directAttack:true});
+                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText} Infligge ${totalDmg} danni.`, {directAttack:true,bypassShields:bypassEnemyShields});
                         }
                         
                         // Daffy beneficia dei KO realizzati dagli ALTRI alleati in campo:
@@ -2267,7 +2306,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             events.push({ type: 'damage', text: `${attacker.name} assorbe energia e recupera ${healAmount} HP!`, targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp });
                         }
 
-                        if (move.targetStatDebuff && t.char.hp > 0) {
+                        if (move.targetStatDebuff && t.char.hp > 0 && !immuneToStatDrops(t.char)) {
                             let statTexts = [];
                             if (move.targetStatDebuff.atk) { 
                                 if (t.char.passive && t.char.passive.type === 'immune_to_atk_debuff') {
@@ -2286,7 +2325,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                         }
 
                         // LOGICA RIMOZIONE POTENZIAMENTI
-                        if (move.removeBuffs && t.char.hp > 0) {
+                        if (move.removeBuffs && t.char.hp > 0 && !immuneToStatDrops(t.char)) {
                             let removed = false;
                             if (t.char.atk > t.char.baseAtk) { t.char.atk = t.char.baseAtk; removed = true; }
                             if (t.char.def > t.char.baseDef) { t.char.def = t.char.baseDef; removed = true; }
@@ -2301,7 +2340,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             events.push({ type: 'text', text: `${attacker.name} usa ${move.name} su ${t.char.name}!` });
                         }
                         
-                        if (move.targetStatDebuff && t.char.hp > 0) {
+                        if (move.targetStatDebuff && t.char.hp > 0 && !immuneToStatDrops(t.char)) {
                             let statTexts = [];
                             if (move.targetStatDebuff.atk) { 
                                 if (t.char.passive && t.char.passive.type === 'immune_to_atk_debuff') {
@@ -2384,7 +2423,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                         }
 
                         if (move.removeNegativeStatuses) {
-                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'];
+                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'];
                             const originalLength = t.char.statuses.length;
                             t.char.statuses = t.char.statuses.filter(s => !negatives.includes(s.type));
                             if (t.char.statuses.length < originalLength) {
@@ -2446,7 +2485,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
 
                         let effects = move.statusEffects || (move.statusEffect ? [move.statusEffect] : []);
                         for (let effect of effects) {
-                            const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'].includes(effect.type);
+                            const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'].includes(effect.type);
                             
                             // FIX CRITICO: Se la mossa non ha una "chance" specificata, assumiamo che sia 1.0 (100% garantita)!
                             const chanceToApply = effect.chance !== undefined ? effect.chance : 1.0;
@@ -2464,7 +2503,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                                 if (effect.type === 'Addormentato' && !effect.turns) turns = Math.floor(Math.random() * 3) + 2;
                                 if (effect.type === 'Infatuato' && !effect.turns) turns = Math.floor(Math.random() * 2) + 4;
                                 
-                                let newStatus = { type: effect.type, turns: turns };
+                                let newStatus = { type: effect.type, turns: turns, ...(effect.type==='Incantato'?{justApplied:true}:{}) };
                                 // --- FIX: LOGICA DI "In_Groppa" DI YOSHI ---
                                 if (effect.type === 'In_Groppa') {
                                     newStatus.protectorIdx = charTeamIdx; // Assegna il protettore!
@@ -2531,6 +2570,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 if (attackSucceeded && attacker.hp > 0 && move.refractionTurns && attacker.id === 'diamante') {
                     beginRefraction(attacker);
                     events.push({type:'text',text:'💎 Rifrazione attiva per 3 turni: prima difesa dimezzata per turno, mosse Cristallo +20%!'});
+                }
+                if (attackSucceeded && move.placeStickyTrap) {
+                    const foes=affectedOpponents(player,gameState.gameMode,activeMatchPlayers,getTournamentMatchOpponents,gameState.settings);
+                    addStickyTrap(workingFieldTraps,workingTrapSeen,foes,workingField);
+                    events.push({type:'text',text:`🪤 ${attacker.name} piazza una Trappola Segreta: i nuovi avversari perderanno il 10% dei PS entrando in campo!`});
                 }
                 if (attackSucceeded && move.snowstormTurns) {
                     workingWeather = {type:'snowstorm',turns:move.snowstormTurns};
@@ -2798,7 +2842,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                                     if (enemy && enemy.hp > 0 && Math.random() < char.passive.enemyStatusEffect.chance) {
                                         const sType = char.passive.enemyStatusEffect.type;
                                         
-                                        const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'].includes(sType);
+                                        const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'].includes(sType);
                                         if (isNegative && enemy.passive && enemy.passive.immuneToNegativeStatuses) {
                                             return; 
                                         }
@@ -2837,8 +2881,12 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 const choices = opponents.flatMap(p => (workingField[p]||[]).map(i => workingTeams[p]?.[i]).filter(u => u?.hp>0));
                 if (choices.length) {
                     const enemy=choices[Math.floor(Math.random()*choices.length)];
+                    if (immuneToStatDrops(enemy)) {
+                        events.push({type:'text',text:`🕶️ ${enemy.name} resiste al calo di statistiche grazie ad Agente Sotto Copertura!`,isPassive:true,passiveChar:enemy.name,passiveName:enemy.passive.name});
+                    } else {
                     const weakened=randomDebuff(enemy);
                     events.push({type:'text',text:`🐰 ${char.name} distrae ${enemy.name}: ${weakened} -15%!`,isPassive:true,passiveChar:char.name,passiveName:char.passive.name});
+                    }
                 }
             }
 
@@ -2867,7 +2915,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 char.juggTurnCount = (char.juggTurnCount || 0) + 1;
                 if (char.juggTurnCount >= 2) {
                     char.juggTurnCount = 0; // Reset contatore
-                    const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'];
+                    const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'];
                     const hasNegative = char.statuses.some(s => negatives.includes(s.type));
                     if (hasNegative) {
                         char.statuses = char.statuses.filter(s => !negatives.includes(s.type));
@@ -2936,6 +2984,19 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 }
             }
 
+            let enchantIdx=char.statuses.findIndex(s=>s.type==='Incantato');
+            if(enchantIdx!==-1){
+              if(char.statuses[enchantIdx].justApplied){
+                char.statuses[enchantIdx].justApplied=false;
+              }else{
+                char.statuses[enchantIdx].turns--;
+                if(char.statuses[enchantIdx].turns<=0){
+                  char.statuses.splice(enchantIdx,1);
+                  updateStatusUI(target.player,target.charTeamIdx);
+                  events.push({type:'text',text:`🎶 ${char.name} non è più incantato dalla musica di Ember!`});
+                }
+              }
+            }
             let indebIdx = char.statuses.findIndex(s => s.type === 'Indebolito');
             if (indebIdx !== -1) {
                 char.statuses[indebIdx].turns -= 1;
@@ -3296,6 +3357,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
           events: events,
           actions: { p1: {}, p2: {}, p3: {}, p4: {}, p5: {}, p6: {}, p7: {}, p8: {} },
           inventory: workingInventory,
+          fieldTraps: workingFieldTraps,
+          fieldTrapSeen: workingTrapSeen,
           battleWeather: workingWeather,
           hyperUsed: workingHyperUsed, 
           pendingSwitches: pendingSwitches,

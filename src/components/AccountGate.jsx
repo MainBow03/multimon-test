@@ -26,6 +26,7 @@ function explain(error) {
 export function AccountGate({children}) {
  const [session,setSession]=useState({type:'loading',uid:''});
  const [open,setOpen]=useState(false),[mode,setMode]=useState('login');
+ const [controlsExpanded,setControlsExpanded]=useState(false);
  const [email,setEmail]=useState(''),[password,setPassword]=useState('');
  const [error,setError]=useState(''),[notice,setNotice]=useState(''),[cloudStatus,setCloudStatus]=useState('');
  const busy=useRef(false),lastUploaded=useRef(''),inFlight=useRef(null),remotePending=useRef(null);
@@ -180,16 +181,38 @@ export function AccountGate({children}) {
  const locked=['loading','empty','conflict','error'].includes(session.type);
  return <>
   {!locked&&<React.Fragment key={session.type+':'+session.uid}>{children}</React.Fragment>}
-  <div className="fixed top-4 left-4 z-[250] max-w-[calc(100vw-2rem)]">
-   {session.type==='guest'&&<button className="px-3 py-2 rounded-xl border border-cyan-400 bg-slate-950 text-cyan-200 font-black text-xs shadow-xl" onClick={()=>{setOpen(true);setMode('login');}}>☁ Accedi / Registrati</button>}
-   {session.type==='account'&&<div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-500/50 bg-slate-950 p-2 text-xs text-white shadow-xl">
-    <span className="font-black text-emerald-300 max-w-40 truncate" title={auth.currentUser?.email||''}>☁ {auth.currentUser?.email}</span>
-    <span className="text-slate-400">{cloudStatus}</span>
-    <button className="text-cyan-300 underline" onClick={()=>saveNow(true).catch(()=>{})}>Salva ora</button>
-    <button className="text-rose-300 underline" onClick={logout}>Esci</button>
-   </div>}
-  </div>
-  {session.type==='account'&&error&&<div role="alert" className="fixed top-16 left-4 z-[260] max-w-sm rounded-xl border border-red-500 bg-red-950 p-3 text-xs text-white">{error}</div>}
+  {/* Pulsante cloud compatto in basso: non copre "Torna al Menu" nelle stanze. */}
+  {!locked&&<div className="fixed bottom-3 left-3 sm:bottom-4 sm:left-4 z-[250] flex flex-col items-start gap-2 max-w-[calc(100vw-1.5rem)]">
+    {controlsExpanded&&<div id="multimon-account-controls" className="mb-1 max-w-[min(22rem,calc(100vw-1.5rem))] rounded-2xl border border-cyan-400/50 bg-slate-950/95 p-3 shadow-2xl backdrop-blur-xl text-xs text-white">
+      {session.type==='account'&&<div className="flex flex-col gap-3">
+        <div className="flex justify-between items-center gap-3">
+          <span className="font-black text-emerald-300 truncate" title={auth.currentUser?.email||''}>☁ {auth.currentUser?.email}</span>
+          <button aria-label="Chiudi controlli account" className="rounded-lg border border-slate-600 px-2 py-1" onClick={()=>setControlsExpanded(false)}>✕</button>
+        </div>
+        <span className="text-slate-300" aria-live="polite">{cloudStatus||'Salvataggio cloud'}</span>
+        <div className="flex gap-4 items-center">
+          <button className="text-cyan-300 underline font-bold" onClick={()=>saveNow(true).catch(()=>{})}>Salva ora</button>
+          <button className="text-rose-300 underline font-bold" onClick={logout}>Esci dall’account</button>
+        </div>
+      </div>}
+      {session.type==='guest'&&<div className="flex flex-col gap-3">
+        <span className="text-slate-300">Salva i progressi su tutti i tuoi dispositivi.</span>
+        <button className={primary} onClick={()=>{setControlsExpanded(false);setOpen(true);setMode('login');}}>Accedi / Registrati</button>
+      </div>}
+    </div>}
+    <button
+      type="button"
+      aria-expanded={controlsExpanded}
+      aria-controls="multimon-account-controls"
+      aria-label={controlsExpanded?'Nascondi i controlli account':'Apri account e salvataggi cloud'}
+      title={session.type==='account'?'Account · '+(cloudStatus||'cloud'):'Accedi o registrati'}
+      className="rounded-full bg-slate-950/95 border border-cyan-400/60 w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.2)] hover:scale-105 transition-transform"
+      onClick={()=>setControlsExpanded(x=>!x)}>
+      <span className="text-xl" aria-hidden="true">☁</span>
+      {session.type==='account'&&<span className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-slate-950 bg-emerald-400"/>}
+    </button>
+  </div>}
+  {session.type==='account'&&error&&<div role="alert" className="fixed bottom-16 left-3 z-[260] max-w-sm rounded-xl border border-red-500 bg-red-950 p-3 text-xs text-white">{error}</div>}
   {(open||locked)&&<div className="fixed inset-0 z-[300] overflow-y-auto flex items-center justify-center bg-slate-950/95 p-4 text-white">
    <div className="w-full max-w-md space-y-4 rounded-3xl border border-cyan-500/40 bg-slate-900 p-6 shadow-2xl">
     <h2 className="text-2xl font-black text-cyan-300">☁ Account Multimon</h2>
