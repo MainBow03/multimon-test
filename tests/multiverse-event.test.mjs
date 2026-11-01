@@ -18,7 +18,7 @@ test('Impostazioni e team, inclusi 16 team a coppie',()=>{
 });
 test('Bracket a eliminazione, terzo posto, premi anche per chi perde',()=>{
  const entrants=makeEventEntrants(['a','b','c','d'].map(member),[],s);
- let m=makeEventBracket(entrants);
+ let m=makeEventBracket(entrants,()=>0.999999);
  assert.equal(m.length,4);assert.equal(nextEventMatch(m).id,'r0-m0');
  m=completeEventMatch(m,'r0-m0','A');m=completeEventMatch(m,'r0-m1','B');
  assert.equal(nextEventMatch(m).id,'bronze');
