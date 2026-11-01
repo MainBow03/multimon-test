@@ -2,6 +2,7 @@ const initialGameState = () => ({
           status: 'lobby', 
           gameMode: 'classica', 
           isCampaignBattle: false,
+          battleWeather: null, // Meteo condiviso; azzerato in ogni nuova partita
           survivalRound: 1, // <--- AGGIUNTO PER LA SOPRAVVIVENZA
           players: { p1: null, p2: null, p3: null, p4: null, p5: null, p6: null, p7: null, p8: null },
           playerAvatars: { p1: '', p2: '', p3: '', p4: '', p5: '', p6: '', p7: '', p8: '' },

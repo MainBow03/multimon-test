@@ -118,7 +118,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
             return (
                 <div className="flex gap-1 justify-center mt-1 flex-wrap">
                     {statuses.map((s, i) => {
-                        const colors = { 'Confuso': 'bg-fuchsia-500 text-white', 'Protetto': 'bg-sky-400 text-black', 'Riflesso': 'bg-gray-300 text-black', 'Scudo Team': 'bg-teal-400 text-black', 'Stordito': 'bg-amber-600 text-white', 'Infatuato': 'bg-pink-400', 'Elettrizzato': 'bg-yellow-400 text-black', 'Scottato': 'bg-red-500', 'Avvelenato': 'bg-purple-500', 'Congelato': 'bg-cyan-400 text-black', 'Addormentato': 'bg-slate-400', 'Indebolito': 'bg-stone-500 text-white', 'Ricarica': 'bg-orange-500 text-white', 'Magnetico': 'bg-indigo-500 text-white', 'Rashield': 'bg-yellow-200 text-black', 'Shudoruku': 'bg-orange-600 text-white', 'Dioemuru': 'bg-red-600 text-white', 'In_Groppa': 'bg-emerald-600 text-white', 'Ombra Rapida': 'bg-slate-700 text-cyan-300', 'Rigenerazione': 'bg-emerald-400 text-black' };
+                        const colors = { 'Confuso': 'bg-fuchsia-500 text-white', 'Protetto': 'bg-sky-400 text-black', 'Riflesso': 'bg-gray-300 text-black', 'Scudo Team': 'bg-teal-400 text-black', 'Stordito': 'bg-amber-600 text-white', 'Infatuato': 'bg-pink-400', 'Elettrizzato': 'bg-yellow-400 text-black', 'Scottato': 'bg-red-500', 'Avvelenato': 'bg-purple-500', 'Congelato': 'bg-cyan-400 text-black', 'Accecato': 'bg-yellow-200 text-gray-900', 'Addormentato': 'bg-slate-400', 'Indebolito': 'bg-stone-500 text-white', 'Ricarica': 'bg-orange-500 text-white', 'Magnetico': 'bg-indigo-500 text-white', 'Rashield': 'bg-yellow-200 text-black', 'Shudoruku': 'bg-orange-600 text-white', 'Dioemuru': 'bg-red-600 text-white', 'In_Groppa': 'bg-emerald-600 text-white', 'Ombra Rapida': 'bg-slate-700 text-cyan-300', 'Rigenerazione': 'bg-emerald-400 text-black' };
                         return <span key={i} className={`text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm uppercase ${colors[s.type] || 'bg-gray-500'}`}>{s.type.substring(0, 3)}</span>;
                     })}
                 </div>
@@ -516,6 +516,16 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     )}
                     {/* ------------------------------------------------ */}
                     
+                    {/* Meteo condiviso: mostra i turni rimanenti a entrambi i giocatori. */}
+                    {gameState.battleWeather?.type === 'snowstorm' && (
+                        <div className="absolute z-[44] top-[7.5rem] left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl
+                            border border-cyan-200/60 bg-sky-950/90 text-cyan-100 text-[11px] sm:text-sm font-black
+                            drop-shadow-[0_0_15px_rgba(56,189,248,0.4)] text-center pointer-events-none">
+                            ❄️ TEMPESTA DI NEVE · {gameState.battleWeather.turns} turni
+                            <span className="block text-[9px] text-cyan-200/70 font-semibold">Ghiaccio / Roccia / Robot immuni</span>
+                        </div>
+                    )}
+
                     {/* --- TIMER DI BATTAGLIA 90 SECONDI --- */}
                     {gameState.status === 'battling' && !isPlayingEvents && !isSpectator && (
                         <div className={`absolute top-16 left-1/2 -translate-x-1/2 z-[45] bg-slate-900/90 backdrop-blur-md px-5 py-1.5 rounded-full border shadow-[0_0_15px_rgba(0,0,0,0.6)] font-black tracking-widest flex items-center gap-2 transition-colors ${timeLeft <= 15 ? 'border-rose-500 text-rose-500 animate-pulse scale-110' : 'border-cyan-500/50 text-cyan-400'}`}>

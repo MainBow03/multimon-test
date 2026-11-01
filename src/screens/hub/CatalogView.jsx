@@ -92,10 +92,9 @@ if (appMode === 'catalog') {
         } else if (catalogFilter === 'Fusioni') {
             displayedChars = FUSION_CHARACTERS.map(c => ({...c, isFusionInCatalog: true}));
         } else {
-            displayedChars = [...CHARACTERS, ...FUSION_CHARACTERS].filter(c => !c.isSummonOnly && !c.isCampaignMonster);
-            displayedChars.forEach(c => {
-                if (FUSION_CHARACTERS.some(fc => fc.id === c.id)) c.isFusionInCatalog = true;
-            });
+            // Le fusioni sono visibili soltanto nella categoria dedicata.
+            // In "Tutti" e nei filtri dei tipi mostriamo esclusivamente il roster normale.
+            displayedChars = CHARACTERS.filter(c => !c.isSummonOnly && !c.isCampaignMonster);
             if (catalogFilter !== 'Tutti') {
                 displayedChars = displayedChars.filter(c => c.types.includes(catalogFilter));
             }

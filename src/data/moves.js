@@ -1,4 +1,28 @@
 export const MOVES_DB = {
+          'Raggio Solare': { name:'Raggio Solare',type:'Luce',power:90,accuracy:1,statusEffect:{type:'Accecato',chance:0.20,turns:3},desc:'Potenza 90, precisione 100. Ha il 20% di accecare il bersaglio (precisione -20% per 3 turni).' },
+          'Pugno Tattico': { name:'Pugno Tattico',type:'Lotta',power:85,accuracy:1,contact:true,bonusAgainstFaster:1.5,desc:'Potenza 85. Se il bersaglio è più veloce, infligge il 50% di danno extra.' },
+          'Impatto Kryptoniano': { name:'Impatto Kryptoniano',type:'Lotta',power:120,accuracy:0.7,contact:true,desc:'Potenza 120, precisione 70.' },
+          'Volo Supersonico (Superboy)': { name:'Volo Supersonico',type:'Aria',power:80,accuracy:1,selfStatBuff:{spd:1.2},desc:'Potenza 80, dopo il colpo aumenta la Velocità del 20%.' },
+          // NUOVI CAMPIONI — Orso Bianco, Bugs Bunny, Daffy Duck e Diamante
+          'Ascia di Ghiaccio': { name:'Ascia di Ghiaccio',type:'Ghiaccio',power:85,accuracy:1,statusEffect:{type:'Congelato',chance:0.15},desc:'Potenza 85, precisione 100. 15% di congelare.' },
+          'Carica Valanga': { name:'Carica Valanga',type:'Roccia',power:100,accuracy:0.95,contact:true,desc:'Potenza 100, precisione 95.' },
+          'Tecnica dell’Orso': { name:'Tecnica dell’Orso',type:'Ghiaccio',power:0,target:'self',statBuff:{atk:1.5,def:1.5},heal:0.10,desc:'Aumenta Attacco e Difesa di uno stadio e recupera il 10% dei PS massimi.' },
+          'Furia dell’Artico': { name:'Furia dell’Artico',type:'Ghiaccio',power:140,accuracy:1,targetCount:4,snowstormTurns:5,desc:'Colpisce tutti i nemici e provoca 5 turni di tempesta di neve: -2% PS per turno a chi non è Ghiaccio, Roccia o Robot.' },
+
+          'Carota Esplosiva': { name:'Carota Esplosiva',type:'Fuoco',power:75,accuracy:1,statusEffect:{type:'Scottato',chance:0.1},desc:'Potenza 75. Ha il 10% di scottare.' },
+          'Dentro la Tana': { name:'Dentro la Tana',type:'Normale',power:0,target:'self',maxUses:2,strictUses:true,evasionGain:0.2,desc:'Aumenta l’elusione di Bugs del 20% contro gli attacchi diretti a lui, per un massimo di due usi.' },
+          'Spuntino Rinvigorante': { name:'Spuntino Rinvigorante',type:'Normale',power:0,target:'self',heal:0.45,desc:'Recupera il 45% dei PS massimi.' },
+          'Battiterra': { name:'Battiterra',type:'Terra',power:85,targetCount:4,targetStatDebuff:{spd:0.9},desc:'Potenza 85 su tutti i nemici e riduce del 10% la loro Velocità.' },
+
+          'Tuffo Disperato': { name:'Tuffo Disperato',type:'Acqua',power:110,accuracy:0.75,contact:true,desc:'Potenza 110, precisione 75.' },
+          'Parlantina Scocciante': { name:'Parlantina Scocciante',type:'Buio',power:0,targetStatDebuff:{def:0.7},statusEffect:{type:'Confuso',chance:0.4,turns:3},desc:'Riduce del 30% la Difesa di un nemico e ha il 40% di confonderlo.' },
+          'Montante di Daffy': { name:'Montante di Daffy',type:'Lotta',power:85,accuracy:1,contact:true,desc:'Potenza 85.' },
+          'Pistola ad Acqua': { name:'Pistola ad Acqua',type:'Acqua',power:70,accuracy:1,desc:'Potenza 70.' },
+
+          'Schegge Diamantine': { name:'Schegge Diamantine',type:'Cristallo',power:80,accuracy:1,targetCount:2,desc:'Potenza 80, precisione 100. Colpisce fino a 2 bersagli.' },
+          'Muro Cristallino': { name:'Muro Cristallino',type:'Cristallo',power:0,target:'self',statBuff:{def:1.5,spDef:1.5},crystalShieldPercent:0.2,desc:'Aumenta Difesa e Difesa Speciale di uno stadio. Crea uno scudo da 20% PS massimi.' },
+          'Rifrazione di Diamante': { name:'Rifrazione di Diamante',type:'Cristallo',power:0,target:'self',refractionTurns:3,desc:'Per 3 turni dimezza il primo attacco subito in ciascun turno e aumenta del 20% le mosse Cristallo.' },
+          'Schiacciata Pesante': { name:'Schiacciata Pesante',type:'Normale',power:95,accuracy:0.9,contact:true,statusEffect:{type:'Elettrizzato',chance:0.1},desc:'Potenza 95, precisione 90. 10% di paralizzare.' },
           'Trasfigurazione Oziosa': { name: 'Trasfigurazione Oziosa', type: 'Spettro', power: 0, accuracy: 1, target: 'self', transformMahito: true, strictUses: true, maxUses: 1, desc: 'Mahito cambia forma e aumenta Attacco e Attacco Speciale di uno stadio (+50%). Una volta per battaglia.' },
           'Tocco dell’Anima': { name: 'Tocco dell’Anima', type: 'Spettro', power: 95, accuracy: 1, contact: true, desc: 'Potenza 95; danni doppi contro bersagli con Anima Distorta.' },
           'Polimorfismo Mostruoso': { name: 'Polimorfismo Mostruoso', type: 'Folletto', power: 75, special: true, targetCount: 4, statusEffect: { type: 'Confuso', chance: 0.1, turns: 3 }, desc: 'Colpisce tutti i nemici. Ogni bersaglio ha il 10% di probabilità di essere confuso.' },

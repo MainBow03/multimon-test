@@ -1,3 +1,4 @@
+import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense, endRefractionTurn, snowstormOutcome, randomBuff, randomDebuff, daffyCelebration } from './championEffects.js';
 import { getHeldPowerFactor, getHeldRecoil, getMahitoMultiplier, canDistortSoul, getDistortedSoulDamage } from './heldEquipment.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleForceSkipImpl = (ctx) => {
@@ -228,7 +229,7 @@ const { CHARACTERS } = ctx;
                           const rTarget = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
                           const sType = char.passive.applyStatusToRandomEnemy.type;
                           
-                          const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Anima Distorta'].includes(sType);
+                          const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'].includes(sType);
                           if (isNegative && rTarget.char.passive && rTarget.char.passive.immuneToNegativeStatuses) {
                               eventsArr.push({ type: 'text', text: `🛡️ ${char.name} attiva ${char.passive.name}, ma ${rTarget.char.name} è immune a ${sType} grazie a ${rTarget.char.passive.name}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                           } else {
@@ -890,7 +891,10 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             }
             // ---------------------------------------------
             
-            let defValue = move.ignoreDefBuffs && defender.def > defender.baseDef ? defender.baseDef : defender.def;
+            const defenseStat = move.special && Number.isFinite(defender.spDef) ? defender.spDef : defender.def;
+            const originalDef = move.special && Number.isFinite(defender.baseSpDef) ? defender.baseSpDef : defender.baseDef;
+            let defValue = move.ignoreDefBuffs && defenseStat > originalDef ? originalDef : defenseStat;
+            defValue = Math.max(1, defValue || 1);
             
             // Supporto selettivo alle mosse speciali senza alterare le mosse già esistenti.
             const attackValue = move.special && Number.isFinite(attacker.spAtk) ? attacker.spAtk : attacker.atk;
@@ -904,8 +908,9 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
 
             // STAB (Same-Type Attack Bonus): Danno aumentato del 50% se il tipo mossa coincide con il tipo attaccante
             const stabFactor = attacker.types.includes(move.type) ? 1.5 : 1;
+            const fasterTargetBonus = move.bonusAgainstFaster && defender.spd > attacker.spd ? move.bonusAgainstFaster : 1;
 
-            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * teamDefFactor * stabFactor * getMahitoMultiplier(attacker, defender, move)));
+            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * teamDefFactor * stabFactor * getMahitoMultiplier(attacker, defender, move) * fasterTargetBonus * (defender.passive?.type === 'petrosapien_armor' ? 0.8 : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1)));
           
 };
 
@@ -921,6 +926,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
             let workingField = JSON.parse(JSON.stringify(gameState.field));
             let workingInventory = JSON.parse(JSON.stringify(gameState.inventory));
             let workingHyperUsed = JSON.parse(JSON.stringify(gameState.hyperUsed || {})); // <--- AGGIUNTO PER FORMA IPER
+            // Meteo condiviso: si salva nello stato partita, non sul singolo personaggio.
+            let workingWeather = gameState.battleWeather ? {...gameState.battleWeather} : null;
             const activeMatchPlayers = getActivePlayers();
 
             const handleFaint = (targetPlayer, targetIdx) => {
@@ -989,7 +996,17 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
               // ------------------------------------------------------------
             };
 
-            const applyDamage = (target, dmg, targetPlayer, targetIdx, text) => {
+            const applyDamage = (target, dmg, targetPlayer, targetIdx, text, options = {}) => {
+                if (dmg > 0 && options.directAttack) {
+                    const defense = directHitAfterCrystalDefense(target, dmg);
+                    dmg = defense.damage;
+                    if (defense.refracted) events.push({type:'text',text:`💎 Rifrazione di ${target.name}: il primo attacco del turno viene dimezzato!`});
+                    if (defense.absorbed) events.push({type:'text',text:`🛡️ Lo scudo cristallino di ${target.name} assorbe ${defense.absorbed} danni! (${target.crystalShieldHp||0} scudo rimasto)`});
+                    if (dmg <= 0) {
+                        events.push({type:'text',text:`🛡️ ${target.name} non perde PS grazie alle difese cristalline!`});
+                        return;
+                    }
+                }
                 let willSurvive = false;
                 
                 // --- NUOVA LOGICA: PASSIVA SOPRAVVIVENZA KO (Es. Carlos, Cuore di Pietra) ---
@@ -1058,7 +1075,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
 
                         // AGGIUNTO: GESTIONE PURIFICAZIONE STATUS (es. Zazan - Corazza Mutante)
                         if (target.passive.removeNegativeStatuses) {
-                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Anima Distorta'];
+                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'];
                             const originalLength = target.statuses.length;
                             target.statuses = target.statuses.filter(s => !negatives.includes(s.type));
                             
@@ -1428,7 +1445,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                               if (itemDef.stat === 'spd') attacker.spd = Math.floor(attacker.spd * itemDef.value);
                               events.push({ type: 'text', text: `${gameState.players[player]} usa ${itemDef.name}! Le statistiche di ${attacker.name} aumentano.` });
                           } else if (itemDef.type === 'heal_status') {
-                              const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Anima Distorta'];
+                              const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'];
                               attacker.statuses = attacker.statuses.filter(s => !negatives.includes(s.type));
                               updateStatusUI(player, charTeamIdx);
                               events.push({ type: 'text', text: `${gameState.players[player]} usa ${itemDef.name}! Gli status di ${attacker.name} sono curati.` });
@@ -1674,6 +1691,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 }
 
                 let finalAccuracy = (move.accuracy !== undefined ? move.accuracy : 1.0) * (attacker.acc || 1.0);
+                if (attacker.statuses?.some(s=>s.type==='Accecato')) finalAccuracy *= 0.8;
                 if (finalAccuracy < 1.0 && Math.random() > finalAccuracy) {
                     events.push({ type: 'text', text: `${attacker.name} usa ${move.name}, ma manca clamorosamente il bersaglio!` });
                     
@@ -1935,6 +1953,14 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                     let isPerfectBarrier = false;
                     let isFirstHitImmunity = false; // AGGIUNTO PER DIAMANTE BIANCO
 
+                    // Elusione individuale: una mossa con precisione 100% contro Bugs
+                    // colpisce solo nell'80% dei casi dopo un uso di Dentro la Tana.
+                    // Il controllo è per bersaglio, anche per gli attacchi ad area.
+                    if (isEnemyTarget && t.char.evasionBonus > 0 && Math.random() < t.char.evasionBonus) {
+                        events.push({type:'text',text:`🐰 ${t.char.name} schiva l'attacco grazie alla sua elusione!`});
+                        continue;
+                    }
+
                     if (t.char.id.startsWith('celljr_') && isEnemyTarget) {
                         const teamAlive = workingTeams[t.player].filter(c => c.hp > 0);
                         if (teamAlive.some(c => c.id === 'natsu' || c.id === 'po')) {
@@ -2195,16 +2221,35 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             events.push({ type: 'text', text: `${attacker.name} usa ${move.name} su ${t.char.name}... ma ${absTxt} (${t.char.juggHitsRemaining} cariche scudo rimaste)` });
                         } else if (totalDmg > 0) {
                             let shieldTxt = juggHitsAbsorbed > 0 ? ` (Lo scudo ha assorbito ${juggHitsAbsorbed} colpi).` : '';
-                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText}${hitText}${magText}${groppaText} Infligge ${totalDmg} danni.${shieldTxt}`);
+                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText}${hitText}${magText}${groppaText} Infligge ${totalDmg} danni.${shieldTxt}`, {directAttack:true});
                             if (canDistortSoul(attacker, move, t.char) && !t.char.statuses.some(s => s.type === 'Anima Distorta')) {
                                 t.char.statuses.push({ type: 'Anima Distorta', turns: 99 });
                                 updateStatusUI(t.player, t.idx);
                                 events.push({ type: 'text', text: `👁️ ${attacker.name} distorce l'anima di ${t.char.name}! Perde il 5% dei PS ogni turno e subisce più danni da Mahito.` });
                             }
                         } else {
-                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText} Infligge ${totalDmg} danni.`);
+                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText} Infligge ${totalDmg} danni.`, {directAttack:true});
                         }
                         
+                        // Daffy beneficia dei KO realizzati dagli ALTRI alleati in campo:
+                        // funziona in doppio/multipla, mai per il proprio KO.
+                        if (totalDmg > 0 && t.char.hp === 0 && isEnemyTarget && !t.char.daffyAllyKoAlreadyHandled) {
+                            t.char.daffyAllyKoAlreadyHandled = true;
+                            const allyPlayers = gameState.gameMode === 'multipla'
+                                ? (['p1','p2'].includes(player) ? ['p1','p2'] : ['p3','p4'])
+                                : [player];
+                            allyPlayers.forEach(allyPlayer => {
+                                (workingField[allyPlayer] || []).forEach(allyIdx => {
+                                    const ally = workingTeams[allyPlayer]?.[allyIdx];
+                                    if (!ally || ally.hp <= 0 || ally === attacker || ally.id !== 'daffyduck') return;
+                                    const heal = daffyCelebration(ally);
+                                    if (heal > 0) events.push({type:'damage',targetPlayer:allyPlayer,targetIdx:allyIdx,newHp:ally.hp,
+                                        text:`🎬 ${ally.name} attiva Protagonista Mancato: +10% Attacco, recupera fino a ${heal} PS!`,
+                                        isPassive:true,passiveChar:ally.name,passiveName:'Protagonista Mancato'});
+                                });
+                            });
+                        }
+
                         // Riflesso Danno
                         if (t.char.statuses.some(s => s.type === 'Riflesso') && totalDmg > 0 && attacker.hp > 0) {
                             let recoil = Math.max(1, Math.floor(totalDmg * 0.3));
@@ -2339,7 +2384,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                         }
 
                         if (move.removeNegativeStatuses) {
-                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Anima Distorta'];
+                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'];
                             const originalLength = t.char.statuses.length;
                             t.char.statuses = t.char.statuses.filter(s => !negatives.includes(s.type));
                             if (t.char.statuses.length < originalLength) {
@@ -2401,7 +2446,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
 
                         let effects = move.statusEffects || (move.statusEffect ? [move.statusEffect] : []);
                         for (let effect of effects) {
-                            const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Anima Distorta'].includes(effect.type);
+                            const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'].includes(effect.type);
                             
                             // FIX CRITICO: Se la mossa non ha una "chance" specificata, assumiamo che sia 1.0 (100% garantita)!
                             const chanceToApply = effect.chance !== undefined ? effect.chance : 1.0;
@@ -2466,11 +2511,30 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 if (attackSucceeded && buffToApply && attacker.hp > 0) {
                     let statTexts = [];
                     if (buffToApply.def) { attacker.def = Math.floor(attacker.def * buffToApply.def); statTexts.push("Difesa"); }
+                    if (buffToApply.spDef) { attacker.spDef = Math.floor((attacker.spDef || attacker.def) * buffToApply.spDef); statTexts.push("Difesa Speciale"); }
                     if (buffToApply.spd) { attacker.spd = Math.floor(attacker.spd * buffToApply.spd); statTexts.push("Velocità"); }
                     if (buffToApply.atk) { attacker.atk = Math.floor(attacker.atk * buffToApply.atk); statTexts.push("Attacco"); }
                     if (statTexts.length > 0) {
                         events.push({ type: 'text', text: `La ${statTexts.join(" e ")} di ${attacker.name} aumenta per via dell'attacco!` });
                     }
+                }
+
+                // Tecniche uniche dei nuovi campioni: effetto permanente fino a KO o fine lotta.
+                if (attackSucceeded && attacker.hp > 0 && move.evasionGain && attacker.id === 'bugsbunny') {
+                    const evasion = addEvasion(attacker);
+                    events.push({type:'text',text:`🐰 Bugs Bunny usa Dentro la Tana: elusione totale +${Math.round(evasion*100)}%!`});
+                }
+                if (attackSucceeded && attacker.hp > 0 && move.crystalShieldPercent && attacker.id === 'diamante') {
+                    const shield = crystalShield(attacker);
+                    events.push({type:'text',text:`💎 Diamante genera un Muro Cristallino da ${shield} punti scudo!`});
+                }
+                if (attackSucceeded && attacker.hp > 0 && move.refractionTurns && attacker.id === 'diamante') {
+                    beginRefraction(attacker);
+                    events.push({type:'text',text:'💎 Rifrazione attiva per 3 turni: prima difesa dimezzata per turno, mosse Cristallo +20%!'});
+                }
+                if (attackSucceeded && move.snowstormTurns) {
+                    workingWeather = {type:'snowstorm',turns:move.snowstormTurns};
+                    events.push({type:'text',text:'❄️ La Furia dell’Artico scatena una TEMPESTA DI NEVE per 5 turni!'});
                 }
 
                 if (attackSucceeded && (move.selfHeal || move.selfHealRandom) && attacker.hp > 0) {
@@ -2734,7 +2798,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                                     if (enemy && enemy.hp > 0 && Math.random() < char.passive.enemyStatusEffect.chance) {
                                         const sType = char.passive.enemyStatusEffect.type;
                                         
-                                        const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Anima Distorta'].includes(sType);
+                                        const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'].includes(sType);
                                         if (isNegative && enemy.passive && enemy.passive.immuneToNegativeStatuses) {
                                             return; 
                                         }
@@ -2756,6 +2820,25 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             events.push({ type: 'text', text: `✨ ${char.name} attiva ${char.passive.name}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                         }
                     }
+                }
+            }
+
+            // Bugs Bunny: bonus personale al 50%, ma debuff di un nemico ogni turno.
+            if (char.passive?.type === 'bugs_chaos') {
+                if (Math.random() < 0.5) {
+                    const boosted = randomBuff(char);
+                    events.push({type:'text',text:`🐰 Che succede, amico? ${char.name} aumenta ${boosted} del 15%!`,isPassive:true,passiveChar:char.name,passiveName:char.passive.name});
+                }
+                const opponents = gameState.gameMode === 'multipla'
+                    ? (['p1','p2'].includes(target.player) ? ['p3','p4'] : ['p1','p2'])
+                    : gameState.gameMode === 'torneo'
+                        ? getTournamentMatchOpponents(target.player)
+                        : activeMatchPlayers.filter(p => p !== target.player);
+                const choices = opponents.flatMap(p => (workingField[p]||[]).map(i => workingTeams[p]?.[i]).filter(u => u?.hp>0));
+                if (choices.length) {
+                    const enemy=choices[Math.floor(Math.random()*choices.length)];
+                    const weakened=randomDebuff(enemy);
+                    events.push({type:'text',text:`🐰 ${char.name} distrae ${enemy.name}: ${weakened} -15%!`,isPassive:true,passiveChar:char.name,passiveName:char.passive.name});
                 }
             }
 
@@ -2784,7 +2867,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 char.juggTurnCount = (char.juggTurnCount || 0) + 1;
                 if (char.juggTurnCount >= 2) {
                     char.juggTurnCount = 0; // Reset contatore
-                    const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Anima Distorta'];
+                    const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Anima Distorta'];
                     const hasNegative = char.statuses.some(s => negatives.includes(s.type));
                     if (hasNegative) {
                         char.statuses = char.statuses.filter(s => !negatives.includes(s.type));
@@ -2843,6 +2926,16 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 }
             }
 
+            let blindIdx = char.statuses.findIndex(s => s.type === 'Accecato');
+            if (blindIdx !== -1) {
+                char.statuses[blindIdx].turns = (char.statuses[blindIdx].turns || 3) - 1;
+                if (char.statuses[blindIdx].turns <= 0) {
+                    char.statuses.splice(blindIdx,1);
+                    updateStatusUI(target.player,target.charTeamIdx);
+                    events.push({type:'text',text:`✨ ${char.name} torna a vedere chiaramente!`});
+                }
+            }
+
             let indebIdx = char.statuses.findIndex(s => s.type === 'Indebolito');
             if (indebIdx !== -1) {
                 char.statuses[indebIdx].turns -= 1;
@@ -2894,6 +2987,31 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
 
             char.damageTakenLastTurn = char.damageTakenThisTurn || 0;
             char.damageTakenThisTurn = 0;
+        }
+
+        // Tempesta di neve: un'unica applicazione alla fine di ogni turno,
+        // a tutti i Multimon sul campo, indipendentemente dal giocatore.
+        if (workingWeather?.type === 'snowstorm' && workingWeather.turns > 0) {
+            events.push({type:'text',text:`❄️ TEMPESTA DI NEVE · ${workingWeather.turns} turni rimasti.`});
+            for (const target of eotTargets) {
+                const char=workingTeams[target.player]?.[target.charTeamIdx];
+                if (!char || char.hp <= 0) continue;
+                const outcome=snowstormOutcome(char,true);
+                if (outcome.damage) applyDamage(char,outcome.damage,target.player,target.charTeamIdx,`❄️ ${char.name} perde ${outcome.damage} PS per la neve!`);
+                if (char.hp > 0 && outcome.heal) {
+                    char.hp=Math.min(char.maxHp,char.hp+outcome.heal);
+                    events.push({type:'damage',text:`❄️ ${char.name} attiva Resistenza al Freddo e recupera ${outcome.heal} PS!`,targetPlayer:target.player,targetIdx:target.charTeamIdx,newHp:char.hp,isPassive:true,passiveChar:char.name,passiveName:char.passive.name});
+                }
+            }
+            workingWeather.turns--;
+            if (workingWeather.turns <= 0) {
+                events.push({type:'text',text:'☀️ La tempesta di neve finisce.'});
+                workingWeather=null;
+            }
+        }
+        for (const target of eotTargets) {
+            const char=workingTeams[target.player]?.[target.charTeamIdx];
+            if (char && char.refractionTurns > 0) endRefractionTurn(char);
         }
 
         // --- GESTIONE RITORNO TRADITORI (Anomalia Eclissi) ---
@@ -3178,6 +3296,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
           events: events,
           actions: { p1: {}, p2: {}, p3: {}, p4: {}, p5: {}, p6: {}, p7: {}, p8: {} },
           inventory: workingInventory,
+          battleWeather: workingWeather,
           hyperUsed: workingHyperUsed, 
           pendingSwitches: pendingSwitches,
           switchActions: { p1: [], p2: [], p3: [], p4: [], p5: [], p6: [], p7: [], p8: [] },

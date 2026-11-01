@@ -6,7 +6,7 @@ if (gameState.status === 'lobby') {
         const reqPlayers = getRequiredPlayers(gameState.gameMode, gameState.settings);
         const canStartDraft = isAllPlayersJoined();
 
-        const newArrivals = ['mechajohnny', 'leon', 'perla', 'roxy', 'sans', 'ban', 'meliodas', 'sasuke', 'naruto', 'diamantebianco', 'arievicente', 'sugino', 'elly', 'sumo', 'charizard', 'megamind', 'sheldon', 'dante', 'ilcavaliere']; // Massimo 20 nuovi inserimenti
+        const newArrivals = ['superboy', 'diamante', 'daffyduck', 'bugsbunny', 'orsobianco', 'mahito', 'mechajohnny', 'leon', 'perla', 'roxy', 'sans', 'ban', 'meliodas', 'sasuke', 'naruto', 'diamantebianco', 'arievicente', 'sugino', 'elly', 'sumo', 'charizard', 'megamind', 'sheldon', 'dante', 'ilcavaliere']; // Massimo 20 nuovi inserimenti
 
         return (
             <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-4 relative">
