@@ -3389,7 +3389,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
 };
 
 export const playEventsAnimationImpl = async (ctx) => {
-const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, setCombatLog, setCommandingIdx, setDisplayField, setDisplayTeams, setEventPlaybackPassive, setEventPlaybackText, setIsPlayingEvents, setPlayerRole, setScreenFlash, updateState } = ctx;
+const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, setCombatLog, setCommandingIdx, setDisplayField, setDisplayTeams, setEventPlaybackPassive, setEventPlaybackText, setIsPlayingEvents, setPlayerRole, setScreenFlash, updateState, advanceOnlinePhase } = ctx;
 
         setIsPlayingEvents(true);
         
@@ -3474,8 +3474,16 @@ const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, set
             } finally {
             setIsPlayingEvents(false);
             
-            // FIX 3: Solo l'Host o il gioco in locale aggiornano lo stato per il turno successivo
-            if (appMode === 'local_room' || playerRole === 'p1') {
+            // L'host online conferma con una transazione che lo stato sia
+            // ANCORA lo stesso: così un'animazione vecchia non annulla
+            // un KO, una sostituzione o un turno già recuperato.
+            if(appMode==='online_room' && playerRole==='p1'){
+                try{await advanceOnlinePhase(gameState.phaseStartedAt);}
+                catch(error){console.error('Avanzamento dopo animazione non riuscito:',error);}
+                if(!gameState.isBot?.[playerRole] && gameState.field?.[playerRole]?.length){
+                    setCommandingIdx(0);setActionMenuMode('moves');
+                }else setCommandingIdx(-1);
+            }else if(appMode==='local_room'){
                 if (gameState.postExecStatus === 'gameover') {
                      updateState({ status: 'gameover', events: [] });
                 } else if (gameState.postExecStatus === 'intermission') {
