@@ -892,9 +892,12 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             
             let defValue = move.ignoreDefBuffs && defender.def > defender.baseDef ? defender.baseDef : defender.def;
             
+            // Supporto selettivo alle mosse speciali senza alterare le mosse già esistenti.
+            const attackValue = move.special && Number.isFinite(attacker.spAtk) ? attacker.spAtk : attacker.atk;
+
             // FORMULA BILANCIATA: Divisore aumentato da 50 a 85 per ridurre i danni globali del ~40%
             // In questo modo si evitano i "one-shot" e gli scontri diventano più lunghi e strategici
-            const baseDamage = ((2 * 50 / 5 + 2) * pwr * (attacker.atk / defValue)) / 85 + 2;
+            const baseDamage = ((2 * 50 / 5 + 2) * pwr * (attackValue / defValue)) / 85 + 2;
             const randomFactor = (Math.floor(Math.random() * 16) + 85) / 100;
             const weakenFactor = attacker.statuses?.some(s => s.type === 'Indebolito') ? 0.75 : 1;
             const teamDefFactor = defender.statuses?.some(s => s.type === 'Scudo Team') ? 0.33 : 1;
