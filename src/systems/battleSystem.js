@@ -1514,14 +1514,17 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
 
                       workingField[player][fieldPos] = action.toIdx;
                       const entering=workingTeams[player][action.toIdx];
+                      entering.revealed = true;
+                      events.push({ type: 'switch', player, pos: fieldPos, newIdx: action.toIdx,
+                        text: `${gameState.players[player]} ritira ${attacker.name} e manda in campo ${entering.name}!` });
+                      // Prima mostriamo l'ingresso, poi eventuali danni
+                      // della trappola e un KO: niente sprite fantasma.
                       if(workingFieldTraps[player] && entering?.hp>0){
                         const dmg=stickyTrapEntryDamage(entering);
                         applyDamage(entering,dmg,player,action.toIdx,
                           `🪤 Trappola Segreta! ${entering.name} perde ${dmg} PS entrando in campo!`);
                       }
                       workingTrapSeen[player]=[...(workingField[player]||[])];
-                      workingTeams[player][action.toIdx].revealed = true; // Segna come rivelato!
-                      events.push({ type: 'switch', player, pos: fieldPos, newIdx: action.toIdx, text: `${gameState.players[player]} ritira ${attacker.name} e manda in campo ${workingTeams[player][action.toIdx].name}!` });
                   }
                   continue;
               }
