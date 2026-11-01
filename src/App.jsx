@@ -47,7 +47,7 @@ import { initialGameState } from './systems/gameState.js';
         import { doc, setDoc, onSnapshot, getDoc, updateDoc, collection, runTransaction } from 'firebase/firestore';
 import { visibleOnlinePlayers } from './systems/onlinePresence.js';
 import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostFresh,
-  prepareEmergencySwitch, resolveSwitchingRoom, nextPhaseAfterExecution } from './systems/roomRecovery.js';
+  prepareEmergencySwitch, getRequiredSwitches, resolveSwitchingRoom, nextPhaseAfterExecution } from './systems/roomRecovery.js';
 
         const { useState, useEffect, useCallback, useRef } = React;
 
@@ -239,24 +239,59 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               };
           }, [gameState.status, isPlayingEvents, appMode, gameState.turnExpiresAt]);
 
+          // Le battaglie online devono essere avanzate da un solo dispositivo:
+          // il guest può prendere il turno solo se l'host non aggiorna più
+          // la propria presenza. Una transazione impedisce il doppio skip.
+          const claimOfflineHostTurn = async ()=>{
+            if(appMode!=='online_room'||!roomId||!user?.uid||
+               !canRecoverRoom(gameState,playerRole))return false;
+            const ref=doc(db,'artifacts',appId,'public','data','rooms',roomId);
+            return runTransaction(db,async tx=>{
+              const snap=await tx.get(ref);
+              if(!snap.exists())return false;
+              const data=snap.data(),now=Date.now();
+              if(data.status!=='battling'||isHostFresh(data,now))return false;
+              if(data.playerUids?.[playerRole]&&data.playerUids[playerRole]!==user.uid)return false;
+              if(data.turnCalculationOwner&&now-(data.turnCalculationStartedAt||now)<25000)return false;
+              tx.update(ref,{turnCalculationOwner:user.uid,turnCalculationStartedAt:now});
+              return true;
+            });
+          };
+
           // --- NUOVA FUNZIONE DI SALVATAGGIO / SKIP FORZATO (Infallibile) ---
           const handleForceSkip = (...__args) => handleForceSkipImpl({ calculateTurn, gameState, generateCPUActionsForPlayer, getActivePlayers, isCalculatingRef, setActionMenuMode, setCommandingIdx, setPendingHyper, setSystemAlert, setTargetingMoveIdx, updateState }, ...__args);
 
-          // Scadenza Timer: Forza le mosse automatiche e sblocca il gioco
-          useEffect(() => {
-              if (timeLeft === 0 && gameState.status === 'battling' && !isPlayingEvents) {
-                  if (appMode === 'local_room' || playerRole === 'p1') {
-                      handleForceSkip();
-                  } else if (appMode === 'online_room' && playerRole !== 'p1') {
-                      // Fallback Ospite: Se dopo 4 secondi l'Host non ha forzato lo skip (AFK/Disconnesso), ci pensa il Guest!
-                      setTimeout(() => {
-                          if (isCalculatingRef.current || gameState.status !== 'battling') return;
-                          setSystemAlert("L'Host sembra assente. Forzatura del turno in corso dal tuo dispositivo...");
-                          handleForceSkip();
-                      }, 4000);
-                  }
+          const safeForceSkip = async()=>{
+            if(gameState.status!=='battling')return;
+            if(appMode==='online_room'&&playerRole!=='p1'){
+              if(!canRecoverRoom(gameState,playerRole)){
+                setSystemAlert('L’host è ancora connesso: attendi il suo turno. In caso di KO, usa la sostituzione.');
+                return;
               }
-          }, [timeLeft, gameState.status, isPlayingEvents, appMode, playerRole]);
+              try{
+                const allowed=await claimOfflineHostTurn();
+                if(!allowed)return;
+              }catch(err){setSystemAlert('Non posso forzare il turno: '+err.message);return;}
+            }
+            handleForceSkip();
+          };
+
+          // Il timer non trasforma mai un guest in arbitro mentre
+          // l'host è ancora presente. Solo dopo 45s senza heartbeat,
+          // e dopo aver acquisito la transazione di turno.
+          useEffect(()=>{
+            if(timeLeft!==0||gameState.status!=='battling'||isPlayingEvents)return;
+            if(appMode==='local_room'||playerRole==='p1'){
+              safeForceSkip();
+              return;
+            }
+            if(appMode!=='online_room')return;
+            const check=()=>{if(canRecoverRoom(gameState,playerRole))safeForceSkip();};
+            check();
+            const timer=setInterval(check,5000);
+            return()=>clearInterval(timer);
+          },[timeLeft,gameState.status,isPlayingEvents,appMode,playerRole,
+             gameState.hostHeartbeatAt,gameState.turnExpiresAt,roomId,user?.uid]);
 
           // --- FIX: TIENI TRACCIA DEL TURNO DRAFT REALE ---
           useEffect(() => {
@@ -1397,7 +1432,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (gameState.status === 'battling' || gameState.status === 'executing') {
-  const __screen = renderBattlingView({ ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });
+  const __screen = renderBattlingView({ ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip: safeForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });
   if (__screen !== undefined) return __screen;
 }
 
