@@ -39,7 +39,19 @@ export function AccountGate({children}) {
  };
  function activate(uid,entries) {
   restoreProgress(entries);
-  localStorage.removeItem('multiverse_rpg_session');
+  // Riavvio o refresh NON devono far perdere la stanza online:
+  // l'accesso cloud conserva la sessione solo quando corrisponde
+  // alla stessa identità Firebase, mai se si cambia account.
+  try{
+    const stored=JSON.parse(localStorage.getItem('multiverse_rpg_session')||'null');
+    const priorUid=localStorage.getItem(ACTIVE_ACCOUNT_KEY);
+    if(stored?.appMode==='online_room' &&
+       (stored.playerUid===uid || (!stored.playerUid && priorUid===uid))) {
+      // Sessione valida: App confermerà il posto sul documento Firestore.
+    }else{
+      localStorage.removeItem('multiverse_rpg_session');
+    }
+  }catch{localStorage.removeItem('multiverse_rpg_session');}
   localStorage.setItem(ACTIVE_ACCOUNT_KEY,uid);
   const hash=progressFingerprint(collectProgress());
   localStorage.setItem(HASH_KEY+uid,hash);lastUploaded.current=hash;
