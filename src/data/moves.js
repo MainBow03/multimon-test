@@ -1,4 +1,8 @@
 export const MOVES_DB = {
+          'Raggio Solare': { name:'Raggio Solare',type:'Luce',power:90,accuracy:1,statusEffect:{type:'Accecato',chance:0.20,turns:3},desc:'Potenza 90, precisione 100. Ha il 20% di accecare il bersaglio (precisione -20% per 3 turni).' },
+          'Pugno Tattico': { name:'Pugno Tattico',type:'Lotta',power:85,accuracy:1,contact:true,bonusAgainstFaster:1.5,desc:'Potenza 85. Se il bersaglio è più veloce, infligge il 50% di danno extra.' },
+          'Impatto Kryptoniano': { name:'Impatto Kryptoniano',type:'Lotta',power:120,accuracy:0.7,contact:true,desc:'Potenza 120, precisione 70.' },
+          'Volo Supersonico': { name:'Volo Supersonico',type:'Aria',power:80,accuracy:1,selfStatBuff:{spd:1.2},desc:'Potenza 80, dopo il colpo aumenta la Velocità del 20%.' },
           // NUOVI CAMPIONI — Orso Bianco, Bugs Bunny, Daffy Duck e Diamante
           'Ascia di Ghiaccio': { name:'Ascia di Ghiaccio',type:'Ghiaccio',power:85,accuracy:1,statusEffect:{type:'Congelato',chance:0.15},desc:'Potenza 85, precisione 100. 15% di congelare.' },
           'Carica Valanga': { name:'Carica Valanga',type:'Roccia',power:100,accuracy:0.95,contact:true,desc:'Potenza 100, precisione 95.' },
