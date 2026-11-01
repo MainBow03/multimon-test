@@ -29,7 +29,7 @@ import { renderPreBattleView } from './screens/battle/PreBattleView.jsx';
 import { handleForceSkipImpl, handleObserveImpl, applyOnEnterPassiveImpl, startBattleImpl, generateCPUActionsForPlayerImpl, commitActionImpl, handleSelectMoveTargetImpl, checkTurnReadyImpl, calculateDamageImpl, calculateTurnImpl, playEventsAnimationImpl } from './systems/battleSystem.js';
 import { loadCampaignImpl, advanceCampaignImpl } from './systems/campaignFlow.js';
 import { reconcileCampaignRoster } from './systems/campaignRoster.js';
-import { handleAvatarUploadImpl, leaveRoomImpl, handleConfirmLeaveImpl, updateStateImpl, getRequiredPlayersImpl, getActivePlayersImpl, isAllPlayersJoinedImpl, handleCreateRoomImpl, handleJoinRoomImpl, handleAddBotImpl, handleRemovePlayerImpl, handleLocalStartImpl, handleVsCpuStartImpl, handlePickImpl, handleDraftRerollImpl, handleSharedPickImpl } from './systems/multiplayerSystem.js';
+import { handleAvatarUploadImpl, leaveRoomImpl, handleConfirmLeaveImpl, updateStateImpl, getRequiredPlayersImpl, getActivePlayersImpl, isAllPlayersJoinedImpl, handleCreateRoomImpl, handleJoinRoomImpl, commitReplacementChoiceImpl, handleAddBotImpl, handleRemovePlayerImpl, handleLocalStartImpl, handleVsCpuStartImpl, handlePickImpl, handleDraftRerollImpl, handleSharedPickImpl } from './systems/multiplayerSystem.js';
 import { updateLocalStatsImpl } from './systems/profileSystem.js';
 import { renderHealthBarImpl } from './components/uiHelpers.jsx';
 import { handleCreateRoguelikeCoopImpl, handleSurvivalStartImpl } from './systems/roguelikeSystem.js';
@@ -44,8 +44,10 @@ import { TYPE_STYLES, TYPE_CHART, PLAYER_THEMES, getMultiplier, getDefaultAvatar
 import { initialGameState } from './systems/gameState.js';
 
         import { onAuthStateChanged } from 'firebase/auth';
-        import { doc, setDoc, onSnapshot, getDoc, updateDoc, collection } from 'firebase/firestore';
+        import { doc, setDoc, onSnapshot, getDoc, updateDoc, collection, runTransaction } from 'firebase/firestore';
 import { visibleOnlinePlayers } from './systems/onlinePresence.js';
+import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostFresh,
+  prepareEmergencySwitch, resolveSwitchingRoom, nextPhaseAfterExecution } from './systems/roomRecovery.js';
 
         const { useState, useEffect, useCallback, useRef } = React;
 
@@ -176,6 +178,9 @@ import { visibleOnlinePlayers } from './systems/onlinePresence.js';
           const isLongPressRef = useRef(false);
           const pressTimerRef = useRef(null);
           const isCalculatingRef = useRef(false);
+          const recoveryBusyRef = useRef(false);
+          const recoveryObservedRef = useRef({room:null,status:null,at:Date.now()});
+          const playbackKeyRef = useRef(null);
           
           // NUOVO: Ref per bloccare i doppi click veloci e fix timer
           const isSubmittingActionRef = useRef(false);
@@ -777,16 +782,17 @@ import { visibleOnlinePlayers } from './systems/onlinePresence.js';
           useEffect(() => {
               const saveableModes = ['local_room', 'online_room'];
               if (saveableModes.includes(appMode)) {
-                  localStorage.setItem('multiverse_rpg_session', JSON.stringify({
+                  localStorage.setItem(ROOM_SESSION_KEY, JSON.stringify({
                       appMode,
                       roomId,
                       playerRole,
+                      playerUid: user?.uid||null,
                       gameState: appMode === 'local_room' ? gameState : null
                   }));
               } else if (appMode === 'menu') {
                   localStorage.removeItem('multiverse_rpg_session');
               }
-          }, [appMode, roomId, playerRole, gameState]);
+          }, [appMode, roomId, playerRole, gameState, user?.uid]);
           
           // --- FIX: INIZIALIZZAZIONE AUTENTICAZIONE FIREBASE ---
           // AccountGate accede a Firebase e recupera prima i progressi;
@@ -1087,7 +1093,9 @@ import { visibleOnlinePlayers } from './systems/onlinePresence.js';
 
           const handleCreateRoguelikeCoop = (...__args) => handleCreateRoguelikeCoopImpl({ appId, db, doc, initialGameState, playerAvatarUrl, playerName, setAppMode, setCoopRoomId, setDoc, setPlayerRole, setRoomId, setSystemAlert, user }, ...__args);
 
-          const handleJoinRoom = (...__args) => handleJoinRoomImpl({ appId, db, doc, getDoc, getPlayerData, getRequiredPlayers, playerAvatarUrl, playerName, roomIdInput, setAppMode, setCoopRoomId, setPlayerRole, setRoomId, setSystemAlert, updateDoc, user }, ...__args);
+          const handleJoinRoom = (...__args) => handleJoinRoomImpl({ appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, playerName, roomIdInput, setAppMode, setCoopRoomId, setPlayerRole, setRoomId, setSystemAlert, runTransaction, user }, ...__args);
+
+          const chooseReplacement = (...__args) => commitReplacementChoiceImpl({ appMode, appId, db, doc, gameState, playerRole, roomId, runTransaction, setSystemAlert, updateState, user }, ...__args);
 
           const handleAddBot = (...__args) => handleAddBotImpl({ gameState, updateState }, ...__args);
 
