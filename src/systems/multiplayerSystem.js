@@ -325,6 +325,7 @@ const { updateState } = ctx;
 
             updateState({
                 [`players.${slot}`]: null,
+                [`playerUids.${slot}`]: null,
                 [`playerAvatars.${slot}`]: '',
                 [`isBot.${slot}`]: false,
                 [`inventory.${slot}`]: {}
