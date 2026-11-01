@@ -1,5 +1,6 @@
 import { renderMenuView } from './screens/hub/MenuView.jsx';
 import { MultiverseEventHub } from './screens/events/MultiverseEventHub.jsx';
+import { AccountGate } from './components/AccountGate.jsx';
 import { renderCampaignSelectView } from './screens/campaign/CampaignSelectView.jsx';
 import { renderCampaignIntroView } from './screens/campaign/CampaignIntroView.jsx';
 import { renderCampaignSelectProtagonistView } from './screens/campaign/CampaignSelectProtagonistView.jsx';
@@ -42,7 +43,7 @@ import { getCampaignStoryCharacters } from './systems/campaignSystem.js';
 import { TYPE_STYLES, TYPE_CHART, PLAYER_THEMES, getMultiplier, getDefaultAvatar } from './systems/typeSystem.js';
 import { initialGameState } from './systems/gameState.js';
 
-        import { signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
+        import { onAuthStateChanged } from 'firebase/auth';
         import { doc, setDoc, onSnapshot, getDoc, updateDoc, collection } from 'firebase/firestore';
 
         const { useState, useEffect, useCallback, useRef } = React;
@@ -784,25 +785,10 @@ import { initialGameState } from './systems/gameState.js';
           }, [appMode, roomId, playerRole, gameState]);
           
           // --- FIX: INIZIALIZZAZIONE AUTENTICAZIONE FIREBASE ---
+          // AccountGate accede a Firebase e recupera prima i progressi;
+          // App viene montata solo dopo per non sovrascrivere il salvataggio.
           useEffect(() => {
-              const initAuth = async () => {
-                  try {
-                      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                          await signInWithCustomToken(auth, __initial_auth_token);
-                      } else {
-                          // Su GitHub Pages userà questo accesso anonimo
-                          await signInAnonymously(auth);
-                      }
-                  } catch (error) {
-                      console.error("Errore Auth Firebase:", error);
-                  }
-              };
-              initAuth();
-
-              const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-                  setUser(currentUser);
-              });
-              
+              const unsubscribe = onAuthStateChanged(auth, setUser);
               return () => unsubscribe();
           }, []);
 
@@ -1513,4 +1499,4 @@ import { initialGameState } from './systems/gameState.js';
 }
 
         const root = createRoot(document.getElementById('root'));
-root.render(<App />);
+root.render(<AccountGate><App /></AccountGate>);
