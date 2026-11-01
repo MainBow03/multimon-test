@@ -400,7 +400,10 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
             });
 
             let nextState = {
-              status: 'pre_battle', 
+              status: 'pre_battle',
+              battleWeather: null,
+              fieldTraps: {},
+              fieldTrapSeen: {}, 
               teams: teams,
               field: field,
               events: initialEvents,
