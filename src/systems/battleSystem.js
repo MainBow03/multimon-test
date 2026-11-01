@@ -2829,7 +2829,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                     const boosted = randomBuff(char);
                     events.push({type:'text',text:`🐰 Che succede, amico? ${char.name} aumenta ${boosted} del 15%!`,isPassive:true,passiveChar:char.name,passiveName:char.passive.name});
                 }
-                const opponents = activeMatchPlayers.filter(p => p !== target.player);
+                const opponents = gameState.gameMode === 'multipla'
+                    ? (['p1','p2'].includes(target.player) ? ['p3','p4'] : ['p1','p2'])
+                    : gameState.gameMode === 'torneo'
+                        ? getTournamentMatchOpponents(target.player)
+                        : activeMatchPlayers.filter(p => p !== target.player);
                 const choices = opponents.flatMap(p => (workingField[p]||[]).map(i => workingTeams[p]?.[i]).filter(u => u?.hp>0));
                 if (choices.length) {
                     const enemy=choices[Math.floor(Math.random()*choices.length)];
