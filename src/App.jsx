@@ -1392,7 +1392,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (gameState.status === 'switching_phase') {
-  const __screen = renderSwitchingPhaseView({ Loader2, LogOut, TYPE_STYLES, appMode, gameState, getActivePlayers, getTournamentMatchOpponents, leaveRoom, playerRole, renderHealthBar, setPlayerRole, setShowLeaveConfirm, updateState });
+  const __screen = renderSwitchingPhaseView({ Loader2, LogOut, TYPE_STYLES, appMode, gameState, getActivePlayers, getTournamentMatchOpponents, leaveRoom, playerRole, renderHealthBar, setPlayerRole, setShowLeaveConfirm, chooseReplacement, forceCompleteSwitches, canForceSwitch: appMode==='local_room'||canRecoverRoom(gameState,playerRole) });
   if (__screen !== undefined) return __screen;
 }
 
