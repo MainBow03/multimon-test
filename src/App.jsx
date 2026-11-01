@@ -45,6 +45,7 @@ import { initialGameState } from './systems/gameState.js';
 
         import { onAuthStateChanged } from 'firebase/auth';
         import { doc, setDoc, onSnapshot, getDoc, updateDoc, collection } from 'firebase/firestore';
+import { visibleOnlinePlayers } from './systems/onlinePresence.js';
 
         const { useState, useEffect, useCallback, useRef } = React;
 
@@ -164,6 +165,9 @@ import { initialGameState } from './systems/gameState.js';
           
           const [showOnlinePlayers, setShowOnlinePlayers] = useState(false);
           const [onlineUsers, setOnlineUsers] = useState([]);
+          const [onlineUsersError, setOnlineUsersError] = useState('');
+          const [checkingOnlineUsers, setCheckingOnlineUsers] = useState(false);
+          const onlinePresenceRowsRef = useRef([]);
           const [sessionId] = useState(() => Math.random().toString(36).substring(2, 15));
 
           const matchStartTimeRef = useRef(null);
@@ -792,50 +796,59 @@ import { initialGameState } from './systems/gameState.js';
               return () => unsubscribe();
           }, []);
 
-          // --- PRESENZA ONLINE ---
+          // --- PRESENZA ONLINE (heartbeat + feedback errori) ---
           useEffect(() => {
               if (!user || !playerName.trim()) return;
               const updatePresence = async () => {
                   try {
-                      const stats = getPlayerData(); // Recuperiamo le stats correnti per sincronizzarle online
+                      const stats = getPlayerData();
                       const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'online_users', sessionId);
                       await setDoc(userRef, {
                           uid: user.uid,
-                          sessionId: sessionId,
-                          name: playerName,
-                          avatar: playerAvatarUrl,
+                          sessionId,
+                          name: playerName.trim(),
+                          avatar: playerAvatarUrl || '',
                           status: (appMode === 'online_room' && roomId) ? 'In Partita' : 'Nel Menu',
                           roomId: appMode === 'online_room' ? roomId : null,
                           timestamp: Date.now(),
                           wins: stats.wins || 0,
                           matches: stats.matches || 0
                       });
+                      setOnlineUsersError('');
                   } catch (err) {
-                      console.error("Errore aggiornamento presenza:", err);
+                      console.error('Multimon: presenza online non autorizzata:', err);
+                      setOnlineUsersError('Impossibile aggiornare la presenza. Controlla le regole Firestore online_users e Authentication: ' + err.message);
                   }
               };
               updatePresence();
-              const interval = setInterval(updatePresence, 30000); 
-              return () => clearInterval(interval);
-          }, [user, playerName, playerAvatarUrl, appMode, roomId, sessionId]);
+              const interval = setInterval(updatePresence, 25000);
+              const onVisible = () => { if (!document.hidden) updatePresence(); };
+              document.addEventListener('visibilitychange', onVisible);
+              return () => {
+                  clearInterval(interval);
+                  document.removeEventListener('visibilitychange', onVisible);
+              };
+          }, [user?.uid, playerName, playerAvatarUrl, appMode, roomId, sessionId]);
 
           useEffect(() => {
               if (!user || !showOnlinePlayers) return;
+              setCheckingOnlineUsers(true);
               const usersRef = collection(db, 'artifacts', appId, 'public', 'data', 'online_users');
               const unsubscribe = onSnapshot(usersRef, (snapshot) => {
-                  const now = Date.now();
-                  const active = [];
-                  snapshot.forEach(d => {
-                      const data = d.data();
-                      // Tolleranza di 4 ore (14400000ms) per evitare problemi di orologi sfasati sui tablet
-                      if (Math.abs(now - data.timestamp) < 14400000 && data.sessionId !== sessionId) {
-                          active.push(data);
-                      }
-                  });
-                  setOnlineUsers(active);
-              }, (err) => console.error(err));
-              return () => unsubscribe();
-          }, [user, showOnlinePlayers, sessionId]);
+                  onlinePresenceRowsRef.current = snapshot.docs.map(d => d.data());
+                  setOnlineUsers(visibleOnlinePlayers(onlinePresenceRowsRef.current, sessionId));
+                  setCheckingOnlineUsers(false);
+                  setOnlineUsersError('');
+              }, (err) => {
+                  setCheckingOnlineUsers(false);
+                  setOnlineUsersError('Firebase non permette di leggere la lista online: ' + err.message);
+                  console.error('Errore elenco online:', err);
+              });
+              const timer = setInterval(() => setOnlineUsers(
+                  visibleOnlinePlayers(onlinePresenceRowsRef.current, sessionId)
+              ), 12000);
+              return () => { unsubscribe(); clearInterval(timer); };
+          }, [user?.uid, showOnlinePlayers, sessionId]);
 
           const handleObserve = (...__args) => handleObserveImpl({ setAppMode, setPlayerRole, setRoomId, setShowOnlinePlayers }, ...__args);
 
@@ -1428,8 +1441,12 @@ import { initialGameState } from './systems/gameState.js';
                             <button onClick={() => setShowOnlinePlayers(false)} className="text-slate-500 hover:text-white transition-colors"><XIcon size={24}/></button>
                         </div>
                         <div className="p-4 overflow-y-auto custom-scrollbar flex-1 space-y-3">
-                            {onlineUsers.length === 0 ? (
-                                <p className="text-slate-500 text-center italic py-8 font-medium">Nessun altro giocatore online al momento.</p>
+                            {onlineUsersError ? (
+                                <p role="alert" className="text-rose-300 text-center p-4 bg-rose-950/50 border border-rose-500/40 rounded-xl text-sm">{onlineUsersError}</p>
+                            ) : checkingOnlineUsers ? (
+                                <p className="text-cyan-300 text-center py-8">Controllo chi è online…</p>
+                            ) : onlineUsers.length === 0 ? (
+                                <p className="text-slate-400 text-center italic py-8 font-medium">Nessun altro giocatore online in questo momento. I giocatori inattivi da 90 secondi vengono nascosti.</p>
                             ) : onlineUsers.map(u => (
                                 <div key={u.sessionId} className="bg-slate-800/80 border border-slate-700 p-3 rounded-xl flex items-center gap-3 shadow-md">
                                     <img src={u.avatar || getDefaultAvatar(u.name)} onError={(e) => { e.target.onerror = null; e.target.src = getDefaultAvatar(u.name); }} className="w-12 h-12 rounded-full border-2 border-slate-600 bg-slate-900 object-cover" />
