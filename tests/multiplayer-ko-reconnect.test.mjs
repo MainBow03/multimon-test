@@ -8,6 +8,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, recoverableLegacyRole,
  nextPhaseAfterExecution, resolveMultiplayerWinner, canRecoverRoom,
  isHostFresh, phaseIsStale } from '../src/systems/roomRecovery.js';
 
+// I test node non hanno il localStorage del browser.
+globalThis.localStorage ??= {getItem:()=>null,setItem:()=>{},removeItem:()=>{}};
 const now=1_800_000_000_000;
 const char=(id,hp=100,extra={})=>({id,name:id,hp,maxHp:100,types:['Normale'],
  atk:80,def:80,spd:80,statuses:[],moves:[],...extra});
