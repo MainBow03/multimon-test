@@ -26,6 +26,7 @@ import { renderIntermissionView } from './screens/battle/IntermissionView.jsx';
 import { renderPreBattleView } from './screens/battle/PreBattleView.jsx';
 import { handleForceSkipImpl, handleObserveImpl, applyOnEnterPassiveImpl, startBattleImpl, generateCPUActionsForPlayerImpl, commitActionImpl, handleSelectMoveTargetImpl, checkTurnReadyImpl, calculateDamageImpl, calculateTurnImpl, playEventsAnimationImpl } from './systems/battleSystem.js';
 import { loadCampaignImpl, advanceCampaignImpl } from './systems/campaignFlow.js';
+import { reconcileCampaignRoster } from './systems/campaignRoster.js';
 import { handleAvatarUploadImpl, leaveRoomImpl, handleConfirmLeaveImpl, updateStateImpl, getRequiredPlayersImpl, getActivePlayersImpl, isAllPlayersJoinedImpl, handleCreateRoomImpl, handleJoinRoomImpl, handleAddBotImpl, handleRemovePlayerImpl, handleLocalStartImpl, handleVsCpuStartImpl, handlePickImpl, handleDraftRerollImpl, handleSharedPickImpl } from './systems/multiplayerSystem.js';
 import { updateLocalStatsImpl } from './systems/profileSystem.js';
 import { renderHealthBarImpl } from './components/uiHelpers.jsx';
@@ -350,7 +351,7 @@ import { initialGameState } from './systems/gameState.js';
                       if (parsed.sectorIdx === undefined) parsed.sectorIdx = 0;
                       if (parsed.missionIdx === undefined) parsed.missionIdx = 0;
                       if (parsed.coins === undefined) parsed.coins = 50;
-                      return parsed; 
+                      return reconcileCampaignRoster(parsed, CHARACTERS); 
                   } catch(e){}
               }
               const finn = CHARACTERS.find(c=>c.id==='finn');
