@@ -1,3 +1,4 @@
+import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderShopView(ctx) {
 const { ArrowLeft, BookOpen, CHARACTERS, Coins, IS_PREVIEW, ITEMS_DB, Lock, ShoppingCart, TYPE_STYLES, Unlock, Users, appMode, gameState, getPlayerData, setAppMode, setGameState, setShopCharSearch, setShopTab, setSystemAlert, shopCharSearch, shopTab, updateLocalStats } = ctx;
@@ -63,7 +64,7 @@ if (appMode === 'shop') {
                                             Posseduti: {owned}
                                         </div>
                                         <div>
-                                            <div className="text-4xl mb-3 mt-2">{item.icon}</div>
+                                            <div className="mb-3 mt-2 flex justify-center">{item.type === 'held' ? <ItemArtwork id={item.id} size={68} /> : <span className="text-4xl">{item.icon}</span>}</div>
                                             <h3 className="text-lg font-black text-white mb-1">{item.name}</h3>
                                             <p className="text-xs text-slate-400 h-10 leading-tight">{item.desc}</p>
                                         </div>
