@@ -1,6 +1,8 @@
 import { CHARACTERS } from '../data/characters.js';
 import { getMultiplier } from './typeSystem.js';
 import { calculateDamageImpl } from './battleSystem.js';
+import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense,
+  endRefractionTurn, snowstormOutcome, randomBuff, randomDebuff, daffyCelebration } from './championEffects.js';
 export const EVENT_PRIZES={1:400,2:200,3:140,other:50};
 export function normalizeEventSettings(s={}){
  const n=+s.entrants,team=+s.teamSize,field=+s.fieldSize,doubles=!!s.doubles;
@@ -63,17 +65,20 @@ export function eventPlacements(matches,entrants){
 function fighter(id,owner,item){
  const c=CHARACTERS.find(x=>x.id===id);if(!c)throw Error('Multimon mancante: '+id);
  return{key:owner+'-'+id,id,owner,name:c.name,img:c.img,types:c.types||[],hp:c.maxHp,maxHp:c.maxHp,
- atk:c.atk,def:c.def,baseDef:c.def,spd:c.spd,spAtk:c.spAtk||c.atk,passive:c.passive||null,heldItem:item||null,hyper:false,statuses:[],
+ atk:c.atk,def:c.def,baseDef:c.def,spDef:c.spDef||c.def,baseSpDef:c.spDef||c.def,spd:c.spd,spAtk:c.spAtk||c.atk,passive:c.passive||null,heldItem:item||null,hyper:false,statuses:[],
  moves:c.moves.map(m=>({name:m.name,type:m.type,power:m.power||0,accuracy:m.accuracy??100,
  targetCount:m.targetCount||1,uses:m.maxUses??null,contact:!!m.contact,
- special:!!m.special,transform:!!m.transformMahito,effect:m.statusEffect||null,buff:m.selfStatBuff||null,
+ special:!!m.special,transform:!!m.transformMahito,effect:m.statusEffect||null,buff:m.selfStatBuff||m.statBuff||null,
+ heal:m.heal||0,enemyDebuff:m.targetStatDebuff||null,snowstormTurns:m.snowstormTurns||0,
+ evasionGain:m.evasionGain||0,crystalShieldPercent:m.crystalShieldPercent||0,
+ refractionTurns:m.refractionTurns||0,bonusAgainstFaster:m.bonusAgainstFaster||0,
  ignoreDefBuffs:!!m.ignoreDefBuffs,speedScaling:!!m.speedScaling}))}
 }
 export function buildEventBattle(match,people,s){
  const make=side=>side.members.flatMap(uid=>people[uid].teamIds.map(id=>fighter(id,uid,s.allowItems?people[uid].heldItems?.[id]:null)));
  return{matchId:match.id,side:'A',turn:1,teams:{A:make(match.sideA),B:make(match.sideB)},
  owners:{A:match.sideA.members,B:match.sideB.members},hyperUsed:{},finished:false,winner:null,
- log:['Inizia '+match.sideA.name+' contro '+match.sideB.name+'!']};
+ weather:null,log:['Inizia '+match.sideA.name+' contro '+match.sideB.name+'!']};
 }
 export function activeEventFighters(b,side,s){
  return b.owners[side].flatMap(uid=>b.teams[side].filter(x=>x.owner===uid&&x.hp>0).slice(0,s.fieldSize));
@@ -84,44 +89,144 @@ export function botActions(b,uid,s){
  const ranks=c.moves.map((m,i)=>({m,i})).filter(x=>x.m.uses===null||x.m.uses>0).sort((a,d)=>d.m.power-a.m.power);
  return{actor:c.key,moveIndex:ranks[0]?.i||0,target:targets[0]?.key||null}});
 }
+// Una battaglia evento usa lo stesso calcolo dei danni del gioco classico;
+// gli effetti dei nuovi campioni sono sincronizzati nello stato Firestore.
 export function eventTurn(b,submissions,s,random=Math.random){
  if(b.finished)throw Error('Partita terminata');
- let x=structuredClone(b),side=x.side,oppo=side==='A'?'B':'A',log=[];
+ const x=structuredClone(b),side=x.side,oppo=side==='A'?'B':'A',log=[];
  const commands=new Map(x.owners[side].flatMap(uid=>submissions[uid]||[]).map(c=>[c.actor,c]));
+ const applyBuff=(actor,buffs)=>{
+  if(!buffs)return;
+  for(const [k,value] of Object.entries(buffs)){
+    if(Number.isFinite(actor[k]))actor[k]=Math.max(1,Math.floor(actor[k]*value));
+  }
+ };
+ const status=(target,effect)=>{
+  if(!effect||random()>=(effect.chance??0)||target.hp<=0)return;
+  const name=effect.type;
+  if(!target.statuses.includes(name))target.statuses.push(name);
+  if(name==='Accecato')target.blindTurns=effect.turns||3;
+  log.push(target.name+' riceve lo stato '+name+'!');
+ };
+ const hurt=(attacker,target,m)=>{
+  const multiplier=getMultiplier(m.type,target.types);
+  if(multiplier===0){log.push('Nessun effetto su '+target.name+'!');return 0;}
+  // Il calcolo classic include Iperband, passiva petrosapien e Rifrazione.
+  const wrap=u=>({...u,statuses:(u.statuses||[]).map(type=>({type})),
+    heldItem:s.allowItems?u.heldItem:null});
+  const raw=calculateDamageImpl({},wrap(attacker),wrap(target),m,multiplier,false,random);
+  const defense=directHitAfterCrystalDefense(target,raw);
+  target.hp=Math.max(0,target.hp-defense.damage);
+  if(defense.refracted)log.push('Rifrazione dimezza il primo colpo su '+target.name+'!');
+  if(defense.absorbed)log.push('Scudo di '+target.name+': '+defense.absorbed+' danni assorbiti.');
+  log.push(attacker.name+' usa '+m.name+' su '+target.name+': '+defense.damage+' danni'+(target.hp?'':' KO!'));
+  if(target.hp>0&&target.passive?.type==='on_hp_threshold'&&!target.passiveUsed&&
+     target.hp/target.maxHp<=target.passive.threshold){
+    target.passiveUsed=true;applyBuff(target,target.passive.statBuff);
+    log.push(target.name+' attiva '+target.passive.name+'!');
+  }
+  if(!target.hp){
+    for(const ally of activeEventFighters(x,side,s).filter(u=>u!==attacker&&u.passive?.type==='failed_star')){
+      const healed=daffyCelebration(ally);
+      if(healed)log.push(ally.name+' attiva Protagonista Mancato: recupera '+healed+' PS e ATK +10%!');
+    }
+  }
+  return defense.damage;
+ };
  for(const actor of activeEventFighters(x,side,s).sort((a,b)=>b.spd-a.spd)){
   if(actor.hp<=0)continue;
-  const command=commands.get(actor.key);if(!command){log.push(actor.name+' passa.');continue}
-  const m=actor.moves[+command.moveIndex]||actor.moves[0];if(!m||m.uses===0)continue;
+  const command=commands.get(actor.key);
+  if(!command){log.push(actor.name+' passa.');continue;}
+  const m=actor.moves[Number(command.moveIndex)]||actor.moves[0];if(!m||m.uses===0)continue;
   if(s.allowHyper&&command.hyper&&!x.hyperUsed[actor.owner]){
-   x.hyperUsed[actor.owner]=true;actor.hyper=true;actor.atk=Math.round(actor.atk*1.5);actor.spAtk=Math.round(actor.spAtk*1.5);
-   actor.maxHp=Math.round(actor.maxHp*1.5);actor.hp=Math.min(actor.maxHp,Math.round(actor.hp*1.5));log.push(actor.name+' usa la forma Iper!');
+   x.hyperUsed[actor.owner]=true;actor.hyper=true;actor.atk=Math.round(actor.atk*1.5);
+   actor.spAtk=Math.round(actor.spAtk*1.5);actor.maxHp=Math.round(actor.maxHp*1.5);
+   actor.hp=Math.min(actor.maxHp,Math.round(actor.hp*1.5));log.push(actor.name+' usa la forma Iper!');
   }
   if(m.uses!==null)m.uses--;
-  if(random()>(m.accuracy<=1?m.accuracy:m.accuracy/100)){log.push(actor.name+' manca '+m.name);continue}
-  if(m.transform&&actor.id==='mahito'){actor.atk=Math.floor(actor.atk*1.5);actor.spAtk=Math.floor(actor.spAtk*1.5);log.push(actor.name+' cambia forma!');continue}
-  if(!m.power){if(m.buff)for(const [k,v] of Object.entries(m.buff))if(Number.isFinite(actor[k]))actor[k]=Math.round(actor[k]*v);log.push(actor.name+' usa '+m.name);continue}
-  const visible=activeEventFighters(x,oppo,s).filter(v=>v.hp>0);
-  let targets=m.targetCount>1?visible:visible.filter(v=>v.key===command.target).slice(0,1);
-  if(!targets.length&&visible.length)targets=[visible[0]];
-  for(const t of targets){
-   // Formula IDENTICA alla battaglia classica: passiva, STAB, resistenze,
-   // Iperband, Mahito, bonus danno e difesa. Status in formato classico.
-   const type=getMultiplier(m.type,t.types);
-   const wrap=u=>({...u,statuses:(u.statuses||[]).map(status=>({type:status})),
-      heldItem:s.allowItems?u.heldItem:null});
-   const dmg=type===0?0:calculateDamageImpl({},wrap(actor),wrap(t),m,type,false,random);
-   t.hp=Math.max(0,t.hp-dmg);log.push(actor.name+' usa '+m.name+' su '+t.name+': '+dmg+' danni'+(t.hp?'':' KO!'));
-   if(t.hp&&actor.id==='mahito'&&m.contact&&random()<.3&&!t.statuses.includes('Anima Distorta')){t.statuses.push('Anima Distorta');log.push('Anima Distorta su '+t.name);}
-   if(t.hp&&m.effect&&random()<(m.effect.chance||0))t.statuses.push(m.effect.type);
+  const accuracy=(m.accuracy<=1?m.accuracy:m.accuracy/100)*(actor.statuses.includes('Accecato')?.8:1);
+  if(random()>accuracy){log.push(actor.name+' manca '+m.name);continue;}
+  if(m.transform&&actor.id==='mahito'){
+    actor.atk=Math.floor(actor.atk*1.5);actor.spAtk=Math.floor(actor.spAtk*1.5);
+    actor.transformed=true;log.push(actor.name+' si trasfigura!');continue;
   }
-  if(s.allowItems&&actor.heldItem==='iperband'){const recoil=Math.max(1,Math.floor(actor.maxHp*.1));actor.hp=Math.max(0,actor.hp-recoil);log.push('Iperband: '+actor.name+' perde '+recoil+' PS');}
+  if(!m.power){
+   applyBuff(actor,m.buff);
+   if(m.heal){const h=Math.max(1,Math.floor(actor.maxHp*m.heal));actor.hp=Math.min(actor.maxHp,actor.hp+h);log.push(actor.name+' recupera '+h+' PS!');}
+   if(m.evasionGain){addEvasion(actor);log.push(actor.name+' aumenta l’elusione!');}
+   if(m.crystalShieldPercent){crystalShield(actor);log.push(actor.name+' innalza un Muro Cristallino!');}
+   if(m.refractionTurns){beginRefraction(actor);log.push(actor.name+' attiva Rifrazione!');}
+   const enemies=activeEventFighters(x,oppo,s).filter(u=>u.hp>0);
+   const t=enemies.find(v=>v.key===command.target)||enemies[0];
+   if(t&&m.enemyDebuff){applyBuff(t,m.enemyDebuff);log.push(t.name+' subisce un calo di statistiche!');}
+   if(t)status(t,m.effect);
+   log.push(actor.name+' usa '+m.name);
+   continue;
+  }
+  const visible=activeEventFighters(x,oppo,s).filter(v=>v.hp>0);
+  let targets=m.targetCount>=4?visible:
+    m.targetCount>1?[
+      ...visible.filter(v=>v.key===command.target),
+      ...visible.filter(v=>v.key!==command.target)
+    ].slice(0,m.targetCount):
+    visible.filter(v=>v.key===command.target).slice(0,1);
+  if(!targets.length&&visible.length)targets=[visible[0]];
+  let hitAny=false;
+  for(const t of targets){
+   if(t.hp<=0)continue;
+   if(t.evasionBonus&&random()<t.evasionBonus){log.push(t.name+' schiva il colpo!');continue;}
+   hitAny=true;
+   const damage=hurt(actor,t,m);
+   if(t.hp&&damage&&actor.id==='mahito'&&m.contact&&random()<.3&&!t.statuses.includes('Anima Distorta')){
+     t.statuses.push('Anima Distorta');log.push('Anima Distorta su '+t.name);
+   }
+   if(t.hp)status(t,m.effect);
+   if(t.hp&&m.enemyDebuff){applyBuff(t,m.enemyDebuff);log.push(t.name+' perde statistiche!');}
+  }
+  if(hitAny&&m.buff)applyBuff(actor,m.buff);
+  if(hitAny&&m.snowstormTurns){x.weather={type:'snowstorm',turns:m.snowstormTurns};log.push('Una tempesta di neve investe il campo!');}
+  if(hitAny&&s.allowItems&&actor.heldItem==='iperband'){
+   const recoil=Math.max(1,Math.floor(actor.maxHp*.1));actor.hp=Math.max(0,actor.hp-recoil);
+   log.push('Iperband: '+actor.name+' perde '+recoil+' PS');
+  }
  }
- for(const c of x.teams[side])if(c.hp>0&&c.statuses.includes('Anima Distorta')){const dmg=Math.max(1,Math.floor(c.maxHp*.05));c.hp=Math.max(0,c.hp-dmg);log.push(c.name+' perde '+dmg+' PS per Anima Distorta.');}
+ // Fine turno: effetti condivisi da tutti i giocatori, senza duplicati.
+ for(const team of ['A','B']){
+  for(const u of activeEventFighters(x,team,s)){
+   if(u.hp<=0)continue;
+   if(u.statuses.includes('Anima Distorta')){
+     const d=Math.max(1,Math.floor(u.maxHp*.05));u.hp=Math.max(0,u.hp-d);
+     log.push(u.name+' perde '+d+' PS per Anima Distorta.');
+   }
+   if(u.hp<=0)continue;
+   if(u.blindTurns>0){
+     u.blindTurns--;if(!u.blindTurns)u.statuses=u.statuses.filter(z=>z!=='Accecato');
+   }
+   if(u.passive?.type==='bugs_chaos'){
+     if(random()<.5){const stat=randomBuff(u,random);log.push(u.name+' aumenta '+stat+' del 15%!');}
+     const enemies=activeEventFighters(x,team==='A'?'B':'A',s).filter(v=>v.hp>0);
+     if(enemies.length){const target=enemies[Math.floor(random()*enemies.length)];
+       const stat=randomDebuff(target,random);log.push(u.name+' abbassa '+stat+' di '+target.name+'!');}
+   }
+  }
+ }
+ if(x.weather?.type==='snowstorm'&&x.weather.turns>0){
+  for(const team of ['A','B']){
+   for(const u of activeEventFighters(x,team,s)){
+    const effect=snowstormOutcome(u,true);
+    if(effect.damage){u.hp=Math.max(0,u.hp-effect.damage);log.push(u.name+' perde '+effect.damage+' PS per la neve!');}
+    if(u.hp&&effect.heal){u.hp=Math.min(u.maxHp,u.hp+effect.heal);log.push(u.name+' recupera '+effect.heal+' PS dal freddo!');}
+   }
+  }
+  x.weather.turns--;if(x.weather.turns===0)x.weather=null;
+ }
+ for(const team of ['A','B'])for(const u of x.teams[team])endRefractionTurn(u);
  const a=x.teams.A.some(c=>c.hp>0),z=x.teams.B.some(c=>c.hp>0);
  if(!a||!z||x.turn>=300){
-  x.finished=true;x.winner=a&&!z?'A':z&&!a?'B':x.teams.A.reduce((v,c)=>v+c.hp,0)>=x.teams.B.reduce((v,c)=>v+c.hp,0)?'A':'B';
+  x.finished=true;x.winner=a&&!z?'A':z&&!a?'B':
+   x.teams.A.reduce((v,c)=>v+c.hp,0)>=x.teams.B.reduce((v,c)=>v+c.hp,0)?'A':'B';
   log.push('Vittoria lato '+x.winner);
- }else{x.side=oppo;x.turn++}
+ }else{x.side=oppo;x.turn++;}
  x.log=[...x.log,...log].slice(-60);return x;
 }
 export function simulateBots(b,s,bots){
