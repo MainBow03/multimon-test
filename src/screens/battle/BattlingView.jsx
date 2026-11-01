@@ -178,6 +178,10 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                 borderClass = 'border-yellow-400 shadow-[0_0_25px_rgba(250,204,21,0.8)] z-40';
             }
             
+            if (char.mahitoTransformed && !isHyper && !isJuggernaut) {
+                borderClass = 'border-fuchsia-400 shadow-[0_0_25px_rgba(217,70,239,0.85)]';
+            }
+
             if (isTargetedNow) {
                 borderClass = 'border-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.8)] scale-105 cursor-pointer z-20';
             } else if (isTargetable) {
@@ -203,6 +207,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
             // --- LOGICA CAMBIO IMMAGINE TRASFORMAZIONI + ANIMAZIONE ---
             let formLevel = 0;
             let displayImg = char.img;
+            if (char.mahitoTransformed) formLevel = 'soul';
             
             if (char.id === 'ponygon' && char.statuses) {
                 if (char.statuses.some(s => s.type === 'Dioemuru')) {
@@ -313,7 +318,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                         <div className="font-bold text-sm truncate text-gray-100 mb-1">
                             {char.name} 
                             {isJuggernaut && <span className="text-[10px] text-rose-500 ml-1">(BOSS)</span>}
-                            {isHyper && <span className="text-[10px] text-yellow-400 font-black ml-1">(IPER)</span>} 
+                            {isHyper && <span className="text-[10px] text-yellow-400 font-black ml-1">(IPER)</span>}
+                            {char.mahitoTransformed && <span className="text-[10px] text-fuchsia-300 font-black ml-1">(TRASFIGURATO)</span>} 
                         </div>
                         
                         <div className="flex gap-1 justify-center mb-1 flex-wrap">
@@ -327,6 +333,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     </div>
                     <div className="relative">
                         <img key={`img-${char.id}-form-${formLevel}`} src={displayImg} style={{ filter: char.imageFilter || 'none' }} className={`${isJuggernaut ? 'w-48 h-48 md:w-56 md:h-56' : 'w-28 h-28'} object-cover rounded-xl border-4 ${borderClass} transition-all ${extraAnimClass}`} alt="" />
+                        {char.heldItem === 'iperband' && <span title="Iperband equipaggiato" className="absolute -top-2 -right-2 bg-violet-700 border border-violet-300 text-base rounded-full w-8 h-8 flex items-center justify-center z-20 shadow-lg">💪</span>}
                         {char.juggHitsRemaining > 0 && (
                             <div className="absolute inset-0 border-[6px] border-cyan-400 rounded-xl shadow-[inset_0_0_20px_rgba(34,211,238,0.8),_0_0_20px_rgba(34,211,238,0.8)] z-30 animate-pulse pointer-events-none flex items-center justify-center bg-cyan-900/30">
                                 <span className="text-cyan-100 text-6xl font-black drop-shadow-[0_4px_4px_black]">{char.juggHitsRemaining}</span>
@@ -812,7 +819,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
 
                                         {actionMenuMode === 'items' && (() => {
                                             const myInventory = gameState.inventory?.[playerRole] || {};
-                                            const itemsToRender = Object.keys(myInventory).filter(itemId => myInventory[itemId] > 0);
+                                            const itemsToRender = Object.keys(myInventory).filter(itemId => myInventory[itemId] > 0 && ITEMS_DB[itemId] && ITEMS_DB[itemId].type !== 'held');
                                             
                                             if (itemsToRender.length === 0) {
                                                 return <div className="flex justify-center items-center h-full pt-4 text-slate-400 font-bold">Il tuo zaino è vuoto! Fai acquisti nel Negozio.</div>;

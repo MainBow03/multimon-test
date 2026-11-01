@@ -1,1 +1,1 @@
-export const TYPES = ['Normale', 'Lotta', 'Fuoco', 'Acqua', 'Erba', 'Aria', 'Roccia', 'Ghiaccio', 'Robot', 'Drago', 'Magico', 'Veleno', 'Insetto', 'Elettro', 'Oscuro', 'Spettro', 'Buio', 'Suono', 'Psico', 'Terra', 'Luce', 'Cristallo'];
+export const TYPES = ['Normale', 'Lotta', 'Fuoco', 'Acqua', 'Erba', 'Aria', 'Roccia', 'Ghiaccio', 'Robot', 'Drago', 'Magico', 'Veleno', 'Insetto', 'Elettro', 'Oscuro', 'Spettro', 'Folletto', 'Buio', 'Suono', 'Psico', 'Terra', 'Luce', 'Cristallo'];

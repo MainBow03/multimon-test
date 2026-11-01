@@ -1,7 +1,18 @@
+import { canEquipHeldItem } from '../../systems/heldEquipment.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
-const { CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
+const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
 if (appMode === 'campaign_team_select') {
+        const equipInventory = getPlayerData().inventory || {};
+        const assignCampaignItem = (id, itemId) => {
+            const team = campaignSelectedTeam.map(heroId => ({ heldItem: campaignHeldItems[heroId] || null }));
+            const index = campaignSelectedTeam.indexOf(id);
+            if (index < 0 || !canEquipHeldItem(team, index, itemId, equipInventory)) {
+                setSystemAlert('Non possiedi abbastanza copie di questo strumento!');
+                return;
+            }
+            setCampaignHeldItems(old => ({ ...old, [id]: itemId || null }));
+        };
         const isSecondCampaign = activeCampaignId === 'torneo_assoluto';
         const isFinalRaid = activeCampaignId === 'crisi_varco' && campaignState.sectorIdx >= activeCampaign.sectors.length - 1;
         
@@ -327,7 +338,7 @@ if (appMode === 'campaign_team_select') {
                 if (!baseChar) return null; // FIX: Previene crash fatali
                 const hp = campaignState.rosterStats[id] || 100;
                 return {
-                    ...JSON.parse(JSON.stringify(baseChar)), hp: hp, statuses: [], consecutiveProtect: 0,
+                    ...JSON.parse(JSON.stringify(baseChar)), hp: hp, statuses: [], consecutiveProtect: 0, heldItem: campaignHeldItems[id] || null,
                     baseAtk: baseChar.atk, baseDef: baseChar.def, baseSpd: baseChar.spd,
                     moves: baseChar.moves.filter(Boolean).map(m => ({ ...m, remainingUses: m.maxUses !== undefined ? m.maxUses : null }))
                 };
@@ -581,7 +592,7 @@ if (appMode === 'campaign_team_select') {
                         </div>
                     </div>
 
-                <div className="flex flex-wrap gap-4 mb-4 w-full max-w-5xl bg-slate-900/60 p-3 rounded-2xl border border-slate-700/50 backdrop-blur-md items-center">
+                <div className="flex flex-wrap gap-4 mb-4 w-full bg-slate-900/60 p-3 rounded-2xl border border-slate-700/50 backdrop-blur-md items-center">
                     <div className="flex-1 min-w-[150px]">
                         <input 
                             type="text" 
@@ -608,7 +619,7 @@ if (appMode === 'campaign_team_select') {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6 max-w-5xl w-full max-h-[50vh] overflow-y-auto custom-scrollbar p-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 2xl:grid-cols-11 gap-3 mb-4 w-full max-h-[55dvh] overflow-y-auto content-start custom-scrollbar p-2">
                     {(() => {
                         let rosterChars = campaignState.roster.map(id => CHARACTERS.find(c => c.id === id)).filter(Boolean);
                         
@@ -670,6 +681,23 @@ if (appMode === 'campaign_team_select') {
                         });
                     })()}
                 </div>
+                {campaignSelectedTeam.length > 0 && <div className="w-full max-w-6xl bg-slate-950/80 border border-violet-500/50 rounded-2xl p-4 mb-4">
+                  <div className="font-black text-violet-300 text-lg mb-2">🎒 Strumenti da battaglia</div>
+                  <div className="text-xs text-slate-400 mb-3">Seleziona prima la squadra, poi assegna gli strumenti acquistati nello shop. Non si consumano.</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {campaignSelectedTeam.map(id => {
+                      const character = CHARACTERS.find(c => c.id === id);
+                      return character ? <label key={id} className="flex items-center gap-2 bg-slate-900 p-2 rounded-xl min-w-0">
+                        <img src={character.img} className="w-10 h-10 object-cover rounded-full" alt="" />
+                        <span className="min-w-0 flex-1"><span className="text-xs font-bold block truncate">{character.name}</span>
+                        <select aria-label={`Strumento per ${character.name}`} className="w-full bg-slate-800 p-2 text-xs rounded-lg mt-1" value={campaignHeldItems[id] || ''} onChange={event => assignCampaignItem(id, event.target.value)}>
+                          <option value="">Nessuno</option>
+                          {Object.values(ITEMS_DB).filter(item => item.type === 'held' && equipInventory[item.id] > 0).map(item => <option key={item.id} value={item.id}>{item.icon} {item.name} (x{equipInventory[item.id]})</option>)}
+                        </select></span>
+                      </label> : null;
+                    })}
+                  </div>
+                </div>}
                 <button onClick={handleStartCampaignBattle} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-12 py-5 rounded-full font-black text-2xl shadow-[0_10px_30px_rgba(59,130,246,0.4)] hover:-translate-y-1 transition-all flex items-center gap-3">
                     <Swords size={28}/> Inizia Battaglia!
                 </button>
