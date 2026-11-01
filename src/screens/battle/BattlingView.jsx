@@ -1,3 +1,4 @@
+import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderBattlingView(ctx) {
 const { ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
@@ -333,7 +334,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     </div>
                     <div className="relative">
                         <img key={`img-${char.id}-form-${formLevel}`} src={displayImg} style={{ filter: char.imageFilter || 'none' }} className={`${isJuggernaut ? 'w-48 h-48 md:w-56 md:h-56' : 'w-28 h-28'} object-cover rounded-xl border-4 ${borderClass} transition-all ${extraAnimClass}`} alt="" />
-                        {char.heldItem === 'iperband' && <span title="Iperband equipaggiato" className="absolute -top-2 -right-2 bg-violet-700 border border-violet-300 text-base rounded-full w-8 h-8 flex items-center justify-center z-20 shadow-lg">💪</span>}
+                        {char.heldItem === 'iperband' && <span title="Iperband equipaggiato" className="absolute -top-2 -right-2 bg-violet-700 border border-violet-300 text-base rounded-full w-8 h-8 flex items-center justify-center z-20 shadow-lg"><ItemArtwork id="iperband" size={24} /></span>}
                         {char.juggHitsRemaining > 0 && (
                             <div className="absolute inset-0 border-[6px] border-cyan-400 rounded-xl shadow-[inset_0_0_20px_rgba(34,211,238,0.8),_0_0_20px_rgba(34,211,238,0.8)] z-30 animate-pulse pointer-events-none flex items-center justify-center bg-cyan-900/30">
                                 <span className="text-cyan-100 text-6xl font-black drop-shadow-[0_4px_4px_black]">{char.juggHitsRemaining}</span>

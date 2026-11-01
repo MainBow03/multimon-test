@@ -1,3 +1,4 @@
+import { completeCampaign } from '../../systems/campaignUnlocks.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignEndingView(ctx) {
 const { CHARACTERS, Trophy, activeCampaign, activeCampaignId, appMode, campaignState, loadCampaign, setAppMode, setCampaignSelectedTeam, setCampaignState } = ctx;
@@ -24,6 +25,7 @@ if (appMode === 'campaign_ending') {
                     </div>
                 </div>
                 <button onClick={() => { 
+                    completeCampaign(activeCampaignId);
                     setCampaignSelectedTeam([]); // FIX: Svuota la squadra
                     const freshState = loadCampaign(activeCampaignId);
                     freshState.isStarted = false;

@@ -1,3 +1,4 @@
+import { getCampaignLock } from '../../systems/campaignUnlocks.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignSelectView(ctx) {
 const { ArrowLeft, CAMPAIGNS, appMode, loadCampaign, setAppMode } = ctx;
@@ -14,10 +15,15 @@ if (appMode === 'campaign_select') {
                     {CAMPAIGNS.map(camp => {
                         const saved = localStorage.getItem(`multiverse_rpg_campaign_save_${camp.id}`);
                         const isInProgress = !!saved;
+                        const prerequisite = getCampaignLock(camp.id);
+                        const locked = !!prerequisite;
+                        const unlockLabel = prerequisite === 'crisi_varco' ? 'Completa La Crisi del Varco Rotto' : 'Completa Il Torneo Assoluto';
                         return (
-                            <div key={camp.id} className={`flex-1 rounded-3xl p-8 border border-slate-700/50 relative overflow-hidden group cursor-pointer hover:-translate-y-2 transition-transform shadow-2xl bg-gradient-to-br ${camp.bg}`}
+                            <div key={camp.id} className={`flex-1 rounded-3xl p-8 border border-slate-700/50 relative overflow-hidden group ${locked ? 'cursor-not-allowed grayscale-[.35] opacity-70' : 'cursor-pointer hover:-translate-y-2'} transition-transform shadow-2xl bg-gradient-to-br ${camp.bg}`}
                                 onClick={() => {
+                                    if (locked) return;
                                     const state = loadCampaign(camp.id);
+                                    if (!state) return;
                                     if (state.isStarted) {
                                         setAppMode('campaign_map');
                                     } else {
@@ -27,11 +33,12 @@ if (appMode === 'campaign_select') {
                             >
                                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors"></div>
                                 <div className="relative z-10 flex flex-col h-full text-center items-center">
+                                    {locked && <div className="mb-4 px-4 py-2 border border-amber-500/50 rounded-xl bg-black/70 text-amber-300 text-xs font-black">🔒 BLOCCATA — {unlockLabel}</div>}
                                     <span className="text-sm font-bold uppercase tracking-widest text-emerald-400 mb-2">{camp.shortTitle}</span>
                                     <h2 className="text-3xl font-black text-white mb-4">{camp.title}</h2>
                                     <p className="text-slate-300 mb-8 flex-1">{camp.description}</p>
                                     <button className="bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-8 rounded-full backdrop-blur-sm border border-white/20 transition-colors w-full uppercase tracking-widest shadow-lg mt-auto">
-                                        {isInProgress ? 'Continua Partita' : 'Nuova Partita'}
+                                        {locked ? '🔒 CAMPAGNA BLOCCATA' : (isInProgress ? 'Continua Partita' : 'Nuova Partita')}
                                     </button>
                                 </div>
                             </div>
