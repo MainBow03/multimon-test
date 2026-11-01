@@ -1,0 +1,45 @@
+
+name: Pubblica Multimon su GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Scarica il repository
+        uses: actions/checkout@v4
+      - name: Installa Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Installa le dipendenze
+        run: npm install --no-audit --no-fund
+      - name: Esegui i test
+        run: npm test
+      - name: Compila Multimon
+        run: npm run build
+      - name: Configura Pages
+        uses: actions/configure-pages@v5
+      - name: Carica il gioco
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Pubblica
+        id: deployment
+        uses: actions/deploy-pages@v4
