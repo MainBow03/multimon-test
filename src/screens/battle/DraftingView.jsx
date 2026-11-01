@@ -1,6 +1,7 @@
+import { canEquipHeldItem } from '../../systems/heldEquipment.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderDraftingView(ctx) {
-const { ArrowLeft, CHARACTERS, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState } = ctx;
+const { ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState } = ctx;
 if (gameState.status === 'drafting') {
         if (playerRole === 'spectator') {
             return (
@@ -24,6 +25,14 @@ if (gameState.status === 'drafting') {
         const myDraft = gameState.draft[playerRole] || [];
         const myTeamSize = ((gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') && playerRole === juggPlayer) ? 1 : gameState.settings.teamSize;
         const isReady = myDraft.length === myTeamSize;
+        const heldInventory = getPlayerData().inventory || {};
+        const equipItem = (index, itemId) => {
+            if (!canEquipHeldItem(myDraft, index, itemId, heldInventory)) {
+                setSystemAlert('Non possiedi abbastanza copie di questo strumento!');
+                return;
+            }
+            updateState({ [`draft.${playerRole}`]: myDraft.map((c, i) => i === index ? { ...c, heldItem: itemId || null } : c) });
+        };
         
         let allReady = true;
         let readyCount = 0;
@@ -53,10 +62,10 @@ if (gameState.status === 'drafting') {
         }
 
         return (
-            <div className="min-h-screen bg-slate-900 text-white p-6 flex flex-col relative overflow-hidden">
+            <div className="h-[100dvh] min-h-[520px] bg-slate-900 text-white p-3 sm:p-5 flex flex-col relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black pointer-events-none opacity-40"></div>
                 
-                <div className="flex justify-between items-center mb-6 z-10">
+                <div className="flex flex-wrap justify-between items-center gap-3 mb-3 z-10">
                     <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Scegli la tua Squadra ({myDraft.length}/{myTeamSize}) {(gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') && playerRole === juggPlayer && <span className="text-rose-500 text-sm align-middle block mt-1">Sei il Nemico! Scegli 1 solo campione.</span>}</h2>
                     <div className="text-slate-300 bg-slate-950/80 px-6 py-3 rounded-xl border border-slate-700/50 shadow-inner font-bold flex items-center gap-3">
                          {appMode === 'vs_cpu' ? (
@@ -84,7 +93,22 @@ if (gameState.status === 'drafting') {
 
                 {isReady ? (
                     <div className="flex-1 flex flex-col items-center justify-center bg-slate-950/60 rounded-3xl z-10 border border-slate-800/50 backdrop-blur-sm">
-                         <h3 className="text-5xl text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500 font-black mb-8 drop-shadow-md">Squadra Pronta!</h3>
+                         <div className="w-full max-w-5xl mb-5 rounded-2xl bg-slate-900/90 border border-violet-500/50 p-3 sm:p-4 max-h-[45vh] overflow-y-auto custom-scrollbar">
+                           <h3 className="text-lg sm:text-xl font-black text-violet-300 mb-1">🎒 Assegna strumenti alla squadra</h3>
+                           <p className="text-xs text-slate-400 mb-3">Gli strumenti acquistati al negozio non si consumano. Una copia può essere assegnata a un solo campione per battaglia.</p>
+                           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+                             {myDraft.map((hero, idx) => <label key={idx} className="bg-slate-950/80 p-3 rounded-xl border border-slate-700 flex items-center gap-3 min-w-0">
+                               <img src={hero.img} alt="" className="w-11 h-11 rounded-full object-cover" />
+                               <span className="flex-1 min-w-0"><span className="block font-bold text-xs truncate">{hero.name}</span>
+                                 <select aria-label={`Strumento per ${hero.name}`} value={hero.heldItem || ''} onChange={e => equipItem(idx, e.target.value)} className="mt-1 w-full min-w-0 bg-slate-800 border border-slate-600 rounded-lg p-2 text-xs">
+                                   <option value="">Nessuno</option>
+                                   {Object.values(ITEMS_DB).filter(item => item.type === 'held' && heldInventory[item.id] > 0).map(item => <option key={item.id} value={item.id}>{item.icon} {item.name} (x{heldInventory[item.id]})</option>)}
+                                 </select>
+                               </span>
+                             </label>)}
+                           </div>
+                         </div>
+                         <h3 className="text-3xl sm:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500 font-black mb-4 sm:mb-8 drop-shadow-md text-center">Squadra Pronta!</h3>
                          
                          {appMode === 'local_room' && !allReady && (() => {
                                  const humans = draftLimitToCheck.filter(p => !gameState.isBot[p]);
@@ -111,7 +135,7 @@ if (gameState.status === 'drafting') {
                          )}
                     </div>
                 ) : (
-                    <div className="flex-1 flex flex-col bg-slate-950/60 rounded-3xl p-6 overflow-hidden border border-slate-800/50 z-10">
+                    <div className="flex-1 min-h-0 w-full flex flex-col bg-slate-950/60 rounded-3xl p-3 sm:p-5 overflow-hidden border border-slate-800/50 z-10">
                         {gameState.settings.sharedDraft ? (
                             // --- INTERFACCIA DRAFT CONDIVISO (SNAKE DRAFT) ---
                             <div className="flex flex-col items-center justify-start w-full h-full">
@@ -137,7 +161,7 @@ if (gameState.status === 'drafting') {
                                 </div>
 
                                 {/* Griglia dei Personaggi Disponibili */}
-                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 overflow-y-auto custom-scrollbar p-2 w-full max-w-7xl pb-8">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 2xl:grid-cols-11 gap-3 overflow-y-auto custom-scrollbar p-2 w-full flex-1 min-h-0 content-start pb-8">
                                     {gameState.sharedDraftPool.map((item, pIdx) => {
                                         const isPicked = item.pickedBy !== null;
                                         // FIX LOCALE: Controlliamo se è il turno dell'utente attivo senza curarci di playerRole in Locale!
@@ -228,7 +252,7 @@ if (gameState.status === 'drafting') {
                         ) : (
                             // --- INTERFACCIA SCELTA CLASSICA (GRIGLIA) ---
                             <>
-                                <div className="flex flex-wrap gap-4 mb-4 bg-slate-900/60 p-3 rounded-2xl border border-slate-700/50 backdrop-blur-md items-center shrink-0">
+                                <div className="flex flex-wrap gap-3 mb-3 bg-slate-900/60 p-3 rounded-2xl border border-slate-700/50 backdrop-blur-md items-center shrink-0">
                                     <div className="flex-1 min-w-[150px]">
                                         <input 
                                             type="text" 
@@ -255,7 +279,7 @@ if (gameState.status === 'drafting') {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6 max-w-5xl w-full max-h-[50vh] overflow-y-auto custom-scrollbar p-2">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 2xl:grid-cols-11 gap-3 w-full flex-1 min-h-0 overflow-y-auto content-start custom-scrollbar p-2">
                                     {filteredDraftableChars.map(char => {
                                         const isSelected = myDraft.some(c => c.id === char.id);
                                         return (
