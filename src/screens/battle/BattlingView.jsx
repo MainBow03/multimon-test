@@ -516,6 +516,16 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     )}
                     {/* ------------------------------------------------ */}
                     
+                    {/* Meteo condiviso: mostra i turni rimanenti a entrambi i giocatori. */}
+                    {gameState.battleWeather?.type === 'snowstorm' && (
+                        <div className="absolute z-[44] top-[7.5rem] left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl
+                            border border-cyan-200/60 bg-sky-950/90 text-cyan-100 text-[11px] sm:text-sm font-black
+                            drop-shadow-[0_0_15px_rgba(56,189,248,0.4)] text-center pointer-events-none">
+                            ❄️ TEMPESTA DI NEVE · {gameState.battleWeather.turns} turni
+                            <span className="block text-[9px] text-cyan-200/70 font-semibold">Ghiaccio / Roccia / Robot immuni</span>
+                        </div>
+                    )}
+
                     {/* --- TIMER DI BATTAGLIA 90 SECONDI --- */}
                     {gameState.status === 'battling' && !isPlayingEvents && !isSpectator && (
                         <div className={`absolute top-16 left-1/2 -translate-x-1/2 z-[45] bg-slate-900/90 backdrop-blur-md px-5 py-1.5 rounded-full border shadow-[0_0_15px_rgba(0,0,0,0.6)] font-black tracking-widest flex items-center gap-2 transition-colors ${timeLeft <= 15 ? 'border-rose-500 text-rose-500 animate-pulse scale-110' : 'border-cyan-500/50 text-cyan-400'}`}>
