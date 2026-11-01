@@ -373,6 +373,7 @@ import { initialGameState } from './systems/gameState.js';
           });
           const [campaignDialogueIdx, setCampaignDialogueIdx] = useState(0);
           const [campaignSelectedTeam, setCampaignSelectedTeam] = useState([]);
+          const [campaignHeldItems, setCampaignHeldItems] = useState({});
           
           // --- NUOVI STATI: ROGUELIKE ---
           const [roguelikeDraftChoices, setRoguelikeDraftChoices] = useState([]);
@@ -1290,7 +1291,7 @@ import { initialGameState } from './systems/gameState.js';
 }
 
     if (appMode === 'campaign_team_select') {
-  const __screen = renderCampaignTeamSelectView({ CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue });
+  const __screen = renderCampaignTeamSelectView({ ITEMS_DB, campaignHeldItems, setCampaignHeldItems, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue });
   if (__screen !== undefined) return __screen;
 }
 
@@ -1347,7 +1348,7 @@ import { initialGameState } from './systems/gameState.js';
 }
 
     if (gameState.status === 'drafting') {
-  const __screen = renderDraftingView({ ArrowLeft, CHARACTERS, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState });
+  const __screen = renderDraftingView({ ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState });
   if (__screen !== undefined) return __screen;
 }
 
