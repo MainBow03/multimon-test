@@ -91,3 +91,35 @@ test('I due boss continuano ad attivare gli scudi al 75%, 50%, 25%',()=>{
  assert.match(battle,/t\.char\.juggHitsRemaining = hitsToGrant/);
  assert.match(campaign,/Math\.min\(raidBalance\.shieldHits,Math\.max\(0,savedC\.juggHitsRemaining\|\|0\)\)/);
 });
+
+test('Replay raid aggiorna ogni carica esattamente al colpo, anche quando scende a zero',()=>{
+  const display={p2:[{name:'Gaster',hp:2436,juggHitsRemaining:6}],p3:[{name:'Trigon',hp:3375,juggHitsRemaining:6}]};
+  const real={juggHitsRemaining:6};
+  for(let remaining=5;remaining>=0;remaining--){
+    const hit=consumeRaidShieldHit(real);
+    assert.equal(hit.remaining,remaining);
+    const evt=createRaidShieldUpdateEvent('p2',0,hit.remaining,'Scudo colpito');
+    assert.equal(evt.type,'raid_shield_update');
+    assert.equal(evt.text,'Scudo colpito');
+    assert.equal(applyRaidShieldUpdateEvent(display,evt),true);
+    assert.equal(display.p2[0].juggHitsRemaining,remaining);
+    assert.equal(display.p3[0].juggHitsRemaining,6,'L\'altro boss non viene modificato');
+  }
+  const activation=createRaidShieldUpdateEvent('p2',0,6,'Scudo attivato',true);
+  assert.equal(activation.activated,true);
+  assert.equal(applyRaidShieldUpdateEvent(display,activation),true);
+  assert.equal(display.p2[0].juggHitsRemaining,6);
+  assert.equal(applyRaidShieldUpdateEvent(display,createRaidShieldUpdateEvent('p8',7,2)),false);
+  assert.equal(applyRaidShieldUpdateEvent(display,{type:'damage',targetPlayer:'p2',targetIdx:0,remainingHits:4}),false);
+});
+
+test('Il motore emette e riproduce aggiornamenti dello scudo in tempo reale',()=>{
+  assert.equal((battle.match(/createRaidShieldUpdateEvent\(t\.player,t\.idx,raidHit\.remaining/g)||[]).length,2,
+    'Sia i danni percentuali che le mosse normali/multicolpo emettono eventi per carica');
+  assert.match(battle,/createRaidShieldUpdateEvent\(targetPlayer,targetIdx,hitsToGrant/);
+  assert.match(battle,/createRaidShieldUpdateEvent\(t\.player,t\.idx,hitsToGrant/);
+  assert.match(battle,/evt\.type === 'raid_shield_update'/);
+  assert.match(battle,/applyRaidShieldUpdateEvent\(currentDisplay, evt\)/);
+  assert.match(battle,/setDisplayTeams\(\{ \.\.\.currentDisplay \}\)/);
+  assert.match(battle,/let delay = evt\.type === 'raid_shield_update' && !evt\.activated \? 650 : 1600/);
+});
