@@ -24,7 +24,7 @@ export function copyKirbyMoveOnHit(kirby, victim, victimKey, random=Math.random)
   const remainingUses=Number.isFinite(selected.remainingUses)
     ? Math.max(0,Math.min(maxUses,selected.remainingUses)) : maxUses;
   const copied={...structuredClone(selected),isKirbyCopy:true,copySource:victim.name,
-    maxUses,remainingUses, currentCooldown:0};
+    maxUses,remainingUses,uses:remainingUses,currentCooldown:0};
   kirby.moves.push(copied);
   kirby.kirbyCopiedTargets.push(victimKey);
   return copied;
