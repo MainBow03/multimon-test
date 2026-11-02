@@ -239,6 +239,19 @@ export function eventTurn(b,submissions,s,random=Math.random){
      target.hp/target.maxHp<=target.passive.threshold){
     target.passiveUsed=true;applyBuff(target,target.passive.statBuff);
     log.push(target.name+' attiva '+target.passive.name+'!');
+    if(target.passive.aoeDamagePercentMaxHp){
+      const defendersSide=x.teams.A.includes(target)?'A':'B';
+      const opposingSide=defendersSide==='A'?'B':'A';
+      for(const foe of activeEventFighters(x,opposingSide,s)){
+        if(foe.hp<=0)continue;
+        if(blockedEnemyPassive(foe)){log.push('Scudo Anti-Magia protegge '+foe.name+' dalla scarica di '+target.name+'!');continue;}
+        const recoil=Math.max(1,Math.floor(foe.maxHp*target.passive.aoeDamagePercentMaxHp));
+        foe.hp=Math.max(0,foe.hp-recoil);
+        log.push(foe.name+' perde '+recoil+' PS per '+target.passive.name+'!');
+        const sprout=activateHealingSprout(foe);
+        if(sprout)log.push('Germoglio Curativo di '+foe.name+': cura '+sprout+' PS!');
+      }
+    }
   }
   if(!target.hp){
     for(const ally of activeEventFighters(x,side,s).filter(u=>u!==attacker&&u.passive?.type==='failed_star')){
