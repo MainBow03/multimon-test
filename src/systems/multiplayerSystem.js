@@ -241,6 +241,7 @@ const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, player
             state.playerAvatars.p1 = playerAvatarUrl;
             state.playerTitles.p1 = playerTitle || '';
             state.playerMastery.p1 = masteryVisibleLevels(getPlayerData());
+            state.playerStrength.p1 = getPlayerData().strengthUpgrades || {};
             state.inventory.p1 = getPlayerData().inventory;
             
             const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', newRoomId);
@@ -295,6 +296,7 @@ const { appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, play
         [`playerAvatars.${slot}`]:playerAvatarUrl,
         [`playerTitles.${slot}`]:playerTitle || '',
         [`playerMastery.${slot}`]:masteryVisibleLevels(getPlayerData()),
+        [`playerStrength.${slot}`]:getPlayerData().strengthUpgrades||{},
         [`isBot.${slot}`]:false,
         [`inventory.${slot}`]:room.isRoguelikeCoop
           ?{pozione:2,resurrezione:1}:getPlayerData().inventory
@@ -387,6 +389,7 @@ const { getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitl
             state.playerAvatars.p1 = playerAvatarUrl;
             state.playerTitles.p1 = playerTitle || '';
             state.playerMastery.p1 = masteryVisibleLevels(getPlayerData());
+            state.playerStrength.p1 = getPlayerData().strengthUpgrades || {};
             state.inventory.p1 = getPlayerData().inventory;
             setGameState(state);
             setPlayerRole('p1');
@@ -402,6 +405,7 @@ const { getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitl
             state.playerAvatars.p1 = playerAvatarUrl;
             state.playerTitles.p1 = playerTitle || '';
             state.playerMastery.p1 = masteryVisibleLevels(getPlayerData());
+            state.playerStrength.p1 = getPlayerData().strengthUpgrades || {};
             state.inventory.p1 = getPlayerData().inventory;
             state.players.p2 = "Bot Supremo";
             state.playerAvatars.p2 = 'https://api.dicebear.com/7.x/bottts/svg?seed=CpuBot&backgroundColor=020617';
