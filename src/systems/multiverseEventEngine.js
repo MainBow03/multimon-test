@@ -297,10 +297,12 @@ export function eventTurn(b,submissions,s,random=Math.random){
   }
   const m=actor.moves[Number(command.moveIndex)]||actor.moves[0];if(!m||m.uses===0)continue;
   if(s.allowHyper&&command.hyper&&!x.hyperUsed[actor.owner]){
-   x.hyperUsed[actor.owner]=true;actor.hyper=true;actor.atk=Math.round(actor.atk*1.5);
-   actor.baseAtk=Math.round(actor.baseAtk*1.5);actor.baseSpAtk=Math.round(actor.baseSpAtk*1.5);
-   actor.spAtk=Math.round(actor.spAtk*1.5);actor.maxHp=Math.round(actor.maxHp*1.5);
-   actor.hp=Math.min(actor.maxHp,Math.round(actor.hp*1.5));log.push(actor.name+' usa la forma Iper!');
+   // Forma Iper nel torneo: +35% Attacco, Attacco Speciale e PS
+   // invece di +50%. Gli altri effetti e le mosse speciali restano.
+   x.hyperUsed[actor.owner]=true;actor.hyper=true;actor.atk=Math.round(actor.atk*1.35);
+   actor.baseAtk=Math.round(actor.baseAtk*1.35);actor.baseSpAtk=Math.round(actor.baseSpAtk*1.35);
+   actor.spAtk=Math.round(actor.spAtk*1.35);actor.maxHp=Math.round(actor.maxHp*1.35);
+   actor.hp=Math.min(actor.maxHp,Math.round(actor.hp*1.35));log.push(actor.name+' usa la forma Iper!');
   }
   if(m.uses!==null)m.uses--;
   const accuracy=(m.accuracy<=1?m.accuracy:m.accuracy/100)*(actor.statuses.includes('Accecato')?.8:1);
