@@ -1,4 +1,5 @@
 import { CHARACTERS } from '../data/characters.js';
+import { MASTERY_CHARACTER_TITLES } from '../data/masteryTitles.js';
 // Padronanza estetica: non modifica statistiche, mosse o probabilità di vittoria.
 // Mostri della campagna, evocazioni e fusioni non partecipano ai prestigi.
 export const MASTERY_ELIGIBLE_IDS = new Set(CHARACTERS.filter(c =>
@@ -29,14 +30,9 @@ export const MASTERY_XP_PER_BATTLE = 40;
 export const MASTERY_XP_WIN_BONUS = 20;
 export const MASTERY_MAX_XP = (MASTERY_MAX_LEVEL - 1) * MASTERY_XP_PER_LEVEL;
 
-// Titoli narrativi unici per alcuni campioni; ogni altro Multimon ha un
-// titolo esclusivo che include il suo nome.
-export const MASTERY_SPECIAL_TITLES = Object.freeze({
-  nicole: 'La Mamma Demoniaca',
-  alphonse: 'Trasmutatore Supremo',
-  cyborg: 'Titano Indistruttibile',
-  hannibal: 'Burattinaio della Mente'
-});
+// Titoli esclusivi scritti per ogni Multimon giocabile.
+// Esportiamo ancora il vecchio nome per compatibilità con altri componenti.
+export const MASTERY_SPECIAL_TITLES = MASTERY_CHARACTER_TITLES;
 
 export function masteryLevel(xp = 0) {
   const safeXp = Math.max(0, Number.isFinite(Number(xp)) ? Number(xp) : 0);
@@ -57,7 +53,7 @@ export const masteryRank = level => level >= 20 ? 'Leggendario'
 
 export function masteryTitle(character) {
   if (!isMasteryEligible(character) || !character?.name) return '';
-  return MASTERY_SPECIAL_TITLES[character.id] || `Leggenda di ${character.name}`;
+  return MASTERY_CHARACTER_TITLES[character.id] || '';
 }
 
 export function isMasteryUnlocked(profile, characterId) {
