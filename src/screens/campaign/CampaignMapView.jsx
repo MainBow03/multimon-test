@@ -1,4 +1,5 @@
 import { getCampaignHealthSummary } from '../../systems/campaignRoster.js';
+import { ECHO_ROUTES, claimEchoRoute } from '../../systems/echoRoutes.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignMapView(ctx) {
 const { ArrowLeft, CHARACTERS, Coins, TYPE_STYLES, Users, activeCampaignId, activeMission, activeSector, appMode, campaignState, loadCampaign, renderHealthBar, setAppMode, setCampaignDialogueIdx, setCampaignSelectedTeam, setCampaignState } = ctx;
@@ -95,7 +96,29 @@ if (appMode === 'campaign_map') {
                                 })()}
                             </div>
                         </div>
-                        <button onClick={() => { setCampaignDialogueIdx(0); setAppMode('campaign_dialogue'); }} className="bg-blue-600 hover:bg-blue-500 px-8 py-4 rounded-xl font-bold text-xl flex items-center gap-2 shadow-lg hover:-translate-y-1 transition-all">Avvia Missione <ArrowLeft className="rotate-180"/></button>
+
+                        {mission.echoMission && <div className="w-full rounded-2xl border border-violet-500/40 bg-violet-950/35 p-4 mb-5 text-left">
+                            <div className="font-black text-violet-200 text-sm uppercase tracking-wider mb-1">{mission.echoFinal?'Raid della Resistenza Unita':`Missione ${mission.echoNumber}/36 · Percorso tattico`}</div>
+                            {mission.echoFinal
+                                ? <p className="text-sm text-slate-300">Tutti i 24 alleati saranno schierati contemporaneamente contro Echomax. Gli esausti verranno recuperati per l'ultimo assalto.</p>
+                                : <>
+                                  <p className="text-xs text-slate-400 mb-3">Scegli un percorso prima del combattimento. La scelta è definitiva per questa fase.</p>
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    {ECHO_ROUTES.map(route=>{
+                                      const picked=campaignState.echoRouteChoices?.[mission.id];
+                                      return <button type="button" key={route.id} disabled={!!picked}
+                                        onClick={()=>setCampaignState(p=>claimEchoRoute(p,mission.id,route.id,CHARACTERS))}
+                                        className={`rounded-xl border p-3 text-left transition-colors ${picked===route.id?'bg-emerald-800/40 border-emerald-400':'bg-slate-950/80 border-slate-700 hover:border-violet-400'} disabled:cursor-default ${picked&&picked!==route.id?'opacity-40':''}`}>
+                                        <div className="text-sm font-black text-white mb-1">{route.symbol} {route.label}</div>
+                                        <div className="text-xs text-slate-300">{route.description}</div>
+                                      </button>;
+                                    })}
+                                  </div>
+                                </>}
+                        </div>}
+                        <button disabled={mission.echoMission&&!mission.echoFinal&&!campaignState.echoRouteChoices?.[mission.id]}
+                          onClick={() => { setCampaignDialogueIdx(0); setAppMode('campaign_dialogue'); }}
+                          className="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-400 disabled:cursor-not-allowed px-8 py-4 rounded-xl font-bold text-xl flex items-center gap-2 shadow-lg hover:-translate-y-1 transition-all">{mission.echoMission&&!mission.echoFinal&&!campaignState.echoRouteChoices?.[mission.id]?'Scegli un percorso':'Avvia Missione'} <ArrowLeft className="rotate-180"/></button>
                     </div>
                     
                     <div className="w-full md:w-1/3 bg-black/40 rounded-3xl p-6 border border-white/10 flex flex-col">
