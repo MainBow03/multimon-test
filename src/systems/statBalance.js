@@ -16,11 +16,11 @@ export function applyBattleStatModifier(character, stat, multiplier) {
   if (!Number.isFinite(current)) return false;
   const original = character[BASE_KEYS[stat]];
   const base = Number.isFinite(original) && original > 0 ? original : Math.max(1,current);
-  const change = Math.round(base * (multiplier - 1));
-  if (change === 0) return false;
+  const change = base * (multiplier - 1);
+  if (Math.abs(change) < 1e-9) return false;
   const upper = Math.max(1, Math.round(base * MAX_BATTLE_STAT_MULTIPLIER));
   const lower = Math.max(1, Math.round(base * MIN_BATTLE_STAT_MULTIPLIER));
-  const next = Math.max(lower, Math.min(upper, current + change));
+  const next = Math.max(lower, Math.min(upper, Math.floor(current + change + 1e-9)));
   character[stat] = next;
   return next !== current;
 }
