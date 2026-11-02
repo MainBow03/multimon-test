@@ -21,7 +21,7 @@ export const CHARACTERS = [
             img:'https://icon2.cleanpng.com/lnd/20241204/gx/a75a26509cca81ccdddbe4f4793c86.webp',
             passive:{name:'Resistenza al Freddo',type:'cold_resistance',desc:'Durante una tempesta di neve recupera il 5% dei PS massimi a fine turno.'},
             moves:[MOVES_DB['Ascia di Ghiaccio'],MOVES_DB['Carica Valanga'],MOVES_DB['Tecnica dell’Orso'],MOVES_DB['Furia dell’Artico']] },
-          { id:'bugsbunny', name:'Bugs Bunny', types:['Normale'], hp:105,maxHp:105,atk:98,def:85,spd:120,
+          { id:'bugsbunny', name:'Bugs Bunny', types:['Terra'], hp:105,maxHp:105,atk:98,def:85,spd:120,
             img:'https://i.pinimg.com/1200x/4a/38/8c/4a388c42e7f471fc4b6f37c2666fa104.jpg',
             passive:{name:'Che succede, amico?',type:'bugs_chaos',desc:'Ogni turno: 50% di aumentare una statistica casuale del 15%, e una statistica casuale di un nemico in campo diminuisce del 15%.'},
             moves:[MOVES_DB['Carota Esplosiva'],MOVES_DB['Dentro la Tana'],MOVES_DB['Spuntino Rinvigorante'],MOVES_DB['Battiterra']] },
