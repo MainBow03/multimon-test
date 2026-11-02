@@ -1,4 +1,5 @@
 import React,{useState} from 'react';
+import {FinnChestTutorial} from './FinnChestTutorial.jsx';
 import {ArrowLeft,Coins,Dumbbell,HeartPulse,Shield,Star,Gift,PackageOpen,ChevronRight} from '../../components/ChestIcons.jsx';
 
 const TONES={
@@ -55,10 +56,14 @@ function RewardCard({reward,index}){
     {reward.convertedFrom&&<span className="text-xs text-slate-300">Ricompensa sostitutiva: categoria già completata</span>}
   </div>;
 }
-export function CampaignChestsView({profile,onOpen,onAcknowledge,onBack}){
+export function CampaignChestsView({profile,onOpen,onAcknowledge,onTutorialComplete,onBack}){
  const chests=profile?.chests||{},pending=chests.pending||[],receipt=chests.activeReveal;
  const [revealed,setRevealed]=useState(receipt?2:0),[error,setError]=useState('');
- const open=()=>{const result=onOpen();if(result?.ok){setRevealed(0);setError('')}else setError(result?.reason||'Impossibile aprire il baule.')};
+ const [tutorial,setTutorial]=useState(false);
+ const doOpen=()=>{const result=onOpen();if(result?.ok){setRevealed(0);setError('')}else setError(result?.reason||'Impossibile aprire il baule.')};
+ const open=()=>{if(!profile?.roguelikePower?.campaignTutorialSeen){setTutorial(true);return;}doOpen();};
+ const finishedTutorial=()=>onTutorialComplete('campaign');
+ const afterTutorial=()=>{setTutorial(false);doOpen()};
  const dismiss=()=>{const result=onAcknowledge();if(result?.ok){setRevealed(0);setError('')}};
  return <main className="min-h-screen text-white bg-[radial-gradient(ellipse_at_top,#182f53_0%,#10162b_47%,#050814_100%)] p-3 sm:p-8">
   <style>{`
@@ -107,5 +112,6 @@ export function CampaignChestsView({profile,onOpen,onAcknowledge,onBack}){
    </section>
    <p className="text-xs text-slate-400 text-center">Se un premio rarissimo non è disponibile perché possiedi già tutto, riceverai Punti Forza al suo posto. Ogni apertura viene salvata prima di rivelare il contenuto.</p>
   </div>
+  {tutorial&&<FinnChestTutorial kind="campaign" onComplete={finishedTutorial} onClose={afterTutorial}/>}
  </main>;
 }
