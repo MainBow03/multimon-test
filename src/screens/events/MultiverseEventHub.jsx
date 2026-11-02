@@ -155,7 +155,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
  if(old.status!=='lobby')return null;
  const entrants=makeEventEntrants(players,old.bots,old.settings,old.pairOrder),matches=makeEventBracket(entrants);
  const map=Object.fromEntries([...players,...old.bots].map(p=>[p.id||p.uid,p]));
- const battle=simulateBots(buildEventBattle(nextEventMatch(matches),map,old.settings),old.settings,old.bots);
+ const battle=buildEventBattle(nextEventMatch(matches),map,old.settings);
  return{status:'running',entrants,matches:battle.finished?completeEventMatch(matches,battle.matchId,battle.winner):matches,activeBattle:battle,displayPhase:'battle'};
  }));
  const showBracket=()=>operate(()=>hostUpdate(activeId,uid,old=>
@@ -164,7 +164,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
  if(old.status!=='running'||!old.activeBattle?.finished||old.displayPhase!=='bracket')return null;
  const match=nextEventMatch(old.matches);if(!match)return null;
  const map=Object.fromEntries([...players,...old.bots].map(p=>[p.id||p.uid,p]));
- const battle=simulateBots(buildEventBattle(match,map,old.settings),old.settings,old.bots);
+ const battle=buildEventBattle(match,map,old.settings);
  const matches=battle.finished?completeEventMatch(old.matches,match.id,battle.winner):old.matches;
  const placements=eventPlacements(matches,old.entrants);
  return{activeBattle:battle,matches,displayPhase:'battle',...(placements?{status:'finished',placements}: {})};
@@ -190,6 +190,10 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
    if(!b.owners[b.side].filter(id=>activeOwners.has(id)).every(id=>bots.has(id)||commands[id]))return;
    resolving.current=true;
    try{
+    // Mostra ogni turno delle lotte CPU, invece di saltare direttamente
+    // dal sorteggio al vincitore. Tempo minimo per vedere il combattimento.
+    if(activeOwners.size>0 && [...activeOwners].every(id=>bots.has(id)))
+      await new Promise(resolve=>setTimeout(resolve,1800));
     await hostUpdate(activeId,uid,old=>{
      if(old.status!=='running'||old.activeBattle?.turn!==b.turn||old.activeBattle?.matchId!==b.matchId)return null;
      const all={...commands};for(const id of b.owners[b.side])if(bots.has(id))all[id]=botActions(b,id,old.settings);
