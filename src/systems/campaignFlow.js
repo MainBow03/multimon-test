@@ -58,9 +58,15 @@ const { CHARACTERS, getCampaignStoryCharacters, setActiveCampaignId, setCampaign
 };
 
 export const advanceCampaignImpl = (ctx, extraCoins = 150) => {
-const { activeCampaign, activeCampaignId, campaignState, setAppMode, setCampaignState } = ctx;
+const { activeCampaign, activeCampaignId, campaignState, setAppMode, setCampaignState, updateLocalStats } = ctx;
 
-              const newCoins = campaignState.coins + extraCoins;
+              // Premio associato alla missione appena superata, non al solo
+              // ingresso nel settore. Lo stesso ID non viene mai pagato due volte.
+              const justFinished=activeCampaign.sectors[campaignState.sectorIdx]?.missions[campaignState.missionIdx];
+              if(justFinished?.id)updateLocalStats?.({awardCampaignChest:{
+                campaignId:activeCampaignId,missionId:justFinished.id
+              }});
+                            const newCoins = campaignState.coins + extraCoins;
               let nextMissionIdx = campaignState.missionIdx + 1;
               let nextSectorIdx = campaignState.sectorIdx;
               let nextAppMode = 'campaign_map';
