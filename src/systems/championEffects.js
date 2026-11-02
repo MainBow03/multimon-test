@@ -1,3 +1,4 @@
+import { applyBattleStatModifier } from './statBalance.js';
 // Effetti condivisi dai nuovi Multimon; mantenuti separati per testare
 // il comportamento anche senza una partita completa o Firebase.
 export const SNOWSTORM_IMMUNE_TYPES = Object.freeze(['Ghiaccio','Roccia','Robot']);
@@ -54,18 +55,18 @@ export function randomStatKey(random=Math.random){
 }
 export function randomBuff(character,random=Math.random){
   const key=randomStatKey(random);
-  character[key]=Math.max(1,Math.floor((character[key]||1)*1.15));
+  applyBattleStatModifier(character,key,1.15);
   return key;
 }
 export function randomDebuff(character,random=Math.random){
   const key=randomStatKey(random);
-  character[key]=Math.max(1,Math.floor((character[key]||1)*0.85));
+  applyBattleStatModifier(character,key,0.85);
   return key;
 }
 export function daffyCelebration(character) {
   if(!character||character.hp<=0||character.passive?.type!=='failed_star')return 0;
   const heal=Math.max(1,Math.floor(character.maxHp*0.2));
   character.hp=Math.min(character.maxHp,character.hp+heal);
-  character.atk=Math.max(1,Math.floor(character.atk*1.1));
+  applyBattleStatModifier(character,'atk',1.1);
   return heal;
 }
