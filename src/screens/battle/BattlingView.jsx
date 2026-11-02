@@ -1,4 +1,5 @@
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
+import { BattleCodexLauncher } from '../../components/BattleCodex.jsx';
 import { isMasteryEligible, masteryDeploymentTier } from '../../systems/masterySystem.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderBattlingView(ctx) {
@@ -464,6 +465,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     <button onClick={() => setIsLogOpen(true)} className="absolute top-16 left-4 flex items-center gap-2 text-cyan-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-cyan-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
                          <ScrollText size={16} /> Registro
                     </button>
+
+                    <BattleCodexLauncher gameState={gameState} />
 
                     {/* PULSANTE FORZA SKIP */}
                     {(!isEventBattle||eventBattleCanForce)&&<button onClick={handleForceSkip} className="absolute top-28 left-4 flex items-center gap-2 text-yellow-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-yellow-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm" title="Usa questo tasto se la partita si blocca o se l'host scompare!">
