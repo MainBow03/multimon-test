@@ -1,5 +1,6 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
 import { applyBattleStatModifier } from './statBalance.js';
+import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { resolvePoisonEndTurn } from './battleStatusTurns.js';
 import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense, endRefractionTurn, snowstormOutcome, randomBuff, randomDebuff, daffyCelebration } from './championEffects.js';
 import { ignoresShields, immuneToStatDrops, powerForAccordo, effectiveTaserPower,
@@ -2044,6 +2045,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                          isEnemyTarget = getTournamentMatchOpponents(player).includes(t.player);
                     }
 
+                    const victimHpBeforeHit = t.char.hp;
                     const bypassEnemyShields = ignoresShields(attacker,move);
                     let isProtectedFromEnemy = !bypassEnemyShields && isEnemyTarget && t.char.statuses.some(s => s.type === 'Protetto' || s.type === 'Rashield');
 
@@ -2437,6 +2439,19 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             if (statTexts.length > 0) {
                                 events.push({ type: 'text', text: `${statTexts.join(" e ")} di ${t.char.name} diminuisce!` });
                             }
+                        }
+                    }
+
+                    // Kirby copia una mossa soltanto al primo colpo che toglie
+                    // PS a ciascun avversario distinto, massimo due per lotta.
+                    // Copiare non sottrae la mossa al nemico e non copia combo.
+                    if(isEnemyTarget && attacker.hp > 0 && t.char.hp < victimHpBeforeHit){
+                        const copied=copyKirbyMoveOnHit(attacker,t.char,`${t.player}:${t.idx}`);
+                        if(copied){
+                            events.push({type:'text',text:`⭐ ${attacker.name} attiva Copia Abilità! Ha imparato "${copied.name}" da ${t.char.name}! (${attacker.kirbyCopiedTargets.length}/2)`,
+                                isPassive:true,passiveChar:attacker.name,passiveName:'Copia Abilità'});
+                            events.push({type:'moves_update',targetPlayer:player,targetIdx:charTeamIdx,
+                                moves:JSON.parse(JSON.stringify(attacker.moves))});
                         }
                     }
 
@@ -3539,6 +3554,11 @@ const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, set
                 } else if (evt.type === 'remove') {
                    if(currentDisplayField[evt.player]) currentDisplayField[evt.player].splice(evt.pos, 1);
                    setDisplayField({ ...currentDisplayField });
+                } else if (evt.type === 'moves_update') {
+                   if(currentDisplay[evt.targetPlayer]?.[evt.targetIdx]){
+                       currentDisplay[evt.targetPlayer][evt.targetIdx].moves = evt.moves;
+                       setDisplayTeams({...currentDisplay});
+                   }
                 } else if (evt.type === 'status_update') {
                    if (currentDisplay[evt.targetPlayer] && currentDisplay[evt.targetPlayer][evt.targetIdx]) {
                        currentDisplay[evt.targetPlayer][evt.targetIdx].statuses = evt.statuses;
