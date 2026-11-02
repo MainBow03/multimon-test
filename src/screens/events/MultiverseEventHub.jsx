@@ -49,7 +49,7 @@ function Bracket({matches,current}){
  </div>;
 }
 
-function Arena({battle,settings,uid,view,setView,orders,setOrders,submit,force,isHost,busy,participants,onContinue}){
+function Arena({battle,settings,uid,view,setView,orders,setOrders,submit,force,isHost,busy,participants,onContinue,onMinimize}){
  // Il torneo usa i dati sincronizzati dell'evento, ma la presentazione
  // riprende il campo, i PNG e i comandi a pulsanti delle battaglie normali.
  const asUnit=u=>({...u,isHyper:u.hyper||u.isHyper,transformed:u.transformed||u.mahitoTransformed,
@@ -60,7 +60,7 @@ function Arena({battle,settings,uid,view,setView,orders,setOrders,submit,force,i
  return <EventClassicBattleView battle={normalized} settings={settings}
    participants={participants||[]} currentUid={uid} perspective={view}
    setPerspective={setView} moveDraft={orders} setMoveDraft={setOrders}
-   submit={submit} hostForce={force} busy={busy} isHost={isHost} onContinue={onContinue}/>;
+   submit={submit} hostForce={force} busy={busy} isHost={isHost} onContinue={onContinue} onMinimize={onMinimize}/>;
 }
 
 export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getPlayerData,updateLocalStats}){
@@ -263,7 +263,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
      participants={[...players,...event.bots.map(b=>({uid:b.id,name:b.name}))]}
      battle={event.activeBattle} settings={event.settings} uid={uid}
      view={perspective} setView={setPerspective} orders={orders} setOrders={setOrders}
-     submit={send} force={force} isHost={isHost} busy={busy} onContinue={showBracket}/>}
+     submit={send} force={force} isHost={isHost} busy={busy} onContinue={showBracket} onMinimize={()=>open(false)}/>}
  {isHost&&event.status==='running'&&event.activeBattle?.finished&&event.displayPhase==='bracket'&&
    <button className={btn} onClick={next} disabled={busy}>Avvia il prossimo incontro →</button>}
  {event.status==='finished'&&event.displayPhase==='bracket'&&event.placements&&<div className={`${card} border-amber-400/50 text-center`}><h2 className="text-3xl text-amber-300 font-black mb-3">🏆 Il Torneo è finito!</h2>
