@@ -1,4 +1,5 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
+import { applyBattleStatModifier } from './statBalance.js';
 import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense, endRefractionTurn, snowstormOutcome, randomBuff, randomDebuff, daffyCelebration } from './championEffects.js';
 import { ignoresShields, immuneToStatDrops, powerForAccordo, effectiveTaserPower,
   incomingRockEnchantmentFactor, affectedOpponents, addStickyTrap, trapEntries,
@@ -158,9 +159,9 @@ const { CHARACTERS } = ctx;
                           workingField[pAlly].forEach(aIdx => {
                               const ally = workingTeams[pAlly][aIdx];
                               if (ally && ally.hp > 0) {
-                                  if (char.passive.teamStatBuff.atk) ally.atk = Math.floor(ally.atk * char.passive.teamStatBuff.atk);
-                                  if (char.passive.teamStatBuff.def) ally.def = Math.floor(ally.def * char.passive.teamStatBuff.def);
-                                  if (char.passive.teamStatBuff.spd) ally.spd = Math.floor(ally.spd * char.passive.teamStatBuff.spd);
+                                  if (char.passive.teamStatBuff.atk) applyBattleStatModifier(ally, 'atk', char.passive.teamStatBuff.atk);
+                                  if (char.passive.teamStatBuff.def) applyBattleStatModifier(ally, 'def', char.passive.teamStatBuff.def);
+                                  if (char.passive.teamStatBuff.spd) applyBattleStatModifier(ally, 'spd', char.passive.teamStatBuff.spd);
                               }
                           });
                       }
@@ -169,9 +170,9 @@ const { CHARACTERS } = ctx;
               }
               
               if (char.passive.selfStatBuff) {
-                  if (char.passive.selfStatBuff.atk) char.atk = Math.floor(char.atk * char.passive.selfStatBuff.atk);
-                  if (char.passive.selfStatBuff.def) char.def = Math.floor(char.def * char.passive.selfStatBuff.def);
-                  if (char.passive.selfStatBuff.spd) char.spd = Math.floor(char.spd * char.passive.selfStatBuff.spd);
+                  if (char.passive.selfStatBuff.atk) applyBattleStatModifier(char, 'atk', char.passive.selfStatBuff.atk);
+                  if (char.passive.selfStatBuff.def) applyBattleStatModifier(char, 'def', char.passive.selfStatBuff.def);
+                  if (char.passive.selfStatBuff.spd) applyBattleStatModifier(char, 'spd', char.passive.selfStatBuff.spd);
                   eventsArr.push({ type: 'text', text: `✨ ${char.name} attiva ${char.passive.name}: le proprie statistiche aumentano!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
               }
               
@@ -198,11 +199,11 @@ const { CHARACTERS } = ctx;
                                           if (enemy.passive && enemy.passive.type === 'immune_to_atk_debuff') {
                                               eventsArr.push({ type: 'text', text: `🛡️ ${enemy.name} è immune al calo di Attacco grazie a ${enemy.passive.name}!`, isPassive: true, passiveChar: enemy.name, passiveName: enemy.passive.name });
                                           } else {
-                                              enemy.atk = Math.floor(enemy.atk * char.passive.enemyStatDebuff.atk);
+                                              applyBattleStatModifier(enemy, 'atk', char.passive.enemyStatDebuff.atk);
                                           }
                                       }
-                                      if (char.passive.enemyStatDebuff.def) enemy.def = Math.floor(enemy.def * char.passive.enemyStatDebuff.def);
-                                      if (char.passive.enemyStatDebuff.spd) enemy.spd = Math.floor(enemy.spd * char.passive.enemyStatDebuff.spd);
+                                      if (char.passive.enemyStatDebuff.def) applyBattleStatModifier(enemy, 'def', char.passive.enemyStatDebuff.def);
+                                      if (char.passive.enemyStatDebuff.spd) applyBattleStatModifier(enemy, 'spd', char.passive.enemyStatDebuff.spd);
                                   }
                               });
                           }
@@ -291,11 +292,11 @@ const { CHARACTERS } = ctx;
                               if (rTarget.char.passive && rTarget.char.passive.type === 'immune_to_atk_debuff') {
                                   eventsArr.push({ type: 'text', text: `🛡️ ${rTarget.char.name} è immune al calo di Attacco grazie a ${rTarget.char.passive.name}!`, isPassive: true, passiveChar: rTarget.char.name, passiveName: rTarget.char.passive.name });
                               } else {
-                                  rTarget.char.atk = Math.floor(rTarget.char.atk * mult); debuffedStats.push("Attacco"); 
+                                  applyBattleStatModifier(rTarget.char, 'atk', mult); debuffedStats.push("Attacco"); 
                               }
                           }
-                          if (Math.random() < chance) { rTarget.char.def = Math.floor(rTarget.char.def * mult); debuffedStats.push("Difesa"); }
-                          if (Math.random() < chance) { rTarget.char.spd = Math.floor(rTarget.char.spd * mult); debuffedStats.push("Velocità"); }
+                          if (Math.random() < chance) { applyBattleStatModifier(rTarget.char, 'def', mult); debuffedStats.push("Difesa"); }
+                          if (Math.random() < chance) { applyBattleStatModifier(rTarget.char, 'spd', mult); debuffedStats.push("Velocità"); }
                           if (debuffedStats.length > 0) {
                               eventsArr.push({ type: 'text', text: `✨ ${char.name} attiva ${char.passive.name}! Le seguenti statistiche di ${rTarget.char.name} diminuiscono: ${debuffedStats.join(", ")}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                           }
@@ -313,6 +314,10 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
             // I bonus delle gemme si ricaricano tra partite diverse.
             // Il loro acquisto nel profilo rimane permanente.
             Object.values(teams).forEach(team=>(team||[]).forEach(char=>{
+              char.baseSpDef ??= char.spDef ?? char.def;
+              char.baseSpAtk ??= char.spAtk ?? char.atk;
+              char.spDef ??= char.def;
+              char.spAtk ??= char.atk;
               char.gemSpent=false;char.healingSproutUsed=false;char.neutralizingSprayUsed=false;
               char.rapidTransmutationReady=false;char.rapidTransmutationFresh=false;
             }));
@@ -1023,9 +1028,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                           if (ally && ally.hp > 0 && ally.passive && ally.passive.type === 'on_ally_faint' && !(pAlly === targetPlayer && aIdx === targetIdx)) {
                               if (ally.passive.statBuff) {
                                   let statTexts = [];
-                                  if (ally.passive.statBuff.atk) { ally.atk = Math.floor(ally.atk * ally.passive.statBuff.atk); statTexts.push("Attacco"); }
-                                  if (ally.passive.statBuff.def) { ally.def = Math.floor(ally.def * ally.passive.statBuff.def); statTexts.push("Difesa"); }
-                                  if (ally.passive.statBuff.spd) { ally.spd = Math.floor(ally.spd * ally.passive.statBuff.spd); statTexts.push("Velocità"); }
+                                  if (ally.passive.statBuff.atk) { applyBattleStatModifier(ally, 'atk', ally.passive.statBuff.atk); statTexts.push("Attacco"); }
+                                  if (ally.passive.statBuff.def) { applyBattleStatModifier(ally, 'def', ally.passive.statBuff.def); statTexts.push("Difesa"); }
+                                  if (ally.passive.statBuff.spd) { applyBattleStatModifier(ally, 'spd', ally.passive.statBuff.spd); statTexts.push("Velocità"); }
                                   events.push({ type: 'text', text: `⚡ Il sacrificio di un alleato ispira ${ally.name}! Attiva "${ally.passive.name}": ${statTexts.join(" e ")} aumenta!`, isPassive: true, passiveChar: ally.name, passiveName: ally.passive.name });
                               }
                           }
@@ -1109,9 +1114,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                         
                         if (target.passive.statBuff) {
                             let statTexts = [];
-                            if (target.passive.statBuff.atk) { target.atk = Math.floor(target.atk * target.passive.statBuff.atk); statTexts.push("Attacco"); }
-                            if (target.passive.statBuff.def) { target.def = Math.floor(target.def * target.passive.statBuff.def); statTexts.push("Difesa"); }
-                            if (target.passive.statBuff.spd) { target.spd = Math.floor(target.spd * target.passive.statBuff.spd); statTexts.push("Velocità"); }
+                            if (target.passive.statBuff.atk) { applyBattleStatModifier(target, 'atk', target.passive.statBuff.atk); statTexts.push("Attacco"); }
+                            if (target.passive.statBuff.def) { applyBattleStatModifier(target, 'def', target.passive.statBuff.def); statTexts.push("Difesa"); }
+                            if (target.passive.statBuff.spd) { applyBattleStatModifier(target, 'spd', target.passive.statBuff.spd); statTexts.push("Velocità"); }
                             events.push({ type: 'text', text: `🔥 ${target.name} attiva ${target.passive.name}! Aumenta ${statTexts.join(" e ")}!`, isPassive: true, passiveChar: target.name, passiveName: target.passive.name });
                         }
 
@@ -1519,9 +1524,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                               attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmount);
                               events.push({ type: 'damage', text: `${gameState.players[player]} usa ${itemDef.name} su ${attacker.name}! Recupera PS.`, targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp });
                           } else if (itemDef.type === 'buff') {
-                              if (itemDef.stat === 'atk') attacker.atk = Math.floor(attacker.atk * itemDef.value);
-                              if (itemDef.stat === 'def') attacker.def = Math.floor(attacker.def * itemDef.value);
-                              if (itemDef.stat === 'spd') attacker.spd = Math.floor(attacker.spd * itemDef.value);
+                              if (itemDef.stat === 'atk') applyBattleStatModifier(attacker, 'atk', itemDef.value);
+                              if (itemDef.stat === 'def') applyBattleStatModifier(attacker, 'def', itemDef.value);
+                              if (itemDef.stat === 'spd') applyBattleStatModifier(attacker, 'spd', itemDef.value);
                               events.push({ type: 'text', text: `${gameState.players[player]} usa ${itemDef.name}! Le statistiche di ${attacker.name} aumentano.` });
                           } else if (itemDef.type === 'heal_status') {
                               const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'];
@@ -1788,7 +1793,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                     if (action.targetPlayer && action.targetIdx !== undefined) {
                         const intendedTarget = workingTeams[action.targetPlayer]?.[action.targetIdx];
                         if (intendedTarget && intendedTarget.passive && intendedTarget.passive.type === 'perfezione_assoluta' && intendedTarget.hp > 0) {
-                            intendedTarget.def = Math.floor(intendedTarget.def * 1.2);
+                            applyBattleStatModifier(intendedTarget, 'def', 1.2);
                             events.push({ type: 'text', text: `✨ ${intendedTarget.name} attiva ${intendedTarget.passive.name}! Schiva con eleganza e aumenta la sua Difesa del 20%!`, isPassive: true, passiveChar: intendedTarget.name, passiveName: intendedTarget.passive.name });
                         }
                     }
@@ -2103,7 +2108,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                     else if (multiplier < 1 && multiplier > 0) {
                         effectivenessText = " Non è molto efficace...";
                         if (attacker.passive && attacker.passive.type === 'perfezione_assoluta' && attacker.hp > 0) {
-                            attacker.atk = Math.floor(attacker.atk * 1.2);
+                            applyBattleStatModifier(attacker, 'atk', 1.2);
                             events.push({ type: 'text', text: `✨ ${attacker.name} attiva ${attacker.passive.name}! La resistenza avversaria accende la sua lama: Attacco +20%!`, isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
                         }
                     }
@@ -2115,9 +2120,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                         // POTENZIAMENTO DOPO AVER ASSORBITO UN ATTACCO PER CUI SI È IMMUNI (Es. Zuko - Parafulmine)
                         if (isImmuneDueToPassive && t.char.passive.statBuffOnImmune) {
                             let statTexts = [];
-                            if (t.char.passive.statBuffOnImmune.atk) { t.char.atk = Math.floor(t.char.atk * t.char.passive.statBuffOnImmune.atk); statTexts.push("Attacco"); }
-                            if (t.char.passive.statBuffOnImmune.def) { t.char.def = Math.floor(t.char.def * t.char.passive.statBuffOnImmune.def); statTexts.push("Difesa"); }
-                            if (t.char.passive.statBuffOnImmune.spd) { t.char.spd = Math.floor(t.char.spd * t.char.passive.statBuffOnImmune.spd); statTexts.push("Velocità"); }
+                            if (t.char.passive.statBuffOnImmune.atk) { applyBattleStatModifier(t.char, 'atk', t.char.passive.statBuffOnImmune.atk); statTexts.push("Attacco"); }
+                            if (t.char.passive.statBuffOnImmune.def) { applyBattleStatModifier(t.char, 'def', t.char.passive.statBuffOnImmune.def); statTexts.push("Difesa"); }
+                            if (t.char.passive.statBuffOnImmune.spd) { applyBattleStatModifier(t.char, 'spd', t.char.passive.statBuffOnImmune.spd); statTexts.push("Velocità"); }
                             events.push({ type: 'text', text: `⚡ ${t.char.name} assorbe l'energia dell'attacco! Aumenta ${statTexts.join(" e ")}!`, isPassive: true, passiveChar: t.char.name, passiveName: t.char.passive.name });
                         }
                         
@@ -2223,7 +2228,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             if (isCritical && i === 0) {
                                 events.push({ type: 'text', text: `💥 BOOM! Colpo Critico di ${attacker.name}!` });
                                 if (attacker.passive && attacker.passive.type === 'perfezione_assoluta' && attacker.hp > 0) {
-                                    attacker.spd = Math.floor(attacker.spd * 1.2);
+                                    applyBattleStatModifier(attacker, 'spd', 1.2);
                                     events.push({ type: 'text', text: `✨ ${attacker.name} attiva ${attacker.passive.name}! Il colpo perfetto aumenta la sua Velocità del 20%!`, isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
                                 }
                             }
@@ -2278,15 +2283,15 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             
                             if (move.hitStatDebuff && !immuneToStatDrops(t.char) && Math.random() < move.hitStatDebuff.chance) {
                                 let statTexts = [];
-                                if (move.hitStatDebuff.def) { t.char.def = Math.floor(t.char.def * move.hitStatDebuff.def); statTexts.push("la Difesa"); }
+                                if (move.hitStatDebuff.def) { applyBattleStatModifier(t.char, 'def', move.hitStatDebuff.def); statTexts.push("la Difesa"); }
                                 if (move.hitStatDebuff.atk) { 
                                     if (t.char.passive && t.char.passive.type === 'immune_to_atk_debuff') {
                                         events.push({ type: 'text', text: `🛡️ ${t.char.name} è immune al calo di Attacco grazie a ${t.char.passive.name}!`, isPassive: true, passiveChar: t.char.name, passiveName: t.char.passive.name });
                                     } else {
-                                        t.char.atk = Math.floor(t.char.atk * move.hitStatDebuff.atk); statTexts.push("l'Attacco"); 
+                                        applyBattleStatModifier(t.char, 'atk', move.hitStatDebuff.atk); statTexts.push("l'Attacco"); 
                                     }
                                 }
-                                if (move.hitStatDebuff.spd) { t.char.spd = Math.floor(t.char.spd * move.hitStatDebuff.spd); statTexts.push("la Velocità"); }
+                                if (move.hitStatDebuff.spd) { applyBattleStatModifier(t.char, 'spd', move.hitStatDebuff.spd); statTexts.push("la Velocità"); }
                                 if (move.hitStatDebuff.acc) { t.char.acc = (t.char.acc || 1.0) * move.hitStatDebuff.acc; statTexts.push("la Precisione"); }
                                 events.push({ type: 'text', text: `Il colpo riduce ${statTexts.join(" e ")} di ${t.char.name}!` });
                             }
@@ -2386,11 +2391,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                                 if (t.char.passive && t.char.passive.type === 'immune_to_atk_debuff') {
                                     events.push({ type: 'text', text: `🛡️ ${t.char.name} è immune al calo di Attacco grazie a ${t.char.passive.name}!`, isPassive: true, passiveChar: t.char.name, passiveName: t.char.passive.name });
                                 } else {
-                                    t.char.atk = Math.floor(t.char.atk * move.targetStatDebuff.atk); statTexts.push("Attacco"); 
+                                    applyBattleStatModifier(t.char, 'atk', move.targetStatDebuff.atk); statTexts.push("Attacco"); 
                                 }
                             }
-                            if (move.targetStatDebuff.def) { t.char.def = Math.floor(t.char.def * move.targetStatDebuff.def); statTexts.push("Difesa"); }
-                            if (move.targetStatDebuff.spd) { t.char.spd = Math.floor(t.char.spd * move.targetStatDebuff.spd); statTexts.push("Velocità"); }
+                            if (move.targetStatDebuff.def) { applyBattleStatModifier(t.char, 'def', move.targetStatDebuff.def); statTexts.push("Difesa"); }
+                            if (move.targetStatDebuff.spd) { applyBattleStatModifier(t.char, 'spd', move.targetStatDebuff.spd); statTexts.push("Velocità"); }
                             if (move.targetStatDebuff.acc) { t.char.acc = (t.char.acc || 1.0) * move.targetStatDebuff.acc; statTexts.push("Precisione"); }
                             if (move.targetStatDebuff.accFlat) { t.char.acc = Math.max(0.1, (t.char.acc || 1.0) - move.targetStatDebuff.accFlat); statTexts.push("Precisione"); }
                             if (statTexts.length > 0) {
@@ -2420,11 +2425,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                                 if (t.char.passive && t.char.passive.type === 'immune_to_atk_debuff') {
                                     events.push({ type: 'text', text: `🛡️ ${t.char.name} è immune al calo di Attacco grazie a ${t.char.passive.name}!`, isPassive: true, passiveChar: t.char.name, passiveName: t.char.passive.name });
                                 } else {
-                                    t.char.atk = Math.floor(t.char.atk * move.targetStatDebuff.atk); statTexts.push("Attacco"); 
+                                    applyBattleStatModifier(t.char, 'atk', move.targetStatDebuff.atk); statTexts.push("Attacco"); 
                                 }
                             }
-                            if (move.targetStatDebuff.def) { t.char.def = Math.floor(t.char.def * move.targetStatDebuff.def); statTexts.push("Difesa"); }
-                            if (move.targetStatDebuff.spd) { t.char.spd = Math.floor(t.char.spd * move.targetStatDebuff.spd); statTexts.push("Velocità"); }
+                            if (move.targetStatDebuff.def) { applyBattleStatModifier(t.char, 'def', move.targetStatDebuff.def); statTexts.push("Difesa"); }
+                            if (move.targetStatDebuff.spd) { applyBattleStatModifier(t.char, 'spd', move.targetStatDebuff.spd); statTexts.push("Velocità"); }
                             if (move.targetStatDebuff.acc) { t.char.acc = (t.char.acc || 1.0) * move.targetStatDebuff.acc; statTexts.push("Precisione"); }
                             if (move.targetStatDebuff.accFlat) { t.char.acc = Math.max(0.1, (t.char.acc || 1.0) - move.targetStatDebuff.accFlat); statTexts.push("Precisione"); }
                             if (statTexts.length > 0) {
@@ -2437,9 +2442,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                     if (wasAlive && t.char.hp <= 0 && attacker.hp > 0 && attacker.passive && attacker.passive.type === 'on_ko') {
                         if (attacker.passive.statBuff) {
                             let statTexts = [];
-                            if (attacker.passive.statBuff.atk) { attacker.atk = Math.floor(attacker.atk * attacker.passive.statBuff.atk); statTexts.push("Attacco"); }
-                            if (attacker.passive.statBuff.def) { attacker.def = Math.floor(attacker.def * attacker.passive.statBuff.def); statTexts.push("Difesa"); }
-                            if (attacker.passive.statBuff.spd) { attacker.spd = Math.floor(attacker.spd * attacker.passive.statBuff.spd); statTexts.push("Velocità"); }
+                            if (attacker.passive.statBuff.atk) { applyBattleStatModifier(attacker, 'atk', attacker.passive.statBuff.atk); statTexts.push("Attacco"); }
+                            if (attacker.passive.statBuff.def) { applyBattleStatModifier(attacker, 'def', attacker.passive.statBuff.def); statTexts.push("Difesa"); }
+                            if (attacker.passive.statBuff.spd) { applyBattleStatModifier(attacker, 'spd', attacker.passive.statBuff.spd); statTexts.push("Velocità"); }
                             events.push({ type: 'text', text: `✨ ${attacker.name} manda K.O. l'avversario e attiva ${attacker.passive.name}! Aumenta ${statTexts.join(", ")}!`, isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
                         }
                         if (attacker.passive.healPercent) {
@@ -2480,9 +2485,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                                 if (attacker.passive && attacker.passive.type === 'on_revive_ally') {
                                     if (attacker.passive.statBuff) {
                                         let statTexts = [];
-                                        if (attacker.passive.statBuff.atk) { attacker.atk = Math.floor(attacker.atk * attacker.passive.statBuff.atk); statTexts.push("l'Attacco"); }
-                                        if (attacker.passive.statBuff.def) { attacker.def = Math.floor(attacker.def * attacker.passive.statBuff.def); statTexts.push("la Difesa"); }
-                                        if (attacker.passive.statBuff.spd) { attacker.spd = Math.floor(attacker.spd * attacker.passive.statBuff.spd); statTexts.push("la Velocità"); }
+                                        if (attacker.passive.statBuff.atk) { applyBattleStatModifier(attacker, 'atk', attacker.passive.statBuff.atk); statTexts.push("l'Attacco"); }
+                                        if (attacker.passive.statBuff.def) { applyBattleStatModifier(attacker, 'def', attacker.passive.statBuff.def); statTexts.push("la Difesa"); }
+                                        if (attacker.passive.statBuff.spd) { applyBattleStatModifier(attacker, 'spd', attacker.passive.statBuff.spd); statTexts.push("la Velocità"); }
                                         
                                         events.push({ type: 'text', text: `🌟 ${attacker.name} attiva ${attacker.passive.name}! Salvando un compagno, aumenta ${statTexts.join(" e ")}!`, isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
                                     }
@@ -2509,9 +2514,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                         // --- FIX: APPLICAZIONE PURIFICAZIONI E POTENZIAMENTI BERSAGLIO ---
                         if (move.targetStatBuff && t.char.hp > 0) {
                             let statTexts = [];
-                            if (move.targetStatBuff.atk) { t.char.atk = Math.floor(t.char.atk * move.targetStatBuff.atk); statTexts.push("l'Attacco"); }
-                            if (move.targetStatBuff.def) { t.char.def = Math.floor(t.char.def * move.targetStatBuff.def); statTexts.push("la Difesa"); }
-                            if (move.targetStatBuff.spd) { t.char.spd = Math.floor(t.char.spd * move.targetStatBuff.spd); statTexts.push("la Velocità"); }
+                            if (move.targetStatBuff.atk) { applyBattleStatModifier(t.char, 'atk', move.targetStatBuff.atk); statTexts.push("l'Attacco"); }
+                            if (move.targetStatBuff.def) { applyBattleStatModifier(t.char, 'def', move.targetStatBuff.def); statTexts.push("la Difesa"); }
+                            if (move.targetStatBuff.spd) { applyBattleStatModifier(t.char, 'spd', move.targetStatBuff.spd); statTexts.push("la Velocità"); }
                             if (statTexts.length > 0) {
                                 events.push({ type: 'text', text: `📈 ${statTexts.join(" e ")} di ${t.char.name} aumenta!` });
                             }
@@ -2636,10 +2641,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 const buffToApply = move.selfStatBuff || move.statBuff;
                 if (attackSucceeded && buffToApply && attacker.hp > 0) {
                     let statTexts = [];
-                    if (buffToApply.def) { attacker.def = Math.floor(attacker.def * buffToApply.def); statTexts.push("Difesa"); }
-                    if (buffToApply.spDef) { attacker.spDef = Math.floor((attacker.spDef || attacker.def) * buffToApply.spDef); statTexts.push("Difesa Speciale"); }
-                    if (buffToApply.spd) { attacker.spd = Math.floor(attacker.spd * buffToApply.spd); statTexts.push("Velocità"); }
-                    if (buffToApply.atk) { attacker.atk = Math.floor(attacker.atk * buffToApply.atk); statTexts.push("Attacco"); }
+                    if (buffToApply.def) { applyBattleStatModifier(attacker, 'def', buffToApply.def); statTexts.push("Difesa"); }
+                    if (buffToApply.spDef) { applyBattleStatModifier(attacker, 'spDef', buffToApply.spDef); statTexts.push("Difesa Speciale"); }
+                    if (buffToApply.spd) { applyBattleStatModifier(attacker, 'spd', buffToApply.spd); statTexts.push("Velocità"); }
+                    if (buffToApply.atk) { applyBattleStatModifier(attacker, 'atk', buffToApply.atk); statTexts.push("Attacco"); }
                     if (statTexts.length > 0) {
                         events.push({ type: 'text', text: `La ${statTexts.join(" e ")} di ${attacker.name} aumenta per via dell'attacco!` });
                     }
@@ -2688,9 +2693,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                                 const effect = attacker.passive.randomEffects[Math.floor(Math.random() * attacker.passive.randomEffects.length)];
                                 if (effect.statBuff) {
                                     let statTexts = [];
-                                    if (effect.statBuff.atk) { attacker.atk = Math.floor(attacker.atk * effect.statBuff.atk); statTexts.push("Attacco"); }
-                                    if (effect.statBuff.def) { attacker.def = Math.floor(attacker.def * effect.statBuff.def); statTexts.push("Difesa"); }
-                                    if (effect.statBuff.spd) { attacker.spd = Math.floor(attacker.spd * effect.statBuff.spd); statTexts.push("Velocità"); }
+                                    if (effect.statBuff.atk) { applyBattleStatModifier(attacker, 'atk', effect.statBuff.atk); statTexts.push("Attacco"); }
+                                    if (effect.statBuff.def) { applyBattleStatModifier(attacker, 'def', effect.statBuff.def); statTexts.push("Difesa"); }
+                                    if (effect.statBuff.spd) { applyBattleStatModifier(attacker, 'spd', effect.statBuff.spd); statTexts.push("Velocità"); }
                                     events.push({ type: 'text', text: `✨ ${attacker.name} attiva ${attacker.passive.name}! Aumenta ${statTexts.join(" e ")}!`, isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
                                 }
                                 if (effect.heal) {
@@ -2708,12 +2713,12 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                                             if (t.char.passive && t.char.passive.type === 'immune_to_atk_debuff') {
                                                 events.push({ type: 'text', text: `🛡️ ${t.char.name} è immune al calo di Attacco grazie a ${t.char.passive.name}!`, isPassive: true, passiveChar: t.char.name, passiveName: t.char.passive.name });
                                             } else {
-                                                t.char.atk = Math.floor(t.char.atk * attacker.passive.targetStatDebuff.atk); 
+                                                applyBattleStatModifier(t.char, 'atk', attacker.passive.targetStatDebuff.atk); 
                                                 if(!statTexts.includes("l'Attacco")) statTexts.push("l'Attacco"); 
                                             }
                                         }
-                                        if (attacker.passive.targetStatDebuff.def) { t.char.def = Math.floor(t.char.def * attacker.passive.targetStatDebuff.def); if(!statTexts.includes("la Difesa")) statTexts.push("la Difesa"); }
-                                        if (attacker.passive.targetStatDebuff.spd) { t.char.spd = Math.floor(t.char.spd * attacker.passive.targetStatDebuff.spd); if(!statTexts.includes("la Velocità")) statTexts.push("la Velocità"); }
+                                        if (attacker.passive.targetStatDebuff.def) { applyBattleStatModifier(t.char, 'def', attacker.passive.targetStatDebuff.def); if(!statTexts.includes("la Difesa")) statTexts.push("la Difesa"); }
+                                        if (attacker.passive.targetStatDebuff.spd) { applyBattleStatModifier(t.char, 'spd', attacker.passive.targetStatDebuff.spd); if(!statTexts.includes("la Velocità")) statTexts.push("la Velocità"); }
                                         applied = true;
                                     }
                                 });
@@ -2742,9 +2747,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                         }
                         if (eff.statBuff && attacker.hp > 0) {
                             let statTexts = [];
-                            if (eff.statBuff.def) { attacker.def = Math.floor(attacker.def * eff.statBuff.def); statTexts.push("Difesa"); }
-                            if (eff.statBuff.spd) { attacker.spd = Math.floor(attacker.spd * eff.statBuff.spd); statTexts.push("Velocità"); }
-                            if (eff.statBuff.atk) { attacker.atk = Math.floor(attacker.atk * eff.statBuff.atk); statTexts.push("Attacco"); }
+                            if (eff.statBuff.def) { applyBattleStatModifier(attacker, 'def', eff.statBuff.def); statTexts.push("Difesa"); }
+                            if (eff.statBuff.spd) { applyBattleStatModifier(attacker, 'spd', eff.statBuff.spd); statTexts.push("Velocità"); }
+                            if (eff.statBuff.atk) { applyBattleStatModifier(attacker, 'atk', eff.statBuff.atk); statTexts.push("Attacco"); }
                             if (statTexts.length > 0) {
                                 events.push({ type: 'text', text: `La ${statTexts.join(" e ")} di ${attacker.name} aumenta drasticamente!` });
                             }
@@ -2771,9 +2776,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                                 }
                                 if (eff.statBuff && partner.hp > 0) {
                                     let pStatTexts = [];
-                                    if (eff.statBuff.def) { partner.def = Math.floor(partner.def * eff.statBuff.def); pStatTexts.push("Difesa"); }
-                                    if (eff.statBuff.spd) { partner.spd = Math.floor(partner.spd * eff.statBuff.spd); pStatTexts.push("Velocità"); }
-                                    if (eff.statBuff.atk) { partner.atk = Math.floor(partner.atk * eff.statBuff.atk); pStatTexts.push("Attacco"); }
+                                    if (eff.statBuff.def) { applyBattleStatModifier(partner, 'def', eff.statBuff.def); pStatTexts.push("Difesa"); }
+                                    if (eff.statBuff.spd) { applyBattleStatModifier(partner, 'spd', eff.statBuff.spd); pStatTexts.push("Velocità"); }
+                                    if (eff.statBuff.atk) { applyBattleStatModifier(partner, 'atk', eff.statBuff.atk); pStatTexts.push("Attacco"); }
                                     if (pStatTexts.length > 0) {
                                         events.push({ type: 'text', text: `La ${pStatTexts.join(" e ")} di ${partner.name} aumenta drasticamente!` });
                                     }
@@ -2781,9 +2786,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             } else if (!move.specificComboEffects) {
                                 if (move.selfStatBuff) {
                                     let pStatTexts = [];
-                                    if (move.selfStatBuff.def) { partner.def = Math.floor(partner.def * move.selfStatBuff.def); pStatTexts.push("Difesa"); }
-                                    if (move.selfStatBuff.spd) { partner.spd = Math.floor(partner.spd * move.selfStatBuff.spd); pStatTexts.push("Velocità"); }
-                                    if (move.selfStatBuff.atk) { partner.atk = Math.floor(partner.atk * move.selfStatBuff.atk); pStatTexts.push("Attacco"); }
+                                    if (move.selfStatBuff.def) { applyBattleStatModifier(partner, 'def', move.selfStatBuff.def); pStatTexts.push("Difesa"); }
+                                    if (move.selfStatBuff.spd) { applyBattleStatModifier(partner, 'spd', move.selfStatBuff.spd); pStatTexts.push("Velocità"); }
+                                    if (move.selfStatBuff.atk) { applyBattleStatModifier(partner, 'atk', move.selfStatBuff.atk); pStatTexts.push("Attacco"); }
                                     if (pStatTexts.length > 0) {
                                         events.push({ type: 'text', text: `Anche la ${pStatTexts.join(" e ")} di ${partner.name} aumenta grazie all'attacco combinato!` });
                                     }
@@ -2910,9 +2915,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                                 workingField[pAlly].forEach(idx => {
                                     const ally = workingTeams[pAlly][idx];
                                     if (ally && ally.hp > 0) {
-                                        if (char.passive.teamStatBuff.atk) ally.atk = Math.floor(ally.atk * char.passive.teamStatBuff.atk);
-                                        if (char.passive.teamStatBuff.def) ally.def = Math.floor(ally.def * char.passive.teamStatBuff.def);
-                                        if (char.passive.teamStatBuff.spd) ally.spd = Math.floor(ally.spd * char.passive.teamStatBuff.spd);
+                                        if (char.passive.teamStatBuff.atk) applyBattleStatModifier(ally, 'atk', char.passive.teamStatBuff.atk);
+                                        if (char.passive.teamStatBuff.def) applyBattleStatModifier(ally, 'def', char.passive.teamStatBuff.def);
+                                        if (char.passive.teamStatBuff.spd) applyBattleStatModifier(ally, 'spd', char.passive.teamStatBuff.spd);
                                         buffed = true;
                                     }
                                 });
