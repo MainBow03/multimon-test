@@ -253,7 +253,7 @@ const { CHARACTERS } = ctx;
                           
                           const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'].includes(sType);
                           if (isNegative && (rTarget.char.passive?.immuneToNegativeStatuses || blockedEnemyPassive(rTarget.char))) {
-                              eventsArr.push({ type: 'text', text: `🛡️ ${char.name} attiva ${char.passive.name}, ma ${rTarget.char.name} è immune a ${sType} grazie a ${rTarget.char.passive.name}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
+                              eventsArr.push({ type: 'text', text: `🛡️ ${char.name} attiva ${char.passive.name}, ma ${rTarget.char.name} è immune a ${sType} grazie a ${rTarget.char.passive?.name||'Scudo Anti-Magia'}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                           } else {
                               const existingIdx = rTarget.char.statuses.findIndex(s => s.type === sType);
                               if (existingIdx === -1) {
@@ -262,6 +262,8 @@ const { CHARACTERS } = ctx;
                                   rTarget.char.statuses[existingIdx].turns = char.passive.applyStatusToRandomEnemy.turns || 1;
                               }
                               eventsArr.push({ type: 'text', text: `🔥 ${char.name} attiva ${char.passive.name}! ${rTarget.char.name} subisce lo status ${sType}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
+                              const spray=activateNeutralizingSpray(rTarget.char);
+                              if(spray.length)eventsArr.push({type:'text',text:`🧴 Spray Neutralizzante di ${rTarget.char.name}: rimuove ${spray.join(', ')}!`});
                               eventsArr.push({ type: 'status_update', targetPlayer: rTarget.player, targetIdx: rTarget.idx, statuses: JSON.parse(JSON.stringify(rTarget.char.statuses)) });
                           }
                       }
