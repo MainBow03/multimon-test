@@ -28,6 +28,8 @@ if (appMode === 'campaign_team_select') {
         
         const sector = activeCampaign.sectors[campaignState.sectorIdx] || activeCampaign.sectors[0];
         const mission = sector.missions[campaignState.missionIdx] || sector.missions[0];
+        const isEchoFinalRaid = activeCampaignId === 'eco_anime' && mission.echoFinal;
+        if (isEchoFinalRaid) maxTeamSize = 24;
         const activeBosses = mission.isAnomaly && mission.id === 'm12_5' && campaignState.anomalyTargets && campaignState.anomalyTargets.length > 0 ? campaignState.anomalyTargets : mission.boss;
 
         const showSelectionDialogue = (charId, isDeselect = false) => {
@@ -314,6 +316,8 @@ if (appMode === 'campaign_team_select') {
             const requiredCount = Math.min(maxTeamSize, aliveCount);
 
             if (campaignSelectedTeam.length === 0) return setSystemAlert("Seleziona almeno un personaggio!");
+            if (isEchoFinalRaid && (campaignSelectedTeam.length !== 24 || !campaignState.roster.every(id=>campaignSelectedTeam.includes(id))))
+                return setSystemAlert('Il raid contro Echomax richiede tutti i 24 membri della Resistenza!');
             
             if (activeCampaignId === 'torneo_assoluto') {
                 if (campaignState.roster.length > maxTeamSize && campaignSelectedTeam.length !== maxTeamSize) {
@@ -428,11 +432,12 @@ if (appMode === 'campaign_team_select') {
                     }
                     
                     let hpMultiplier = progressiveScale;
+                    if (isEchoFinalRaid && baseChar.id === 'echomax') hpMultiplier = 1;
                     if (isFinalRaid) hpMultiplier = 25; // Aumentato da 15 a 25 per resistere a 20 PG
                     else if (campaignState.difficulty === 'Insane') hpMultiplier *= 1.5; 
                     
                     const raidBossBalance=isFinalRaid?finalRaidBossStats(baseChar.id):null;
-                    let hp = raidBossBalance?.maxHp ?? Math.floor(baseChar.maxHp * hpMultiplier);
+                    let hp = isEchoFinalRaid && baseChar.id === 'echomax' ? 6200 : raidBossBalance?.maxHp ?? Math.floor(baseChar.maxHp * hpMultiplier);
                     
                     let charInst = {
                         ...JSON.parse(JSON.stringify(baseChar)), hp: hp, maxHp: hp, statuses: [], consecutiveProtect: 0,
@@ -491,6 +496,20 @@ if (appMode === 'campaign_team_select') {
                          }
                     }
 
+                    if(isEchoFinalRaid && charInst.id==='echomax'){
+                        // Echomax affronta 24 campioni contemporaneamente.
+                        charInst.isEchoRaidBoss=true;
+                        charInst.isJuggernaut=true;
+                        charInst.juggHitsRemaining=0;
+                        charInst.juggShieldHpThresholds=[0.8,0.6,0.4,0.2];
+                        charInst.shieldGrantedHits=8;
+                        charInst.echoSoulCharges=0;
+                        charInst.atk=270;
+                        charInst.def=190;
+                        charInst.spd=155;
+                        charInst.baseAtk=270;charInst.baseDef=190;charInst.baseSpd=155;
+                        charInst.imageFilter='drop-shadow(0 0 32px rgba(168,85,247,0.8))';
+                    }
                     return charInst;
                 });
             }
@@ -498,6 +517,8 @@ if (appMode === 'campaign_team_select') {
             const state = initialGameState();
             state.gameMode = 'classica';
             state.isCampaignBattle = true;
+            state.isEchoFinalBattle = isEchoFinalRaid;
+            state.campaignBattleId = mission.id;
             
             // MODIFICA REGOLE ARENA: Se è il torneo assoluto, forza 6 in campo (6vs6). Altrimenti logica standard.
             let fSize = 1;
@@ -508,7 +529,7 @@ if (appMode === 'campaign_team_select') {
                 if (mission.forceFieldSize) fSize = mission.forceFieldSize;
             }
             
-            state.settings = { teamSize: p1Team.length, fieldSize: fSize };
+            state.settings = { teamSize: p1Team.length, fieldSize: fSize, echoRaid: isEchoFinalRaid };
             
             state.players.p1 = playerName || "Resistenza";
             state.playerAvatars.p1 = p1Team.length > 0 ? p1Team[0].img : '';
