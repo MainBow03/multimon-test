@@ -1,9 +1,8 @@
 import { ITEMS_DB } from '../data/items.js';
 import { CHARACTERS } from '../data/characters.js';
-import { FUSION_CHARACTERS } from '../data/fusions.js';
-import { grantMasteryXP, isMasteryUnlocked } from './masterySystem.js';
+import { grantMasteryXP, isMasteryUnlocked, isMasteryEligible } from './masterySystem.js';
 
-const masteryEligibleIds = new Set([...CHARACTERS, ...FUSION_CHARACTERS].map(char => char.id));
+const masteryEligibleIds = new Set(CHARACTERS.filter(isMasteryEligible).map(char => char.id));
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const updateLocalStatsImpl = (ctx, updates) => {
 const { getPlayerData } = ctx;
