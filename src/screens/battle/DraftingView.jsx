@@ -307,8 +307,10 @@ if (gameState.status === 'drafting') {
                                     <span className="text-xs font-semibold text-slate-400" aria-live="polite">{filteredDraftableChars.length} Multimon trovati</span>
                                 </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 2xl:grid-cols-11 gap-3 w-full flex-1 min-h-0 overflow-y-auto content-start custom-scrollbar p-2">
+                                    {filteredDraftableChars.length === 0 && <div className="col-span-full rounded-xl bg-slate-900 border border-slate-700 p-8 text-center text-slate-400">Nessun Multimon corrisponde ai filtri. Modifica ricerca, tipo, ruolo o prezzo.</div>}
                                     {filteredDraftableChars.map(char => {
                                         const isSelected = myDraft.some(c => c.id === char.id);
+                                        const isFavorite = draftFavorites.includes(char.id);
                                         return (
                                             <div 
                                                 key={char.id} 
@@ -342,8 +344,20 @@ if (gameState.status === 'drafting') {
                                                 }}
                                                 className={`relative overflow-hidden bg-slate-900/80 backdrop-blur-md border rounded-2xl p-4 text-center transition-all duration-300 ${isSelected ? 'border-emerald-400 bg-emerald-900/30 scale-105 shadow-[0_0_15px_rgba(16,185,129,0.5)] opacity-50 grayscale' : 'border-slate-700/50 hover:border-cyan-500/50 hover:-translate-y-1 cursor-pointer shadow-lg'}`}
                                             >
+                                                <button type="button" title={isFavorite?'Togli dai preferiti':'Aggiungi ai preferiti'}
+                                                    aria-label={(isFavorite?'Togli ':'Aggiungi ')+char.name+(isFavorite?' dai preferiti':' ai preferiti')}
+                                                    aria-pressed={isFavorite}
+                                                    onClick={e=>{e.stopPropagation();toggleDraftFavorite(char.id);}}
+                                                    onTouchStart={e=>e.stopPropagation()}
+                                                    className={`absolute z-30 right-1.5 top-1.5 rounded-full border px-2 py-1 text-lg shadow-lg ${isFavorite?'border-amber-300 bg-amber-600 text-white':'border-slate-600 bg-slate-950/85 text-slate-400 hover:text-amber-300'}`}>
+                                                    {isFavorite?'★':'☆'}
+                                                </button>
                                                 <img src={char.img} alt={char.name} className={`w-16 h-16 rounded-full object-cover mx-auto mb-3 border-2 ${isSelected ? 'border-emerald-400' : 'border-slate-600/50'}`} />
-                                                <h4 className="font-bold text-sm mb-2 truncate text-slate-100">{char.name}</h4>
+                                                <h4 className="font-bold text-sm mb-1 truncate text-slate-100">{char.name}</h4>
+                                                <div className="text-[10px] font-bold text-amber-300 mb-1">{characterPrice(char)} monete</div>
+                                                <div className="text-[9px] font-semibold text-cyan-300 mb-2 truncate" title={getCharacterRoles(char).join(', ')}>
+                                                    {getCharacterRoles(char).map(id=>TEAM_ROLES.find(r=>r.id===id)?.label).filter(Boolean).join(' · ')}
+                                                </div>
                                                 <div className="flex flex-wrap gap-1 justify-center mb-3">
                                                     {char.types.map(t => (
                                                         <span key={t} className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{t}</span>
