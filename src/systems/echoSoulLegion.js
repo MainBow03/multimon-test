@@ -1,10 +1,20 @@
 // Legione dei Caduti: una sola Copia Perfetta, durata tre turni.
 // Le copie non producono cariche, e il contatore resta personale a Echomax.
-export function collectEchoSoul(teams,field,defeated,defeatedPlayer,events){
-  if(!defeated || defeated.isEchoCopy || defeated.isSummonOnly || defeated.id==='echomax')return false;
+function opponents(a,b,gameMode,settings){
+ if(a===b)return false;
+ if(gameMode==='multipla')return ['p1','p2'].includes(a)!==['p1','p2'].includes(b);
+ if(gameMode==='juggernaut'||gameMode==='survival'){
+   const boss=settings?.juggernautPlayer||(gameMode==='survival'?'p2':'p1');
+   return (a===boss)!==(b===boss);
+ }
+ return true;
+}
+
+export function collectEchoSoul(teams,field,defeated,defeatedPlayer,events,{gameMode='classica',settings={}}={}){
+  if(!defeated || defeated.isEchoCopy || defeated.id==='echomax')return false;
   let summoned=false;
   for(const [player,roster] of Object.entries(teams||{})){
-    if(player===defeatedPlayer || !Array.isArray(roster))continue;
+    if(!opponents(player,defeatedPlayer,gameMode,settings) || !Array.isArray(roster))continue;
     roster.forEach((echo,echoIdx)=>{
       if(echo?.id!=='echomax' || echo.hp<=0 || echo.passive?.type!=='soul_legion')return;
       echo.echoSoulCharges=Math.min(3,(echo.echoSoulCharges||0)+1);
@@ -19,6 +29,7 @@ export function collectEchoSoul(teams,field,defeated,defeatedPlayer,events){
         maxHp:Math.max(1,Math.round(defeated.maxHp||100)),
         isSummonOnly:true,isEchoCopy:true,echoTurns:3,echoJustSummoned:true,echoFaintProcessed:false,
         statuses:[],passive:null,consecutiveProtect:0,
+        moves:(defeated.moves||[]).map(m=>({...m,remainingUses:m.maxUses??null})),
         imageFilter:'sepia(0.6) hue-rotate(240deg) saturate(2) drop-shadow(0 0 12px #a855f7)'
       };
       const idx=roster.length;
