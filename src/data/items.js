@@ -5,6 +5,7 @@ export const ITEMS_DB = {
             'cura_status': { id: 'cura_status', name: 'Cura Status', desc: 'Rimuove ogni alterazione di stato negativa.', price: 100, type: 'heal_status', icon: '🌿' },
             'germoglio_curativo': { id:'germoglio_curativo', name:'Germoglio Curativo', desc:'Scendendo al 50% dei PS massimi cura il 25% dei PS massimi; 1 attivazione per partita.', price:300, type:'held', icon:'🌱' },
             'spray_neutralizzante': { id:'spray_neutralizzante', name:'Spray Neutralizzante', desc:'Rimuove i malus di stato, inclusa Ricarica, al primo status negativo ricevuto; 1 uso per partita.', price:325, type:'held', icon:'🧴' },
+            'freccia_cupido': { id:'freccia_cupido', name:'Freccia di Cupido', desc:'10% di probabilità di infliggere Infatuato dopo una mossa fisica andata a segno. Senza limiti di utilizzo.', price:375, type:'held', icon:'💘' },
             'mantello_invisibilita': { id: 'mantello_invisibilita', name: 'Mantello dell’Invisibilità', desc: 'Strumento permanente: elusione +15% contro gli attacchi avversari.', price: 350, type: 'held', icon: '🫥' },
             'avanzi': { id: 'avanzi', name: 'Avanzi', desc: 'Strumento permanente: recupera il 5% dei PS massimi alla fine di ogni turno.', price: 350, type: 'held', icon: '🍲' },
             'gemma_arancione': { id: 'gemma_arancione', name: 'Gemma Arancione', desc: 'Potenzia del 30% la prima mossa Fuoco dell’incontro, poi la gemma si rompe. Lo sblocco resta permanente.', price: 190, type: 'held', gemType: 'Fuoco', gemBonus: 1.3, icon: '💎', gemColor: '#fb923c' },
