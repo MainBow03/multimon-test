@@ -158,3 +158,9 @@ test('Bauli SVG senza emoji e tutorial con ritratto originale',()=>{
  assert.match(tutor,/freeLabUpgradeUsed/);
  assert.match(tutor,/onFreeUpgrade\(character.id,stat\)/);
 });
+
+test('Ogni nuovo incontro del torneo online azzera i tre utilizzi curativi',()=>{
+ const src=readFileSync(new URL('../src/systems/tournamentSystem.js',import.meta.url),'utf8');
+ const resets=src.match(/healingItemsUsed: \{p1:0,p2:0,p3:0,p4:0,p5:0,p6:0,p7:0,p8:0\}/g)||[];
+ assert.equal(resets.length,2,'Sia torneo a punti sia semifinali/finali azzerano il limite');
+});
