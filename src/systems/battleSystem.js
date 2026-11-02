@@ -2,6 +2,7 @@ import { prepareEmergencySwitch } from './roomRecovery.js';
 import { applyBattleStatModifier } from './statBalance.js';
 import { isOnlineHealingLimited, isLimitedHealingItem, onlineHealingRemaining, ONLINE_HEAL_ITEM_LIMIT } from './onlineHealingLimit.js';
 import { consumeRaidShieldHit, createRaidShieldUpdateEvent, applyRaidShieldUpdateEvent } from './finalRaidBalance.js';
+import { createBattleReport, accumulateBattleReport } from './battleReport.js';
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { resolvePoisonEndTurn } from './battleStatusTurns.js';
@@ -463,6 +464,7 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
               teams: teams,
               field: field,
               events: initialEvents,
+              battleReport: accumulateBattleReport(createBattleReport(), teams, initialEvents, {countTurn:false}),
               healingItemsUsed: {p1:0,p2:0,p3:0,p4:0,p5:0,p6:0,p7:0,p8:0},
               turnExpiresAt: null,
               actions: { p1: {}, p2: {}, p3: {}, p4: {}, p5: {}, p6: {}, p7: {}, p8: {} },
@@ -1517,6 +1519,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
               const attacker = workingTeams[player]?.[charTeamIdx];
               
               if (!attacker || (attacker.hp <= 0 && action.type !== 'use_item')) continue; // FIX: Protezione Null
+              // Attribuzione degli eventi senza dipendere dal testo dei messaggi.
+              events.push({type:'battle_actor',player,charTeamIdx,kind:action.type});
               const clearedBefore=activateNeutralizingSpray(attacker);
               if(clearedBefore.length){
                 updateStatusUI(player,charTeamIdx);
@@ -2926,6 +2930,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 isFirstAttackOfTurn = false;
             }
         } // Fine ciclo coda dei turni
+        // I danni e le cure automatiche a fine turno non appartengono all'ultimo attaccante.
+        events.push({type:'battle_actor_end'});
 
         let eotTargets = [];
         activeMatchPlayers.forEach(p => {
@@ -3572,6 +3578,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
           startOfTurnTeams: startOfTurnTeams, 
           startOfTurnField: startOfTurnField,
           events: events,
+          battleReport: accumulateBattleReport(gameState.battleReport, startOfTurnTeams, events,
+            {gameMode:gameState.gameMode,settings:gameState.settings}),
           actions: { p1: {}, p2: {}, p3: {}, p4: {}, p5: {}, p6: {}, p7: {}, p8: {} },
           inventory: workingInventory,
           healingItemsUsed: workingHealingItemsUsed,
@@ -3602,6 +3610,8 @@ const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, set
             setDisplayField(currentDisplayField);
 
             for (let evt of gameState.events) {
+                // Marker statistici, non animazioni visibili.
+                if (evt.type === 'battle_actor' || evt.type === 'battle_actor_end') continue;
                 if (evt.text) {
                     setEventPlaybackText(evt.text);
                     

@@ -29,7 +29,8 @@ const initialGameState = () => ({
           inventory: { p1: {}, p2: {}, p3: {}, p4: {}, p5: {}, p6: {}, p7: {}, p8: {} },
           healingItemsUsed: { p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0, p7: 0, p8: 0 },
           hyperUsed: { p1: false, p2: false, p3: false, p4: false, p5: false, p6: false, p7: false, p8: false }, // <--- AGGIUNTO PER FORMA IPER
-          events: [], 
+          events: [],
+          battleReport: {version:1,turns:0,entries:{}},
           winner: null,
           postExecStatus: 'battling', 
           pendingSwitches: { p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0, p7: 0, p8: 0 },
