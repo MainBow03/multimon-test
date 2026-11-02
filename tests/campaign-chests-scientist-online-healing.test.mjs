@@ -20,7 +20,7 @@ const nextRng=(...values)=>{let i=0;return ()=>values[i++%values.length]};
 test('Le tre campagne attribuiscono bauli retroattivi da sectorIdx e missionIdx',()=>{
  const first=CAMPAIGNS[0];
  const save={isStarted:true,sectorIdx:1,missionIdx:2,completed:false};
- const storage=fakeStorage({'multiverse_rpg_campaign_save_'+first.id:JSON.stringify(save)});
+ const storage=fakeStorage({['multiverse_rpg_campaign_save_'+first.id]:JSON.stringify(save)});
  const ids=getCompletedStageIds(CAMPAIGNS,storage);
  const expected=first.sectors[0].missions.length+2;
  assert.equal(ids.length,expected);
@@ -35,7 +35,7 @@ test('Le tre campagne attribuiscono bauli retroattivi da sectorIdx e missionIdx'
 });
 test('Campagna già completata: tutte le missioni, compresa l’ultima',()=>{
  const camp=CAMPAIGNS[0],total=camp.sectors.flatMap(s=>s.missions).length;
- const storage=fakeStorage({'multiverse_rpg_campaign_save_'+camp.id:JSON.stringify({
+ const storage=fakeStorage({['multiverse_rpg_campaign_save_'+camp.id]:JSON.stringify({
   isStarted:true,sectorIdx:camp.sectors.length-1,missionIdx:camp.sectors.at(-1).missions.length-1,completed:true
  })});
  assert.equal(getCompletedStageIds(CAMPAIGNS,storage).length,total);
@@ -47,7 +47,7 @@ test('La stessa missione non assegna mai due bauli e non viene riassegnata dalla
  const second=awardCampaignChest(first.profile,campaign.id,mission);
  assert.equal(second.ok,false);
  assert.equal(second.profile.chests.pending.length,1);
- const saved=fakeStorage({'multiverse_rpg_campaign_save_'+campaign.id:JSON.stringify({isStarted:true,sectorIdx:0,missionIdx:1})});
+ const saved=fakeStorage({['multiverse_rpg_campaign_save_'+campaign.id]:JSON.stringify({isStarted:true,sectorIdx:0,missionIdx:1})});
  const migration=migrateCampaignChests(first.profile,CAMPAIGNS,saved);
  assert.equal(migration.awarded,0);
  assert.equal(migration.profile.chests.pending.length,1);
