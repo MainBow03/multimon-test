@@ -6,6 +6,10 @@ if (appMode === 'shop') {
         const playerData = getPlayerData();
         
         const handleBuyItem = (itemDef) => {
+            if(itemDef.type==='held' && (playerData.inventory?.[itemDef.id]||0)>0){
+                setSystemAlert('Hai già sbloccato questo strumento per sempre!');
+                return;
+            }
             if (playerData.coins >= itemDef.price) {
                 updateLocalStats({ spendCoins: itemDef.price, buyItem: itemDef.id });
                 // Forza un re-render cambiando un po' lo stato locale, o basterà il prossimo ciclo
@@ -50,21 +54,24 @@ if (appMode === 'shop') {
                     <div className="flex gap-4 mb-6 shrink-0">
                          <button onClick={() => setShopTab('items')} className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${shopTab === 'items' ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg border border-amber-500' : 'bg-slate-950/50 text-slate-400 border border-slate-700 hover:bg-slate-800'}`}><BookOpen size={20}/> Oggetti e Cure</button>
                          <button onClick={() => setShopTab('chars')} className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${shopTab === 'chars' ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg border border-amber-500' : 'bg-slate-950/50 text-slate-400 border border-slate-700 hover:bg-slate-800'}`}><Users size={20}/> Personaggi Sbloccabili</button>
+                         <button onClick={() => setShopTab('held')} className={`flex-1 py-3 px-2 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${shopTab === 'held' ? 'bg-gradient-to-r from-violet-600 to-cyan-700 text-white shadow-lg border border-violet-400' : 'bg-slate-950/50 text-slate-400 border border-slate-700 hover:bg-slate-800'}`}><span aria-hidden="true">💎</span> Strumenti da Lotta</button>
                     </div>
 
-                    {shopTab === 'items' && (
+                    {(shopTab === 'items'||shopTab === 'held') && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto custom-scrollbar p-2">
-                            {Object.values(ITEMS_DB).map(item => {
+                            {Object.values(ITEMS_DB).filter(item=>shopTab==='held'?item.type==='held':item.type!=='held').map(item => {
                                 const owned = playerData.inventory[item.id] || 0;
-                                const canAfford = playerData.coins >= item.price;
+                                const isPermanent = item.type==='held';
+                                const unlocked = isPermanent && owned > 0;
+                                const canAfford = !unlocked && playerData.coins >= item.price;
                                 
                                 return (
                                     <div key={item.id} className="bg-slate-950/80 border border-slate-700 rounded-2xl p-5 flex flex-col justify-between hover:border-amber-500/50 transition-colors group shadow-lg relative">
                                         <div className="absolute top-3 right-3 bg-slate-800 text-xs font-bold px-2 py-1 rounded text-slate-400 border border-slate-600">
-                                            Posseduti: {owned}
+                                            {isPermanent ? (unlocked ? '✓ PERMANENTE' : 'DA SBLOCCARE') : `Posseduti: ${owned}`}
                                         </div>
                                         <div>
-                                            <div className="mb-3 mt-2 flex justify-center">{item.type === 'held' ? <ItemArtwork id={item.id} size={68} /> : <span className="text-4xl">{item.icon}</span>}</div>
+                                            <div className="mb-3 mt-2 flex justify-center">{isPermanent ? <ItemArtwork id={item.id} size={68} /> : <span className="text-4xl">{item.icon}</span>}</div>
                                             <h3 className="text-lg font-black text-white mb-1">{item.name}</h3>
                                             <p className="text-xs text-slate-400 h-10 leading-tight">{item.desc}</p>
                                         </div>
@@ -73,7 +80,7 @@ if (appMode === 'shop') {
                                             disabled={!canAfford}
                                             className={`mt-4 w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${canAfford ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white shadow-lg hover:-translate-y-0.5' : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'}`}
                                         >
-                                            Compra - <Coins size={16}/> {item.price}
+                                            {unlocked ? '✓ Sbloccato per sempre' : <>Compra - <Coins size={16}/> {item.price}</>}
                                         </button>
                                     </div>
                                 );
