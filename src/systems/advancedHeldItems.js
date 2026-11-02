@@ -49,7 +49,7 @@ export function boostedStatusChance(attacker,chance){
   if(!Number.isFinite(chance)||chance>=1||chance<=0)return chance;
   if(!limited(attacker,'lente_fortuna','fortuneLensUsed'))return chance;
   attacker.fortuneLensUsed=true;
-  return Math.min(.9,chance+.1);
+  return Math.min(.9,Math.round((chance+.1)*1000)/1000);
 }
 export function offensiveHeldFactor(attacker,defender,move){
   if(!positiveHp(attacker)||!(move?.power>0))return 1;
