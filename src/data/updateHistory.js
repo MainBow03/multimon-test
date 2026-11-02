@@ -11,6 +11,11 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'battle-backpack-black-screen-fix',category:'fixes',date:'02/11/2026',title:'Corretto lo schermo nero aprendo lo zaino in battaglia',items:[
+    'Risolto il crash ReferenceError: appMode is not defined quando si apre lo zaino durante uno scontro.',
+    'La schermata di battaglia riceve ora correttamente la modalità e visualizza il contatore dei 3 strumenti curativi online senza bloccare il gioco.',
+    'Le battaglie locali e la campagna rimangono senza limite curativi e il comportamento precedente degli oggetti è preservato.'
+  ]},
   {id:'held-unique-svg-art',category:'interface',date:'02/11/2026',title:'13 illustrazioni SVG per i nuovi strumenti',items:[
     'Sostituite le stelle bianche di riserva con 13 icone SVG originali, una per ciascuno dei nuovi strumenti da battaglia.',
     'Ogni oggetto ha una silhouette riconoscibile e una propria palette: fascia, scudo, ciondolo, clessidra, lente, risonatore, nastro, stivali, bussola, specchio, sigillo, piuma e campanella.',
