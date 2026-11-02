@@ -1,6 +1,7 @@
 import { CHARACTERS } from '../data/characters.js';
 import { getMultiplier } from './typeSystem.js';
 import { calculateDamageImpl } from './battleSystem.js';
+import { getHeldEvasion,getHeldEndTurnHeal,useHeldGem } from './heldEquipment.js';
 import { ignoresShields, immuneToStatDrops, powerForAccordo,
   effectiveTaserPower, stickyTrapEntryDamage } from './rockstarAgentEffects.js';
 import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense,
@@ -67,7 +68,7 @@ export function eventPlacements(matches,entrants){
 function fighter(id,owner,item){
  const c=CHARACTERS.find(x=>x.id===id);if(!c)throw Error('Multimon mancante: '+id);
  return{key:owner+'-'+id,id,owner,name:c.name,img:c.img,types:c.types||[],hp:c.maxHp,maxHp:c.maxHp,
- atk:c.atk,def:c.def,baseDef:c.def,spDef:c.spDef||c.def,baseSpDef:c.spDef||c.def,spd:c.spd,baseSpd:c.spd,spAtk:c.spAtk||c.atk,passive:c.passive||null,heldItem:item||null,hyper:false,statuses:[],
+ atk:c.atk,def:c.def,baseDef:c.def,spDef:c.spDef||c.def,baseSpDef:c.spDef||c.def,spd:c.spd,baseSpd:c.spd,spAtk:c.spAtk||c.atk,passive:c.passive||null,heldItem:item||null,gemSpent:false,hyper:false,statuses:[],
  moves:c.moves.map(m=>({name:m.name,type:m.type,power:m.power||0,accuracy:m.accuracy??100,
  targetCount:m.targetCount||1,uses:m.maxUses??null,contact:!!m.contact,
  special:!!m.special,transform:!!m.transformMahito,effect:m.statusEffect||null,buff:m.selfStatBuff||m.statBuff||null,
@@ -80,12 +81,22 @@ function fighter(id,owner,item){
 }
 export function buildEventBattle(match,people,s){
  const make=side=>side.members.flatMap(uid=>people[uid].teamIds.map(id=>fighter(id,uid,s.allowItems?people[uid].heldItems?.[id]:null)));
- return{matchId:match.id,side:'A',turn:1,teams:{A:make(match.sideA),B:make(match.sideB)},
- owners:{A:match.sideA.members,B:match.sideB.members},hyperUsed:{},finished:false,winner:null,
+ const teams={A:make(match.sideA),B:make(match.sideB)};
+ const owners={A:match.sideA.members,B:match.sideB.members};
+ const activeKeys=Object.fromEntries([...owners.A,...owners.B].map(uid=>[
+     uid,[...teams.A,...teams.B].filter(u=>u.owner===uid).slice(0,s.fieldSize).map(u=>u.key)
+ ]));
+ return{matchId:match.id,side:'A',turn:1,teams,owners,activeKeys,hyperUsed:{},finished:false,winner:null,
  weather:null,traps:{},log:['Inizia '+match.sideA.name+' contro '+match.sideB.name+'!']};
 }
 export function activeEventFighters(b,side,s){
- return b.owners[side].flatMap(uid=>b.teams[side].filter(x=>x.owner===uid&&x.hp>0).slice(0,s.fieldSize));
+ return b.owners[side].flatMap(uid=>{
+   const available=b.teams[side].filter(x=>x.owner===uid&&x.hp>0);
+   const chosen=(b.activeKeys?.[uid]||[]).map(key=>available.find(u=>u.key===key)).filter(Boolean);
+   // Compatibilità con eventi vecchi senza activeKeys e subentro automatico
+   // se il titolare è KO e rimane una riserva viva.
+   return [...chosen,...available.filter(x=>!chosen.includes(x))].slice(0,s.fieldSize);
+ });
 }
 export function botActions(b,uid,s){
  const targets=activeEventFighters(b,b.side==='A'?'B':'A',s);
@@ -98,6 +109,11 @@ export function botActions(b,uid,s){
 export function eventTurn(b,submissions,s,random=Math.random){
  if(b.finished)throw Error('Partita terminata');
  const x=structuredClone(b),side=x.side,oppo=side==='A'?'B':'A',log=[];
+ x.activeKeys||={};
+ for(const uid of [...x.owners.A,...x.owners.B]){
+   const team=x.owners.A.includes(uid)?'A':'B';
+   x.activeKeys[uid]=activeEventFighters(x,team,s).filter(u=>u.owner===uid).map(u=>u.key);
+ }
  x.traps ||= {};
  // Applica le trappole quando entra un NUOVO personaggio, non a chi era
  // già in campo al momento del piazzamento.
@@ -162,6 +178,15 @@ export function eventTurn(b,submissions,s,random=Math.random){
   if(actor.hp<=0)continue;
   const command=commands.get(actor.key);
   if(!command){log.push(actor.name+' passa.');continue;}
+  if(command.type==='switch'&&command.switchTo){
+   const ally=x.teams[side].find(u=>u.owner===actor.owner&&u.key===command.switchTo&&u.hp>0);
+   const current=x.activeKeys[actor.owner]||[];
+   if(ally&&!current.includes(ally.key)){
+     x.activeKeys[actor.owner]=current.map(k=>k===actor.key?ally.key:k);
+     log.push(actor.name+' rientra, entra '+ally.name+'!');
+   }else log.push(actor.name+' non riesce a cambiare.');
+   continue;
+  }
   const m=actor.moves[Number(command.moveIndex)]||actor.moves[0];if(!m||m.uses===0)continue;
   if(s.allowHyper&&command.hyper&&!x.hyperUsed[actor.owner]){
    x.hyperUsed[actor.owner]=true;actor.hyper=true;actor.atk=Math.round(actor.atk*1.5);
@@ -206,7 +231,7 @@ export function eventTurn(b,submissions,s,random=Math.random){
   let hitAny=false;
   for(const t of targets){
    if(t.hp<=0)continue;
-   if(t.evasionBonus&&random()<t.evasionBonus){log.push(t.name+' schiva il colpo!');continue;}
+   if(random()<(1-(1-Math.min(.95,t.evasionBonus||0))*(1-getHeldEvasion(t)))){log.push(t.name+' schiva il colpo!');continue;}
    hitAny=true;
    const actualMove=m.scalingEnemyCount?{...m,power:powerForAccordo(visible.length)}:
      m.bonusIfSlowed?{...m,power:effectiveTaserPower(t)}:m;
@@ -220,6 +245,7 @@ export function eventTurn(b,submissions,s,random=Math.random){
      else{applyBuff(t,m.enemyDebuff);log.push(t.name+' perde statistiche!');}
    }
   }
+  if(hitAny&&useHeldGem(actor,m))log.push('La gemma di '+actor.name+' si rompe dopo aver potenziato '+m.name+'!');
   if(hitAny&&m.buff)applyBuff(actor,m.buff);
   if(hitAny&&m.snowstormTurns){x.weather={type:'snowstorm',turns:m.snowstormTurns};log.push('Una tempesta di neve investe il campo!');}
   if(hitAny&&s.allowItems&&actor.heldItem==='iperband'){
@@ -231,6 +257,8 @@ export function eventTurn(b,submissions,s,random=Math.random){
  for(const team of ['A','B']){
   for(const u of activeEventFighters(x,team,s)){
    if(u.hp<=0)continue;
+   const leftovers=getHeldEndTurnHeal(u);
+   if(leftovers&&u.hp<u.maxHp){u.hp=Math.min(u.maxHp,u.hp+leftovers);log.push(u.name+' recupera '+leftovers+' PS dagli Avanzi!');}
    if(u.statuses.includes('Anima Distorta')){
      const d=Math.max(1,Math.floor(u.maxHp*.05));u.hp=Math.max(0,u.hp-d);
      log.push(u.name+' perde '+d+' PS per Anima Distorta.');

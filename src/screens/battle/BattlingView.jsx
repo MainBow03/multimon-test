@@ -1,7 +1,7 @@
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderBattlingView(ctx) {
-const { ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
+const { ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
 if (gameState.status === 'battling' || gameState.status === 'executing') {
         const activeMatchPlayers = getActivePlayers();
         
@@ -334,7 +334,10 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     </div>
                     <div className="relative">
                         <img key={`img-${char.id}-form-${formLevel}`} src={displayImg} style={{ filter: char.imageFilter || 'none' }} className={`${isJuggernaut ? 'w-48 h-48 md:w-56 md:h-56' : 'w-28 h-28'} object-cover rounded-xl border-4 ${borderClass} transition-all ${extraAnimClass}`} alt="" />
-                        {char.heldItem === 'iperband' && <span title="Iperband equipaggiato" className="absolute -top-2 -right-2 bg-violet-700 border border-violet-300 text-base rounded-full w-8 h-8 flex items-center justify-center z-20 shadow-lg"><ItemArtwork id="iperband" size={24} /></span>}
+                        {ITEMS_DB[char.heldItem]?.type === 'held' && <span
+                            title={ITEMS_DB[char.heldItem].name+(char.gemSpent?' · gemma scaricata':' · equipaggiato')}
+                            className={'absolute -top-2 -right-2 bg-violet-700 border border-violet-300 text-base rounded-full w-8 h-8 flex items-center justify-center z-20 shadow-lg '+(char.gemSpent?'opacity-45 grayscale':'')}>
+                            <ItemArtwork id={char.heldItem} size={24}/></span>}
                         {char.juggHitsRemaining > 0 && (
                             <div className="absolute inset-0 border-[6px] border-cyan-400 rounded-xl shadow-[inset_0_0_20px_rgba(34,211,238,0.8),_0_0_20px_rgba(34,211,238,0.8)] z-30 animate-pulse pointer-events-none flex items-center justify-center bg-cyan-900/30">
                                 <span className="text-cyan-100 text-6xl font-black drop-shadow-[0_4px_4px_black]">{char.juggHitsRemaining}</span>
@@ -435,9 +438,9 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                 {/* BATTLE ARENA */}
                 <div className="flex-1 p-4 flex flex-col relative overflow-hidden bg-slate-950">
                     
-                    <button onClick={() => playerRole === 'spectator' ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-4 left-4 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
+                    {!isEventBattle&&<button onClick={() => playerRole === 'spectator' ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-4 left-4 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
                          <LogOut size={16} /> {playerRole === 'spectator' ? 'Esci' : 'Resa'}
-                    </button>
+                    </button>}
 
                     {/* PULSANTE TOGGLE REGISTRO BATTAGLIA */}
                     <button onClick={() => setIsLogOpen(true)} className="absolute top-16 left-4 flex items-center gap-2 text-cyan-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-cyan-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
@@ -445,9 +448,9 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     </button>
 
                     {/* PULSANTE FORZA SKIP */}
-                    <button onClick={handleForceSkip} className="absolute top-28 left-4 flex items-center gap-2 text-yellow-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-yellow-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm" title="Usa questo tasto se la partita si blocca o se l'host scompare!">
+                    {(!isEventBattle||eventBattleCanForce)&&<button onClick={handleForceSkip} className="absolute top-28 left-4 flex items-center gap-2 text-yellow-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-yellow-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm" title="Usa questo tasto se la partita si blocca o se l'host scompare!">
                          ⏩ Forza Skip
-                    </button>
+                    </button>}
 
                     {/* SIDEBAR REGISTRO BATTAGLIA */}
                     <div className={`fixed top-0 left-0 h-full w-72 md:w-80 bg-slate-900/95 backdrop-blur-xl border-r border-cyan-500/50 z-[100] transform transition-transform duration-300 ease-in-out flex flex-col shadow-[20px_0_50px_rgba(0,0,0,0.8)] ${isLogOpen ? 'translate-x-0' : '-translate-x-full'}`}>
@@ -606,7 +609,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                          {(!isPlayingEvents && isMyTurn && activeCommandChar && targetingMoveIdx === null) && (
                                  <div className="flex gap-3 justify-center mb-2 z-10">
                                          <button onClick={() => setActionMenuMode('moves')} className={`px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase transition-all ${actionMenuMode === 'moves' ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.5)]' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'}`}>Mosse</button>
-                                         <button onClick={() => setActionMenuMode('items')} className={`px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase transition-all ${actionMenuMode === 'items' ? 'bg-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'}`}>Zaino</button>
+                                         {!isEventBattle&&<button onClick={() => setActionMenuMode('items')} className={`px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase transition-all ${actionMenuMode === 'items' ? 'bg-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'}`}>Zaino</button>}
                                          {!activeCommandChar.isSummonOnly && (
                                             <button onClick={() => setActionMenuMode('switch')} className={`px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase transition-all ${actionMenuMode === 'switch' ? 'bg-emerald-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'}`}>Cambia (Squadra)</button>
                                          )}

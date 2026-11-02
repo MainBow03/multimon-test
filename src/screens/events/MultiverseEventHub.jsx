@@ -1,6 +1,8 @@
 import React, {useState,useEffect,useRef,useMemo} from 'react';
 import { CHARACTERS } from '../../data/characters.js';
 import { EventClassicBattleView } from './EventClassicBattleView.jsx';
+import { ITEMS_DB } from '../../data/items.js';
+import { HELD_ITEM_IDS } from '../../systems/heldEquipment.js';
 import { normalizeEventSettings,validTeam,makeEventEntrants,makeEventBracket,nextEventMatch,buildEventBattle,activeEventFighters,
  botActions,eventTurn,completeEventMatch,eventPlacements,simulateBots,EVENT_PRIZES,isLiveEvent,EVENT_INACTIVITY_MS } from '../../systems/multiverseEventEngine.js';
 import {watchEvents,watchEvent,watchPlayers,watchCommands,createEvent,joinEvent,saveTeam,sendMoves,hostUpdate,heartbeatEvent,cancelAndPurgeEvent,purgeStaleEvent} from '../../firebase/multiverseEvents.js';
@@ -47,7 +49,7 @@ function Bracket({matches,current}){
  </div>;
 }
 
-function Arena({battle,settings,uid,view,setView,orders,setOrders,submit,force,isHost,busy,participants}){
+function Arena({battle,settings,uid,view,setView,orders,setOrders,submit,force,isHost,busy,participants,onContinue,onMinimize}){
  // Il torneo usa i dati sincronizzati dell'evento, ma la presentazione
  // riprende il campo, i PNG e i comandi a pulsanti delle battaglie normali.
  const asUnit=u=>({...u,isHyper:u.hyper||u.isHyper,transformed:u.transformed||u.mahitoTransformed,
@@ -58,7 +60,7 @@ function Arena({battle,settings,uid,view,setView,orders,setOrders,submit,force,i
  return <EventClassicBattleView battle={normalized} settings={settings}
    participants={participants||[]} currentUid={uid} perspective={view}
    setPerspective={setView} moveDraft={orders} setMoveDraft={setOrders}
-   submit={submit} hostForce={force} busy={busy} isHost={isHost}/>;
+   submit={submit} hostForce={force} busy={busy} isHost={isHost} onContinue={onContinue} onMinimize={onMinimize}/>;
 }
 
 export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getPlayerData,updateLocalStats}){
@@ -153,17 +155,19 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
  if(old.status!=='lobby')return null;
  const entrants=makeEventEntrants(players,old.bots,old.settings,old.pairOrder),matches=makeEventBracket(entrants);
  const map=Object.fromEntries([...players,...old.bots].map(p=>[p.id||p.uid,p]));
- const battle=simulateBots(buildEventBattle(nextEventMatch(matches),map,old.settings),old.settings,old.bots);
- return{status:'running',entrants,matches:battle.finished?completeEventMatch(matches,battle.matchId,battle.winner):matches,activeBattle:battle};
+ const battle=buildEventBattle(nextEventMatch(matches),map,old.settings);
+ return{status:'running',entrants,matches:battle.finished?completeEventMatch(matches,battle.matchId,battle.winner):matches,activeBattle:battle,displayPhase:'battle'};
  }));
+ const showBracket=()=>operate(()=>hostUpdate(activeId,uid,old=>
+   ['running','finished'].includes(old.status)&&old.activeBattle?.finished?{displayPhase:'bracket'}:null));
  const next=()=>operate(()=>hostUpdate(activeId,uid,old=>{
- if(old.status!=='running'||!old.activeBattle?.finished)return null;
+ if(old.status!=='running'||!old.activeBattle?.finished||old.displayPhase!=='bracket')return null;
  const match=nextEventMatch(old.matches);if(!match)return null;
  const map=Object.fromEntries([...players,...old.bots].map(p=>[p.id||p.uid,p]));
- const battle=simulateBots(buildEventBattle(match,map,old.settings),old.settings,old.bots);
+ const battle=buildEventBattle(match,map,old.settings);
  const matches=battle.finished?completeEventMatch(old.matches,match.id,battle.winner):old.matches;
  const placements=eventPlacements(matches,old.entrants);
- return{activeBattle:battle,matches,...(placements?{status:'finished',placements}: {})};
+ return{activeBattle:battle,matches,displayPhase:'battle',...(placements?{status:'finished',placements}: {})};
  }));
  const force=()=>operate(()=>hostUpdate(activeId,uid,old=>{
  const b=old.activeBattle;if(old.status!=='running'||!b||b.finished)return null;
@@ -186,6 +190,10 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
    if(!b.owners[b.side].filter(id=>activeOwners.has(id)).every(id=>bots.has(id)||commands[id]))return;
    resolving.current=true;
    try{
+    // Mostra ogni turno delle lotte CPU, invece di saltare direttamente
+    // dal sorteggio al vincitore. Tempo minimo per vedere il combattimento.
+    if(activeOwners.size>0 && [...activeOwners].every(id=>bots.has(id)))
+      await new Promise(resolve=>setTimeout(resolve,1800));
     await hostUpdate(activeId,uid,old=>{
      if(old.status!=='running'||old.activeBattle?.turn!==b.turn||old.activeBattle?.matchId!==b.matchId)return null;
      const all={...commands};for(const id of b.owners[b.side])if(bots.has(id))all[id]=botActions(b,id,old.settings);
@@ -231,7 +239,8 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
  {mine&&<div className={card}><h2 className="font-black text-xl">La tua squadra ({mine.ready?mine.teamIds.length:draft.length}/{event.settings.teamSize})</h2>
  {mine.ready?<div className="flex flex-wrap gap-2 mt-3">{mine.teamIds.map(id=><div key={id} className="bg-slate-950 rounded-xl p-2 flex gap-2 items-center text-xs"><img src={index[id]?.img} alt="" className="w-10 h-10 rounded-full object-cover"/>{index[id]?.name}</div>)}</div>:<>
  <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-8 xl:grid-cols-12 gap-2 mt-3 max-h-80 overflow-y-auto">{owned.map(c=><button key={c.id} onClick={()=>setDraft(prev=>prev.includes(c.id)?prev.filter(x=>x!==c.id):prev.length<event.settings.teamSize?[...prev,c.id]:prev)} className={`rounded-xl border p-2 text-center ${draft.includes(c.id)?'border-fuchsia-400 bg-violet-950':'border-slate-700 bg-slate-950'}`}><img src={c.img} alt="" className="w-12 h-12 mx-auto rounded-full object-cover"/><span className="text-[10px] font-bold truncate block">{c.name}</span></button>)}</div>
- {event.settings.allowItems&&<div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-3">{draft.map(id=><label key={id} className="text-xs">{index[id]?.name}<select className={inp} value={held[id]||''} onChange={e=>setHeld(v=>({...v,[id]:e.target.value}))}><option value="">Nessuno</option>{(getPlayerData().inventory?.iperband||0)>0&&<option value="iperband">Iperband</option>}</select></label>)}</div>}
+ {event.settings.allowItems&&<div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-3">{draft.map(id=><label key={id} className="text-xs">{index[id]?.name}<select className={inp} value={held[id]||''} onChange={e=>setHeld(v=>({...v,[id]:e.target.value}))}><option value="">Nessuno</option>{HELD_ITEM_IDS.filter(id=>(getPlayerData().inventory?.[id]||0)>0).map(id=>
+    <option key={id} value={id}>{ITEMS_DB[id]?.name||id}</option>)}</select></label>)}</div>}
  <button className={`${btn} mt-4`} disabled={busy||draft.length!==event.settings.teamSize} onClick={save}>Conferma squadra · Pronto!</button>
  </>}</div>}
  {isHost&&<div className={`${card} border-amber-400/40 space-y-3`}><div className="flex justify-between"><h2 className="text-xl text-amber-300 font-black">Pannello host</h2><button className={gray} onClick={()=>operate(async()=>{await cancelAndPurgeEvent(activeId,uid);setId('');setEvent(null);open(false);})}>Annulla evento</button></div>
@@ -246,10 +255,18 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
  <div className={card}><h3 className="font-black">Iscritti</h3><div className="flex flex-wrap gap-2 mt-2">{[...players,...event.bots].map(p=><span key={p.uid||p.id} className="rounded-lg px-3 py-2 border border-slate-700 text-xs">{p.name} {p.ready?'✅':'⌛'}</span>)}</div></div>
  </>}
  {event.status!=='lobby'&&<>
- <div className={card}><h2 className="text-xl font-black mb-3">Bracket del Multiverso</h2><Bracket matches={event.matches} current={event.activeBattle?.matchId}/></div>
- {event.activeBattle&&<Arena key={event.activeBattle.matchId+'-'+event.activeBattle.turn} participants={[...players,...event.bots.map(b=>({uid:b.id,name:b.name}))]} battle={event.activeBattle} settings={event.settings} uid={uid} view={perspective} setView={setPerspective} orders={orders} setOrders={setOrders} submit={send} force={force} isHost={isHost} busy={busy}/>}
- {isHost&&event.status==='running'&&event.activeBattle?.finished&&<button className={btn} onClick={next} disabled={busy}>Avvia il prossimo incontro →</button>}
- {event.status==='finished'&&event.placements&&<div className={`${card} border-amber-400/50 text-center`}><h2 className="text-3xl text-amber-300 font-black mb-3">🏆 Il Torneo è finito!</h2>
+ {(event.displayPhase==='bracket'||!event.activeBattle)&&
+   <div className={card}><h2 className="text-xl font-black mb-3">Bracket del Multiverso</h2>
+   <Bracket matches={event.matches} current={event.activeBattle?.matchId}/></div>}
+ {event.activeBattle&&event.displayPhase!=='bracket'&&
+   <Arena key={event.activeBattle.matchId+'-'+event.activeBattle.turn}
+     participants={[...players,...event.bots.map(b=>({uid:b.id,name:b.name}))]}
+     battle={event.activeBattle} settings={event.settings} uid={uid}
+     view={perspective} setView={setPerspective} orders={orders} setOrders={setOrders}
+     submit={send} force={force} isHost={isHost} busy={busy} onContinue={showBracket} onMinimize={()=>open(false)}/>}
+ {isHost&&event.status==='running'&&event.activeBattle?.finished&&event.displayPhase==='bracket'&&
+   <button className={btn} onClick={next} disabled={busy}>Avvia il prossimo incontro →</button>}
+ {event.status==='finished'&&event.displayPhase==='bracket'&&event.placements&&<div className={`${card} border-amber-400/50 text-center`}><h2 className="text-3xl text-amber-300 font-black mb-3">🏆 Il Torneo è finito!</h2>
  {event.entrants.map(e=><div key={e.id} className="p-2 border-b border-slate-700 text-sm">{e.name} · #{event.placements.entrants[e.id]||4} · {EVENT_PRIZES[event.placements.entrants[e.id]]||50} monete</div>)}
  <p className="text-slate-400 mt-3 text-xs">I premi vengono accreditati una volta per evento nel profilo locale.</p></div>}
  </>}
