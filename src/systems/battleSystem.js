@@ -319,7 +319,12 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
             Object.entries(teams).forEach(([player,team])=>{
                 const levels=gameState.playerStrength?.[player];
                 if(!levels || gameState.isBot?.[player] || !Array.isArray(team))return;
-                teams[player]=team.map(char=>applyStrengthToFighter(char,levels));
+                const owned=gameState.playerStrengthOwned?.[player]||[];
+                teams[player]=team.map(char=>{
+                    const isOwned=char && !char.isSecretUnlock && !char.isSummonOnly && !char.fusionOf &&
+                        (!char.price || owned.includes(char.id));
+                    return isOwned?applyStrengthToFighter(char,levels):char;
+                });
             });
             // I bonus delle gemme si ricaricano tra partite diverse.
             // Il loro acquisto nel profilo rimane permanente.
