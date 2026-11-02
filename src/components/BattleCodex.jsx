@@ -169,6 +169,9 @@ export function BattleCodexLauncher({ gameState }) {
                   <span className="text-xs text-slate-400">Nessun effetto di questa categoria attualmente visibile.</span>}
               </div>
             </div>}
+          {tab==='positive'&&<div className="mb-3 rounded-xl border border-emerald-500/40 bg-emerald-950/20 p-3 text-xs text-emerald-100">
+            Bilanciamento: i potenziamenti si sommano rispetto alla statistica base, senza moltiplicarsi tra loro. Esempio: due +30% diventano +60% totale, non +69%. Limite cumulativo +100% per Attacco, Difesa e Velocità, compresi i bonus dalle passive. Il limite dei malus ripetuti è −50%. Le trasformazioni Iper e i bonus speciali dei boss seguono regole proprie.
+          </div>}
           {tab==='priority'&&<div className="mb-3 rounded-xl border border-amber-600/40 bg-amber-950/20 p-3 text-xs text-amber-100">
             Le mosse con priorità maggiore agiscono prima, anche contro avversari più veloci. A parità di priorità conta la Velocità. Alcune passive, come Trasmutazione Rapida di Alphonse, aggiungono priorità situazionale.
           </div>}
