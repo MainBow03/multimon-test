@@ -29,6 +29,7 @@ import { renderPreBattleView } from './screens/battle/PreBattleView.jsx';
 import { handleForceSkipImpl, handleObserveImpl, applyOnEnterPassiveImpl, startBattleImpl, generateCPUActionsForPlayerImpl, commitActionImpl, handleSelectMoveTargetImpl, checkTurnReadyImpl, calculateDamageImpl, calculateTurnImpl, playEventsAnimationImpl } from './systems/battleSystem.js';
 import { loadCampaignImpl, advanceCampaignImpl } from './systems/campaignFlow.js';
 import { reconcileCampaignRoster } from './systems/campaignRoster.js';
+import { nextCampaignCommandIndex, shouldRecoverCampaignCommand } from './systems/campaignBattleRecovery.js';
 import { handleAvatarUploadImpl, leaveRoomImpl, handleConfirmLeaveImpl, updateStateImpl, getRequiredPlayersImpl, getActivePlayersImpl, isAllPlayersJoinedImpl, handleCreateRoomImpl, handleJoinRoomImpl, commitReplacementChoiceImpl, handleAddBotImpl, handleRemovePlayerImpl, handleLocalStartImpl, handleVsCpuStartImpl, handlePickImpl, handleDraftRerollImpl, handleSharedPickImpl } from './systems/multiplayerSystem.js';
 import { updateLocalStatsImpl } from './systems/profileSystem.js';
 import { equippedMasteryTitle, masteryVisibleLevels } from './systems/masterySystem.js';
@@ -1184,6 +1185,24 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               }
           }, [gameState.status, isPlayingEvents, appMode, playerRole, gameState.field, gameState.actions, commandingIdx, gameState.isBot, gameState.teams]);
 
+          // La campagna e' locale: al rematch non esiste un altro giocatore
+          // da aspettare. Se il comando resta su -1 o su un personaggio non
+          // selezionabile, riattiviamo il primo Multimon vivo e senza azione.
+          // La stessa protezione nelle stanze online e' gestita sopra.
+          useEffect(() => {
+              if (appMode !== 'local_room' || !gameState.isCampaignBattle ||
+                  gameState.status !== 'battling' || isPlayingEvents || playerRole !== 'p1') return;
+              if (!shouldRecoverCampaignCommand(gameState,'p1',commandingIdx)) return;
+              const nextIdx=nextCampaignCommandIndex(gameState,'p1');
+              if (nextIdx < 0) return;
+              setCommandingIdx(nextIdx);
+              setActionMenuMode('moves');
+              setTargetingMoveIdx(null);
+              setSelectedMultiTargets([]);
+          }, [appMode, gameState.status, gameState.isCampaignBattle,
+              gameState.field, gameState.teams, gameState.actions,
+              isPlayingEvents, playerRole, commandingIdx]);
+
           const updateState = (...__args) => updateStateImpl({ appId, appMode, db, doc, roomId, setGameState, updateDoc }, ...__args);
 
           const getRequiredPlayers = (...__args) => getRequiredPlayersImpl({  }, ...__args);
@@ -1408,7 +1427,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (appMode === 'campaign_team_select') {
-  const __screen = renderCampaignTeamSelectView({ ITEMS_DB, campaignHeldItems, setCampaignHeldItems, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue });
+  const __screen = renderCampaignTeamSelectView({ ITEMS_DB, campaignHeldItems, setCampaignHeldItems, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue });
   if (__screen !== undefined) return __screen;
 }
 

@@ -1,8 +1,9 @@
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { canEquipHeldItem } from '../../systems/heldEquipment.js';
+import { initialCampaignField } from '../../systems/campaignBattleRecovery.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
-const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
+const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
 if (appMode === 'campaign_team_select') {
         const equipInventory = getPlayerData().inventory || {};
         const assignCampaignItem = (id, itemId) => {
@@ -353,12 +354,12 @@ if (appMode === 'campaign_team_select') {
                 const isOldM24Save = mission.id === 'm24' && campaignState.currentBossState.length <= 2 && !campaignState.currentBossState.some(c => ['piantacarnivora', 'cespugliomaledetto', 'alberto', 'fioretenebroso'].includes(c.id));
                 
                 if (!isOldM24Save) {
-                    isValidSavedBoss = (mission.isAnomaly && mission.id === 'm12_5') || campaignState.currentBossState.some(c => activeBosses.includes(c.id));
+                    isValidSavedBoss = campaignState.currentBossState.some(c => Number(c.hp) > 0 && ((mission.isAnomaly && mission.id === 'm12_5') || activeBosses.includes(c.id)));
                 }
             }
 
             if (isValidSavedBoss) {
-                p2Team = campaignState.currentBossState.map(savedC => {
+                p2Team = campaignState.currentBossState.filter(savedC => Number(savedC.hp) > 0).map(savedC => {
                     let baseChar = CHARACTERS.find(c => c.id === savedC.id);
                     if (!baseChar) baseChar = CHARACTERS.find(c => c.id === 'scheletro');
                     
@@ -511,8 +512,8 @@ if (appMode === 'campaign_team_select') {
 
             state.teams = { p1: p1Team, p2: p2Team, p3: [], p4: [] };
             state.field = { 
-                p1: p1Team.slice(0, state.settings.fieldSize).map((_, i) => i), 
-                p2: p2Team.slice(0, state.settings.fieldSize).map((_, i) => i),
+                p1: initialCampaignField(p1Team, state.settings.fieldSize),
+                p2: initialCampaignField(p2Team, state.settings.fieldSize),
                 p3: [], p4: []
             };
             
@@ -540,8 +541,18 @@ if (appMode === 'campaign_team_select') {
 
             state.status = 'pre_battle';
             
+            // Nuovo scontro dopo una sconfitta: elimina la UI/animazione
+            // rimasta dal combattimento precedente. Non servono altri giocatori.
             setCombatLog([]);
             setIsLogOpen(false);
+            setIsPlayingEvents(false);
+            setEventPlaybackText('');
+            setEventPlaybackPassive(null);
+            setActionMenuMode('moves');
+            setTargetingMoveIdx(null);
+            setSelectedMultiTargets([]);
+            setPendingHyper(false);
+            setCommandingIdx(0);
 
             setGameState(state);
             setPlayerRole('p1');

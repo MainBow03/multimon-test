@@ -150,7 +150,7 @@ export const MOVES_DB = {
           'Faccino carino!': { name: 'Faccino carino!', type: 'Normale', power: 0, maxUses: 3, targetStatDebuff: { atk: 0.5 }, desc: 'Sfrutta la tenerezza per abbassare la guardia del nemico, dimezzandone permanentemente l\'Attacco. (3 utilizzi)' },
           'Tsunami dolce': { name: 'Tsunami dolce', type: 'Acqua', power: 80, desc: 'Travolge il nemico con una massiccia e inaspettata onda zuccherata.' },
 
-          'Pugno Minerale': { name: 'Pugno Minerale', type: 'Terra', power: 60, desc: 'Un colpo fisico durissimo sferrato tramutando il proprio braccio in pietra massiccia.' },
+          'Pugno Minerale': { name: 'Pugno Minerale', type: 'Terra', power: 80, desc: 'Un colpo fisico durissimo sferrato tramutando il proprio braccio in pietra massiccia.' },
           'Frana Impattante': { name: 'Frana Impattante', type: 'Roccia', power: 50, targetCount: 2, statusEffect: { type: 'Stordito', chance: 0.3 }, desc: 'Fa precipitare massi enormi dall\'alto. Colpisce fino a 2 nemici e ha il 30% di probabilità di stordirli.' },
           'Assorbimento grezzo': { name: 'Assorbimento grezzo', type: 'Terra', power: 0, maxUses: 3, targetStatDebuff: { atk: 0.7 }, selfHeal: 0.2, desc: 'Assorbe l\'essenza del nemico: ne riduce l\'Attacco del 30% e cura Kevin del 20% dei suoi PS massimi. (3 utilizzi)' },
           'Carica selvaggia': { name: 'Carica selvaggia', type: 'Normale', power: 110, statusEffect: { type: 'Confuso', chance: 0.10 }, desc: 'Si scaglia a testa bassa contro l\'avversario con una carica a tutta velocità. 10% di probabilità di confondere.' },
