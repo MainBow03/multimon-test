@@ -20,6 +20,7 @@ import { renderShopView } from './screens/hub/ShopView.jsx';
 import { StrengthLabView } from './screens/hub/StrengthLabView.jsx';
 import { migrateCampaignChests } from './systems/campaignChests.js';
 import { CampaignChestsView } from './screens/hub/CampaignChestsView.jsx';
+import { PowerChestsView } from './screens/hub/PowerChestsView.jsx';
 import { renderStatsView } from './screens/hub/StatsView.jsx';
 import { renderTypeChartView } from './screens/hub/TypeChartView.jsx';
 import { renderCatalogView } from './screens/hub/CatalogView.jsx';
@@ -451,7 +452,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const [roguelikeState, setRoguelikeState] = useState(() => {
               const saved = localStorage.getItem('multiverse_rpg_roguelike_save');
               if (saved) {
-                  try { return JSON.parse(saved); } catch(e){}
+                  try {
+                      const run=JSON.parse(saved);
+                      if(run?.isStarted && !run.runId)run.runId='legacy-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
+                      return run;
+                  } catch(e){}
               }
               return { isStarted: false, floor: 1, roster: [], rosterStats: {}, maxFloor: 50, coins: 0, inventory: {}, isMerchantNext: false, recruitBonus: 0.02, relics: [], encounteredEnemies: [] };
           });
@@ -1462,7 +1467,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (appMode === 'roguelike_map') {
-  const __screen = renderRoguelikeMapView({ CHARACTERS, ChevronRight, Coins, Heart, ITEMS_DB, LogOut, Swords, Users, appMode, initialGameState, playerName, renderHealthBar, roguelikeState, setAppMode, setGameState, setPlayerRole, setRoguelikeState, setSystemAlert });
+  const __screen = renderRoguelikeMapView({ CHARACTERS, ChevronRight, Coins, Heart, ITEMS_DB, LogOut, Swords, Users, appMode, initialGameState, playerName, renderHealthBar, roguelikeState, setAppMode, setGameState, setPlayerRole, setRoguelikeState, setSystemAlert, updateLocalStats });
   if (__screen !== undefined) return __screen;
 }
     // --- FINE NUOVE PAGINE ---
@@ -1475,6 +1480,15 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
     if (appMode === 'chests') {
   return <CampaignChestsView profile={getPlayerData()} onOpen={()=>updateLocalStats({openCampaignChest:true})}
     onAcknowledge={()=>updateLocalStats({acknowledgeChestReveal:true})}
+    onTutorialComplete={type=>updateLocalStats({completeFinnTutorial:type})}
+    onBack={()=>setAppMode('menu')}/>;
+}
+
+    if (appMode === 'power_chests') {
+  return <PowerChestsView profile={getPlayerData()}
+    onOpen={()=>updateLocalStats({openPowerChest:true})}
+    onAcknowledge={()=>updateLocalStats({acknowledgePowerChest:true})}
+    onTutorialComplete={type=>updateLocalStats({completeFinnTutorial:type})}
     onBack={()=>setAppMode('menu')}/>;
 }
 
