@@ -2299,9 +2299,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             events.push({ type: 'text', text: `${attacker.name} usa ${move.name} su ${t.char.name}... ma ${absTxt} (${t.char.juggHitsRemaining} cariche scudo rimaste)` });
                         } else if (totalDmg > 0) {
                             let shieldTxt = juggHitsAbsorbed > 0 ? ` (Lo scudo ha assorbito ${juggHitsAbsorbed} colpi).` : '';
-                            const hpBeforeAttack=t.char.hp;
+                            const previousDamageTaken=t.char.damageTakenThisTurn||0;
                             applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText}${hitText}${magText}${groppaText} Infligge ${totalDmg} danni.${shieldTxt}`, {directAttack:true,bypassShields:bypassEnemyShields});
-                            if(isEnemyTarget && t.char.hp<hpBeforeAttack){
+                            if(isEnemyTarget && t.char.hp>0 && (t.char.damageTakenThisTurn||0)>previousDamageTaken){
                               if(activateCupidArrow(attacker,move,t.char)){
                                 updateStatusUI(t.player,t.idx);
                                 events.push({type:'text',text:`💘 Freccia di Cupido! ${t.char.name} è infatuato!`});
