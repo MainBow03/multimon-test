@@ -135,6 +135,22 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const [draftSearch, setDraftSearch] = useState('');
           const [draftFilterType, setDraftFilterType] = useState('Tutti');
           const [draftSort, setDraftSort] = useState('default');
+          const [draftRole, setDraftRole] = useState('all');
+          const [draftPrice, setDraftPrice] = useState('all');
+          const [draftFavoritesOnly, setDraftFavoritesOnly] = useState(false);
+          const [draftFavorites, setDraftFavorites] = useState(() => {
+            try {
+              const stored=JSON.parse(localStorage.getItem('multimon_team_favorites_v1')||'[]');
+              return Array.isArray(stored)?stored.filter(id=>typeof id==='string'):[];
+            }catch{return [];}
+          });
+          const toggleDraftFavorite = id => {
+            setDraftFavorites(old => {
+              const next=old.includes(id)?old.filter(x=>x!==id):[...old,id];
+              try{localStorage.setItem('multimon_team_favorites_v1',JSON.stringify(next));}catch{}
+              return next;
+            });
+          };
 
           const [resolutionDialogues, setResolutionDialogues] = useState([]);
           const [resolutionDialogueIdx, setResolutionDialogueIdx] = useState(0);
@@ -1449,7 +1465,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (gameState.status === 'drafting') {
-  const __screen = renderDraftingView({ ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState });
+  const __screen = renderDraftingView({ ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftRole, setDraftRole, draftPrice, setDraftPrice, draftFavorites, draftFavoritesOnly, setDraftFavoritesOnly, toggleDraftFavorite, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState });
   if (__screen !== undefined) return __screen;
 }
 
