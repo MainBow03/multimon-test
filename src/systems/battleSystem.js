@@ -1617,6 +1617,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                       attacker.atk = attacker.baseAtk;
                       attacker.def = attacker.baseDef;
                       attacker.spd = attacker.baseSpd;
+                      // La Clessidra è un bonus per tutta la battaglia:
+                      // non deve sparire al cambio, unlike ordinary stat buffs.
+                      if(attacker.heldItem==='clessidra_rapidita'&&attacker.hourglassUsed)
+                        applyBattleStatModifier(attacker,'spd',1.2);
                       attacker.acc = 1.0;
                       attacker.consecutiveProtect = 0;
 
