@@ -1,9 +1,10 @@
 import React,{useMemo,useState} from 'react';
+import { ScientistTutorial } from './ScientistTutorial.jsx';
 import { STRENGTH_STATS,STRENGTH_MAX_LEVEL,canTrainCharacter,strengthSummary,strengthTotalLevels } from '../../systems/strengthLab.js';
 
 // Il laboratorio è una schermata persistente, non un semplice popup.
 // Legge i livelli dal profilo e mostra le statistiche previste in battaglia.
-export function StrengthLabView({characters,profile,onUpgrade,onBack}){
+export function StrengthLabView({characters,profile,onUpgrade,onTutorialUpgrade,onTutorialStep,onTutorialComplete,onBack}){
   const [search,setSearch]=useState('');
   const [selected,setSelected]=useState(null);
   const [filter,setFilter]=useState('all');
@@ -134,7 +135,9 @@ export function StrengthLabView({characters,profile,onUpgrade,onBack}){
       </div>
       <footer className="text-xs text-slate-400 text-center">Livelli acquistati: {levelsEarned} · Tutti i profili iniziano con 0 Punti Forza. Le prossime attività potranno assegnarne.</footer>
     </div>
-    {notice&&<div role="status" className="fixed left-1/2 bottom-4 -translate-x-1/2 z-[300] bg-slate-950 border border-cyan-400 text-cyan-200 shadow-2xl rounded-xl p-4 text-sm font-bold max-w-[90vw]">
+    {!profile?.strengthLabIntroSeen&&<ScientistTutorial profile={profile} characters={characters}
+      onStep={onTutorialStep} onFreeUpgrade={onTutorialUpgrade} onComplete={onTutorialComplete}/>}
+        {notice&&<div role="status" className="fixed left-1/2 bottom-4 -translate-x-1/2 z-[300] bg-slate-950 border border-cyan-400 text-cyan-200 shadow-2xl rounded-xl p-4 text-sm font-bold max-w-[90vw]">
       {notice}<button onClick={()=>setNotice('')} className="ml-4 text-slate-400" aria-label="Chiudi notifica">✕</button>
     </div>}
     {confirmation&&<div className="fixed inset-0 z-[310] bg-black/85 backdrop-blur-md grid place-items-center p-4" role="dialog" aria-modal="true" aria-label="Conferma potenziamento">
