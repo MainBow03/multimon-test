@@ -404,17 +404,18 @@ if (appMode === 'campaign_team_select') {
                     }
                     
                     // RIPRISTINO ABILITA' DA SUPER-BOSS (JUGGERNAUT, SCUDO E PURIFICAZIONE PASSIVA)
-                    if (savedC.isJuggernaut || (isFinalRaid && (charInst.id === 'trigon' || charInst.id === 'gaster'))) {
+                    if (savedC.isJuggernaut || (isFinalRaid && (charInst.id === 'trigon' || charInst.id === 'gaster')) || (isEchoFinalRaid && charInst.id==='echomax')) {
                          charInst.isJuggernaut = true;
                          charInst.juggTurnCount = savedC.juggTurnCount || 0;
                          const raidBalance=isFinalRaid?finalRaidBossStats(charInst.id):null;
                          charInst.juggHitsRemaining = raidBalance
                              ? Math.min(raidBalance.shieldHits,Math.max(0,savedC.juggHitsRemaining||0))
                              : (savedC.juggHitsRemaining||0);
-                         charInst.shieldGrantedHits = raidBalance?.shieldHits || savedC.shieldGrantedHits || 4;
+                         charInst.shieldGrantedHits = isEchoFinalRaid ? 8 : (raidBalance?.shieldHits || savedC.shieldGrantedHits || 4);
+                         if(isEchoFinalRaid && charInst.id==='echomax')charInst.isEchoRaidBoss=true;
                          
                          const hpRatio = charInst.hp / charInst.maxHp;
-                         charInst.juggShieldHpThresholds = [0.75, 0.50, 0.25].filter(t => t < hpRatio);
+                         charInst.juggShieldHpThresholds = (isEchoFinalRaid?[0.8,0.6,0.4,0.2]:[0.75, 0.50, 0.25]).filter(t => t < hpRatio);
                     }
 
                     return charInst;
