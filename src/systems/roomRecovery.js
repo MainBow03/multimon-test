@@ -1,5 +1,6 @@
 // Prevenzione soft-lock nelle battaglie multigiocatore.
 // Pure helpers: usati dal motore, dai client online e dai test.
+import { markRapidTransmutationEntry,activateHealingSprout } from './newHeldAndPassiveEffects.js';
 export const ROOM_PHASE_TIMEOUT_MS = 120000;
 export const ROOM_HOST_TIMEOUT_MS = 45000;
 export const ROOM_SESSION_KEY = 'multiverse_rpg_session';
@@ -110,6 +111,7 @@ export function resolveSwitchingRoom(room,players,now=Date.now(),force=false,app
   for(const i of choices[p]||[]){
    if(field[p].includes(i)||!playable(teams[p]?.[i]))continue;
    field[p].push(i);teams[p][i].revealed=true;
+   markRapidTransmutationEntry(teams[p][i]);
    events.push({type:'switch',player:p,pos:field[p].length-1,newIdx:i,
      text:teams[p][i].name+' entra in campo dopo il KO!'});
    if(typeof applyOnEnter==='function' && teams[p][i].passive?.type==='on_enter' &&
@@ -121,6 +123,9 @@ export function resolveSwitchingRoom(room,players,now=Date.now(),force=false,app
    if(room.fieldTraps?.[p]&&teams[p][i].hp>0){
     const damage=Math.max(1,Math.floor(teams[p][i].maxHp*.1));
     teams[p][i].hp=Math.max(0,teams[p][i].hp-damage);
+    const healed=activateHealingSprout(teams[p][i]);
+    if(healed)events.push({type:'damage',targetPlayer:p,targetIdx:i,newHp:teams[p][i].hp,
+       text:'Germoglio Curativo: '+teams[p][i].name+' recupera '+healed+' PS!' });
     events.push({type:'damage',targetPlayer:p,targetIdx:i,newHp:teams[p][i].hp,
       text:'Trappola Segreta: '+teams[p][i].name+' perde '+damage+' PS entrando in campo!'});
     if(!teams[p][i].hp){

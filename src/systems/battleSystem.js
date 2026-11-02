@@ -4,6 +4,9 @@ import { ignoresShields, immuneToStatDrops, powerForAccordo, effectiveTaserPower
   incomingRockEnchantmentFactor, affectedOpponents, addStickyTrap, trapEntries,
   stickyTrapEntryDamage } from './rockstarAgentEffects.js';
 import { getHeldPowerFactor, getHeldRecoil, getHeldEvasion, getHeldEndTurnHeal, useHeldGem, getMahitoMultiplier, canDistortSoul, getDistortedSoulDamage } from './heldEquipment.js';
+import { activateHealingSprout, activateNeutralizingSpray, activateCupidArrow,
+ blockedEnemyPassive, rapidTransmutationPriority, markRapidTransmutationEntry,
+ endRapidTransmutationTurn, immuneToCritical, hannibalCanDebuff, isNegativeStatus } from './newHeldAndPassiveEffects.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleForceSkipImpl = (ctx) => {
 const { calculateTurn, gameState, generateCPUActionsForPlayer, getActivePlayers, isCalculatingRef, setActionMenuMode, setCommandingIdx, setPendingHyper, setSystemAlert, setTargetingMoveIdx, updateState } = ctx;
@@ -190,7 +193,7 @@ const { CHARACTERS } = ctx;
                           if (workingField[ep]) {
                               workingField[ep].forEach(eIdx => {
                                   const enemy = workingTeams[ep][eIdx];
-                                  if (enemy && enemy.hp > 0 && !immuneToStatDrops(enemy)) {
+                                  if (enemy && enemy.hp > 0 && !immuneToStatDrops(enemy) && !blockedEnemyPassive(enemy)) {
                                       if (char.passive.enemyStatDebuff.atk) {
                                           if (enemy.passive && enemy.passive.type === 'immune_to_atk_debuff') {
                                               eventsArr.push({ type: 'text', text: `🛡️ ${enemy.name} è immune al calo di Attacco grazie a ${enemy.passive.name}!`, isPassive: true, passiveChar: enemy.name, passiveName: enemy.passive.name });
@@ -238,7 +241,7 @@ const { CHARACTERS } = ctx;
                           if (workingField[ep]) {
                               workingField[ep].forEach(eIdx => {
                                   const enemy = workingTeams[ep][eIdx];
-                                  if (enemy && enemy.hp > 0) {
+                                  if (enemy && enemy.hp > 0 && !blockedEnemyPassive(enemy)) {
                                       possibleTargets.push({ player: ep, idx: eIdx, char: enemy });
                                   }
                               });
@@ -249,8 +252,8 @@ const { CHARACTERS } = ctx;
                           const sType = char.passive.applyStatusToRandomEnemy.type;
                           
                           const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'].includes(sType);
-                          if (isNegative && rTarget.char.passive && rTarget.char.passive.immuneToNegativeStatuses) {
-                              eventsArr.push({ type: 'text', text: `🛡️ ${char.name} attiva ${char.passive.name}, ma ${rTarget.char.name} è immune a ${sType} grazie a ${rTarget.char.passive.name}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
+                          if (isNegative && (rTarget.char.passive?.immuneToNegativeStatuses || blockedEnemyPassive(rTarget.char))) {
+                              eventsArr.push({ type: 'text', text: `🛡️ ${char.name} attiva ${char.passive.name}, ma ${rTarget.char.name} è immune a ${sType} grazie a ${rTarget.char.passive?.name||'Scudo Anti-Magia'}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                           } else {
                               const existingIdx = rTarget.char.statuses.findIndex(s => s.type === sType);
                               if (existingIdx === -1) {
@@ -259,6 +262,8 @@ const { CHARACTERS } = ctx;
                                   rTarget.char.statuses[existingIdx].turns = char.passive.applyStatusToRandomEnemy.turns || 1;
                               }
                               eventsArr.push({ type: 'text', text: `🔥 ${char.name} attiva ${char.passive.name}! ${rTarget.char.name} subisce lo status ${sType}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
+                              const spray=activateNeutralizingSpray(rTarget.char);
+                              if(spray.length)eventsArr.push({type:'text',text:`🧴 Spray Neutralizzante di ${rTarget.char.name}: rimuove ${spray.join(', ')}!`});
                               eventsArr.push({ type: 'status_update', targetPlayer: rTarget.player, targetIdx: rTarget.idx, statuses: JSON.parse(JSON.stringify(rTarget.char.statuses)) });
                           }
                       }
@@ -270,7 +275,7 @@ const { CHARACTERS } = ctx;
                           if (workingField[ep]) {
                               workingField[ep].forEach(eIdx => {
                                   const enemy = workingTeams[ep][eIdx];
-                                  if (enemy && enemy.hp > 0 && !immuneToStatDrops(enemy)) {
+                                  if (enemy && enemy.hp > 0 && !immuneToStatDrops(enemy) && !blockedEnemyPassive(enemy)) {
                                       possibleTargets.push({ player: ep, idx: eIdx, char: enemy });
                                   }
                               });
@@ -307,7 +312,10 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
             const teams = JSON.parse(JSON.stringify(isCustomDraft ? customDraft : gameState.draft));
             // I bonus delle gemme si ricaricano tra partite diverse.
             // Il loro acquisto nel profilo rimane permanente.
-            Object.values(teams).forEach(team=>(team||[]).forEach(char=>{char.gemSpent=false;}));
+            Object.values(teams).forEach(team=>(team||[]).forEach(char=>{
+              char.gemSpent=false;char.healingSproutUsed=false;char.neutralizingSprayUsed=false;
+              char.rapidTransmutationReady=false;char.rapidTransmutationFresh=false;
+            }));
             let fieldSize = gameState.settings.fieldSize;
             if (gameState.gameMode === 'multipla') fieldSize = 1; 
             
@@ -406,6 +414,7 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
                     initialField.forEach(idx => {
                         if (teams[p][idx]) {
                             teams[p][idx].revealed = true;
+                            markRapidTransmutationEntry(teams[p][idx]);
                             
                             // GESTIONE ABILITÀ PASSIVE 'on_enter' (Allo start della battaglia)
                             const char = teams[p][idx];
@@ -1050,6 +1059,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 
                 target.damageTakenThisTurn = (target.damageTakenThisTurn || 0) + dmg;
                 events.push({ type: 'damage', text: text, targetPlayer, targetIdx, newHp: target.hp });
+                const sproutHeal=activateHealingSprout(target);
+                if(sproutHeal)events.push({type:'damage',targetPlayer,targetIdx,newHp:target.hp,
+                   text:`🌱 Germoglio Curativo di ${target.name}: recupera ${sproutHeal} PS! (Attivazione unica)`});
                 
                 if (willSurvive) {
                     events.push({ type: 'text', text: `🛡️ ${target.name} stringe i denti! Resiste al colpo fatale grazie a "${target.passive.name}" e resta con 1 PS!`, isPassive: true, passiveChar: target.name, passiveName: target.passive.name });
@@ -1103,6 +1115,25 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             events.push({ type: 'text', text: `🔥 ${target.name} attiva ${target.passive.name}! Aumenta ${statTexts.join(" e ")}!`, isPassive: true, passiveChar: target.name, passiveName: target.passive.name });
                         }
 
+                        // Cyborg conserva la precedente scarica di Malfunzionamento,
+                        // ma lo Scudo Anti-Magia blocca gli effetti negativi
+                        // prodotti da passive nemiche.
+                        if(target.passive.aoeDamagePercentMaxHp){
+                            const enemies=affectedOpponents(targetPlayer,gameState.gameMode,
+                              activeMatchPlayers,getTournamentMatchOpponents,gameState.settings);
+                            for(const ep of enemies)for(const eIdx of workingField[ep]||[]){
+                                const enemy=workingTeams[ep]?.[eIdx];
+                                if(!enemy||enemy.hp<=0)continue;
+                                if(blockedEnemyPassive(enemy)){
+                                    events.push({type:'text',text:`🛡️ ${enemy.name} evita la scarica di ${target.name} grazie allo Scudo Anti-Magia!`});
+                                    continue;
+                                }
+                                const passiveDmg=Math.max(1,Math.floor(enemy.maxHp*target.passive.aoeDamagePercentMaxHp));
+                                applyDamage(enemy,passiveDmg,ep,eIdx,
+                                  `⚡ ${target.name} attiva ${target.passive.name}: ${enemy.name} perde ${passiveDmg} PS!`);
+                            }
+                        }
+
                         // AGGIUNTO: GESTIONE PURIFICAZIONE STATUS (es. Zazan - Corazza Mutante)
                         if (target.passive.removeNegativeStatuses) {
                             const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'];
@@ -1133,7 +1164,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                                 if (workingField[ep]) {
                                     workingField[ep].forEach(eIdx => {
                                         const enemy = workingTeams[ep][eIdx];
-                                        if (enemy && enemy.hp > 0) {
+                                        if (enemy && enemy.hp > 0 && !blockedEnemyPassive(enemy)) {
                                             if (enemy.atk > enemy.baseAtk) enemy.atk = enemy.baseAtk;
                                             if (enemy.def > enemy.baseDef) enemy.def = enemy.baseDef;
                                             if (enemy.spd > enemy.baseSpd) enemy.spd = enemy.baseSpd;
@@ -1406,6 +1437,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 
                 const move = action.type === 'attack' ? char.moves[action.moveIdx] : null;
                 let priority = (action.type === 'switch' || action.type === 'use_item') ? 6 : (move ? (move.priority || 0) : 0);
+                priority += rapidTransmutationPriority(char,move);
 
                 if (char.statuses && char.statuses.some(s => s.type === 'Ombra Rapida')) {
                     priority += 2;
@@ -1426,6 +1458,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
               const attacker = workingTeams[player]?.[charTeamIdx];
               
               if (!attacker || (attacker.hp <= 0 && action.type !== 'use_item')) continue; // FIX: Protezione Null
+              const clearedBefore=activateNeutralizingSpray(attacker);
+              if(clearedBefore.length){
+                updateStatusUI(player,charTeamIdx);
+                events.push({type:'text',text:`🧴 Spray Neutralizzante di ${attacker.name}: rimuove ${clearedBefore.join(', ')}!`});
+              }
 
               // AGGIORNAMENTO STATISTICHE: Mossa usata
               if (gameState.players[player] === playerName && action.type === 'attack' && move) {
@@ -1535,6 +1572,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                       workingField[player][fieldPos] = action.toIdx;
                       const entering=workingTeams[player][action.toIdx];
                       entering.revealed = true;
+                      markRapidTransmutationEntry(entering,true);
                       events.push({ type: 'switch', player, pos: fieldPos, newIdx: action.toIdx,
                         text: `${gameState.players[player]} ritira ${attacker.name} e manda in campo ${entering.name}!` });
                       // Prima mostriamo l'ingresso, poi eventuali danni
@@ -2174,10 +2212,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             let critMultiplier = 1.0;
 
                             // Gestione critico specifico (es. Shotgun di Neon) o Critico Universale al 5%
-                            if (move.critChance && Math.random() < move.critChance) {
+                            if (!immuneToCritical(t.char) && move.critChance && Math.random() < move.critChance) {
                                 currentMoveForDmg = { ...move, power: move.critPower };
                                 isCritical = true;
-                            } else if (Math.random() < 0.05) { // 5% base per tutte le altre mosse
+                            } else if (!immuneToCritical(t.char) && Math.random() < 0.05) { // 5% base per tutte le altre mosse
                                 isCritical = true;
                                 critMultiplier = 1.5; // +50% danno
                             }
@@ -2280,7 +2318,23 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             events.push({ type: 'text', text: `${attacker.name} usa ${move.name} su ${t.char.name}... ma ${absTxt} (${t.char.juggHitsRemaining} cariche scudo rimaste)` });
                         } else if (totalDmg > 0) {
                             let shieldTxt = juggHitsAbsorbed > 0 ? ` (Lo scudo ha assorbito ${juggHitsAbsorbed} colpi).` : '';
+                            const previousDamageTaken=t.char.damageTakenThisTurn||0;
                             applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText}${hitText}${magText}${groppaText} Infligge ${totalDmg} danni.${shieldTxt}`, {directAttack:true,bypassShields:bypassEnemyShields});
+                            if(isEnemyTarget && t.char.hp>0 && (t.char.damageTakenThisTurn||0)>previousDamageTaken){
+                              if(activateCupidArrow(attacker,move,t.char)){
+                                updateStatusUI(t.player,t.idx);
+                                events.push({type:'text',text:`💘 Freccia di Cupido! ${t.char.name} è infatuato!`});
+                              }
+                              if(hannibalCanDebuff(attacker,t.char)){
+                                const weakened=randomDebuff(t.char);
+                                events.push({type:'text',text:`🧠 Manipolazione Psicologica di ${attacker.name}: ${weakened} di ${t.char.name} -15%!`,isPassive:true,passiveChar:attacker.name,passiveName:attacker.passive.name});
+                              }
+                              const cleared=activateNeutralizingSpray(t.char);
+                              if(cleared.length){
+                                updateStatusUI(t.player,t.idx);
+                                events.push({type:'text',text:`🧴 Spray Neutralizzante di ${t.char.name}: rimuove ${cleared.join(', ')}!`});
+                              }
+                            }
                             if (canDistortSoul(attacker, move, t.char) && !t.char.statuses.some(s => s.type === 'Anima Distorta')) {
                                 t.char.statuses.push({ type: 'Anima Distorta', turns: 99 });
                                 updateStatusUI(t.player, t.idx);
@@ -2550,6 +2604,13 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                                 }
                             }
                         }
+                        // Lo spray scatta immediatamente appena una mossa
+                        // applica un malus, senza attendere il prossimo turno.
+                        const sprayCured=activateNeutralizingSpray(t.char);
+                        if(sprayCured.length){
+                            updateStatusUI(t.player,t.idx);
+                            events.push({type:'text',text:`🧴 Spray Neutralizzante di ${t.char.name}: neutralizza ${sprayCured.join(', ')}!`});
+                        }
                     }
                 } // FINE CICLO SUI BERSAGLI (resolvedTargets)
                 
@@ -2745,7 +2806,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
 
                 if (move.recharge && attackSucceeded && attacker.hp > 0) {
                     attacker.statuses.push({ type: 'Ricarica', turns: 1 });
-                    updateStatusUI(player, charTeamIdx);
+                    const cured=activateNeutralizingSpray(attacker);
+                    updateStatusUI(player,charTeamIdx);
+                    if(cured.length)events.push({type:'text',text:`🧴 Spray Neutralizzante di ${attacker.name}: annulla Ricarica e gli altri malus!`});
                 }
 
                 if (move.suicide && attacker.hp > 0) {
@@ -2764,6 +2827,15 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
         for (let target of eotTargets) {
             let char = workingTeams[target.player]?.[target.charTeamIdx];
             if (!char || char.hp <= 0 || !char.statuses) continue;
+            endRapidTransmutationTurn(char);
+            const sproutAtEnd=activateHealingSprout(char);
+            if(sproutAtEnd)events.push({type:'damage',targetPlayer:target.player,targetIdx:target.charTeamIdx,newHp:char.hp,
+              text:`🌱 ${char.name} recupera ${sproutAtEnd} PS grazie al Germoglio Curativo!`});
+            const sprayAtEnd=activateNeutralizingSpray(char);
+            if(sprayAtEnd.length){
+                updateStatusUI(target.player,target.charTeamIdx);
+                events.push({type:'text',text:`🧴 Spray Neutralizzante di ${char.name}: rimuove ${sprayAtEnd.join(', ')}!`});
+            }
 
             const leftoversHeal=getHeldEndTurnHeal(char);
             if(leftoversHeal && char.hp<char.maxHp){
@@ -2876,7 +2948,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                                         const sType = char.passive.enemyStatusEffect.type;
                                         
                                         const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'].includes(sType);
-                                        if (isNegative && enemy.passive && enemy.passive.immuneToNegativeStatuses) {
+                                        if (isNegative && (enemy.passive?.immuneToNegativeStatuses || blockedEnemyPassive(enemy))) {
                                             return; 
                                         }
 
@@ -2914,8 +2986,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 const choices = opponents.flatMap(p => (workingField[p]||[]).map(i => workingTeams[p]?.[i]).filter(u => u?.hp>0));
                 if (choices.length) {
                     const enemy=choices[Math.floor(Math.random()*choices.length)];
-                    if (immuneToStatDrops(enemy)) {
-                        events.push({type:'text',text:`🕶️ ${enemy.name} resiste al calo di statistiche grazie ad Agente Sotto Copertura!`,isPassive:true,passiveChar:enemy.name,passiveName:enemy.passive.name});
+                    if (immuneToStatDrops(enemy)||blockedEnemyPassive(enemy)) {
+                        events.push({type:'text',text:`🛡️ ${enemy.name} resiste al calo di statistiche grazie a una protezione!`,isPassive:true,passiveChar:enemy.name,passiveName:enemy.passive?.name||'Scudo Anti-Magia'});
                     } else {
                     const weakened=randomDebuff(enemy);
                     events.push({type:'text',text:`🐰 ${char.name} distrae ${enemy.name}: ${weakened} -15%!`,isPassive:true,passiveChar:char.name,passiveName:char.passive.name});

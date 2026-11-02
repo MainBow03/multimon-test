@@ -2,6 +2,9 @@ import { CHARACTERS } from '../data/characters.js';
 import { getMultiplier } from './typeSystem.js';
 import { calculateDamageImpl } from './battleSystem.js';
 import { getHeldEvasion,getHeldEndTurnHeal,useHeldGem } from './heldEquipment.js';
+import { activateHealingSprout,activateNeutralizingSpray,activateCupidArrow,blockedEnemyPassive,
+ rapidTransmutationPriority,markRapidTransmutationEntry,endRapidTransmutationTurn,
+ immuneToCritical,hannibalCanDebuff,isNegativeStatus } from './newHeldAndPassiveEffects.js';
 import { ignoresShields, immuneToStatDrops, powerForAccordo,
   effectiveTaserPower, stickyTrapEntryDamage } from './rockstarAgentEffects.js';
 import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense,
@@ -68,10 +71,10 @@ export function eventPlacements(matches,entrants){
 function fighter(id,owner,item){
  const c=CHARACTERS.find(x=>x.id===id);if(!c)throw Error('Multimon mancante: '+id);
  return{key:owner+'-'+id,id,owner,name:c.name,img:c.img,types:c.types||[],hp:c.maxHp,maxHp:c.maxHp,
- atk:c.atk,def:c.def,baseDef:c.def,spDef:c.spDef||c.def,baseSpDef:c.spDef||c.def,spd:c.spd,baseSpd:c.spd,spAtk:c.spAtk||c.atk,passive:c.passive||null,heldItem:item||null,gemSpent:false,hyper:false,statuses:[],
+ atk:c.atk,def:c.def,baseDef:c.def,spDef:c.spDef||c.def,baseSpDef:c.spDef||c.def,spd:c.spd,baseSpd:c.spd,spAtk:c.spAtk||c.atk,passive:c.passive||null,heldItem:item||null,gemSpent:false,healingSproutUsed:false,neutralizingSprayUsed:false,rapidTransmutationReady:false,hyper:false,statuses:[],
  moves:c.moves.map(m=>({name:m.name,type:m.type,power:m.power||0,accuracy:m.accuracy??100,
  targetCount:m.targetCount||1,uses:m.maxUses??null,contact:!!m.contact,
- special:!!m.special,transform:!!m.transformMahito,effect:m.statusEffect||null,buff:m.selfStatBuff||m.statBuff||null,
+ special:!!m.special,recharge:!!m.recharge,transform:!!m.transformMahito,effect:m.statusEffect||null,buff:m.selfStatBuff||m.statBuff||null,
  heal:m.heal||0,enemyDebuff:m.targetStatDebuff||null,snowstormTurns:m.snowstormTurns||0,
  evasionGain:m.evasionGain||0,crystalShieldPercent:m.crystalShieldPercent||0,
  refractionTurns:m.refractionTurns||0,bonusAgainstFaster:m.bonusAgainstFaster||0,
@@ -86,8 +89,16 @@ export function buildEventBattle(match,people,s){
  const activeKeys=Object.fromEntries([...owners.A,...owners.B].map(uid=>[
      uid,[...teams.A,...teams.B].filter(u=>u.owner===uid).slice(0,s.fieldSize).map(u=>u.key)
  ]));
- return{matchId:match.id,side:'A',turn:1,teams,owners,activeKeys,hyperUsed:{},finished:false,winner:null,
+ const battle={matchId:match.id,side:'A',turn:1,teams,owners,activeKeys,hyperUsed:{},finished:false,winner:null,
  weather:null,traps:{},log:['Inizia '+match.sideA.name+' contro '+match.sideB.name+'!']};
+ for(const side of ['A','B']){
+  for(const unit of activeEventFighters(battle,side,s)){
+   unit.eventEntered=true;
+   markRapidTransmutationEntry(unit);
+   applyEventEntryPassive(battle,side,unit,s,Math.random,battle.log);
+  }
+ }
+ return battle;
 }
 export function activeEventFighters(b,side,s){
  return b.owners[side].flatMap(uid=>{
@@ -97,6 +108,45 @@ export function activeEventFighters(b,side,s){
    // se il titolare è KO e rimane una riserva viva.
    return [...chosen,...available.filter(x=>!chosen.includes(x))].slice(0,s.fieldSize);
  });
+}
+// Le abilità all'ingresso si attivano anche nel torneo.
+export function applyEventEntryPassive(b,side,entrant,s,random=Math.random,log=b.log||[]){
+ const p=entrant?.passive;
+ if(p?.type!=='on_enter'||(entrant.eventPassiveUses||0)>=(p.maxUses||1))return false;
+ entrant.eventPassiveUses=(entrant.eventPassiveUses||0)+1;
+ const opposite=side==='A'?'B':'A';
+ const enemies=activeEventFighters(b,opposite,s).filter(u=>u.hp>0);
+ if(p.enemyStatDebuff){
+  let count=0;
+  for(const enemy of enemies){
+   if(blockedEnemyPassive(enemy)||immuneToStatDrops(enemy)){
+     log.push(enemy.name+' è protetto dal malus di '+entrant.name+'!');
+     continue;
+   }
+   for(const [stat,mult] of Object.entries(p.enemyStatDebuff)){
+     if(!Number.isFinite(enemy[stat]))continue;
+     if(stat==='atk'&&enemy.passive?.type==='immune_to_atk_debuff')continue;
+     enemy[stat]=Math.max(1,Math.floor(enemy[stat]*mult));count++;
+   }
+  }
+  if(count)log.push(entrant.name+' attiva '+p.name+': statistiche nemiche ridotte!');
+ }
+ if(p.applyStatusToRandomEnemy){
+  const victim=enemies[Math.floor(random()*enemies.length)];
+  if(victim){
+   const type=p.applyStatusToRandomEnemy.type;
+   if(isNegativeStatus(type)&&(blockedEnemyPassive(victim)||victim.passive?.immuneToNegativeStatuses))
+     log.push(victim.name+' neutralizza '+p.name+'!');
+   else{
+     victim.statuses||=[];
+     if(!victim.statuses.includes(type))victim.statuses.push(type);
+     log.push(entrant.name+' usa '+p.name+': '+victim.name+' riceve '+type+'!');
+     const cured=activateNeutralizingSpray(victim);
+     if(cured.length)log.push('Spray Neutralizzante di '+victim.name+' rimuove '+cured.join(', ')+'!');
+   }
+  }
+ }
+ return true;
 }
 export function botActions(b,uid,s){
  const targets=activeEventFighters(b,b.side==='A'?'B':'A',s);
@@ -110,9 +160,16 @@ export function eventTurn(b,submissions,s,random=Math.random){
  if(b.finished)throw Error('Partita terminata');
  const x=structuredClone(b),side=x.side,oppo=side==='A'?'B':'A',log=[];
  x.activeKeys||={};
+ const previouslyActive=new Set(Object.values(b.activeKeys||{}).flat());
  for(const uid of [...x.owners.A,...x.owners.B]){
    const team=x.owners.A.includes(uid)?'A':'B';
    x.activeKeys[uid]=activeEventFighters(x,team,s).filter(u=>u.owner===uid).map(u=>u.key);
+ }
+ for(const team of ['A','B'])for(const unit of activeEventFighters(x,team,s)){
+   if(!previouslyActive.has(unit.key)){
+     markRapidTransmutationEntry(unit);
+     applyEventEntryPassive(x,team,unit,s,random,log);
+   }
  }
  x.traps ||= {};
  // Applica le trappole quando entra un NUOVO personaggio, non a chi era
@@ -127,6 +184,8 @@ export function eventTurn(b,submissions,s,random=Math.random){
    const dmg=stickyTrapEntryDamage(unit);
    unit.hp=Math.max(0,unit.hp-dmg);
    log.push('Trappola Segreta: '+unit.name+' perde '+dmg+' PS entrando in campo!');
+   const heal=activateHealingSprout(unit);
+   if(heal)log.push('Germoglio Curativo di '+unit.name+' recupera '+heal+' PS!');
   }
   trap.seen=activeEventFighters(x,team,s).map(u=>u.key);
  }
@@ -144,6 +203,8 @@ export function eventTurn(b,submissions,s,random=Math.random){
   if(name==='Accecato')target.blindTurns=effect.turns||3;
   if(name==='Incantato'){target.enchantedTurns=effect.turns||10;target.enchantedFresh=true;}
   log.push(target.name+' riceve lo stato '+name+'!');
+  const cleared=activateNeutralizingSpray(target);
+  if(cleared.length)log.push('Spray Neutralizzante di '+target.name+': rimuove '+cleared.join(', ')+'!');
  };
  const hurt=(attacker,target,m)=>{
   const multiplier=getMultiplier(m.type,target.types);
@@ -152,8 +213,25 @@ export function eventTurn(b,submissions,s,random=Math.random){
   const wrap=u=>({...u,statuses:(u.statuses||[]).map(type=>({type})),
     heldItem:s.allowItems?u.heldItem:null});
   const raw=calculateDamageImpl({},wrap(attacker),wrap(target),m,multiplier,false,random);
-  const defense=ignoresShields(attacker,m)?{damage:raw,absorbed:0,refracted:false}:directHitAfterCrystalDefense(target,raw);
+  const crit=!immuneToCritical(target)&&random()<.05;
+  const bonusDamage=crit?Math.max(1,Math.floor(raw*1.5)):raw;
+  const defense=ignoresShields(attacker,m)?{damage:bonusDamage,absorbed:0,refracted:false}:directHitAfterCrystalDefense(target,bonusDamage);
+  if(crit)log.push('Brutto colpo di '+attacker.name+'!');
+  const hpBefore=target.hp;
   target.hp=Math.max(0,target.hp-defense.damage);
+  const heal=activateHealingSprout(target);
+  if(heal)log.push('Germoglio Curativo di '+target.name+': recupera '+heal+' PS!');
+  if(defense.damage>0&&hpBefore>0&&target.hp>0){
+    if(activateCupidArrow(attacker,m,target,random,true,true)){
+      log.push('Freccia di Cupido di '+attacker.name+': '+target.name+' è infatuato!');
+    }
+    if(hannibalCanDebuff(attacker,target,random)){
+      const stat=randomDebuff(target,random);
+      log.push('Manipolazione Psicologica di '+attacker.name+': '+stat+' di '+target.name+' -15%!');
+    }
+    const cleared=activateNeutralizingSpray(target);
+    if(cleared.length)log.push('Spray Neutralizzante di '+target.name+' rimuove '+cleared.join(', ')+'!');
+  }
   if(defense.refracted)log.push('Rifrazione dimezza il primo colpo su '+target.name+'!');
   if(defense.absorbed)log.push('Scudo di '+target.name+': '+defense.absorbed+' danni assorbiti.');
   log.push(attacker.name+' usa '+m.name+' su '+target.name+': '+defense.damage+' danni'+(target.hp?'':' KO!'));
@@ -161,6 +239,19 @@ export function eventTurn(b,submissions,s,random=Math.random){
      target.hp/target.maxHp<=target.passive.threshold){
     target.passiveUsed=true;applyBuff(target,target.passive.statBuff);
     log.push(target.name+' attiva '+target.passive.name+'!');
+    if(target.passive.aoeDamagePercentMaxHp){
+      const defendersSide=x.teams.A.includes(target)?'A':'B';
+      const opposingSide=defendersSide==='A'?'B':'A';
+      for(const foe of activeEventFighters(x,opposingSide,s)){
+        if(foe.hp<=0)continue;
+        if(blockedEnemyPassive(foe)){log.push('Scudo Anti-Magia protegge '+foe.name+' dalla scarica di '+target.name+'!');continue;}
+        const recoil=Math.max(1,Math.floor(foe.maxHp*target.passive.aoeDamagePercentMaxHp));
+        foe.hp=Math.max(0,foe.hp-recoil);
+        log.push(foe.name+' perde '+recoil+' PS per '+target.passive.name+'!');
+        const sprout=activateHealingSprout(foe);
+        if(sprout)log.push('Germoglio Curativo di '+foe.name+': cura '+sprout+' PS!');
+      }
+    }
   }
   if(!target.hp){
     for(const ally of activeEventFighters(x,side,s).filter(u=>u!==attacker&&u.passive?.type==='failed_star')){
@@ -173,9 +264,23 @@ export function eventTurn(b,submissions,s,random=Math.random){
  for(const actor of activeEventFighters(x,side,s).sort((a,b)=>{
   const ma=a.moves[Number(commands.get(a.key)?.moveIndex)||0];
   const mb=b.moves[Number(commands.get(b.key)?.moveIndex)||0];
-  return (mb?.priority||0)-(ma?.priority||0)||b.spd-a.spd;
+  return ((mb?.priority||0)+rapidTransmutationPriority(b,mb))-((ma?.priority||0)+rapidTransmutationPriority(a,ma))||b.spd-a.spd;
  })){
   if(actor.hp<=0)continue;
+  const oldMalus=activateNeutralizingSpray(actor);
+  if(oldMalus.length)log.push('Spray Neutralizzante di '+actor.name+' rimuove '+oldMalus.join(', ')+'!');
+  if(actor.statuses.includes('Ricarica')){
+    actor.statuses=actor.statuses.filter(s=>s!=='Ricarica');
+    log.push(actor.name+' deve ricaricarsi e perde il turno.');continue;
+  }
+  if(actor.statuses.includes('Infatuato')){
+    actor.cupidCharmTurns=(actor.cupidCharmTurns??4)-1;
+    if(actor.cupidCharmTurns<=0){
+      actor.statuses=actor.statuses.filter(s=>s!=='Infatuato');actor.cupidCharmTurns=0;
+    }else if(random()<.5){
+      log.push(actor.name+' è troppo infatuato e salta il turno!');continue;
+    }
+  }
   const command=commands.get(actor.key);
   if(!command){log.push(actor.name+' passa.');continue;}
   if(command.type==='switch'&&command.switchTo){
@@ -183,6 +288,8 @@ export function eventTurn(b,submissions,s,random=Math.random){
    const current=x.activeKeys[actor.owner]||[];
    if(ally&&!current.includes(ally.key)){
      x.activeKeys[actor.owner]=current.map(k=>k===actor.key?ally.key:k);
+     markRapidTransmutationEntry(ally,true);
+     applyEventEntryPassive(x,side,ally,s,random,log);
      log.push(actor.name+' rientra, entra '+ally.name+'!');
    }else log.push(actor.name+' non riesce a cambiare.');
    continue;
@@ -218,6 +325,11 @@ export function eventTurn(b,submissions,s,random=Math.random){
    }
    if(t)status(t,m.effect);
    log.push(actor.name+' usa '+m.name);
+   if(m.recharge&&actor.hp>0){
+      if(!actor.statuses.includes('Ricarica'))actor.statuses.push('Ricarica');
+      const cured=activateNeutralizingSpray(actor);
+      if(cured.length)log.push('Spray Neutralizzante di '+actor.name+' annulla Ricarica!');
+   }
    continue;
   }
   const visible=activeEventFighters(x,oppo,s).filter(v=>v.hp>0);
@@ -246,6 +358,11 @@ export function eventTurn(b,submissions,s,random=Math.random){
    }
   }
   if(hitAny&&useHeldGem(actor,m))log.push('La gemma di '+actor.name+' si rompe dopo aver potenziato '+m.name+'!');
+  if(m.recharge&&hitAny&&actor.hp>0){
+     if(!actor.statuses.includes('Ricarica'))actor.statuses.push('Ricarica');
+     const cured=activateNeutralizingSpray(actor);
+     if(cured.length)log.push('Spray Neutralizzante di '+actor.name+' neutralizza Ricarica!');
+  }
   if(hitAny&&m.buff)applyBuff(actor,m.buff);
   if(hitAny&&m.snowstormTurns){x.weather={type:'snowstorm',turns:m.snowstormTurns};log.push('Una tempesta di neve investe il campo!');}
   if(hitAny&&s.allowItems&&actor.heldItem==='iperband'){
@@ -257,12 +374,17 @@ export function eventTurn(b,submissions,s,random=Math.random){
  for(const team of ['A','B']){
   for(const u of activeEventFighters(x,team,s)){
    if(u.hp<=0)continue;
+   if(team===side)endRapidTransmutationTurn(u);
+   const cured=activateNeutralizingSpray(u);
+   if(cured.length)log.push('Spray Neutralizzante di '+u.name+' rimuove '+cured.join(', ')+'!');
    const leftovers=getHeldEndTurnHeal(u);
    if(leftovers&&u.hp<u.maxHp){u.hp=Math.min(u.maxHp,u.hp+leftovers);log.push(u.name+' recupera '+leftovers+' PS dagli Avanzi!');}
    if(u.statuses.includes('Anima Distorta')){
      const d=Math.max(1,Math.floor(u.maxHp*.05));u.hp=Math.max(0,u.hp-d);
      log.push(u.name+' perde '+d+' PS per Anima Distorta.');
    }
+   const sprout=activateHealingSprout(u);
+   if(sprout)log.push('Germoglio Curativo di '+u.name+' recupera '+sprout+' PS!');
    if(u.hp<=0)continue;
    if(u.enchantedTurns>0){
      if(u.enchantedFresh)u.enchantedFresh=false;
@@ -278,7 +400,7 @@ export function eventTurn(b,submissions,s,random=Math.random){
      if(random()<.5){const stat=randomBuff(u,random);log.push(u.name+' aumenta '+stat+' del 15%!');}
      const enemies=activeEventFighters(x,team==='A'?'B':'A',s).filter(v=>v.hp>0);
      if(enemies.length){const target=enemies[Math.floor(random()*enemies.length)];
-       if(immuneToStatDrops(target))log.push(target.name+' resiste al calo di statistiche!');
+       if(immuneToStatDrops(target)||blockedEnemyPassive(target))log.push(target.name+' resiste al calo di statistiche!');
        else{const stat=randomDebuff(target,random);log.push(u.name+' abbassa '+stat+' di '+target.name+'!');}}
    }
   }
@@ -289,6 +411,8 @@ export function eventTurn(b,submissions,s,random=Math.random){
     const effect=snowstormOutcome(u,true);
     if(effect.damage){u.hp=Math.max(0,u.hp-effect.damage);log.push(u.name+' perde '+effect.damage+' PS per la neve!');}
     if(u.hp&&effect.heal){u.hp=Math.min(u.maxHp,u.hp+effect.heal);log.push(u.name+' recupera '+effect.heal+' PS dal freddo!');}
+   const sprout=activateHealingSprout(u);
+   if(sprout)log.push('Germoglio Curativo di '+u.name+' recupera '+sprout+' PS!');
    }
   }
   x.weather.turns--;if(x.weather.turns===0)x.weather=null;
