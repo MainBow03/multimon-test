@@ -1,6 +1,7 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
 import { applyBattleStatModifier } from './statBalance.js';
 import { isOnlineHealingLimited, isLimitedHealingItem, onlineHealingRemaining, ONLINE_HEAL_ITEM_LIMIT } from './onlineHealingLimit.js';
+import { consumeRaidShieldHit } from './finalRaidBalance.js';
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { resolvePoisonEndTurn } from './battleStatusTurns.js';
@@ -2238,9 +2239,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                         }
                         // -----------------------------------------------------------
                         
-                        if (!bypassEnemyShields && t.char.juggHitsRemaining > 0) {
-                            t.char.juggHitsRemaining -= 1;
-                            if (t.char.juggHitsRemaining === 0) {
+                        const raidHit=!bypassEnemyShields&&consumeRaidShieldHit(t.char);
+                        if(raidHit?.absorbed) {
+                            if(raidHit.broken) {
                                 events.push({ type: 'text', text: `🛡️ Lo Scudo di ${t.char.name} si è infranto!` });
                                 let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 applyDamage(t.char, recoilDmg, t.player, t.idx, `💥 La frantumazione dello scudo infligge ${recoilDmg} danni a ${t.char.name}!`);
@@ -2261,11 +2262,13 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                         let juggHitsAbsorbed = 0;
 
                         for (let i = 0; i < hits; i++) {
-                            if (!bypassEnemyShields && t.char.juggHitsRemaining > 0) {
-                                t.char.juggHitsRemaining -= 1;
+                            // Ogni singolo colpo andato a segno consuma esattamente
+                            // UNA carica, anche con mosse da 2–4 colpi.
+                            const raidHit=!bypassEnemyShields&&consumeRaidShieldHit(t.char);
+                            if (raidHit?.absorbed) {
                                 juggHitsAbsorbed++;
                                 actualHits++;
-                                if (t.char.juggHitsRemaining === 0) {
+                                if (raidHit.broken) {
                                     events.push({ type: 'text', text: `🛡️ Lo Scudo di ${t.char.name} si è infranto!` });
                                     // Danno da contraccolpo per rottura scudo (5% HP Max)
                                     let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));

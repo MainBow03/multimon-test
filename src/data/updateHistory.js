@@ -11,6 +11,14 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'final-raid-trigon-gaster-balance',category:'balance',date:'02/11/2026',title:'RAID finale prima campagna: scudi da 6 e meno PS',items:[
+    'Trigon nel raid finale passa da 4.250 a 3.375 PS massimi; W.D. Gaster da 3.375 a 2.436 PS.',
+    'Gli scudi RAID dei due boss assorbono ora 6 colpi per attivazione anziché 15; rimangono le soglie al 75%, 50% e 25% della salute.',
+    'Ogni singolo colpo di una mossa multicolpo sottrae una carica: una mossa che colpisce 4 volte consuma 4 cariche dello scudo.',
+    'Se lo scudo si rompe durante una mossa multicolpo, gli eventuali colpi successivi possono danneggiare il boss.',
+    'I vecchi salvataggi del RAID vengono aggiornati automaticamente preservando la percentuale di vita già tolta ai boss e limitando le cariche scudo a 6.',
+    'Le statistiche base dei personaggi sbloccabili e le altre campagne non cambiano.'
+  ]},
   {id:'battle-backpack-black-screen-fix',category:'fixes',date:'02/11/2026',title:'Corretto lo schermo nero aprendo lo zaino in battaglia',items:[
     'Risolto il crash ReferenceError: appMode is not defined quando si apre lo zaino durante uno scontro.',
     'La schermata di battaglia riceve ora correttamente la modalità e visualizza il contatore dei 3 strumenti curativi online senza bloccare il gioco.',

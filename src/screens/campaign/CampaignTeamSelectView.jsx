@@ -2,6 +2,7 @@ import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { canEquipHeldItem } from '../../systems/heldEquipment.js';
 import { initialCampaignField } from '../../systems/campaignBattleRecovery.js';
 import { applyStrengthToFighter, canTrainCharacter } from '../../systems/strengthLab.js';
+import { finalRaidBossStats, rebalanceSavedFinalRaidBoss } from '../../systems/finalRaidBalance.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
 const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
@@ -362,7 +363,10 @@ if (appMode === 'campaign_team_select') {
             }
 
             if (isValidSavedBoss) {
-                p2Team = campaignState.currentBossState.filter(savedC => Number(savedC.hp) > 0).map(savedC => {
+                p2Team = campaignState.currentBossState.filter(savedC => Number(savedC.hp) > 0).map(originalSavedC => {
+                    // Aggiorna i salvataggi precedenti al bilanciamento del raid,
+                    // conservando la percentuale di salute già consumata.
+                    const savedC=isFinalRaid ? rebalanceSavedFinalRaidBoss(originalSavedC) : originalSavedC;
                     let baseChar = CHARACTERS.find(c => c.id === savedC.id);
                     if (!baseChar) baseChar = CHARACTERS.find(c => c.id === 'scheletro');
                     
@@ -398,8 +402,11 @@ if (appMode === 'campaign_team_select') {
                     if (savedC.isJuggernaut || (isFinalRaid && (charInst.id === 'trigon' || charInst.id === 'gaster'))) {
                          charInst.isJuggernaut = true;
                          charInst.juggTurnCount = savedC.juggTurnCount || 0;
-                         charInst.juggHitsRemaining = savedC.juggHitsRemaining || 0;
-                         charInst.shieldGrantedHits = 15;
+                         const raidBalance=isFinalRaid?finalRaidBossStats(charInst.id):null;
+                         charInst.juggHitsRemaining = raidBalance
+                             ? Math.min(raidBalance.shieldHits,Math.max(0,savedC.juggHitsRemaining||0))
+                             : (savedC.juggHitsRemaining||0);
+                         charInst.shieldGrantedHits = raidBalance?.shieldHits || savedC.shieldGrantedHits || 4;
                          
                          const hpRatio = charInst.hp / charInst.maxHp;
                          charInst.juggShieldHpThresholds = [0.75, 0.50, 0.25].filter(t => t < hpRatio);
@@ -423,7 +430,8 @@ if (appMode === 'campaign_team_select') {
                     if (isFinalRaid) hpMultiplier = 25; // Aumentato da 15 a 25 per resistere a 20 PG
                     else if (campaignState.difficulty === 'Insane') hpMultiplier *= 1.5; 
                     
-                    let hp = Math.floor(baseChar.maxHp * hpMultiplier);
+                    const raidBossBalance=isFinalRaid?finalRaidBossStats(baseChar.id):null;
+                    let hp = raidBossBalance?.maxHp ?? Math.floor(baseChar.maxHp * hpMultiplier);
                     
                     let charInst = {
                         ...JSON.parse(JSON.stringify(baseChar)), hp: hp, maxHp: hp, statuses: [], consecutiveProtect: 0,
@@ -477,7 +485,7 @@ if (appMode === 'campaign_team_select') {
                          if (charInst.id === 'trigon' || charInst.id === 'gaster') {
                              charInst.juggShieldHpThresholds = [0.75, 0.50, 0.25];
                              charInst.juggHitsRemaining = 0;
-                             charInst.shieldGrantedHits = 15; // Aumentato da 1 a 15 colpi
+                             charInst.shieldGrantedHits = raidBossBalance?.shieldHits || 4; // RAID finale: 6 cariche per scudo
                              charInst.isJuggernaut = true; // Attiva la purificazione passiva ogni 2 turni
                          }
                     }
