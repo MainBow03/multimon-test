@@ -1,5 +1,6 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
 import { applyBattleStatModifier } from './statBalance.js';
+import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { resolvePoisonEndTurn } from './battleStatusTurns.js';
 import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense, endRefractionTurn, snowstormOutcome, randomBuff, randomDebuff, daffyCelebration } from './championEffects.js';
@@ -313,6 +314,13 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
 
             const isCustomDraft = customDraft && typeof customDraft === 'object' && !customDraft.nativeEvent && (customDraft.p1 || customDraft.p2);
             const teams = JSON.parse(JSON.stringify(isCustomDraft ? customDraft : gameState.draft));
+            // Ogni umano usa solo gli aggiornamenti del proprio profilo,
+            // fissati all'ingresso nella stanza. Le CPU non ricevono bonus.
+            Object.entries(teams).forEach(([player,team])=>{
+                const levels=gameState.playerStrength?.[player];
+                if(!levels || gameState.isBot?.[player] || !Array.isArray(team))return;
+                teams[player]=team.map(char=>applyStrengthToFighter(char,levels));
+            });
             // I bonus delle gemme si ricaricano tra partite diverse.
             // Il loro acquisto nel profilo rimane permanente.
             Object.values(teams).forEach(team=>(team||[]).forEach(char=>{
