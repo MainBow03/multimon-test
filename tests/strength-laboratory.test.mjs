@@ -99,7 +99,7 @@ test('Statistiche personalizzate nel campo giocatore, senza applicarle alle CPU'
  assert.match(source,/gameState\.playerStrength\?\.\[player\]/);
  assert.match(source,/gameState\.playerStrengthOwned\?\.\[player\]/);
  assert.match(source,/gameState\.isBot\?\.\[player\]/);
- assert.match(source,/char\.strengthApplied/);
+ assert.match(source,/applyStrengthToFighter/);
 });
 test('La campagna utilizza i potenziamenti personali e mantiene i boss invariati',()=>{
  const text=readFileSync(new URL('../src/screens/campaign/CampaignTeamSelectView.jsx',import.meta.url),'utf8');
