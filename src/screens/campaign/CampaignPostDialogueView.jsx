@@ -13,7 +13,9 @@ if (appMode === 'campaign_post_dialogue') {
             if (dialogue && campaignDialogueIdx < fullDialogue.length - 1) {
                 setCampaignDialogueIdx(p => p + 1);
             } else {
-                if (mission.choiceUnlock) {
+                if (mission.echoMission) {
+                    setAppMode('campaign_echo_chest');
+                } else if (mission.choiceUnlock) {
                     setAppMode('campaign_choice');
                 } else {
                     advanceCampaign(150);
