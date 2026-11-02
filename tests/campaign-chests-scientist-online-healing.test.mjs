@@ -11,7 +11,7 @@ import {canTrainCharacter,strengthLevel,grantTutorialStrengthUpgrade} from '../s
 import {ONLINE_HEAL_ITEM_LIMIT,isLimitedHealingItem,onlineHealingRemaining} from '../src/systems/onlineHealingLimit.js';
 import {initialGameState} from '../src/systems/gameState.js';
 
-const fakeStorage=entries=>{
+const fakeStorage=(entries={})=>{
  const map=new Map(Object.entries(entries));
  return {getItem:k=>map.get(k)||null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k),_map:map};
 };
