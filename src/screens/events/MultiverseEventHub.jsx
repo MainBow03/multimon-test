@@ -1,5 +1,6 @@
 import React, {useState,useEffect,useRef,useMemo} from 'react';
 import { CHARACTERS } from '../../data/characters.js';
+import { masteryVisibleLevels } from '../../systems/masterySystem.js';
 import { EventClassicBattleView } from './EventClassicBattleView.jsx';
 import { ITEMS_DB } from '../../data/items.js';
 import { HELD_ITEM_IDS } from '../../systems/heldEquipment.js';
@@ -121,10 +122,10 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,play
   }else{open(false);setError('');}
  };
  const join=()=>operate(async()=>{if(!event||event.status!=='lobby'||count>=capacity)throw Error('Iscrizioni chiuse.');
- if(!mine)await joinEvent(activeId,{uid,name:playerName.trim(),avatar:playerAvatarUrl||'',title:playerTitle||''});});
+ if(!mine)await joinEvent(activeId,{uid,name:playerName.trim(),avatar:playerAvatarUrl||'',title:playerTitle||'',mastery:masteryVisibleLevels(getPlayerData())});});
  const create=()=>operate(async()=>{if(!user||!playerName.trim())throw Error('Connettiti e inserisci un nome nel menu');
  if(live.length)throw Error('È già attivo un torneo: unisciti a quello.');
- const id=await createEvent({uid,name:playerName.trim(),title:playerTitle||''},normalizeEventSettings(settings));setId(id);showCreate(false)});
+ const id=await createEvent({uid,name:playerName.trim(),title:playerTitle||'',mastery:masteryVisibleLevels(getPlayerData())},normalizeEventSettings(settings));setId(id);showCreate(false)});
  const save=()=>operate(async()=>{
  if(!mine||!validTeam(draft,event.settings))throw Error('Seleziona esattamente '+event.settings.teamSize+' personaggi diversi.');
  const eq={},inv=getPlayerData().inventory||{},used={};
