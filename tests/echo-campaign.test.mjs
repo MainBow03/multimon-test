@@ -7,6 +7,7 @@ import {MOVES_DB} from '../src/data/moves.js';
 import {CAMPAIGNS} from '../src/data/campaigns.js';
 import {CAMPAIGN_ORDER,getCampaignLock} from '../src/systems/campaignUnlocks.js';
 import {collectEchoSoul,expireEchoCopies} from '../src/systems/echoSoulLegion.js';
+import {claimEchoRoute,applyEchoRouteToTeam,ECHO_ROUTES} from '../src/systems/echoRoutes.js';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
 test('Echomax è la terza campagna prima di Monarch, non modifica le prime due',()=>{
@@ -129,4 +130,38 @@ test('Integrazione: ricompense per fase, raid compatto, 24 personaggi, sblocco d
  assert.match(over,/saveGlobalUnlock\('echomax'\)/);
  assert.match(post,/campaign_echo_chest/);
  assert.match(app,/renderEchoChestView/);
+});
+
+test('La scelta roguelike è unica per missione, senza farmare cure ripetute',()=>{
+ assert.equal(ECHO_ROUTES.length,3);
+ const base={roster:['jake','marceline'],rosterStats:{jake:30,marceline:0},echoRouteChoices:{}};
+ const picked=claimEchoRoute(base,'eco_01','rifugio',CHARACTERS);
+ assert.ok(picked.rosterStats.jake>30);
+ assert.equal(picked.rosterStats.marceline,0);
+ assert.equal(picked.echoRouteChoices.eco_01,'rifugio');
+ const second=claimEchoRoute(picked,'eco_01','rifugio',CHARACTERS);
+ assert.equal(second,picked);
+ const another=claimEchoRoute(second,'eco_02','assalto',CHARACTERS);
+ assert.equal(another.echoRouteChoices.eco_02,'assalto');
+});
+
+test('Assalto potenzia attacco, ricognizione offre scudo senza contaminare altri scontri',()=>{
+ const original={id:'jake',atk:100,baseAtk:100,statuses:[]};
+ const team1=[structuredClone(original)];
+ applyEchoRouteToTeam(team1,'assalto');
+ assert.equal(team1[0].atk,110);
+ assert.equal(team1[0].baseAtk,110);
+ const team2=[structuredClone(original)];
+ applyEchoRouteToTeam(team2,'ricognizione');
+ assert.equal(team2[0].atk,100);
+ assert.ok(team2[0].statuses.some(s=>s.type==='Scudo Team'&&s.turns===1));
+ assert.equal(original.statuses.length,0);
+});
+
+test('La mappa obbliga alla scelta del percorso e il raid non lo richiede',()=>{
+ const map=read('src/screens/campaign/CampaignMapView.jsx');
+ const team=read('src/screens/campaign/CampaignTeamSelectView.jsx');
+ assert.match(map,/claimEchoRoute\(p,mission.id,route.id,CHARACTERS\)/);
+ assert.match(map,/mission.echoMission&&!mission.echoFinal&&!campaignState.echoRouteChoices/);
+ assert.match(team,/applyEchoRouteToTeam\(p1Team,campaignState.echoRouteChoices/);
 });
