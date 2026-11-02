@@ -61,7 +61,7 @@ const TABS=[
   ['items','🎒','Strumenti']
 ];
 const normalizeStatus=x=>typeof x==='string'?x:x?.type;
-const durationText=turns=>Number.isFinite(Number(turns))?String(turns)+' turni rimasti':'durata non indicata';
+const durationText=turns=>turns!==null && turns!==undefined && Number.isFinite(Number(turns)) ? String(turns)+' turni rimasti' : 'durata non indicata';
 
 export function BattleCodexLauncher({ gameState }) {
   const [open,setOpen]=useState(false);
