@@ -11,6 +11,12 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'held-unique-svg-art',category:'interface',date:'02/11/2026',title:'13 illustrazioni SVG per i nuovi strumenti',items:[
+    'Sostituite le stelle bianche di riserva con 13 icone SVG originali, una per ciascuno dei nuovi strumenti da battaglia.',
+    'Ogni oggetto ha una silhouette riconoscibile e una propria palette: fascia, scudo, ciondolo, clessidra, lente, risonatore, nastro, stivali, bussola, specchio, sigillo, piuma e campanella.',
+    'Le illustrazioni sono visibili nel Negozio e sui Multimon che le equipaggiano durante la lotta, senza emoji, immagini esterne né nuovi download.',
+    'I prezzi, i potenziamenti, il funzionamento dei bauli e gli strumenti preesistenti rimangono invariati.'
+  ]},
   {id:'thirteen-held-items',category:'items',date:'02/11/2026',title:'13 nuovi strumenti da equipaggiare',items:[
     'Fascia dell’Eroe (450 monete): da PS pieni resiste a un colpo diretto letale, restando con 1 PS. Una volta per battaglia.',
     'Scudo Antielemento (320): la prima mossa superefficace subita infligge 25% danni in meno.',
