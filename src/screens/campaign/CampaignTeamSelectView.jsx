@@ -4,6 +4,7 @@ import { initialCampaignField } from '../../systems/campaignBattleRecovery.js';
 import { applyStrengthToFighter, canTrainCharacter } from '../../systems/strengthLab.js';
 import { finalRaidBossStats, rebalanceSavedFinalRaidBoss } from '../../systems/finalRaidBalance.js';
 import { accumulateBattleReport } from '../../systems/battleReport.js';
+import { applyEchoRouteToTeam } from '../../systems/echoRoutes.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
 const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
@@ -28,6 +29,8 @@ if (appMode === 'campaign_team_select') {
         
         const sector = activeCampaign.sectors[campaignState.sectorIdx] || activeCampaign.sectors[0];
         const mission = sector.missions[campaignState.missionIdx] || sector.missions[0];
+        const isEchoFinalRaid = activeCampaignId === 'eco_anime' && mission.echoFinal;
+        if (isEchoFinalRaid) maxTeamSize = 24;
         const activeBosses = mission.isAnomaly && mission.id === 'm12_5' && campaignState.anomalyTargets && campaignState.anomalyTargets.length > 0 ? campaignState.anomalyTargets : mission.boss;
 
         const showSelectionDialogue = (charId, isDeselect = false) => {
@@ -314,6 +317,8 @@ if (appMode === 'campaign_team_select') {
             const requiredCount = Math.min(maxTeamSize, aliveCount);
 
             if (campaignSelectedTeam.length === 0) return setSystemAlert("Seleziona almeno un personaggio!");
+            if (isEchoFinalRaid && (campaignSelectedTeam.length !== 24 || !campaignState.roster.every(id=>campaignSelectedTeam.includes(id))))
+                return setSystemAlert('Il raid contro Echomax richiede tutti i 24 membri della Resistenza!');
             
             if (activeCampaignId === 'torneo_assoluto') {
                 if (campaignState.roster.length > maxTeamSize && campaignSelectedTeam.length !== maxTeamSize) {
@@ -350,6 +355,9 @@ if (appMode === 'campaign_team_select') {
                 const personal=getPlayerData();
                 return canTrainCharacter(baseChar,personal) ? applyStrengthToFighter(instance,personal.strengthUpgrades):instance;
             }).filter(Boolean); // Rimuove i null per sicurezza
+
+            if(mission.echoMission && !isEchoFinalRaid)
+                applyEchoRouteToTeam(p1Team,campaignState.echoRouteChoices?.[mission.id]);
 
             let p2Team = [];
             let isValidSavedBoss = false;
@@ -400,17 +408,18 @@ if (appMode === 'campaign_team_select') {
                     }
                     
                     // RIPRISTINO ABILITA' DA SUPER-BOSS (JUGGERNAUT, SCUDO E PURIFICAZIONE PASSIVA)
-                    if (savedC.isJuggernaut || (isFinalRaid && (charInst.id === 'trigon' || charInst.id === 'gaster'))) {
+                    if (savedC.isJuggernaut || (isFinalRaid && (charInst.id === 'trigon' || charInst.id === 'gaster')) || (isEchoFinalRaid && charInst.id==='echomax')) {
                          charInst.isJuggernaut = true;
                          charInst.juggTurnCount = savedC.juggTurnCount || 0;
                          const raidBalance=isFinalRaid?finalRaidBossStats(charInst.id):null;
                          charInst.juggHitsRemaining = raidBalance
                              ? Math.min(raidBalance.shieldHits,Math.max(0,savedC.juggHitsRemaining||0))
                              : (savedC.juggHitsRemaining||0);
-                         charInst.shieldGrantedHits = raidBalance?.shieldHits || savedC.shieldGrantedHits || 4;
+                         charInst.shieldGrantedHits = isEchoFinalRaid ? 8 : (raidBalance?.shieldHits || savedC.shieldGrantedHits || 4);
+                         if(isEchoFinalRaid && charInst.id==='echomax')charInst.isEchoRaidBoss=true;
                          
                          const hpRatio = charInst.hp / charInst.maxHp;
-                         charInst.juggShieldHpThresholds = [0.75, 0.50, 0.25].filter(t => t < hpRatio);
+                         charInst.juggShieldHpThresholds = (isEchoFinalRaid?[0.8,0.6,0.4,0.2]:[0.75, 0.50, 0.25]).filter(t => t < hpRatio);
                     }
 
                     return charInst;
@@ -428,11 +437,12 @@ if (appMode === 'campaign_team_select') {
                     }
                     
                     let hpMultiplier = progressiveScale;
+                    if (isEchoFinalRaid && baseChar.id === 'echomax') hpMultiplier = 1;
                     if (isFinalRaid) hpMultiplier = 25; // Aumentato da 15 a 25 per resistere a 20 PG
                     else if (campaignState.difficulty === 'Insane') hpMultiplier *= 1.5; 
                     
                     const raidBossBalance=isFinalRaid?finalRaidBossStats(baseChar.id):null;
-                    let hp = raidBossBalance?.maxHp ?? Math.floor(baseChar.maxHp * hpMultiplier);
+                    let hp = isEchoFinalRaid && baseChar.id === 'echomax' ? 6200 : raidBossBalance?.maxHp ?? Math.floor(baseChar.maxHp * hpMultiplier);
                     
                     let charInst = {
                         ...JSON.parse(JSON.stringify(baseChar)), hp: hp, maxHp: hp, statuses: [], consecutiveProtect: 0,
@@ -491,6 +501,20 @@ if (appMode === 'campaign_team_select') {
                          }
                     }
 
+                    if(isEchoFinalRaid && charInst.id==='echomax'){
+                        // Echomax affronta 24 campioni contemporaneamente.
+                        charInst.isEchoRaidBoss=true;
+                        charInst.isJuggernaut=true;
+                        charInst.juggHitsRemaining=0;
+                        charInst.juggShieldHpThresholds=[0.8,0.6,0.4,0.2];
+                        charInst.shieldGrantedHits=8;
+                        charInst.echoSoulCharges=0;
+                        charInst.atk=270;
+                        charInst.def=190;
+                        charInst.spd=155;
+                        charInst.baseAtk=270;charInst.baseDef=190;charInst.baseSpd=155;
+                        charInst.imageFilter='drop-shadow(0 0 32px rgba(168,85,247,0.8))';
+                    }
                     return charInst;
                 });
             }
@@ -498,6 +522,8 @@ if (appMode === 'campaign_team_select') {
             const state = initialGameState();
             state.gameMode = 'classica';
             state.isCampaignBattle = true;
+            state.isEchoFinalBattle = isEchoFinalRaid;
+            state.campaignBattleId = mission.id;
             
             // MODIFICA REGOLE ARENA: Se è il torneo assoluto, forza 6 in campo (6vs6). Altrimenti logica standard.
             let fSize = 1;
@@ -508,7 +534,7 @@ if (appMode === 'campaign_team_select') {
                 if (mission.forceFieldSize) fSize = mission.forceFieldSize;
             }
             
-            state.settings = { teamSize: p1Team.length, fieldSize: fSize };
+            state.settings = { teamSize: p1Team.length, fieldSize: fSize, echoRaid: isEchoFinalRaid };
             
             state.players.p1 = playerName || "Resistenza";
             state.playerAvatars.p1 = p1Team.length > 0 ? p1Team[0].img : '';

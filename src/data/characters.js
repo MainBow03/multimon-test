@@ -2,6 +2,11 @@ import { CHAR_PRICES } from './prices.js';
 import { MOVES_DB } from './moves.js';
 
 export const CHARACTERS = [
+  {id:'echomax',name:'Echomax',types:['Spettro','Buio'],hp:190,maxHp:190,atk:155,def:115,spd:105,
+   img:'https://i.postimg.cc/zBDV4P9y/Designer-(3).png',
+   passive:{name:'Legione dei Caduti',type:'soul_legion',desc:'Ogni KO nemico concede una Carica Anima. A 3 cariche evoca una Copia Perfetta del caduto che lotta per 3 turni. Una copia attiva alla volta.'},
+   moves:[MOVES_DB['Raggio dei Caduti'],MOVES_DB['Le Tenebre vi Avvolgono'],MOVES_DB['Vieni a Me, Anima'],MOVES_DB['Dominatore del Multiverso']],
+   isSecretUnlock:true},
           { id:'embermclain',name:'Ember McLain',types:['Spettro','Suono'],
             hp:105,maxHp:105,atk:108,spAtk:124,def:81,spd:112,
             img:'https://i.pinimg.com/1200x/ad/c8/cc/adc8cccaee66fa6a65a4f2bea2534c49.jpg',

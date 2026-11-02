@@ -99,6 +99,9 @@ if (gameState.status === 'gameover') {
                                         });
                                     }
 
+                                    if(activeCampaignId==='eco_anime' && mission.echoFinal){
+                                        saveGlobalUnlock('echomax');
+                                    }
                                     setCampaignSelectedTeam([]); // FIX: Svuota la squadra per la prossima missione
                                     setCampaignState(prev => ({
                                         ...prev,
@@ -162,7 +165,7 @@ if (gameState.status === 'gameover') {
 
                                     let currentEnemyState = null;
                                     if (gameState.teams && gameState.teams.p2) {
-                                        const aliveEnemies = gameState.teams.p2.filter(c => c.hp > 0);
+                                        const aliveEnemies = gameState.teams.p2.filter(c => c.hp > 0 && !c.isSummonOnly);
                                         if (aliveEnemies.length > 0) {
                                             currentEnemyState = aliveEnemies.map(c => ({
                                                 id: c.id,

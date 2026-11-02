@@ -1,5 +1,5 @@
 export const CAMPAIGN_COMPLETION_KEY = 'multimon_completed_campaigns_v1';
-export const CAMPAIGN_ORDER = ['crisi_varco','torneo_assoluto','monarch_akuma'];
+export const CAMPAIGN_ORDER = ['crisi_varco','torneo_assoluto','eco_anime','monarch_akuma'];
 export function getCompletedCampaigns(storage = (typeof localStorage !== 'undefined' ? localStorage : null)) {
   if (!storage) return Object.fromEntries(CAMPAIGN_ORDER.map(id=>[id,false]));
   let saved={}; try{ saved=JSON.parse(storage.getItem(CAMPAIGN_COMPLETION_KEY)||'{}')||{}; }catch(_){}

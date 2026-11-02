@@ -1,5 +1,6 @@
 import { reconcileCampaignRoster } from './campaignRoster.js';
 import { completeCampaign, isCampaignUnlocked } from './campaignUnlocks.js';
+import { ECHO_ID, ECHO_STARTERS } from '../data/echoCampaign.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const loadCampaignImpl = (ctx, campId) => {
 const { CHARACTERS, getCampaignStoryCharacters, setActiveCampaignId, setCampaignState } = ctx;
@@ -10,7 +11,9 @@ const { CHARACTERS, getCampaignStoryCharacters, setActiveCampaignId, setCampaign
               let defaultRoster = [];
               if (campId === 'crisi_varco') {
                   defaultRoster = ['finn', 'topolino'];
-              } else if (campId === 'monarch_akuma') {
+              } else if (campId === ECHO_ID) {
+                   defaultRoster = [...ECHO_STARTERS];
+               } else if (campId === 'monarch_akuma') {
                   defaultRoster = ['ladybug', 'chatnoir'];
               } else {
                   const storyChars = getCampaignStoryCharacters(campId);
