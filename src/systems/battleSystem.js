@@ -1,5 +1,6 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
 import { applyBattleStatModifier } from './statBalance.js';
+import { isOnlineHealingLimited, isLimitedHealingItem, onlineHealingRemaining, ONLINE_HEAL_ITEM_LIMIT } from './onlineHealingLimit.js';
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { resolvePoisonEndTurn } from './battleStatusTurns.js';
@@ -456,6 +457,7 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
               teams: teams,
               field: field,
               events: initialEvents,
+              healingItemsUsed: {p1:0,p2:0,p3:0,p4:0,p5:0,p6:0,p7:0,p8:0},
               turnExpiresAt: null,
               actions: { p1: {}, p2: {}, p3: {}, p4: {}, p5: {}, p6: {}, p7: {}, p8: {} },
               hyperUsed: { p1: false, p2: false, p3: false, p4: false, p5: false, p6: false, p7: false, p8: false }, // <--- AGGIUNTO PER FORMA IPER
@@ -751,7 +753,7 @@ const { gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents,
 };
 
 export const commitActionImpl = (ctx, actionDetails) => {
-const { appMode, commandingIdx, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState } = ctx;
+const { appMode, commandingIdx, ITEMS_DB, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState } = ctx;
 
             if (isSubmittingActionRef.current) return; // FIX: Evita che i doppi click sovrascrivano le azioni precedenti!
             isSubmittingActionRef.current = true;
@@ -767,6 +769,11 @@ const { appMode, commandingIdx, gameState, getActivePlayers, isSubmittingActionR
                 return;
             }
             
+            if(actionDetails.type==='use_item' && isLimitedHealingItem(ITEMS_DB[actionDetails.itemId]) &&
+               onlineHealingRemaining(gameState,playerRole,appMode,ITEMS_DB)<=0){
+                isSubmittingActionRef.current=false;
+                return;
+            }
             setSelectedMultiTargets([]);
 
             let myNewActions = { ...(gameState.actions[playerRole] || {}) };
@@ -972,7 +979,7 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
 };
 
 export const calculateTurnImpl = (ctx, currentActions) => {
-const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, playerName, updateLocalStats, updateState } = ctx;
+const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDamage, gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, playerName, updateLocalStats, updateState } = ctx;
 
             let events = [];
             // Salvataggio stato d'inizio turno per garantire la suspense visiva
@@ -982,6 +989,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
             let workingTeams = JSON.parse(JSON.stringify(gameState.teams));
             let workingField = JSON.parse(JSON.stringify(gameState.field));
             let workingInventory = JSON.parse(JSON.stringify(gameState.inventory));
+            const workingHealingItemsUsed={...(gameState.healingItemsUsed||{})};
             let workingHyperUsed = JSON.parse(JSON.stringify(gameState.hyperUsed || {})); // <--- AGGIUNTO PER FORMA IPER
             // Meteo condiviso: si salva nello stato partita, non sul singolo personaggio.
             let workingWeather = gameState.battleWeather ? {...gameState.battleWeather} : null;
@@ -1495,6 +1503,14 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                   const itemDef = ITEMS_DB[itemId];
                   
                   if (itemDef && itemDef.type !== 'held' && workingInventory[player]?.[itemId] > 0) {
+                      if(isLimitedHealingItem(itemDef)&&isOnlineHealingLimited(appMode,gameState)){
+                        const used=Number(workingHealingItemsUsed[player])||0;
+                        if(used>=ONLINE_HEAL_ITEM_LIMIT){
+                          events.push({type:'text',text:'Limite online raggiunto: massimo 3 strumenti curativi per giocatore.'});
+                          continue;
+                        }
+                        workingHealingItemsUsed[player]=used+1;
+                      }
                       workingInventory[player][itemId] -= 1;
                       
                       if (itemDef.type === 'revive') {
@@ -3497,6 +3513,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
           events: events,
           actions: { p1: {}, p2: {}, p3: {}, p4: {}, p5: {}, p6: {}, p7: {}, p8: {} },
           inventory: workingInventory,
+          healingItemsUsed: workingHealingItemsUsed,
           fieldTraps: workingFieldTraps,
           fieldTrapSeen: workingTrapSeen,
           battleWeather: workingWeather,
