@@ -3,6 +3,7 @@ import { applyBattleStatModifier } from './statBalance.js';
 import { isOnlineHealingLimited, isLimitedHealingItem, onlineHealingRemaining, ONLINE_HEAL_ITEM_LIMIT } from './onlineHealingLimit.js';
 import { consumeRaidShieldHit, createRaidShieldUpdateEvent, applyRaidShieldUpdateEvent } from './finalRaidBalance.js';
 import { createBattleReport, accumulateBattleReport } from './battleReport.js';
+import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { resolvePoisonEndTurn } from './battleStatusTurns.js';
@@ -342,6 +343,7 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
               char.spDef ??= char.def;
               char.spAtk ??= char.atk;
               char.gemSpent=false;char.healingSproutUsed=false;char.neutralizingSprayUsed=false;
+              if(char.id==='echomax')char.echoSoulCharges=0;
               char.rapidTransmutationReady=false;char.rapidTransmutationFresh=false;
             }));
             let fieldSize = gameState.settings.fieldSize;
@@ -1008,7 +1010,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             const handleFaint = (targetPlayer, targetIdx) => {
               const char = workingTeams[targetPlayer]?.[targetIdx];
               if (!char) return; // FIX: Se è già stato rimosso per errore evita il crash
+              if(char.echoFaintProcessed)return;
+              char.echoFaintProcessed=true;
               events.push({ text: `${char.name} è esausto!`, type: 'faint' });
+              // La Legione di Echomax si attiva una sola volta per KO nemico.
+              collectEchoSoul(workingTeams,workingField,char,targetPlayer,events);
               
               // --- RIMOZIONE STATUS IN_GROPPA SE YOSHI MUORE ---
               activeMatchPlayers.forEach(pAlly => {
@@ -2921,6 +2927,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     updateStatusUI(player,charTeamIdx);
                     if(cured.length)events.push({type:'text',text:`🧴 Spray Neutralizzante di ${attacker.name}: annulla Ricarica e gli altri malus!`});
                 }
+                if(move.echoRecoilConfusion && attackSucceeded && attacker.hp>0 && !attacker.isEchoRaidBoss){
+                    attacker.statuses.push({type:'Confuso',turns:2});
+                    updateStatusUI(player,charTeamIdx);
+                    events.push({type:'text',text:`👁️ ${attacker.name} resta confuso dopo Dominatore del Multiverso!`});
+                }
 
                 if(move.power>0)recordOffensiveMove(attacker,move);
                 if (move.suicide && attacker.hp > 0) {
@@ -3339,6 +3350,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
              events.push({ type: 'summon', text: '', player: 'p1', newChar: returningChar, fieldIdx: newIdx, putOnField: putOnField });
         });
 
+        // Le Copie Perfette svaniscono dopo tre turni combattuti; mai permanenti.
+        expireEchoCopies(workingTeams,workingField,events);
+
         let nextStatus = 'battling';
         let winner = null;
         let tResults = { ...gameState.tournamentResults };
@@ -3677,7 +3691,9 @@ const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, set
                 }
                 
                  let delay = evt.type === 'raid_shield_update' && !evt.activated ? 650 : 1600;
-                if (evt.isPassive) delay = 2200; // Tempo extra per far leggere la passiva
+                // 24 combattenti: riproduzione rapida senza minuti di testi obbligati.
+                if(gameState.isEchoFinalBattle)delay=evt.type==='raid_shield_update'?200:evt.type==='damage'?220:evt.type==='remove'?100:350;
+                if (evt.isPassive && !gameState.isEchoFinalBattle) delay = 2200; // Tempo extra per far leggere la passiva
                 if (evt.type === 'hyper_transform') delay = 4500; // Tempo extra per ammirare la lunghissima trasformazione
                 await new Promise(r => setTimeout(r, delay)); 
             }
