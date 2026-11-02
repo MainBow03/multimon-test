@@ -1263,7 +1263,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           // --- INTELLIGENZA ARTIFICIALE CPU (Migliorata per Tutti i Bot) ---
           const generateCPUActionsForPlayer = (...__args) => generateCPUActionsForPlayerImpl({ gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, roguelikeState }, ...__args);
 
-          const commitAction = (...__args) => commitActionImpl({ appMode, commandingIdx, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState }, ...__args);
+          const commitAction = (...__args) => commitActionImpl({ appMode, commandingIdx, ITEMS_DB, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState }, ...__args);
 
           const handleSelectMoveTarget = (...__args) => handleSelectMoveTargetImpl({ commandingIdx, commitAction, gameState, getActivePlayers, getTournamentMatchOpponents, playerRole, selectedMultiTargets, setSelectedMultiTargets, targetingMoveIdx }, ...__args);
 
@@ -1271,7 +1271,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
           const calculateDamage = (...__args) => calculateDamageImpl({  }, ...__args);
 
-          const calculateTurn = (...__args) => calculateTurnImpl({ CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, playerName, updateLocalStats, updateState }, ...__args);
+          const calculateTurn = (...__args) => calculateTurnImpl({ CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDamage, gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, playerName, updateLocalStats, updateState }, ...__args);
 
     const handleNextTournamentMatch = (...__args) => handleNextTournamentMatchImpl({ appMode, gameState, setCombatLog, setCommandingIdx, setIsLogOpen, setPlayerRole, updateState }, ...__args);
 
