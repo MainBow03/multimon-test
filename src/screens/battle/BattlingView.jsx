@@ -1,3 +1,4 @@
+import { onlineHealingRemaining, isLimitedHealingItem } from '../../systems/onlineHealingLimit.js';
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { BattleCodexLauncher } from '../../components/BattleCodex.jsx';
 import { BattleStatusBadges, battleFeedbackKind, BATTLE_FEEDBACK_LABELS } from '../../components/BattleStatusBadges.jsx';
@@ -864,6 +865,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
 
                                         {actionMenuMode === 'items' && (() => {
                                             const myInventory = gameState.inventory?.[playerRole] || {};
+                                            const curativesLeft=onlineHealingRemaining(gameState,playerRole,appMode,ITEMS_DB);
                                             const itemsToRender = Object.keys(myInventory).filter(itemId => myInventory[itemId] > 0 && ITEMS_DB[itemId] && ITEMS_DB[itemId].type !== 'held');
                                             
                                             if (itemsToRender.length === 0) {
@@ -871,10 +873,15 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                             }
 
                                             return (
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-3">
+                                                 {Number.isFinite(curativesLeft)&&<div className="rounded-lg border border-amber-500/40 bg-slate-950/75 p-3 text-xs text-amber-200 font-extrabold text-center">
+                                                   Strumenti curativi online: {curativesLeft} su 3 ancora utilizzabili in questa battaglia
+                                                 </div>}
+                                                 <div className="grid grid-cols-2 gap-4">
                                                     {itemsToRender.map(itemId => {
                                                         const itemDef = ITEMS_DB[itemId];
                                                         const qty = myInventory[itemId];
+                                                        const blockedOnline=isLimitedHealingItem(itemDef)&&curativesLeft<=0;
                                                         
                                                         // Se è un revit, abilita solo se ci sono morti in tutta la squadra
                                                         let isUsable = true;
@@ -905,7 +912,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                         }
 
                                                         return (
-                                                            <button key={itemId} disabled={!isUsable} onClick={() => {
+                                                            <button key={itemId} disabled={!isUsable||blockedOnline} onClick={() => {
                                                                 commitAction({ type: 'use_item', itemId: itemId, targetIdx: activeCommandCharIdx });
                                                             }} className={`bg-amber-600/20 p-3 rounded-xl border flex items-center justify-between transition-all text-left ${!isUsable ? 'opacity-50 grayscale border-slate-600 cursor-not-allowed' : 'border-amber-500/50 hover:bg-amber-500/30 hover:border-amber-400 hover:scale-[1.02] shadow-md'}`}>
                                                                 <div>
@@ -920,6 +927,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                             </button>
                                                         );
                                                     })}
+                                                 </div>
                                                 </div>
                                             );
                                         })()}
