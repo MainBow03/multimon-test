@@ -69,7 +69,7 @@ export const MOVES_DB = {
           'Zorushirudo': { name: 'Zorushirudo', type: 'Magico', power: 0, target: 'self', maxUses: 5, priority: 5, isProtect: true, desc: 'Si protegge dagli attacchi. Se usato di fila, la probabilità di successo si dimezza.' },
           
           'Fiamma del Drago': { name: 'Fiamma del Drago', type: 'Fuoco', power: 60, desc: 'Un getto di fiamme a forma di drago che incenerisce il nemico.' },
-          'Esplosione Solare': { name: 'Esplosione Solare', type: 'Fuoco', power: 0, targetCount: 4, statusEffect: { type: 'Scottato', chance: 1.0 }, desc: 'Scotta tutti gli avversari in campo con una luce accecante e calore estremo.' },
+          'Esplosione Solare': { name: 'Esplosione Solare', type: 'Fuoco', power: 0, targetCount: 2, statusEffect: { type: 'Scottato', chance: 1.0 }, desc: 'Scotta sicuramente fino a 2 avversari selezionati, grazie a una luce accecante e calore estremo.' },
           'Aura Stellare': { name: 'Aura Stellare', type: 'Magico', power: 0, target: 'self', maxUses: 3, statBuff: { atk: 1.5 }, desc: "Aumenta l'attacco di chi la usa del 50%. (3 utilizzi)" },
           'Incanto Protettivo': { name: 'Incanto Protettivo', type: 'Magico', power: 0, targetCount: 4, maxUses: 3, statusEffect: { type: 'Indebolito', chance: 1.0, turns: 5 }, desc: 'Applica Indebolito. Riduce del 25% i danni fisici e magici degli avversari per 5 turni.' },
 
@@ -123,9 +123,9 @@ export const MOVES_DB = {
           'Abbraccio Oscuro': { name: 'Abbraccio Oscuro', type: 'Oscuro', power: 80, drain: 0.4, desc: 'Un abbraccio maledetto che assorbe l\'energia nemica. Cura del 40% dei danni inflitti.' },
           'Fertilizzante': { name: 'Fertilizzante', type: 'Erba', power: 0, target: 'self', heal: 0.5, desc: 'Usa del fertilizzante per rigenerare rapidamente i propri tessuti curando il 50% dei PS.' },
 
-          'Polline fastidioso': { name: 'Polline fastidioso', type: 'Erba', power: 0, maxUses: 4, targetCount: 2, statusEffects: [{ type: 'Addormentato', chance: 0.50 }, { type: 'Elettrizzato', chance: 0.50 }], desc: 'Spolvera un polline irritante su 2 nemici: 50% di addormentare e 50% di paralizzare.' },
+          'Polline fastidioso': { name: 'Polline fastidioso', type: 'Erba', power: 40, maxUses: 4, targetCount: 2, statusEffects: [{ type: 'Addormentato', chance: 0.35 }, { type: 'Elettrizzato', chance: 0.35 }], desc: 'Colpisce fino a 2 nemici con potenza 40; 35% di addormentare e 35% di paralizzare ciascun bersaglio. (4 utilizzi)' },
           'Foglia Danzerina': { name: 'Foglia Danzerina', type: 'Erba', power: 65, statusEffect: { type: 'Confuso', chance: 0.30 }, desc: 'Una danza di foglie affilate. 30% di probabilità di confondere.' },
-          'Fotosintesi clorofiliana': { name: 'Fotosintesi clorofiliana', type: 'Erba', power: 0, maxUses: 2, targetMode: 'team_smart_heal', healAlone: 1.0, healTeam: 0.5, desc: 'Se è sola si cura del 100% dei PS. Se ha alleati, cura tutto il team in campo del 50% dei PS.' },
+          'Fotosintesi clorofiliana': { name: 'Fotosintesi clorofiliana', type: 'Erba', power: 0, maxUses: 2, targetMode: 'team_smart_heal', healAlone: 0.8, healTeam: 0.35, desc: 'Se è sola si cura dell’80% dei PS massimi. Con alleati, cura ogni membro del team in campo del 35%. (2 utilizzi)' },
           'L ho fatta nel vaso': { name: 'L ho fatta nel vaso', type: 'Erba', power: 0, target: 'self', heal: 0.25, statBuff: { def: 1.5 }, desc: 'Si sistema comodamente: recupera il 25% dei PS e aumenta la propria Difesa del 50%.' },
 
           'Bolla Turbo': { name: 'Bolla Turbo', type: 'Acqua', power: 45, targetCount: 4, selfStatBuff: { spd: 1.5 }, desc: 'Attacco rapido d\'acqua che colpisce più bersagli possibili e aumenta la Velocità di chi la usa.' },
@@ -258,7 +258,7 @@ export const MOVES_DB = {
           'Alito Congelante': { name: 'Alito Congelante', type: 'Ghiaccio', power: 85, statusEffect: { type: 'Congelato', chance: 0.35 }, desc: 'Soffia aria gelida per abbassare la temperatura corporea. 35% di prob. di congelare.' },
           'Sguardo Spirituale': { name: 'Sguardo Spirituale', type: 'Spettro', power: 0, targetStatDebuff: { atk: 0.5, spd: 0.5 }, desc: 'Uno sguardo terrificante dall\'oltretomba che dimezza l\'Attacco e la Velocità del nemico.' },
           'Tormenta Spettrale': { name: 'Tormenta Spettrale', type: 'Spettro', power: 80, targetCount: 4, desc: 'Evoca anime in pena in mezzo a una tormenta, colpendo tutti i nemici in campo.' },
-          'Fascino Glaciale': { name: 'Fascino Glaciale', type: 'Ghiaccio', power: 0, statusEffect: { type: 'Infatuato', chance: 1.0 }, desc: 'La sua bellezza ultraterrena incanta il nemico, infatuandolo in modo infallibile.' },
+          'Fascino Glaciale': { name: 'Fascino Glaciale', type: 'Ghiaccio', power: 0, maxUses: 3, statusEffect: { type: 'Infatuato', chance: 0.75 }, desc: 'Può infatuare il nemico con il 75% di probabilità. (3 utilizzi)' },
 
           // NUOVE MOSSE CYBORG
           'Cannone Sonico': { name: 'Cannone Sonico', type: 'Robot', power: 85, targetCount: 2, desc: 'Un\'onda d\'urto sonica ad alta frequenza che colpisce fino a 2 bersagli.' },
@@ -383,7 +383,7 @@ export const MOVES_DB = {
           'Sguardo di Luigi': { name: 'Sguardo di Luigi', type: 'Normale', power: 0, targetCount: 4, targetStatDebuff: { atk: 0.7 }, desc: 'Fissa male tutti i nemici, riducendone l\'Attacco del 30%.' },
           'Missile Verde': { name: 'Missile Verde', type: 'Aria', power: 90, statusEffect: { type: 'Confuso', chance: 0.2 }, desc: 'Si lancia a testa bassa come un razzo. 20% di confondere.' },
 
-          'Fratelli Bros': { name: 'Fratelli Bros', type: 'Lotta', power: 300, maxUses: 1, isCombo: ['mario', 'luigi'], specificComboEffects: { 'mario': { selfHeal: -0.20, statBuff: { def: 1.5 } }, 'luigi': { selfHeal: -0.20, statBuff: { spd: 1.5 } } }, desc: 'Mossa Combinata: 300 danni. Aumenta la Difesa di Mario (+50%) e la Velocità di Luigi (+50%), ma entrambi perdono il 20% dei PS massimi. Consuma il turno di entrambi.' },
+          'Fratelli Bros': { name: 'Fratelli Bros', type: 'Lotta', power: 250, maxUses: 1, isCombo: ['mario', 'luigi'], specificComboEffects: { 'mario': { selfHeal: -0.20, statBuff: { def: 1.3 } }, 'luigi': { selfHeal: -0.20, statBuff: { spd: 1.3 } } }, desc: 'Mossa Combinata: 250 potenza. Aumenta la Difesa di Mario (+30%) e la Velocità di Luigi (+30%), ma entrambi perdono il 20% dei PS massimi. Consuma il turno di entrambi.' },
 
           // NUOVE MOSSE FINN & JAKE
           'Spada d\'Oro': { name: 'Spada d\'Oro', type: 'Lotta', power: 75, desc: 'Fende il nemico con la fidata spada d\'oro.' },
@@ -559,11 +559,11 @@ export const MOVES_DB = {
           'Non sono Rick!': { name: 'Non sono Rick!', type: 'Acqua', power: 50, statusEffect: { type: 'Confuso', chance: 0.5 }, desc: 'Urla arrabbiato il suo nome. Infligge danni e ha il 50% di probabilità di confondere.' },
           'Riposino sotto la Roccia': { name: 'Riposino sotto la Roccia', type: 'Roccia', power: 0, target: 'self', heal: 0.5, statBuff: { def: 1.5 }, desc: 'Torna sotto la sua roccia per farsi un sonnellino. Si cura del 50% e aumenta la Difesa.' },
           'Lancio del Sasso': { name: 'Lancio del Sasso', type: 'Roccia', power: 30, multiHit: { min: 2, max: 4 }, desc: 'Raccoglie e lancia sassi trovati in giro. Colpisce l\'avversario da 2 a 4 volte.' },
-          'A caccia di meduse': { name: 'A caccia di meduse', type: 'Acqua', power: 250, ignoreDefBuffs: true, maxUses: 1, isCombo: ['spongebob', 'patrick'], specificComboEffects: { 'patrick': { selfHeal: -0.75 }, 'spongebob': { statBuff: { atk: 2.0, def: 2.0, spd: 2.0 } } }, desc: 'Mossa Combinata: Danni immensi (250). Patrick si sacrifica perdendo il 75% dei PS massimi, ma Spongebob raddoppia Attacco, Difesa e Velocità!' },
+          'A caccia di meduse': { name: 'A caccia di meduse', type: 'Acqua', power: 250, ignoreDefBuffs: true, maxUses: 1, isCombo: ['spongebob', 'patrick'], specificComboEffects: { 'patrick': { selfHeal: -0.75 }, 'spongebob': { statBuff: { atk: 1.5, def: 1.5, spd: 1.5 } } }, desc: 'Mossa Combinata: potenza 250 e ignora i potenziamenti difensivi. Patrick perde il 75% dei PS massimi, mentre Spongebob ottiene +50% Attacco, Difesa e Velocità.' },
 
           // NUOVE MOSSE PLANKTON
           'Laser Mentale': { name: 'Laser Mentale', type: 'Robot', power: 85, statusEffect: { type: 'Confuso', chance: 0.3 }, desc: 'Spari ad alta tecnologia. 30% di probabilità di confondere il nemico.' },
-          'Piano Z': { name: 'Piano Z', type: 'Oscuro', power: 0, target: 'self', statBuff: { atk: 2.0, spd: 1.5 }, maxUses: 2, desc: 'Il piano malvagio definitivo! Raddoppia l\'Attacco e aumenta la Velocità del 50%. (2 utilizzi)' },
+          'Piano Z': { name: 'Piano Z', type: 'Oscuro', power: 0, target: 'self', statBuff: { atk: 1.5, spd: 1.3 }, maxUses: 2, desc: 'Il piano malvagio definitivo! +50% Attacco e +30% Velocità. (2 utilizzi)' },
           'Karen, Aiuto!': { name: 'Karen, Aiuto!', type: 'Robot', power: 0, targetMode: 'ally', targetStatBuff: { def: 2.0 }, heal: 0.3, desc: 'Sfrutta l\'aiuto di sua moglie Karen per curare un alleato del 30% e raddoppiarne la Difesa.' },
           'Furto della Ricetta': { name: 'Furto della Ricetta', type: 'Oscuro', power: 75, drain: 0.6, targetStatDebuff: { atk: 0.7 }, desc: 'Ruba l\'energia (e la ricetta!) al nemico. Drena il 60% del danno e ne riduce l\'Attacco.' },
 
@@ -577,7 +577,7 @@ export const MOVES_DB = {
           'Akur!': { name: 'Akur!', type: 'Acqua', power: 80, statusEffect: { type: 'Confuso', chance: 0.10 }, desc: 'Un\'ondata d\'acqua travolgente. 10% di probabilità di confondere.' },
           'guarda il mio faccino!': { name: 'guarda il mio faccino!', type: 'Normale', power: 0, targetStatDebuff: { atk: 0.7 }, statusEffect: { type: 'Infatuato', chance: 0.80 }, desc: 'Diminuisce l\'Attacco avversario e ha l\'80% di probabilità di infatuare.' },
           'Akur Kiro!': { name: 'Akur Kiro!', type: 'Acqua', power: 60, targetCount: 4, desc: 'Lancia lame taglienti d\'acqua a tutti gli avversari in campo.' },
-          'Sou Giakuru!': { name: 'Sou Giakuru!', type: 'Acqua', power: 150, maxUses: 2, statusEffect: { type: 'Confuso', chance: 1.0 }, desc: 'Devastante drago d\'acqua. Confonde sicuramente il bersaglio. (2 utilizzi)' },
+          'Sou Giakuru!': { name: 'Sou Giakuru!', type: 'Acqua', power: 125, maxUses: 2, statusEffect: { type: 'Confuso', chance: 0.70 }, desc: 'Drago d\'acqua di potenza 125: 70% di probabilità di confondere il bersaglio. (2 utilizzi)' },
 
           // NUOVE MOSSE BRAGO
           'Gravirei': { name: 'Gravirei', type: 'Oscuro', power: 80, targetStatDebuff: { spd: 0.7 }, desc: 'Schiaccia il nemico con la gravità. Diminuisce la Velocità del 30%.' },
@@ -621,7 +621,7 @@ export const MOVES_DB = {
           'Guanto Ruba-Mosse': { name: 'Guanto Ruba-Mosse', type: 'Robot', power: 40, stealMove: { turns: 3 }, desc: 'Ruba una mossa a caso dal bersaglio per 3 turni e infligge leggeri danni.' },
           'Torcia Cambia-Tipo': { name: 'Torcia Cambia-Tipo', type: 'Magico', power: 0, targetMode: 'ally', priority: 1, copyRandomEnemyType: true, desc: 'Priorità +1. Seleziona un alleato (o te stesso): copia i tipi di un nemico a caso e glieli assegna per sorprenderlo!' },
           'Cannone ad Aria': { name: 'Cannone ad Aria', type: 'Aria', power: 80, desc: 'Spara un potente proiettile d\'aria compressa dal suo iconico gadget.' },
-          'Gadget di Supporto': { name: 'Gadget di Supporto', type: 'Robot', power: 0, targetMode: 'team', maxTeamTargets: 2, targetStatBuff: { atk: 1.5, def: 1.5 }, desc: 'Estrae gadget dalla tasca 4D per potenziare del 50% Attacco e Difesa di 2 alleati in campo.' },
+          'Gadget di Supporto': { name: 'Gadget di Supporto', type: 'Robot', power: 0, targetMode: 'team', maxTeamTargets: 2, maxUses: 2, targetStatBuff: { atk: 1.5, def: 1.5 }, desc: 'Estrae gadget dalla tasca 4D: +50% Attacco e Difesa fino a 2 alleati in campo. (2 utilizzi)' },
 
           // NUOVE MOSSE BULMA E AIUTANTI
           'Senzu per tutti': { name: 'Senzu per tutti', type: 'Normale', power: 0, targetMode: 'team_smart_heal', healAlone: 0.5, healTeam: 0.5, maxUses: 2, desc: 'Cura il 50% dei PS massimi di tutti gli alleati in campo. (2 utilizzi)' },
