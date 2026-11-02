@@ -1,4 +1,9 @@
 import { ITEMS_DB } from '../data/items.js';
+import { CHARACTERS } from '../data/characters.js';
+import { FUSION_CHARACTERS } from '../data/fusions.js';
+import { grantMasteryXP, isMasteryUnlocked } from './masterySystem.js';
+
+const masteryEligibleIds = new Set([...CHARACTERS, ...FUSION_CHARACTERS].map(char => char.id));
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const updateLocalStatsImpl = (ctx, updates) => {
 const { getPlayerData } = ctx;
@@ -6,6 +11,14 @@ const { getPlayerData } = ctx;
               const key = `multiverse_rpg_global_profile`;
               let current = getPlayerData();
 
+              if (updates.masteryIds) {
+                  current = grantMasteryXP(current, updates.masteryIds, !!updates.masteryWon, masteryEligibleIds);
+              }
+              if (Object.prototype.hasOwnProperty.call(updates, 'equipMasteryTitle')) {
+                  const id = updates.equipMasteryTitle;
+                  if (id === null || (masteryEligibleIds.has(id) && isMasteryUnlocked(current, id)))
+                      current.equippedMasteryTitle = id;
+              }
               if (updates.match) current.matches++;
               if (updates.win) current.wins++;
               if (updates.playtime) current.playtime += updates.playtime;

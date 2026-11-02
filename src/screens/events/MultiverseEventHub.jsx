@@ -63,7 +63,7 @@ function Arena({battle,settings,uid,view,setView,orders,setOrders,submit,force,i
    submit={submit} hostForce={force} busy={busy} isHost={isHost} onContinue={onContinue} onMinimize={onMinimize}/>;
 }
 
-export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getPlayerData,updateLocalStats}){
+export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,playerTitle,getPlayerData,updateLocalStats}){
  const [opened,open]=useState(false),[createScreen,showCreate]=useState(false),[activeId,setId]=useState('');
  const [events,setEvents]=useState([]),[event,setEvent]=useState(null),[players,setPlayers]=useState([]);
  const [clock,setClock]=useState(Date.now());
@@ -121,10 +121,10 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
   }else{open(false);setError('');}
  };
  const join=()=>operate(async()=>{if(!event||event.status!=='lobby'||count>=capacity)throw Error('Iscrizioni chiuse.');
- if(!mine)await joinEvent(activeId,{uid,name:playerName.trim(),avatar:playerAvatarUrl||''});});
+ if(!mine)await joinEvent(activeId,{uid,name:playerName.trim(),avatar:playerAvatarUrl||'',title:playerTitle||''});});
  const create=()=>operate(async()=>{if(!user||!playerName.trim())throw Error('Connettiti e inserisci un nome nel menu');
  if(live.length)throw Error('È già attivo un torneo: unisciti a quello.');
- const id=await createEvent({uid,name:playerName.trim()},normalizeEventSettings(settings));setId(id);showCreate(false)});
+ const id=await createEvent({uid,name:playerName.trim(),title:playerTitle||''},normalizeEventSettings(settings));setId(id);showCreate(false)});
  const save=()=>operate(async()=>{
  if(!mine||!validTeam(draft,event.settings))throw Error('Seleziona esattamente '+event.settings.teamSize+' personaggi diversi.');
  const eq={},inv=getPlayerData().inventory||{},used={};
@@ -210,9 +210,12 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
   const prize=event.placements?.participants?.[uid];if(!prize)return;
   const key='multimon_event_reward_'+event.id+'_'+uid;
   if(localStorage.getItem(key))return;
-  updateLocalStats({addCoins:prize.coins,win:prize.rank===1,match:true});
+  // La squadra impiegata nel torneo riceve PE una sola volta per evento.
+  if (!mine || !Array.isArray(mine.teamIds)) return;
+  updateLocalStats({addCoins:prize.coins,win:prize.rank===1,match:true,
+    masteryIds:mine.teamIds,masteryWon:prize.rank===1});
   localStorage.setItem(key,JSON.stringify(prize));
- },[event?.id,event?.status,uid,event?.placements]);
+ },[event?.id,event?.status,uid,event?.placements,mine?.teamIds]);
  const openEvent=e=>{setId(e.id);showCreate(false);open(true)};
  return <>
  {live.length>0&&!opened&&playerName.trim()&&<button className="fixed z-[90] bottom-5 right-5 bg-gradient-to-r from-fuchsia-700 to-violet-700 border border-fuchsia-300 shadow-2xl rounded-xl p-4 font-black text-white animate-pulse" onClick={()=>openEvent(live[0])}>🏆 TORNEO DEL MULTIVERSO · {live[0].status==='lobby'?'UNISCITI':'GUARDA'}</button>}
@@ -249,10 +252,10 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
  {editing&&<div className="rounded-xl border border-violet-500 p-3 space-y-2"><input className={inp} value={editName} onChange={e=>setEditName(e.target.value)}/>
  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">{editRoster.map((id,i)=><select key={i} className={inp} value={id} onChange={e=>setEditRoster(v=>v.map((x,j)=>j===i?e.target.value:x))}>{available.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>)}</div><button className={btn} onClick={saveBot}>Salva bot</button></div>}
  <h3 className="font-black text-sm">Ordina gli sfidanti (in modalità multipla, ogni 2 consecutivi formano un team)</h3>
- <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">{ordered.map((p,i)=><div key={p.id} className="bg-slate-950 rounded-xl p-2 text-xs flex items-center gap-2"><span className="text-amber-400">#{i+1}</span><span className="flex-1 truncate">{p.name} {p.ready?'✅':'⌛'}</span><button disabled={busy||i===0} onClick={()=>move(p.id)}>▲</button></div>)}</div>
+ <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">{ordered.map((p,i)=><div key={p.id} className="bg-slate-950 rounded-xl p-2 text-xs flex items-center gap-2"><span className="text-amber-400">#{i+1}</span><span className="flex-1 truncate">{p.name}{p.title && <span className="block text-amber-300 text-[10px]">✦ {p.title}</span>} {p.ready?'✅':'⌛'}</span><button disabled={busy||i===0} onClick={()=>move(p.id)}>▲</button></div>)}</div>
  <button className={btn} disabled={busy||count!==capacity||!ordered.every(x=>x.ready)} onClick={begin}>Avvia torneo ({event.settings.entrants} squadre)</button>
  </div>}
- <div className={card}><h3 className="font-black">Iscritti</h3><div className="flex flex-wrap gap-2 mt-2">{[...players,...event.bots].map(p=><span key={p.uid||p.id} className="rounded-lg px-3 py-2 border border-slate-700 text-xs">{p.name} {p.ready?'✅':'⌛'}</span>)}</div></div>
+ <div className={card}><h3 className="font-black">Iscritti</h3><div className="flex flex-wrap gap-2 mt-2">{[...players,...event.bots].map(p=><span key={p.uid||p.id} className="rounded-lg px-3 py-2 border border-slate-700 text-xs">{p.name}{p.title && <span className="block text-amber-300 text-[10px]">✦ {p.title}</span>} {p.ready?'✅':'⌛'}</span>)}</div></div>
  </>}
  {event.status!=='lobby'&&<>
  {(event.displayPhase==='bracket'||!event.activeBattle)&&

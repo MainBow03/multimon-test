@@ -31,6 +31,7 @@ import { loadCampaignImpl, advanceCampaignImpl } from './systems/campaignFlow.js
 import { reconcileCampaignRoster } from './systems/campaignRoster.js';
 import { handleAvatarUploadImpl, leaveRoomImpl, handleConfirmLeaveImpl, updateStateImpl, getRequiredPlayersImpl, getActivePlayersImpl, isAllPlayersJoinedImpl, handleCreateRoomImpl, handleJoinRoomImpl, commitReplacementChoiceImpl, handleAddBotImpl, handleRemovePlayerImpl, handleLocalStartImpl, handleVsCpuStartImpl, handlePickImpl, handleDraftRerollImpl, handleSharedPickImpl } from './systems/multiplayerSystem.js';
 import { updateLocalStatsImpl } from './systems/profileSystem.js';
+import { equippedMasteryTitle } from './systems/masterySystem.js';
 import { renderHealthBarImpl } from './components/uiHelpers.jsx';
 import { handleCreateRoguelikeCoopImpl, handleSurvivalStartImpl } from './systems/roguelikeSystem.js';
 import { getTournamentMatchOpponentsImpl, handleNextTournamentMatchImpl } from './systems/tournamentSystem.js';
@@ -104,6 +105,9 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const [playerName, setPlayerName] = useState(() => localStorage.getItem('multiverse_rpg_saved_name') || '');
           const [playerAvatarUrl, setPlayerAvatarUrl] = useState(() => localStorage.getItem('multiverse_rpg_saved_avatar') || ''); 
           const [roomIdInput, setRoomIdInput] = useState('');
+          const [profileRevision, setProfileRevision] = useState(0);
+          const [masterySearch, setMasterySearch] = useState('');
+          const [masteryFilter, setMasteryFilter] = useState('all');
           const [coopRoomId, setCoopRoomId] = useState(null);
 
           const sessionRef = useRef(getSavedSession());
@@ -721,6 +725,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                   }
                   
                   const myKey = Object.keys(gameState.players).find(k => gameState.players[k] === playerName);
+                  // Solo i Multimon realmente entrati in campo guadagnano padronanza.
+                  // La ricompensa si applica nel medesimo salvataggio delle monete.
+                  const masteryIds = (gameState.teams?.[myKey] || [])
+                    .filter(c => c && c.revealed && !c.isSummonOnly)
+                    .map(c => c.id);
 
                   if (gameState.isCampaignBattle) {
                       const isWin = gameState.winner === gameState.players.p1;
@@ -730,6 +739,10 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                       }
                       if (myKey && gameState.inventory[myKey]) {
                           statsUpdates.overwriteInventory = gameState.inventory[myKey]; // FIX: Salva gli oggetti usati in campagna
+                      }
+                      if (masteryIds.length) {
+                          statsUpdates.masteryIds = masteryIds;
+                          statsUpdates.masteryWon = isWin;
                       }
                       if (Object.keys(statsUpdates).length > 0) updateLocalStats(statsUpdates);
                       return; 
@@ -807,6 +820,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                       }
                   }
                   
+                  if (myKey && masteryIds.length) {
+                      statsUpdates.masteryIds = masteryIds;
+                      statsUpdates.masteryWon = !!statsUpdates.win;
+                  }
+
                   // CHIAMATA UNICA AL SALVATAGGIO (Risolve il bug di sovrascrittura di localStorage)
                   if (Object.keys(statsUpdates).length > 0) {
                       updateLocalStats(statsUpdates);
@@ -854,7 +872,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                           roomId: appMode === 'online_room' ? roomId : null,
                           timestamp: Date.now(),
                           wins: stats.wins || 0,
-                          matches: stats.matches || 0
+                          matches: stats.matches || 0,
+                          title: equippedMasteryTitle(stats, [...CHARACTERS, ...FUSION_CHARACTERS])
                       });
                       setOnlineUsersError('');
                   } catch (err) {
@@ -870,7 +889,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                   clearInterval(interval);
                   document.removeEventListener('visibilitychange', onVisible);
               };
-          }, [user?.uid, playerName, playerAvatarUrl, appMode, roomId, sessionId]);
+          }, [user?.uid, playerName, playerAvatarUrl, appMode, roomId, sessionId, profileRevision]);
 
           useEffect(() => {
               if (!user || !showOnlinePlayers) return;
@@ -961,7 +980,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               return { matches: 0, wins: 0, playtime: 0, chars: {}, moves: {}, coins: 500, inventory: { cura_totale: 1 }, unlockedChars: [], apologyGiftReceived: true, bugFixCompensation200: true, maxSurvivalRound: 0 };
           }
 
-          const updateLocalStats = (...__args) => updateLocalStatsImpl({ getPlayerData }, ...__args);
+          const updateLocalStats = (...__args) => {
+              updateLocalStatsImpl({ getPlayerData }, ...__args);
+              setProfileRevision(previous => previous + 1);
+          };
+          const getPlayerTitle = () => equippedMasteryTitle(getPlayerData(), [...CHARACTERS, ...FUSION_CHARACTERS]);
 
           const leaveRoom = (...__args) => leaveRoomImpl({ initialGameState, setAppMode, setCombatLog, setGameState, setIsLogOpen, setPlayerRole, setRoomId }, ...__args);
 
@@ -1153,11 +1176,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
           const isAllPlayersJoined = (...__args) => isAllPlayersJoinedImpl({ gameState, getRequiredPlayers }, ...__args);
 
-          const handleCreateRoom = (...__args) => handleCreateRoomImpl({ appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, playerName, setAppMode, setDoc, setPlayerRole, setRoomId, setSystemAlert, user }, ...__args);
+          const handleCreateRoom = (...__args) => handleCreateRoomImpl({ appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), setAppMode, setDoc, setPlayerRole, setRoomId, setSystemAlert, user }, ...__args);
 
-          const handleCreateRoguelikeCoop = (...__args) => handleCreateRoguelikeCoopImpl({ appId, db, doc, initialGameState, playerAvatarUrl, playerName, setAppMode, setCoopRoomId, setDoc, setPlayerRole, setRoomId, setSystemAlert, user }, ...__args);
+          const handleCreateRoguelikeCoop = (...__args) => handleCreateRoguelikeCoopImpl({ appId, db, doc, initialGameState, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), setAppMode, setCoopRoomId, setDoc, setPlayerRole, setRoomId, setSystemAlert, user }, ...__args);
 
-          const handleJoinRoom = (...__args) => handleJoinRoomImpl({ appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, playerName, roomIdInput, setAppMode, setCoopRoomId, setPlayerRole, setRoomId, setSystemAlert, runTransaction, user }, ...__args);
+          const handleJoinRoom = (...__args) => handleJoinRoomImpl({ appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), roomIdInput, setAppMode, setCoopRoomId, setPlayerRole, setRoomId, setSystemAlert, runTransaction, user }, ...__args);
 
           const chooseReplacement = (...__args) => commitReplacementChoiceImpl({ appMode, appId, db, doc, gameState, playerRole, roomId, runTransaction, setSystemAlert, updateState, user }, ...__args);
 
@@ -1165,12 +1188,12 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
           const handleRemovePlayer = (...__args) => handleRemovePlayerImpl({ updateState }, ...__args);
 
-          const handleLocalStart = (...__args) => handleLocalStartImpl({ getPlayerData, initialGameState, playerAvatarUrl, playerName, setAppMode, setGameState, setPlayerRole }, ...__args);
+          const handleLocalStart = (...__args) => handleLocalStartImpl({ getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), setAppMode, setGameState, setPlayerRole }, ...__args);
 
-          const handleVsCpuStart = (...__args) => handleVsCpuStartImpl({ getPlayerData, initialGameState, playerAvatarUrl, playerName, setAppMode, setGameState, setPlayerRole }, ...__args);
+          const handleVsCpuStart = (...__args) => handleVsCpuStartImpl({ getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), setAppMode, setGameState, setPlayerRole }, ...__args);
 
           // --- AGGIUNTO: AVVIO MODALITÀ SOPRAVVIVENZA ---
-          const handleSurvivalStart = (...__args) => handleSurvivalStartImpl({ getPlayerData, initialGameState, playerAvatarUrl, playerName, setAppMode, setGameState, setPlayerRole }, ...__args);
+          const handleSurvivalStart = (...__args) => handleSurvivalStartImpl({ getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), setAppMode, setGameState, setPlayerRole }, ...__args);
           // ----------------------------------------------
 
           const handlePick = (...__args) => handlePickImpl({ CHARACTERS, FUSION_CHARACTERS, gameState, playerRole, setDraftTimeLeft, updateState }, ...__args);
@@ -1324,7 +1347,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
     const renderView = () => {
         if (appMode === 'menu') {
-  const __screen = renderMenuView({ BarChart, BookOpen, CHARACTERS, GridIcon, IS_PREVIEW, ImageIcon, Shield, ShoppingCart, Swords, Target, Trophy, Upload, Users, Wifi, appMode, getDefaultAvatar, getPlayerData, handleAvatarUpload, handleCreateRoguelikeCoop, handleCreateRoom, handleJoinRoom, handleLocalStart, handleSurvivalStart, handleVsCpuStart, onlineUsers, playerAvatarUrl, playerName, roguelikeState, roomIdInput, sessionId, setAppMode, setPlayerAvatarUrl, setPlayerName, setRoguelikeDraftChoices, setRoguelikeState, setRoomIdInput, setShowOnlinePlayers, setSystemAlert });
+  const __screen = renderMenuView({ BarChart, BookOpen, CHARACTERS, GridIcon, IS_PREVIEW, ImageIcon, Shield, ShoppingCart, Swords, Target, Trophy, Upload, Users, Wifi, appMode, getDefaultAvatar, getPlayerData, handleAvatarUpload, handleCreateRoguelikeCoop, handleCreateRoom, handleJoinRoom, handleLocalStart, handleSurvivalStart, handleVsCpuStart, onlineUsers, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), roguelikeState, roomIdInput, sessionId, setAppMode, setPlayerAvatarUrl, setPlayerName, setRoguelikeDraftChoices, setRoguelikeState, setRoomIdInput, setShowOnlinePlayers, setSystemAlert });
   if (__screen !== undefined) return __screen;
 }
     
@@ -1406,7 +1429,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (appMode === 'stats') {
-  const __screen = renderStatsView({ ArrowLeft, Swords, Target, Trophy, Users, appMode, getPlayerData, playerName, setAppMode });
+  const __screen = renderStatsView({ ArrowLeft, Swords, Target, Trophy, Users, CHARACTERS, FUSION_CHARACTERS, appMode, getPlayerData, playerName, masterySearch, setMasterySearch, masteryFilter, setMasteryFilter, setAppMode, updateLocalStats });
   if (__screen !== undefined) return __screen;
 }
 
@@ -1460,7 +1483,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
     return (
         <>
-            <MultiverseEventHub appMode={appMode} user={user} playerName={playerName} playerAvatarUrl={playerAvatarUrl} getPlayerData={getPlayerData} updateLocalStats={updateLocalStats} />
+            <MultiverseEventHub appMode={appMode} user={user} playerName={playerName} playerAvatarUrl={playerAvatarUrl} playerTitle={getPlayerTitle()} getPlayerData={getPlayerData} updateLocalStats={updateLocalStats} />
             {showLeaveConfirm && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
                     <div className="bg-slate-900 border border-rose-500/50 p-6 rounded-3xl max-w-sm w-full text-center shadow-[0_0_50px_rgba(244,63,94,0.2)] relative overflow-hidden">
@@ -1530,6 +1553,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                                     <img src={u.avatar || getDefaultAvatar(u.name)} onError={(e) => { e.target.onerror = null; e.target.src = getDefaultAvatar(u.name); }} className="w-12 h-12 rounded-full border-2 border-slate-600 bg-slate-900 object-cover" />
                                     <div className="flex-1 min-w-0">
                                         <div className="font-bold text-white truncate text-base mb-0.5">{u.name}</div>
+                                        {u.title && <div className="text-xs text-amber-300 truncate">✦ {u.title}</div>}
                                         <div className={`text-[10px] font-bold uppercase tracking-widest ${u.status === 'In Partita' ? 'text-amber-400' : 'text-emerald-400'}`}>{u.status}</div>
                                     </div>
                                     {u.roomId && (

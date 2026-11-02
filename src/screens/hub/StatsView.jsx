@@ -1,6 +1,9 @@
-// Schermata estratta senza alterare la struttura JSX originale.
+import { masteryLevel, masteryProgress, masteryRank, masteryTitle, isMasteryUnlocked, equippedMasteryTitle } from '../../systems/masterySystem.js';
+// La padronanza è visibile nel profilo, con titoli puramente estetici.
 export function renderStatsView(ctx) {
-const { ArrowLeft, Swords, Target, Trophy, Users, appMode, getPlayerData, playerName, setAppMode } = ctx;
+const { ArrowLeft, Swords, Target, Trophy, Users, CHARACTERS, FUSION_CHARACTERS, appMode,
+  getPlayerData, playerName, setAppMode, masterySearch, setMasterySearch, masteryFilter,
+  setMasteryFilter, updateLocalStats } = ctx;
 if (appMode === 'stats') {
         const stats = getPlayerData();
 
@@ -22,6 +25,15 @@ if (appMode === 'stats') {
         };
 
         const winRate = stats.matches > 0 ? Math.round((stats.wins / stats.matches) * 100) : 0;
+        const roster = [...CHARACTERS, ...FUSION_CHARACTERS];
+        const currentTitle = equippedMasteryTitle(stats, roster);
+        const completed = roster.filter(char => isMasteryUnlocked(stats, char.id)).length;
+        const filteredRoster = roster
+          .filter(char => char.name.toLocaleLowerCase('it').includes((masterySearch || '').toLocaleLowerCase('it')))
+          .filter(char => masteryFilter === 'completed' ? isMasteryUnlocked(stats, char.id)
+            : masteryFilter === 'played' ? (stats.mastery?.[char.id] || 0) > 0 : true)
+          .sort((a,b) => (stats.mastery?.[b.id] || 0) - (stats.mastery?.[a.id] || 0)
+            || a.name.localeCompare(b.name, 'it'));
 
         return (
             <div className="min-h-screen bg-slate-950 text-white p-6 flex flex-col relative overflow-hidden items-center justify-center">
@@ -32,7 +44,10 @@ if (appMode === 'stats') {
                         <button onClick={() => setAppMode('menu')} className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors font-bold bg-slate-950/50 px-4 py-2 rounded-xl border border-slate-700/50">
                             <ArrowLeft size={20} /> Menu
                         </button>
-                        <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 text-center flex-1">Statistiche di {playerName || 'Giocatore'}</h2>
+                        <div className="flex-1 text-center min-w-0">
+                            <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Statistiche di {playerName || 'Giocatore'}</h2>
+                            {currentTitle && <div className="text-amber-300 font-black tracking-wide text-sm mt-1">✦ {currentTitle} ✦</div>}
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -91,6 +106,69 @@ if (appMode === 'stats') {
                             </div>
                         </div>
                     </div>
+
+                    <section className="border-t border-violet-500/30 pt-6 space-y-4">
+                        <div className="flex flex-wrap gap-3 justify-between items-start">
+                            <div>
+                                <h3 className="text-2xl font-black text-violet-300">✦ Padronanza Multimon</h3>
+                                <p className="text-slate-400 text-sm mt-1">20 livelli per ogni Multimon · +40 PE per battaglia giocata, +20 PE per la vittoria.</p>
+                                <p className="text-slate-500 text-xs mt-1">I PE vengono dati soltanto ai Multimon che entrano in campo. Nessun bonus alle statistiche.</p>
+                            </div>
+                            <span className="text-amber-300 font-bold bg-amber-950/30 border border-amber-600/40 px-3 py-2 rounded-xl">{completed} titoli sbloccati</span>
+                        </div>
+
+                        <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-4">
+                            <div className="font-black text-amber-300 text-sm mb-2">Titolo sotto il tuo nome</div>
+                            <p className="text-white font-semibold">{currentTitle || 'Nessun titolo equipaggiato'}</p>
+                            {stats.equippedMasteryTitle !== null &&
+                              <button className="mt-2 text-xs text-amber-200 hover:text-white underline"
+                                onClick={() => updateLocalStats({equipMasteryTitle:null})}>Nascondi titolo</button>}
+                            <p className="text-slate-400 text-xs mt-2">Raggiungi il livello 20 per sbloccare un titolo esclusivo. Poi premi «Indossa» sul tuo preferito.</p>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                            <input type="search" placeholder="Cerca un Multimon..." value={masterySearch}
+                              onChange={e => setMasterySearch(e.target.value)}
+                              className="flex-1 min-w-[170px] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-violet-400" />
+                            <select value={masteryFilter} onChange={e => setMasteryFilter(e.target.value)}
+                              className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+                              aria-label="Filtra padronanze">
+                              <option value="all">Tutti</option><option value="played">Già utilizzati</option><option value="completed">Livello 20</option>
+                            </select>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
+                          {filteredRoster.length === 0 && <p className="col-span-full text-sm text-slate-400 py-4 text-center">Nessun Multimon trovato.</p>}
+                          {filteredRoster.map(char => {
+                            const xp = stats.mastery?.[char.id] || 0;
+                            const progress = masteryProgress(xp);
+                            const unlocked = isMasteryUnlocked(stats, char.id);
+                            const equipped = stats.equippedMasteryTitle === char.id && unlocked;
+                            return (
+                              <div key={char.id} className={`rounded-xl border p-3 bg-slate-950/70 ${unlocked?'border-amber-500/60':'border-slate-700/60'}`}>
+                                <div className="flex items-center gap-3">
+                                  <img src={char.img} alt={char.name} loading="lazy" className="w-14 h-14 rounded-full object-cover border-2 border-violet-500/50 shrink-0"/>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-bold text-white text-sm truncate">{char.name}</div>
+                                    <div className="text-xs font-semibold text-violet-300">Livello {progress.level}/20 · {masteryRank(progress.level)}</div>
+                                    <div className="text-[11px] text-slate-400">{unlocked?'Padronanza massima':`${progress.inLevel}/${progress.required} PE al prossimo livello`}</div>
+                                  </div>
+                                </div>
+                                <div className="h-2 rounded-full bg-slate-800 overflow-hidden mt-3">
+                                  <div className={`h-full rounded-full ${unlocked?'bg-amber-400':'bg-violet-500'}`} style={{width:`${progress.percent}%`}} />
+                                </div>
+                                <div className="flex items-center justify-between gap-2 mt-3">
+                                  <span className={`text-xs truncate ${unlocked?'text-amber-300':'text-slate-500'}`}
+                                    title={masteryTitle(char)}>{unlocked?'✦ '+masteryTitle(char):'🔒 Titolo: '+masteryTitle(char)}</span>
+                                  {unlocked && <button onClick={() => updateLocalStats({equipMasteryTitle:char.id})}
+                                    disabled={equipped} className="shrink-0 rounded-lg bg-amber-600/25 border border-amber-400/50 text-amber-200 font-bold text-xs px-3 py-1.5 disabled:opacity-50">
+                                    {equipped?'Indossato':'Indossa'}
+                                  </button>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                    </section>
 
                     <p className="text-center text-slate-500 text-xs mt-4">
                         I dati vengono salvati localmente su questo browser associandoli al profilo globale.

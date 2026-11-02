@@ -1,6 +1,6 @@
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleCreateRoguelikeCoopImpl = async (ctx) => {
-const { appId, db, doc, initialGameState, playerAvatarUrl, playerName, setAppMode, setCoopRoomId, setDoc, setPlayerRole, setRoomId, setSystemAlert, user } = ctx;
+const { appId, db, doc, initialGameState, playerAvatarUrl, playerName, playerTitle, setAppMode, setCoopRoomId, setDoc, setPlayerRole, setRoomId, setSystemAlert, user } = ctx;
 
             if (!playerName.trim()) return setSystemAlert("Inserisci il tuo nome!");
             if (!user) return setSystemAlert("Connessione ai server in corso, riprova tra un istante.");
@@ -11,6 +11,7 @@ const { appId, db, doc, initialGameState, playerAvatarUrl, playerName, setAppMod
             state.hostHeartbeatAt = Date.now();
             state.phaseStartedAt = Date.now();
             state.playerAvatars.p1 = playerAvatarUrl;
+            state.playerTitles.p1 = playerTitle || '';
             state.inventory.p1 = { pozione: 2, resurrezione: 1 };
             state.isRoguelikeCoop = true;
             state.gameMode = 'juggernaut'; // Il Juggernaut sarà il boss controllato dal Bot!
@@ -38,13 +39,14 @@ const { appId, db, doc, initialGameState, playerAvatarUrl, playerName, setAppMod
 };
 
 export const handleSurvivalStartImpl = (ctx) => {
-const { getPlayerData, initialGameState, playerAvatarUrl, playerName, setAppMode, setGameState, setPlayerRole } = ctx;
+const { getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle, setAppMode, setGameState, setPlayerRole } = ctx;
 
             const state = initialGameState();
             state.gameMode = 'survival';
             state.settings = { teamSize: 4, fieldSize: 1, maxPlayers: 2, juggernautPlayer: 'p2', soundtrack: 'wpEBouFcwqI', rentalMode: false, fusionMode: false, draftBattle: false, sharedDraft: false }; 
             state.players.p1 = playerName || "Sopravvissuto";
             state.playerAvatars.p1 = playerAvatarUrl;
+            state.playerTitles.p1 = playerTitle || '';
             state.inventory.p1 = getPlayerData().inventory;
             state.players.p2 = "Orda Infinita";
             state.playerAvatars.p2 = 'https://api.dicebear.com/7.x/bottts/svg?seed=Skull&backgroundColor=020617';

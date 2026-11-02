@@ -11,6 +11,7 @@ const initialGameState = () => ({
           hostHeartbeatAt: null,
           phaseStartedAt: null,
           playerAvatars: { p1: '', p2: '', p3: '', p4: '', p5: '', p6: '', p7: '', p8: '' },
+          playerTitles: { p1: '', p2: '', p3: '', p4: '', p5: '', p6: '', p7: '', p8: '' },
           isBot: { p1: false, p2: false, p3: false, p4: false, p5: false, p6: false, p7: false, p8: false },
           settings: { teamSize: 4, fieldSize: 1, maxPlayers: 4, juggernautPlayer: 'p1', soundtrack: 'wpEBouFcwqI', rentalMode: false, fusionMode: false, draftBattle: false, sharedDraft: false }, 
           draft: { p1: [], p2: [], p3: [], p4: [], p5: [], p6: [], p7: [], p8: [] },

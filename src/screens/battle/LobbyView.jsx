@@ -79,6 +79,7 @@ if (gameState.status === 'lobby') {
                                          <div className="font-bold text-lg text-white text-center w-full truncate px-2 flex items-center justify-center gap-2">
                                              {gameState.players[slot]} {gameState.isBot[slot] && <span className="bg-rose-600 text-white text-[10px] px-1.5 py-0.5 rounded-md">BOT</span>}
                                          </div>
+                                         {gameState.playerTitles?.[slot] && <div className="text-amber-300 font-semibold text-xs text-center mt-1 break-words">✦ {gameState.playerTitles[slot]}</div>}
                                          {isHost && (
                                              <button onClick={() => handleRemovePlayer(slot)} className="text-xs text-rose-400 hover:text-rose-300 mt-2 transition-colors">
                                                  Rimuovi
@@ -101,6 +102,7 @@ if (gameState.status === 'lobby') {
                                                      updateState({
                                                          [`players.${slot}`]: `Gioc. ${num}`,
                                                          [`playerAvatars.${slot}`]: getDefaultAvatar(`Gioc. ${num}`),
+                                                         [`playerTitles.${slot}`]: '',
                                                          [`isBot.${slot}`]: false,
                                                          [`inventory.${slot}`]: getPlayerData().inventory
                                                      });

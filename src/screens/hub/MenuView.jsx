@@ -1,6 +1,6 @@
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderMenuView(ctx) {
-const { BarChart, BookOpen, CHARACTERS, GridIcon, IS_PREVIEW, ImageIcon, Shield, ShoppingCart, Swords, Target, Trophy, Upload, Users, Wifi, appMode, getDefaultAvatar, getPlayerData, handleAvatarUpload, handleCreateRoguelikeCoop, handleCreateRoom, handleJoinRoom, handleLocalStart, handleSurvivalStart, handleVsCpuStart, onlineUsers, playerAvatarUrl, playerName, roguelikeState, roomIdInput, sessionId, setAppMode, setPlayerAvatarUrl, setPlayerName, setRoguelikeDraftChoices, setRoguelikeState, setRoomIdInput, setShowOnlinePlayers, setSystemAlert } = ctx;
+const { BarChart, BookOpen, CHARACTERS, GridIcon, IS_PREVIEW, ImageIcon, Shield, ShoppingCart, Swords, Target, Trophy, Upload, Users, Wifi, appMode, getDefaultAvatar, getPlayerData, handleAvatarUpload, handleCreateRoguelikeCoop, handleCreateRoom, handleJoinRoom, handleLocalStart, handleSurvivalStart, handleVsCpuStart, onlineUsers, playerAvatarUrl, playerName, playerTitle, roguelikeState, roomIdInput, sessionId, setAppMode, setPlayerAvatarUrl, setPlayerName, setRoguelikeDraftChoices, setRoguelikeState, setRoomIdInput, setShowOnlinePlayers, setSystemAlert } = ctx;
 if (appMode === 'menu') {
             const playerData = getPlayerData();
             
@@ -9,6 +9,7 @@ if (appMode === 'menu') {
                 sessionId: sessionId,
                 name: playerName || "Tu",
                 avatar: playerAvatarUrl || getDefaultAvatar(playerName || "Tu"),
+        title: playerTitle || "",
                 wins: playerData.wins || 0,
                 matches: playerData.matches || 0,
                 isMe: true
@@ -50,6 +51,7 @@ if (appMode === 'menu') {
                                 <img src={p.avatar} className={`w-10 h-10 rounded-full border-2 ${p.isMe ? 'border-amber-400' : (i===0 ? 'border-yellow-400' : i===1 ? 'border-slate-300' : i===2 ? 'border-orange-500' : 'border-slate-600')} object-cover bg-slate-900 shrink-0`} />
                                 <div className="flex-1 min-w-0">
                                     <div className={`font-bold text-xs truncate ${p.isMe ? 'text-amber-300' : 'text-slate-200'}`}>{p.name}</div>
+                                    {p.title && <div className="text-[10px] text-amber-300 font-semibold truncate">✦ {p.title}</div>}
                                     <div className="text-[10px] text-slate-400 font-medium mt-0.5 flex justify-between">
                                         <span>Vittorie:</span> <span className="text-emerald-400 font-black">{p.wins || 0}</span>
                                     </div>
@@ -64,6 +66,7 @@ if (appMode === 'menu') {
                     <div>
                         <label className="block text-xs uppercase tracking-widest font-bold text-slate-400 mb-2">Tuo Nome</label>
                         <input type="text" value={playerName} onChange={e => setPlayerName(e.target.value)} className="w-full bg-slate-950/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition-all" placeholder="Inserisci il tuo nome..." />
+                        {playerTitle && <div className="text-center mt-2 text-amber-300 font-black text-sm tracking-wide">✦ {playerTitle} ✦</div>}
                     </div>
 
                     <div>
