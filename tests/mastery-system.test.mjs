@@ -49,7 +49,8 @@ test('Livello 20 sblocca un titolo esclusivo e ne permette la selezione', () => 
   assert.equal(equippedMasteryTitle({...complete,equippedMasteryTitle:null},roster),'');
   assert.equal(grantMasteryXP({...complete,equippedMasteryTitle:null},['nicole'],true,allowed).equippedMasteryTitle,null);
   assert.equal(masteryTitle(nicole),'La Mamma Demoniaca');
-  assert.match(masteryTitle(roster.find(c=>c.id==='yoshi')),/Yoshi/);
+  assert.equal(masteryTitle(roster.find(c=>c.id==='yoshi')),'Compagno dal Guscio Verde');
+  assert.equal(masteryTitle(roster.find(c=>c.id==='sage')),'Guaritrice');
 });
 
 test('Salvataggi legacy e selezione titolo con profileSystem', () => {
