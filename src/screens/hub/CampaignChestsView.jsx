@@ -1,5 +1,5 @@
 import React,{useState} from 'react';
-import {ArrowLeft,Coins,Dumbbell,HeartPulse,Shield,Star,Gift,PackageOpen,ChevronRight} from 'lucide-react';
+import {ArrowLeft,Coins,Dumbbell,HeartPulse,Shield,Star,Gift,PackageOpen,ChevronRight} from '../../components/ChestIcons.jsx';
 
 const TONES={
   strength:{title:'PUNTI FORZA',color:'#67e8f9',border:'border-cyan-400/70',bg:'from-cyan-950/95 to-blue-950/80',Icon:Dumbbell},
