@@ -1,5 +1,6 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
 import { applyBattleStatModifier } from './statBalance.js';
+import { resolvePoisonEndTurn } from './battleStatusTurns.js';
 import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense, endRefractionTurn, snowstormOutcome, randomBuff, randomDebuff, daffyCelebration } from './championEffects.js';
 import { ignoresShields, immuneToStatDrops, powerForAccordo, effectiveTaserPower,
   incomingRockEnchantmentFactor, affectedOpponents, addStickyTrap, trapEntries,
@@ -3125,16 +3126,13 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
             }
             if (char.hp <= 0) continue;
 
-            let psnIdx = char.statuses.findIndex(s => s.type === 'Avvelenato');
-            if (psnIdx !== -1) {
-                const turnsActive = char.statuses[psnIdx].turns;
-                const percentage = Math.min(0.25, 0.05 * turnsActive); // 5%, 10%, 15%, max 25%
-                const psnDmg = Math.max(5, Math.floor(char.maxHp * percentage));
-                
-                applyDamage(char, psnDmg, target.player, target.charTeamIdx, `${char.name} subisce ${psnDmg} danni a causa del veleno!`);
-                char.statuses[psnIdx].turns += 1;
-                updateStatusUI(target.player, target.charTeamIdx);
-            }
+            // Il veleno può dare il KO. applyDamage/handleFaint in quel caso
+            // svuota statuses: non leggere l'indice di uno status cancellato.
+            const poisonResult = resolvePoisonEndTurn(char, psnDmg => {
+                applyDamage(char, psnDmg, target.player, target.charTeamIdx,
+                    `${char.name} subisce ${psnDmg} danni a causa del veleno!`);
+            });
+            if (poisonResult.progressed) updateStatusUI(target.player, target.charTeamIdx);
 
             const soulDamage = getDistortedSoulDamage(char);
             if (soulDamage > 0 && char.hp > 0) {
