@@ -3,7 +3,7 @@ import { canEquipHeldItem } from '../../systems/heldEquipment.js';
 import { TEAM_ROLES, getCharacterRoles, filterTeamRoster, characterPrice } from '../../systems/teamBuilderFilters.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderDraftingView(ctx) {
-const { ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState } = ctx;
+const { ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftRole, setDraftRole, draftPrice, setDraftPrice, draftFavorites, draftFavoritesOnly, setDraftFavoritesOnly, toggleDraftFavorite, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState } = ctx;
 if (gameState.status === 'drafting') {
         if (playerRole === 'spectator') {
             return (
@@ -51,17 +51,10 @@ if (gameState.status === 'drafting') {
         const myUnlocked = IS_PREVIEW ? baseRoster.map(c => c.id) : (getPlayerData().unlockedChars || []);
         const draftableChars = baseRoster.filter(c => !c.isSummonOnly && ((!c.price && !c.isSecretUnlock) || myUnlocked.includes(c.id)));
 
-        let filteredDraftableChars = draftableChars.filter(c => {
-            if (draftFilterType !== 'Tutti' && !c.types.includes(draftFilterType)) return false;
-            if (draftSearch.trim() !== '' && !c.name.toLowerCase().includes(draftSearch.toLowerCase())) return false;
-            return true;
+        const filteredDraftableChars = filterTeamRoster(draftableChars,{
+            type:draftFilterType,search:draftSearch,sort:draftSort,role:draftRole,
+            price:draftPrice,favoritesOnly:draftFavoritesOnly,favorites:draftFavorites
         });
-
-        if (draftSort === 'alpha') {
-            filteredDraftableChars.sort((a, b) => a.name.localeCompare(b.name));
-        } else if (draftSort === 'type') {
-            filteredDraftableChars.sort((a, b) => a.types[0].localeCompare(b.types[0]));
-        }
 
         return (
             <div className="h-[100dvh] min-h-[520px] bg-slate-900 text-white p-3 sm:p-5 flex flex-col relative overflow-hidden">
