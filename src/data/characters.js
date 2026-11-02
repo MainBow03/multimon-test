@@ -244,6 +244,11 @@ export const CHARACTERS = [
           
           { id: 'megamind', name: 'Megamind', types: ['Robot', 'Psico'], hp: 95, maxHp: 95, atk: 110, def: 75, spd: 115, img: 'https://i.pinimg.com/736x/80/f6/29/80f6299471e306b47c2a2b9e88f9f09a.jpg', passive: { name: 'PRESENTAZIONE!', type: 'on_enter', maxUses: 1, enemyStatDebuff: { def: 0.8, spd: 0.8 }, desc: 'Appena scende in campo, sbalordisce i nemici, riducendone permanentemente Difesa e Velocità del 20%.' }, moves: [MOVES_DB['Pistola Disidratante'], MOVES_DB['Sciame di Brainbot'], MOVES_DB['Travestimento Olografico'], MOVES_DB['Raggio della Morte Concentrato']] },
           
+          { id:'kirby',name:'Kirby',types:['Magico','Folletto'],hp:100,maxHp:100,atk:105,def:85,spd:95,
+            img:'https://i.pinimg.com/736x/c9/05/d7/c905d7a13a7dd44ea453614b270a560b.jpg',
+            passive:{name:'Copia Abilità',type:'kirby_copy_move',maxCopies:2,
+              desc:'La prima volta che colpisce con danni un nemico, copia una delle sue mosse utilizzabili. Può conservare al massimo 2 mosse copiate per battaglia, una per avversario distinto.'},
+            moves:[MOVES_DB['Stella Sparata'],MOVES_DB['Super Risucchio'],MOVES_DB['Calcio Stellare'],MOVES_DB['Stella Warp']] },
           { id: 'charizard', name: 'Charizard', types: ['Fuoco', 'Aria'], hp: 105, maxHp: 105, atk: 120, def: 80, spd: 110, img: 'https://i.pinimg.com/1200x/93/1f/28/931f2832788a658540727ba3521d0b84.jpg', moves: [MOVES_DB['Lanciafiamme'], MOVES_DB['Tifone'], MOVES_DB['Dragopulsar'], MOVES_DB['Terremoto']] },
           { id: 'sumo', name: 'Sumo', types: ['Normale', 'Lotta'], hp: 130, maxHp: 130, atk: 115, def: 90, spd: 50, img: 'https://i.pinimg.com/736x/aa/cd/61/aacd61f4c49350ef9759acb0531d250b.jpg', moves: [MOVES_DB['Sumo Slam'], MOVES_DB['Mangia-tutto'], MOVES_DB['Spinta Da Wrestler'], MOVES_DB['Sgranocchio']] },
           { id: 'elly', name: 'Elly', types: ['Normale'], hp: 90, maxHp: 90, atk: 105, def: 85, spd: 115, img: 'https://i.postimg.cc/G4NHmSrb/Whats-App-Image-2026-06-25-at-06-09-14.jpg', moves: [MOVES_DB['Alito fetido'], MOVES_DB['Signora pincher'], MOVES_DB['n...non le scale!'], MOVES_DB['🐕🐕🐕🐕']] },
