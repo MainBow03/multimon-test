@@ -17,7 +17,7 @@ export function collectEchoSoul(teams,field,defeated,defeatedPlayer,events){
         id:`echo_copy_${defeated.id}`,
         hp:Math.max(1,Math.round(defeated.maxHp||100)),
         maxHp:Math.max(1,Math.round(defeated.maxHp||100)),
-        isSummonOnly:true,isEchoCopy:true,echoTurns:3,echoJustSummoned:true,
+        isSummonOnly:true,isEchoCopy:true,echoTurns:3,echoJustSummoned:true,echoFaintProcessed:false,
         statuses:[],passive:null,consecutiveProtect:0,
         imageFilter:'sepia(0.6) hue-rotate(240deg) saturate(2) drop-shadow(0 0 12px #a855f7)'
       };
