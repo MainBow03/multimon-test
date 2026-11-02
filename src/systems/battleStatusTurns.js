@@ -8,7 +8,7 @@ export function resolvePoisonEndTurn(character, applyDamage) {
 
   const turnValue=Number(poison.turns);
   const turnsActive=Number.isFinite(turnValue)&&turnValue>0 ? turnValue : 1;
-  const damage=Math.max(5,Math.floor(character.maxHp*Math.min(0.25,0.05*turnsActive)));
+  const damage=Math.max(5,Math.floor(character.maxHp*Math.min(0.15,0.05*turnsActive)));
   applyDamage(damage);
 
   // Il KO elimina lo status. Anche una passiva può cambiare l'array.
