@@ -160,9 +160,16 @@ export function eventTurn(b,submissions,s,random=Math.random){
  if(b.finished)throw Error('Partita terminata');
  const x=structuredClone(b),side=x.side,oppo=side==='A'?'B':'A',log=[];
  x.activeKeys||={};
+ const previouslyActive=new Set(Object.values(b.activeKeys||{}).flat());
  for(const uid of [...x.owners.A,...x.owners.B]){
    const team=x.owners.A.includes(uid)?'A':'B';
    x.activeKeys[uid]=activeEventFighters(x,team,s).filter(u=>u.owner===uid).map(u=>u.key);
+ }
+ for(const team of ['A','B'])for(const unit of activeEventFighters(x,team,s)){
+   if(!previouslyActive.has(unit.key)){
+     markRapidTransmutationEntry(unit);
+     applyEventEntryPassive(x,team,unit,s,random,log);
+   }
  }
  x.traps ||= {};
  // Applica le trappole quando entra un NUOVO personaggio, non a chi era
@@ -177,6 +184,8 @@ export function eventTurn(b,submissions,s,random=Math.random){
    const dmg=stickyTrapEntryDamage(unit);
    unit.hp=Math.max(0,unit.hp-dmg);
    log.push('Trappola Segreta: '+unit.name+' perde '+dmg+' PS entrando in campo!');
+   const heal=activateHealingSprout(unit);
+   if(heal)log.push('Germoglio Curativo di '+unit.name+' recupera '+heal+' PS!');
   }
   trap.seen=activeEventFighters(x,team,s).map(u=>u.key);
  }
@@ -194,6 +203,8 @@ export function eventTurn(b,submissions,s,random=Math.random){
   if(name==='Accecato')target.blindTurns=effect.turns||3;
   if(name==='Incantato'){target.enchantedTurns=effect.turns||10;target.enchantedFresh=true;}
   log.push(target.name+' riceve lo stato '+name+'!');
+  const cleared=activateNeutralizingSpray(target);
+  if(cleared.length)log.push('Spray Neutralizzante di '+target.name+': rimuove '+cleared.join(', ')+'!');
  };
  const hurt=(attacker,target,m)=>{
   const multiplier=getMultiplier(m.type,target.types);
@@ -202,8 +213,25 @@ export function eventTurn(b,submissions,s,random=Math.random){
   const wrap=u=>({...u,statuses:(u.statuses||[]).map(type=>({type})),
     heldItem:s.allowItems?u.heldItem:null});
   const raw=calculateDamageImpl({},wrap(attacker),wrap(target),m,multiplier,false,random);
-  const defense=ignoresShields(attacker,m)?{damage:raw,absorbed:0,refracted:false}:directHitAfterCrystalDefense(target,raw);
+  const crit=!immuneToCritical(target)&&random()<.05;
+  const bonusDamage=crit?Math.max(1,Math.floor(raw*1.5)):raw;
+  const defense=ignoresShields(attacker,m)?{damage:bonusDamage,absorbed:0,refracted:false}:directHitAfterCrystalDefense(target,bonusDamage);
+  if(crit)log.push('Brutto colpo di '+attacker.name+'!');
+  const hpBefore=target.hp;
   target.hp=Math.max(0,target.hp-defense.damage);
+  const heal=activateHealingSprout(target);
+  if(heal)log.push('Germoglio Curativo di '+target.name+': recupera '+heal+' PS!');
+  if(target.hp<hpBefore&&target.hp>0){
+    if(activateCupidArrow(attacker,m,target,random,true,true)){
+      log.push('Freccia di Cupido di '+attacker.name+': '+target.name+' è infatuato!');
+    }
+    if(hannibalCanDebuff(attacker,target,random)){
+      const stat=randomDebuff(target,random);
+      log.push('Manipolazione Psicologica di '+attacker.name+': '+stat+' di '+target.name+' -15%!');
+    }
+    const cleared=activateNeutralizingSpray(target);
+    if(cleared.length)log.push('Spray Neutralizzante di '+target.name+' rimuove '+cleared.join(', ')+'!');
+  }
   if(defense.refracted)log.push('Rifrazione dimezza il primo colpo su '+target.name+'!');
   if(defense.absorbed)log.push('Scudo di '+target.name+': '+defense.absorbed+' danni assorbiti.');
   log.push(attacker.name+' usa '+m.name+' su '+target.name+': '+defense.damage+' danni'+(target.hp?'':' KO!'));
@@ -223,7 +251,7 @@ export function eventTurn(b,submissions,s,random=Math.random){
  for(const actor of activeEventFighters(x,side,s).sort((a,b)=>{
   const ma=a.moves[Number(commands.get(a.key)?.moveIndex)||0];
   const mb=b.moves[Number(commands.get(b.key)?.moveIndex)||0];
-  return (mb?.priority||0)-(ma?.priority||0)||b.spd-a.spd;
+  return ((mb?.priority||0)+rapidTransmutationPriority(b,mb))-((ma?.priority||0)+rapidTransmutationPriority(a,ma))||b.spd-a.spd;
  })){
   if(actor.hp<=0)continue;
   const command=commands.get(actor.key);
