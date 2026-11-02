@@ -63,6 +63,19 @@ test('Copia Abilità: massimo due mosse, mai da combo o copie, anche se ci sono 
   assert.equal(k.moves.length,6);
 });
 
+test('Copia Abilità non aumenta gli usi di mosse speciali limitate e non copia quelle esaurite',()=>{
+  const k=copy();
+  const original={name:'Poderosa Meteora',moves:[
+    {name:'Mossa Esaurita',power:100,uses:0},
+    {name:'Meteora Unica',power:150,uses:1}
+  ]};
+  const learned=copyKirbyMoveOnHit(k,original,'p2:0',()=>0);
+  assert.equal(learned.name,'Meteora Unica');
+  assert.equal(learned.maxUses,1);
+  assert.equal(learned.remainingUses,1);
+  assert.equal(learned.uses,1);
+});
+
 test('Copia Abilità: non si attiva per personaggi senza passiva o contro mosse non copiabili',()=>{
   assert.equal(copyKirbyMoveOnHit({id:'yoshi',hp:20,passive:{type:'kirby_copy_move'},moves:[]},target(),'p2:0'),null);
   assert.equal(copyKirbyMoveOnHit({...copy(),hp:0},target(),'p2:0'),null);
