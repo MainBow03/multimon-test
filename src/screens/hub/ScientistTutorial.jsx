@@ -1,5 +1,5 @@
 import React,{useState} from 'react';
-import {ChevronRight,ArrowLeft,FlaskConical,Gift,X,Star,CheckCircle} from 'lucide-react';
+import {ChevronRight,ArrowLeft,FlaskConical,Gift,X,Star,CheckCircle} from '../../components/ChestIcons.jsx';
 import { STRENGTH_STATS,canTrainCharacter,strengthLevel } from '../../systems/strengthLab.js';
 
 export const SCIENTIST_PORTRAIT='https://i.pinimg.com/1200x/b7/de/72/b7de72241371a88fad1b5eab4ae79810.jpg';
