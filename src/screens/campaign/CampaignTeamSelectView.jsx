@@ -4,6 +4,7 @@ import { initialCampaignField } from '../../systems/campaignBattleRecovery.js';
 import { applyStrengthToFighter, canTrainCharacter } from '../../systems/strengthLab.js';
 import { finalRaidBossStats, rebalanceSavedFinalRaidBoss } from '../../systems/finalRaidBalance.js';
 import { accumulateBattleReport } from '../../systems/battleReport.js';
+import { applyEchoRouteToTeam } from '../../systems/echoRoutes.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
 const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
@@ -354,6 +355,9 @@ if (appMode === 'campaign_team_select') {
                 const personal=getPlayerData();
                 return canTrainCharacter(baseChar,personal) ? applyStrengthToFighter(instance,personal.strengthUpgrades):instance;
             }).filter(Boolean); // Rimuove i null per sicurezza
+
+            if(mission.echoMission && !isEchoFinalRaid)
+                applyEchoRouteToTeam(p1Team,campaignState.echoRouteChoices?.[mission.id]);
 
             let p2Team = [];
             let isValidSavedBoss = false;
