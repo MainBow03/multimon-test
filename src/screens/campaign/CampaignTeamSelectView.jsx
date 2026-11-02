@@ -2,7 +2,7 @@ import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { canEquipHeldItem } from '../../systems/heldEquipment.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
-const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
+const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
 if (appMode === 'campaign_team_select') {
         const equipInventory = getPlayerData().inventory || {};
         const assignCampaignItem = (id, itemId) => {
@@ -540,8 +540,18 @@ if (appMode === 'campaign_team_select') {
 
             state.status = 'pre_battle';
             
+            // Nuovo scontro dopo una sconfitta: elimina la UI/animazione
+            // rimasta dal combattimento precedente. Non servono altri giocatori.
             setCombatLog([]);
             setIsLogOpen(false);
+            setIsPlayingEvents(false);
+            setEventPlaybackText('');
+            setEventPlaybackPassive(null);
+            setActionMenuMode('moves');
+            setTargetingMoveIdx(null);
+            setSelectedMultiTargets([]);
+            setPendingHyper(false);
+            setCommandingIdx(0);
 
             setGameState(state);
             setPlayerRole('p1');
