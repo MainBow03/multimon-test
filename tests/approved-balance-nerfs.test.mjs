@@ -66,6 +66,7 @@ test('5) Polline fastidioso: potenza 40, due bersagli, 35% ciascuno dei due stat
 
 test('6) Fotosintesi clorofiliana: cura 80% da sola, 35% con team',()=>{
   const m=move('Fotosintesi clorofiliana');
+  assert.equal(m.strictUses,true, 'Il limite non deve essere aumentato dalla normalizzazione');
   assert.equal(m.targetMode,'team_smart_heal');
   assert.equal(m.maxUses,2);
   assertNear(m.healAlone,.8);
@@ -74,6 +75,7 @@ test('6) Fotosintesi clorofiliana: cura 80% da sola, 35% con team',()=>{
 
 test('7) Gadget di Supporto: massimo 2 usi e massimo 2 alleati',()=>{
   const m=move('Gadget di Supporto');
+  assert.equal(m.strictUses,true, 'Il limite non deve essere aumentato dalla normalizzazione');
   assert.equal(m.maxUses,2);
   assert.equal(m.maxTeamTargets,2);
   assertNear(m.targetStatBuff.atk,1.5);
@@ -82,6 +84,7 @@ test('7) Gadget di Supporto: massimo 2 usi e massimo 2 alleati',()=>{
 
 test('8) Fascino Glaciale: 75% e 3 utilizzi',()=>{
   const m=move('Fascino Glaciale');
+  assert.equal(m.strictUses,true, 'Il limite non deve essere aumentato dalla normalizzazione');
   assert.equal(m.maxUses,3);
   assert.equal(m.statusEffect.type,'Infatuato');
   assertNear(m.statusEffect.chance,.75);
@@ -97,6 +100,7 @@ test('9) Sou Giakuru!: 125 potenza e 70% confusione',()=>{
 
 test('10) Piano Z: +50% ATK, +30% VEL con 2 usi',()=>{
   const m=move('Piano Z');
+  assert.equal(m.strictUses,true, 'Il limite non deve essere aumentato dalla normalizzazione');
   assert.equal(m.maxUses,2);
   assertNear(m.statBuff.atk,1.5);
   assertNear(m.statBuff.spd,1.3);
