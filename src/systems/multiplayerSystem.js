@@ -227,7 +227,7 @@ const { gameState, getRequiredPlayers } = ctx;
 };
 
 export const handleCreateRoomImpl = async (ctx) => {
-const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, playerName, setAppMode, setDoc, setPlayerRole, setRoomId, setSystemAlert, user } = ctx;
+const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle, setAppMode, setDoc, setPlayerRole, setRoomId, setSystemAlert, user } = ctx;
 
             if (!playerName.trim()) return setSystemAlert("Inserisci il tuo nome!");
             if (!user) return setSystemAlert("Connessione ai server in corso, riprova tra un istante.");
@@ -238,6 +238,7 @@ const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, player
             state.hostHeartbeatAt = Date.now();
             state.phaseStartedAt = Date.now();
             state.playerAvatars.p1 = playerAvatarUrl;
+            state.playerTitles.p1 = playerTitle || '';
             state.inventory.p1 = getPlayerData().inventory;
             
             const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', newRoomId);
@@ -250,7 +251,7 @@ const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, player
 };
 
 export const handleJoinRoomImpl = async (ctx) => {
-const { appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, playerName,
+const { appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, playerName, playerTitle,
   roomIdInput, setAppMode, setCoopRoomId, setPlayerRole, setRoomId,
   setSystemAlert, runTransaction, user } = ctx;
 
@@ -290,6 +291,7 @@ const { appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, play
         [`players.${slot}`]:playerName.trim(),
         [`playerUids.${slot}`]:user.uid,
         [`playerAvatars.${slot}`]:playerAvatarUrl,
+        [`playerTitles.${slot}`]:playerTitle || '',
         [`isBot.${slot}`]:false,
         [`inventory.${slot}`]:room.isRoguelikeCoop
           ?{pozione:2,resurrezione:1}:getPlayerData().inventory
@@ -351,6 +353,7 @@ const { gameState, updateState } = ctx;
                 [`players.${slot}`]: `CPU Bot ${botNum}`,
                 [`playerUids.${slot}`]: null,
                 [`playerAvatars.${slot}`]: `https://api.dicebear.com/7.x/bottts/svg?seed=CpuBot${botNum}&backgroundColor=020617`,
+                [`playerTitles.${slot}`]: '',
                 [`isBot.${slot}`]: true,
                 [`inventory.${slot}`]: { cura_totale: 1 }
             });
@@ -364,6 +367,7 @@ const { updateState } = ctx;
                 [`players.${slot}`]: null,
                 [`playerUids.${slot}`]: null,
                 [`playerAvatars.${slot}`]: '',
+                [`playerTitles.${slot}`]: '',
                 [`isBot.${slot}`]: false,
                 [`inventory.${slot}`]: {}
             });
@@ -371,11 +375,12 @@ const { updateState } = ctx;
 };
 
 export const handleLocalStartImpl = (ctx) => {
-const { getPlayerData, initialGameState, playerAvatarUrl, playerName, setAppMode, setGameState, setPlayerRole } = ctx;
+const { getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle, setAppMode, setGameState, setPlayerRole } = ctx;
 
             const state = initialGameState();
             state.players.p1 = playerName || "Gioc. 1";
             state.playerAvatars.p1 = playerAvatarUrl;
+            state.playerTitles.p1 = playerTitle || '';
             state.inventory.p1 = getPlayerData().inventory;
             setGameState(state);
             setPlayerRole('p1');
@@ -384,11 +389,12 @@ const { getPlayerData, initialGameState, playerAvatarUrl, playerName, setAppMode
 };
 
 export const handleVsCpuStartImpl = (ctx) => {
-const { getPlayerData, initialGameState, playerAvatarUrl, playerName, setAppMode, setGameState, setPlayerRole } = ctx;
+const { getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle, setAppMode, setGameState, setPlayerRole } = ctx;
 
             const state = initialGameState();
             state.players.p1 = playerName || "Giocatore";
             state.playerAvatars.p1 = playerAvatarUrl;
+            state.playerTitles.p1 = playerTitle || '';
             state.inventory.p1 = getPlayerData().inventory;
             state.players.p2 = "Bot Supremo";
             state.playerAvatars.p2 = 'https://api.dicebear.com/7.x/bottts/svg?seed=CpuBot&backgroundColor=020617';
