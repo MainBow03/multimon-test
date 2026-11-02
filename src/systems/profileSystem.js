@@ -1,7 +1,8 @@
 import { ITEMS_DB } from '../data/items.js';
 import { CHARACTERS } from '../data/characters.js';
 import { grantMasteryXP, isMasteryUnlocked, isMasteryEligible } from './masterySystem.js';
-import { trainStrength } from './strengthLab.js';
+import { trainStrength, grantTutorialStrengthUpgrade } from './strengthLab.js';
+import { awardCampaignChest, openCampaignChest, acknowledgeChestReveal } from './campaignChests.js';
 
 const masteryEligibleIds = new Set(CHARACTERS.filter(isMasteryEligible).map(char => char.id));
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
@@ -30,7 +31,36 @@ const { getPlayerData } = ctx;
               }
               // Spesa atomica sul profilo locale; non si possono comprare
               // livelli non posseduti, oltre il limite o senza punti.
-              if (updates.strengthUpgrade) {
+              if (updates.awardCampaignChest) {
+                  const {campaignId,missionId}=updates.awardCampaignChest;
+                  current=awardCampaignChest(current,campaignId,missionId).profile;
+              }
+              if (updates.openCampaignChest) {
+                  const result=openCampaignChest(current,CHARACTERS,ITEMS_DB);
+                  if(!result.ok)return result;
+                  current=result.profile;
+                  localStorage.setItem(key,JSON.stringify(current));
+                  return {ok:true,rewards:result.rewards,receipt:result.receipt};
+              }
+              if (updates.acknowledgeChestReveal)
+                  current=acknowledgeChestReveal(current).profile;
+              if (updates.freeLabUpgrade) {
+                  const {charId,stat}=updates.freeLabUpgrade;
+                  const char=CHARACTERS.find(c=>c.id===charId);
+                  const result=grantTutorialStrengthUpgrade(current,char,stat);
+                  if(!result.ok)return result;
+                  current=result.profile;
+              }
+              if (Object.prototype.hasOwnProperty.call(updates,'labTutorialStep')) {
+                  const step=Number(updates.labTutorialStep);
+                  if(Number.isInteger(step)&&step>=0&&step<=9)
+                      current.labTutorialStep=Math.max(current.labTutorialStep||0,step);
+              }
+              if (updates.completeLabTutorial) {
+                  current.strengthLabIntroSeen=true;
+                  current.labTutorialStep=9;
+              }
+                            if (updates.strengthUpgrade) {
                   const {charId,stat}=updates.strengthUpgrade;
                   const character=CHARACTERS.find(c=>c.id===charId);
                   const result=trainStrength(current,character,stat);
