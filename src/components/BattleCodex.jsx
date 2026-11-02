@@ -21,6 +21,24 @@ const NEGATIVE_DESCRIPTIONS = {
   Ricarica:'Salta un turno dopo una mossa che richiede ricarica. Lo Spray Neutralizzante può rimuoverlo.',
   Magnetico:'Alterazione speciale: gli effetti precisi dipendono dalla mossa che la causa.'
 };
+// Durate ricavate dalle mosse realmente presenti nel database.
+const STATUS_DURATIONS = (() => {
+  const out = {};
+  for (const move of Object.values(MOVES_DB)) {
+    for (const effect of [...(move.statusEffects||[]),...(move.statusEffect?[move.statusEffect]:[])]) {
+      if (!effect?.type || !Number.isFinite(Number(effect.turns))) continue;
+      (out[effect.type] ||= new Set()).add(Number(effect.turns));
+    }
+  }
+  return Object.fromEntries(Object.entries(out).map(([name,turns])=>[name,[...turns].sort((a,b)=>a-b)]));
+})();
+function statusDurationInfo(name) {
+  if (name==='Ricarica') return 'Durata standard: 1 turno';
+  if (name==='Infatuato') return 'Freccia di Cupido: 4 turni · altre fonti variabili';
+  const values = STATUS_DURATIONS[name];
+  return values?.length ? 'Durate delle mosse: '+values.join(', ')+' turni (altre fonti possono variare)'
+    : 'Durata variabile: dipende da mossa, abilità o rimozione';
+}
 const POSITIVES=[
   {name:'Rigenerazione',description:'Recupera PS alla fine del turno. La Pozione Rigenerante cura il 15% dei PS massimi per 4 turni.'},
   {name:'Aumento Attacco',description:'Potenzia i danni delle mosse fisiche in base alla percentuale della mossa o passiva.'},
@@ -89,7 +107,7 @@ export function BattleCodexLauncher({ gameState }) {
   },[gameState]);
   const entries=useMemo(()=>{
     switch(tab){
-      case 'negative': return NEGATIVE_STATUS_TYPES.map(name=>({name,description:NEGATIVE_DESCRIPTIONS[name]||'Alterazione negativa: durata ed effetto specifico dipendono dalla mossa.'}));
+      case 'negative': return NEGATIVE_STATUS_TYPES.map(name=>({name,sub:statusDurationInfo(name),description:NEGATIVE_DESCRIPTIONS[name]||'Alterazione negativa: durata ed effetto specifico dipendono dalla mossa.'}));
       case 'positive':return POSITIVES;
       case 'protect':return PROTECTIONS;
       case 'passives':return [...CHARACTERS,...FUSION_CHARACTERS].filter(c=>c.passive?.name).map(c=>({
