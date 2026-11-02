@@ -11,6 +11,15 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'strength-lab',category:'balance',date:'02/11/2026',title:'⚡ Laboratorio e Punti Forza',items:[
+    'Aggiunta la valuta Punti Forza (separata dalle monete). Tutti i profili partono da 0 Punti Forza.',
+    'I Multimon posseduti possono aumentare separatamente Attacco, Difesa e Velocità dal livello 1 al 10.',
+    'Ogni livello fornisce +1 punto reale. Livello 1 dà +1 gratuito; livello 10 dà +10 per statistica, massimo +30 complessivi.',
+    'Costi per la statistica: livello 2 = 2 punti; livello 3 = 4; livello 4 = 6; ... livello 10 = 18 punti.',
+    'Laboratorio con PNG, ricerca e filtri, barre luminose, differenza prima/dopo e conferma della spesa.',
+    'I potenziamenti si salvano nel profilo, valgono per i personaggi posseduti nelle battaglie e non vengono applicati a boss o CPU.',
+    'I Punti Forza non sono ancora ottenibili tramite ricompense: il sistema è pronto per i prossimi aggiornamenti.'
+  ]},
   {id:'kirby',category:'champions',date:'02/11/2026',title:'⭐ Kirby entra nel multiverso',items:[
     'Nuovo Multimon Magico / Folletto, acquistabile per 200 monete. PS 100, Attacco 105, Difesa 85, Velocità 95.',
     'Passiva Copia Abilità: al primo attacco che infligge danni a ciascun nemico distinto, Kirby copia una sua mossa utilizzabile. Massimo 2 mosse copiate contemporaneamente; nessuna sottrazione all’avversario.',
