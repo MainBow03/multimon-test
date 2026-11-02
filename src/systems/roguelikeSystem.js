@@ -1,3 +1,4 @@
+import { masteryVisibleLevels } from './masterySystem.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleCreateRoguelikeCoopImpl = async (ctx) => {
 const { appId, db, doc, initialGameState, playerAvatarUrl, playerName, playerTitle, setAppMode, setCoopRoomId, setDoc, setPlayerRole, setRoomId, setSystemAlert, user } = ctx;
@@ -12,6 +13,7 @@ const { appId, db, doc, initialGameState, playerAvatarUrl, playerName, playerTit
             state.phaseStartedAt = Date.now();
             state.playerAvatars.p1 = playerAvatarUrl;
             state.playerTitles.p1 = playerTitle || '';
+            state.playerMastery.p1 = masteryVisibleLevels(getPlayerData());
             state.inventory.p1 = { pozione: 2, resurrezione: 1 };
             state.isRoguelikeCoop = true;
             state.gameMode = 'juggernaut'; // Il Juggernaut sarà il boss controllato dal Bot!
@@ -47,6 +49,7 @@ const { getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitl
             state.players.p1 = playerName || "Sopravvissuto";
             state.playerAvatars.p1 = playerAvatarUrl;
             state.playerTitles.p1 = playerTitle || '';
+            state.playerMastery.p1 = masteryVisibleLevels(getPlayerData());
             state.inventory.p1 = getPlayerData().inventory;
             state.players.p2 = "Orda Infinita";
             state.playerAvatars.p2 = 'https://api.dicebear.com/7.x/bottts/svg?seed=Skull&backgroundColor=020617';

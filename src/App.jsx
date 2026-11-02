@@ -31,7 +31,7 @@ import { loadCampaignImpl, advanceCampaignImpl } from './systems/campaignFlow.js
 import { reconcileCampaignRoster } from './systems/campaignRoster.js';
 import { handleAvatarUploadImpl, leaveRoomImpl, handleConfirmLeaveImpl, updateStateImpl, getRequiredPlayersImpl, getActivePlayersImpl, isAllPlayersJoinedImpl, handleCreateRoomImpl, handleJoinRoomImpl, commitReplacementChoiceImpl, handleAddBotImpl, handleRemovePlayerImpl, handleLocalStartImpl, handleVsCpuStartImpl, handlePickImpl, handleDraftRerollImpl, handleSharedPickImpl } from './systems/multiplayerSystem.js';
 import { updateLocalStatsImpl } from './systems/profileSystem.js';
-import { equippedMasteryTitle } from './systems/masterySystem.js';
+import { equippedMasteryTitle, masteryVisibleLevels } from './systems/masterySystem.js';
 import { renderHealthBarImpl } from './components/uiHelpers.jsx';
 import { handleCreateRoguelikeCoopImpl, handleSurvivalStartImpl } from './systems/roguelikeSystem.js';
 import { getTournamentMatchOpponentsImpl, handleNextTournamentMatchImpl } from './systems/tournamentSystem.js';
@@ -1178,7 +1178,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
           const handleCreateRoom = (...__args) => handleCreateRoomImpl({ appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), setAppMode, setDoc, setPlayerRole, setRoomId, setSystemAlert, user }, ...__args);
 
-          const handleCreateRoguelikeCoop = (...__args) => handleCreateRoguelikeCoopImpl({ appId, db, doc, initialGameState, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), setAppMode, setCoopRoomId, setDoc, setPlayerRole, setRoomId, setSystemAlert, user }, ...__args);
+          const handleCreateRoguelikeCoop = (...__args) => handleCreateRoguelikeCoopImpl({ appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), setAppMode, setCoopRoomId, setDoc, setPlayerRole, setRoomId, setSystemAlert, user }, ...__args);
 
           const handleJoinRoom = (...__args) => handleJoinRoomImpl({ appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), roomIdInput, setAppMode, setCoopRoomId, setPlayerRole, setRoomId, setSystemAlert, runTransaction, user }, ...__args);
 
@@ -1459,7 +1459,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (gameState.status === 'battling' || gameState.status === 'executing') {
-  const __screen = renderBattlingView({ ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip: safeForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });
+  const __screen = renderBattlingView({ ownMasteryLevels: masteryVisibleLevels(getPlayerData()), ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip: safeForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });
   if (__screen !== undefined) return __screen;
 }
 

@@ -1,4 +1,28 @@
+import { CHARACTERS } from '../data/characters.js';
 // Padronanza estetica: non modifica statistiche, mosse o probabilità di vittoria.
+// Mostri della campagna, evocazioni e fusioni non partecipano ai prestigi.
+export const MASTERY_ELIGIBLE_IDS = new Set(CHARACTERS.filter(c =>
+  !c.isCampaignMonster && !c.isSecretUnlock && !c.isSummonOnly && !c.fusionOf
+).map(c=>c.id));
+export const isMasteryEligible = character => !!character?.id &&
+  MASTERY_ELIGIBLE_IDS.has(character.id);
+
+export const MASTERY_REWARDS = Object.freeze([
+  {level:5, name:'Ingresso Stellare', description:'Sblocco di un sigillo azzurro e di un ingresso illuminato nell’arena.', icon:'✦'},
+  {level:10, name:'Aura dell’Esperto', description:'Il Multimon entra con un’aura viola che circonda il suo ritratto.', icon:'◈'},
+  {level:15, name:'Scia del Maestro', description:'Nuovi bagliori e particelle luminose all’ingresso e durante lo scontro.', icon:'✧'},
+  {level:20, name:'Entrata Leggendaria', description:'Ingresso dorato, emblema leggendario e titolo esclusivo da indossare.', icon:'★'}
+]);
+export function masteryDeploymentTier(level) {
+  const safe=Math.max(1,Math.min(20,Number(level)||1));
+  return MASTERY_REWARDS.filter(r=>safe>=r.level).at(-1)||null;
+}
+export function masteryVisibleLevels(profile) {
+  return Object.fromEntries(Object.entries(profile?.mastery||{})
+    .filter(([id])=>MASTERY_ELIGIBLE_IDS.has(id))
+    .map(([id,xp])=>[id,masteryLevel(xp)])
+    .filter(([,level])=>level>=5));
+}
 export const MASTERY_MAX_LEVEL = 20;
 export const MASTERY_XP_PER_LEVEL = 100;
 export const MASTERY_XP_PER_BATTLE = 40;
@@ -32,12 +56,12 @@ export const masteryRank = level => level >= 20 ? 'Leggendario'
   : level >= 5 ? 'Esperto' : 'Principiante';
 
 export function masteryTitle(character) {
-  if (!character?.id || !character?.name) return '';
+  if (!isMasteryEligible(character) || !character?.name) return '';
   return MASTERY_SPECIAL_TITLES[character.id] || `Leggenda di ${character.name}`;
 }
 
 export function isMasteryUnlocked(profile, characterId) {
-  return !!characterId && masteryLevel(profile?.mastery?.[characterId]) === MASTERY_MAX_LEVEL;
+  return MASTERY_ELIGIBLE_IDS.has(characterId) && masteryLevel(profile?.mastery?.[characterId]) === MASTERY_MAX_LEVEL;
 }
 
 export function equippedMasteryTitle(profile, characters) {
@@ -54,7 +78,7 @@ export function grantMasteryXP(profile, characterIds, win = false, allowedIds = 
   const gain = MASTERY_XP_PER_BATTLE + (win ? MASTERY_XP_WIN_BONUS : 0);
   let firstUnlock = null;
   for (const id of eligible) {
-    if (typeof id !== 'string' || !id || (allowedIds && !allowedIds.has(id))) continue;
+    if (typeof id !== 'string' || !MASTERY_ELIGIBLE_IDS.has(id) || (allowedIds && !allowedIds.has(id))) continue;
     const oldXp = Math.min(MASTERY_MAX_XP, Math.max(0, Number(next.mastery[id]) || 0));
     const newXp = Math.min(MASTERY_MAX_XP, oldXp + gain);
     next.mastery[id] = newXp;
