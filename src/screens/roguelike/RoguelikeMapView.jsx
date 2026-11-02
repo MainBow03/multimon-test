@@ -1,6 +1,6 @@
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderRoguelikeMapView(ctx) {
-const { CHARACTERS, ChevronRight, Coins, Heart, ITEMS_DB, LogOut, Swords, Users, appMode, initialGameState, playerName, renderHealthBar, roguelikeState, setAppMode, setGameState, setPlayerRole, setRoguelikeState, setSystemAlert } = ctx;
+const { CHARACTERS, ChevronRight, Coins, Heart, ITEMS_DB, LogOut, Swords, Users, appMode, initialGameState, playerName, renderHealthBar, roguelikeState, setAppMode, setGameState, setPlayerRole, setRoguelikeState, setSystemAlert, updateLocalStats } = ctx;
 if (appMode === 'roguelike_map') {
         const isBossFloor = roguelikeState.floor % 10 === 0;
         const isFinalBossFloor = roguelikeState.floor === roguelikeState.maxFloor;
@@ -177,6 +177,13 @@ if (appMode === 'roguelike_map') {
         };
 
         const handleRest = () => {
+            // Il piano di riposo 5/15/25/35/45 viene completato premendo
+            // Riposa e Prosegui. Lo stesso traguardo della run non si paga
+            // due volte, neppure ripristinando il salvataggio.
+            if(roguelikeState.floor%5===0 && roguelikeState.runId)
+                updateLocalStats({roguelikeMilestone:{
+                    runId:roguelikeState.runId,floor:roguelikeState.floor
+                }});
             const newStats = { ...roguelikeState.rosterStats };
             roguelikeState.roster.forEach(id => {
                 const max = CHARACTERS.find(c=>c.id===id).maxHp;
