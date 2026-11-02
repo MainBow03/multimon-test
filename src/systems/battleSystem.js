@@ -4,6 +4,9 @@ import { ignoresShields, immuneToStatDrops, powerForAccordo, effectiveTaserPower
   incomingRockEnchantmentFactor, affectedOpponents, addStickyTrap, trapEntries,
   stickyTrapEntryDamage } from './rockstarAgentEffects.js';
 import { getHeldPowerFactor, getHeldRecoil, getHeldEvasion, getHeldEndTurnHeal, useHeldGem, getMahitoMultiplier, canDistortSoul, getDistortedSoulDamage } from './heldEquipment.js';
+import { activateHealingSprout, activateNeutralizingSpray, activateCupidArrow,
+ blockedEnemyPassive, rapidTransmutationPriority, markRapidTransmutationEntry,
+ endRapidTransmutationTurn, immuneToCritical, hannibalCanDebuff, isNegativeStatus } from './newHeldAndPassiveEffects.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleForceSkipImpl = (ctx) => {
 const { calculateTurn, gameState, generateCPUActionsForPlayer, getActivePlayers, isCalculatingRef, setActionMenuMode, setCommandingIdx, setPendingHyper, setSystemAlert, setTargetingMoveIdx, updateState } = ctx;
@@ -190,7 +193,7 @@ const { CHARACTERS } = ctx;
                           if (workingField[ep]) {
                               workingField[ep].forEach(eIdx => {
                                   const enemy = workingTeams[ep][eIdx];
-                                  if (enemy && enemy.hp > 0 && !immuneToStatDrops(enemy)) {
+                                  if (enemy && enemy.hp > 0 && !immuneToStatDrops(enemy) && !blockedEnemyPassive(enemy)) {
                                       if (char.passive.enemyStatDebuff.atk) {
                                           if (enemy.passive && enemy.passive.type === 'immune_to_atk_debuff') {
                                               eventsArr.push({ type: 'text', text: `🛡️ ${enemy.name} è immune al calo di Attacco grazie a ${enemy.passive.name}!`, isPassive: true, passiveChar: enemy.name, passiveName: enemy.passive.name });
@@ -238,7 +241,7 @@ const { CHARACTERS } = ctx;
                           if (workingField[ep]) {
                               workingField[ep].forEach(eIdx => {
                                   const enemy = workingTeams[ep][eIdx];
-                                  if (enemy && enemy.hp > 0) {
+                                  if (enemy && enemy.hp > 0 && !blockedEnemyPassive(enemy)) {
                                       possibleTargets.push({ player: ep, idx: eIdx, char: enemy });
                                   }
                               });
@@ -249,7 +252,7 @@ const { CHARACTERS } = ctx;
                           const sType = char.passive.applyStatusToRandomEnemy.type;
                           
                           const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'].includes(sType);
-                          if (isNegative && rTarget.char.passive && rTarget.char.passive.immuneToNegativeStatuses) {
+                          if (isNegative && (rTarget.char.passive?.immuneToNegativeStatuses || blockedEnemyPassive(rTarget.char))) {
                               eventsArr.push({ type: 'text', text: `🛡️ ${char.name} attiva ${char.passive.name}, ma ${rTarget.char.name} è immune a ${sType} grazie a ${rTarget.char.passive.name}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                           } else {
                               const existingIdx = rTarget.char.statuses.findIndex(s => s.type === sType);
@@ -270,7 +273,7 @@ const { CHARACTERS } = ctx;
                           if (workingField[ep]) {
                               workingField[ep].forEach(eIdx => {
                                   const enemy = workingTeams[ep][eIdx];
-                                  if (enemy && enemy.hp > 0 && !immuneToStatDrops(enemy)) {
+                                  if (enemy && enemy.hp > 0 && !immuneToStatDrops(enemy) && !blockedEnemyPassive(enemy)) {
                                       possibleTargets.push({ player: ep, idx: eIdx, char: enemy });
                                   }
                               });
@@ -307,7 +310,10 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
             const teams = JSON.parse(JSON.stringify(isCustomDraft ? customDraft : gameState.draft));
             // I bonus delle gemme si ricaricano tra partite diverse.
             // Il loro acquisto nel profilo rimane permanente.
-            Object.values(teams).forEach(team=>(team||[]).forEach(char=>{char.gemSpent=false;}));
+            Object.values(teams).forEach(team=>(team||[]).forEach(char=>{
+              char.gemSpent=false;char.healingSproutUsed=false;char.neutralizingSprayUsed=false;
+              char.rapidTransmutationReady=false;char.rapidTransmutationFresh=false;
+            }));
             let fieldSize = gameState.settings.fieldSize;
             if (gameState.gameMode === 'multipla') fieldSize = 1; 
             
@@ -406,6 +412,7 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
                     initialField.forEach(idx => {
                         if (teams[p][idx]) {
                             teams[p][idx].revealed = true;
+                            markRapidTransmutationEntry(teams[p][idx]);
                             
                             // GESTIONE ABILITÀ PASSIVE 'on_enter' (Allo start della battaglia)
                             const char = teams[p][idx];
@@ -1050,6 +1057,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 
                 target.damageTakenThisTurn = (target.damageTakenThisTurn || 0) + dmg;
                 events.push({ type: 'damage', text: text, targetPlayer, targetIdx, newHp: target.hp });
+                const sproutHeal=activateHealingSprout(target);
+                if(sproutHeal)events.push({type:'damage',targetPlayer,targetIdx,newHp:target.hp,
+                   text:`🌱 Germoglio Curativo di ${target.name}: recupera ${sproutHeal} PS! (Attivazione unica)`});
                 
                 if (willSurvive) {
                     events.push({ type: 'text', text: `🛡️ ${target.name} stringe i denti! Resiste al colpo fatale grazie a "${target.passive.name}" e resta con 1 PS!`, isPassive: true, passiveChar: target.name, passiveName: target.passive.name });
@@ -1406,6 +1416,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                 
                 const move = action.type === 'attack' ? char.moves[action.moveIdx] : null;
                 let priority = (action.type === 'switch' || action.type === 'use_item') ? 6 : (move ? (move.priority || 0) : 0);
+                priority += rapidTransmutationPriority(char,move);
 
                 if (char.statuses && char.statuses.some(s => s.type === 'Ombra Rapida')) {
                     priority += 2;
@@ -1535,6 +1546,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                       workingField[player][fieldPos] = action.toIdx;
                       const entering=workingTeams[player][action.toIdx];
                       entering.revealed = true;
+                      markRapidTransmutationEntry(entering,true);
                       events.push({ type: 'switch', player, pos: fieldPos, newIdx: action.toIdx,
                         text: `${gameState.players[player]} ritira ${attacker.name} e manda in campo ${entering.name}!` });
                       // Prima mostriamo l'ingresso, poi eventuali danni
@@ -2174,10 +2186,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             let critMultiplier = 1.0;
 
                             // Gestione critico specifico (es. Shotgun di Neon) o Critico Universale al 5%
-                            if (move.critChance && Math.random() < move.critChance) {
+                            if (!immuneToCritical(t.char) && move.critChance && Math.random() < move.critChance) {
                                 currentMoveForDmg = { ...move, power: move.critPower };
                                 isCritical = true;
-                            } else if (Math.random() < 0.05) { // 5% base per tutte le altre mosse
+                            } else if (!immuneToCritical(t.char) && Math.random() < 0.05) { // 5% base per tutte le altre mosse
                                 isCritical = true;
                                 critMultiplier = 1.5; // +50% danno
                             }
