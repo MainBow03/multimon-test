@@ -117,7 +117,7 @@ if (appMode === 'menu') {
                                     const available = CHARACTERS.filter(c => !c.isSummonOnly && !c.isSecretUnlock);
                                     const shuffled = [...available].sort(() => 0.5 - Math.random());
                                     setRoguelikeDraftChoices(shuffled.slice(0, 6)); // Scegli 3 tra 6 casuali
-                                    setRoguelikeState({ isStarted: true, floor: 1, roster: [], rosterStats: {}, maxFloor: 50, coins: 0, inventory: { pozione: 1 }, isMerchantNext: false, recruitBonus: 0.02, relics: [], encounteredEnemies: [] });
+                                    setRoguelikeState({ isStarted: true, runId: 'run-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2), floor: 1, roster: [], rosterStats: {}, maxFloor: 50, coins: 0, inventory: { pozione: 1 }, isMerchantNext: false, recruitBonus: 0.02, relics: [], encounteredEnemies: [] });
                                     setAppMode('roguelike_draft');
                                 }
                             }} className="relative w-full bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5">
@@ -164,6 +164,13 @@ if (appMode === 'menu') {
                             <span className="absolute inset-x-0 top-0.5 border-t-2 border-yellow-200/60"/>
                           </span>
                           <span>Bauli Campagna <span className="block text-xs text-amber-100/85 font-semibold">{playerData.chests?.pending?.length||0} bauli da aprire · 2 premi ciascuno</span></span>
+                        </button>
+                        <button type="button" onClick={()=>{if(!playerName.trim())setSystemAlert('Inserisci il tuo nome per aprire le Casse Potenza!');else setAppMode('power_chests');}}
+                          className="w-full mt-3 bg-gradient-to-r from-cyan-800 via-blue-800 to-indigo-900 border border-cyan-400/65 hover:brightness-110 rounded-xl py-4 text-white font-black shadow-[0_0_24px_rgba(34,211,238,.15)] flex justify-center items-center gap-3 transition-all">
+                          <span aria-hidden="true" className="h-9 w-10 rounded-lg bg-gradient-to-br from-cyan-300 via-blue-700 to-indigo-950 border-2 border-cyan-200/60 shadow-inner relative">
+                            <span className="absolute left-1/2 -translate-x-1/2 top-2 w-3 h-4 rotate-45 bg-cyan-200 border border-white/70 shadow-[0_0_8px_rgba(103,232,249,.7)]"/>
+                          </span>
+                          <span>Casse Potenza <span className="block text-xs text-cyan-100/85 font-semibold">{playerData.roguelikePower?.pending?.length||0} disponibili · 2–8 Punti Forza</span></span>
                         </button>
                         <button onClick={() => { if(!playerName.trim()) setSystemAlert("Inserisci il tuo nome per accedere al Laboratorio!"); else setAppMode('strength_lab'); }}
                             className="w-full mt-3 bg-gradient-to-r from-cyan-700 via-indigo-700 to-violet-800 hover:from-cyan-600 hover:to-violet-700 text-white font-black py-4 rounded-xl border border-cyan-400/60 shadow-[0_0_24px_rgba(34,211,238,.20)] flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5">
