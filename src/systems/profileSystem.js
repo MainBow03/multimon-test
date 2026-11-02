@@ -3,6 +3,7 @@ import { CHARACTERS } from '../data/characters.js';
 import { grantMasteryXP, isMasteryUnlocked, isMasteryEligible } from './masterySystem.js';
 import { trainStrength, grantTutorialStrengthUpgrade } from './strengthLab.js';
 import { awardCampaignChest, openCampaignChest, acknowledgeChestReveal } from './campaignChests.js';
+import { grantRoguelikeMilestone, grantRoguelikeCompletion, openPowerChest, acknowledgePowerChest, completeFinnTutorial } from './roguelikePowerRewards.js';
 
 const masteryEligibleIds = new Set(CHARACTERS.filter(isMasteryEligible).map(char => char.id));
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
@@ -31,6 +32,37 @@ const { getPlayerData } = ctx;
               }
               // Spesa atomica sul profilo locale; non si possono comprare
               // livelli non posseduti, oltre il limite o senza punti.
+              // Roguelike: una cassa per traguardo di 5 piani della stessa run.
+              // La registrazione e il saldo sono nello stesso salvataggio, per
+              // impedire doppie ricompense al refresh o al doppio click.
+              if(updates.roguelikeMilestone){
+                  const {runId,floor}=updates.roguelikeMilestone;
+                  const result=grantRoguelikeMilestone(current,runId,floor);
+                  if(!result.ok)return result;
+                  current=result.profile;
+              }
+              if(updates.roguelikeComplete){
+                  const {runId,floor,maxFloor}=updates.roguelikeComplete;
+                  const result=grantRoguelikeCompletion(current,runId,floor,maxFloor);
+                  if(!result.ok)return result;
+                  current=result.profile;
+                  localStorage.setItem(key,JSON.stringify(current));
+                  return {ok:true,rewarded:result.rewarded,points:result.points,remainingMs:result.remainingMs};
+              }
+              if(updates.openPowerChest){
+                  const result=openPowerChest(current);
+                  if(!result.ok)return result;
+                  current=result.profile;
+                  localStorage.setItem(key,JSON.stringify(current));
+                  return {ok:true,points:result.points,receipt:result.receipt};
+              }
+              if(updates.acknowledgePowerChest)
+                  current=acknowledgePowerChest(current).profile;
+              if(updates.completeFinnTutorial){
+                  const result=completeFinnTutorial(current,updates.completeFinnTutorial);
+                  if(!result.ok)return result;
+                  current=result.profile;
+              }
               if (updates.awardCampaignChest) {
                   const {campaignId,missionId}=updates.awardCampaignChest;
                   current=awardCampaignChest(current,campaignId,missionId).profile;
