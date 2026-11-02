@@ -331,8 +331,6 @@ const chapters=[
  ]}
 ];
 
-const chapterStart=chapters.reduce((a,c)=>{a.push((a.at(-1)||0)+(a.length?chapters[a.length-1].missions.length:0));return a;},[]);
-
 export const ECHO_CAMPAIGN={
  id:ECHO_ID,title:"L'Eco delle Anime",shortTitle:'Terza Campagna',
  description:"Finn e Topolino sono scomparsi. Jake e Marceline ricostruiscono la Resistenza e sfidano Echomax, l'antico dominatore delle anime.",
@@ -352,7 +350,7 @@ export const ECHO_CAMPAIGN={
        postDialogue:postDialogue.map(([s,t])=>({s,t})),
        echoMission:true,echoAct:chapterIdx+1,echoNumber:number,
        echoReward:stageIdx===5?'legendaria':unlock.length?'resistenza':'superstite',
-       echoFinal:isFinal,forceFieldSize:isFinal?24:undefined
+       echoFinal:isFinal,forcedRoster:isFinal?[...ECHO_ALLIES]:undefined,forceFieldSize:isFinal?24:undefined
      };
    })
  }))
