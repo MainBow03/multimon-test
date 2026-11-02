@@ -4,7 +4,8 @@ import {readFileSync} from 'node:fs';
 import {CHARACTERS} from '../src/data/characters.js';
 import {
  FIRST_CAMPAIGN_FINAL_RAID,finalRaidBossStats,
- rebalanceSavedFinalRaidBoss,consumeRaidShieldHit
+ rebalanceSavedFinalRaidBoss,consumeRaidShieldHit,
+ createRaidShieldUpdateEvent,applyRaidShieldUpdateEvent
 } from '../src/systems/finalRaidBalance.js';
 
 const campaign=readFileSync(new URL('../src/screens/campaign/CampaignTeamSelectView.jsx',import.meta.url),'utf8');
