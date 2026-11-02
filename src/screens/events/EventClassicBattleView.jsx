@@ -24,7 +24,7 @@ function adaptEventBattle(battle,settings,participants,currentUid,perspective){
  membersA.forEach((uid,i)=>{mapping[uid]='p'+(i+1);roles['p'+(i+1)]=uid;});
  membersB.forEach((uid,i)=>{mapping[uid]='p'+(i+1+(settings.doubles?2:1));roles['p'+(i+1+(settings.doubles?2:1))]=uid;});
  const field=emptyPlayerMap(),teams=emptyPlayerMap();
- const players={},avatars={},isBot={},actions={},inventory={};
+ const players={},avatars={},isBot={},actions={},inventory={},playerMastery={};
  for(const [uid,role] of Object.entries(mapping)){
    const side=battle.owners.A.includes(uid)?'A':'B';
    teams[role]=battle.teams[side].filter(c=>c.owner===uid).map(c=>({
@@ -40,6 +40,7 @@ function adaptEventBattle(battle,settings,participants,currentUid,perspective){
    const participant=participants.find(p=>(p.uid||p.id)===uid);
    players[role]=participant?.name||uid.substring(0,10);
    avatars[role]=participant?.avatar||'';
+   playerMastery[role]=participant?.mastery||{};
    isBot[role]=uid.startsWith('bot-');
    actions[role]={};inventory[role]={};
  }
@@ -47,7 +48,7 @@ function adaptEventBattle(battle,settings,participants,currentUid,perspective){
  const sameSide=battle.owners[battle.side].includes(currentUid);
  return {role,mapping,roles,teams,field,gameState:{
    status:'battling',gameMode:settings.doubles?'multipla':'classica',
-   players,playerAvatars:avatars,isBot,field,teams,actions,inventory,
+   players,playerAvatars:avatars,isBot,field,teams,actions,inventory,playerMastery,
    settings:{fieldSize:settings.fieldSize,allowHyper:settings.allowHyper,
      allowItems:settings.allowItems},
    battleWeather:battle.weather||null,fieldTraps:battle.traps||{},
