@@ -1145,7 +1145,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                                 if (workingField[ep]) {
                                     workingField[ep].forEach(eIdx => {
                                         const enemy = workingTeams[ep][eIdx];
-                                        if (enemy && enemy.hp > 0) {
+                                        if (enemy && enemy.hp > 0 && !blockedEnemyPassive(enemy)) {
                                             if (enemy.atk > enemy.baseAtk) enemy.atk = enemy.baseAtk;
                                             if (enemy.def > enemy.baseDef) enemy.def = enemy.baseDef;
                                             if (enemy.spd > enemy.baseSpd) enemy.spd = enemy.baseSpd;
