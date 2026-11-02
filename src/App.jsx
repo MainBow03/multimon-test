@@ -8,6 +8,7 @@ import { renderCampaignSelectProtagonistView } from './screens/campaign/Campaign
 import { renderCampaignMapView } from './screens/campaign/CampaignMapView.jsx';
 import { renderCampaignDialogueView } from './screens/campaign/CampaignDialogueView.jsx';
 import { renderCampaignPostDialogueView } from './screens/campaign/CampaignPostDialogueView.jsx';
+import { renderEchoChestView } from './screens/campaign/EchoChestView.jsx';
 import { renderCampaignChoiceView } from './screens/campaign/CampaignChoiceView.jsx';
 import { renderCampaignResolutionDialogueView } from './screens/campaign/CampaignResolutionDialogueView.jsx';
 import { renderCampaignTeamSelectView } from './screens/campaign/CampaignTeamSelectView.jsx';
@@ -1430,7 +1431,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
   if (__screen !== undefined) return __screen;
 }
 
-    if (appMode === 'campaign_post_dialogue') {
+    if (appMode === 'campaign_echo_chest') {
+ const __screen = renderEchoChestView({appMode,activeCampaignId,activeMission,advanceCampaign,campaignState,setCampaignState,CHARACTERS});
+ return __screen;
+ }
+ if (appMode === 'campaign_post_dialogue') {
   const __screen = renderCampaignPostDialogueView({ CHARACTERS, activeMission, activeSector, advanceCampaign, appMode, campaignDialogueIdx, campaignPostDialogueMemo, setAppMode, setCampaignDialogueIdx });
   if (__screen !== undefined) return __screen;
 }
