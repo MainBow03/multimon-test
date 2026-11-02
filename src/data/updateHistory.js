@@ -11,6 +11,15 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'roguelike-power-chests',category:'balance',date:'02/11/2026',title:'Casse Potenza Roguelike, premio finale e due guide di Finn',items:[
+    'Ogni cinque piani superati nella Roguelike solo si ottiene una Cassa Potenza, conservabile in un menu separato dai Bauli Campagna.',
+    'Le Casse Potenza danno esclusivamente da 2 a 8 Punti Forza con probabilità uniforme; non contengono monete, pozioni, oggetti o personaggi.',
+    'Ogni vittoria completa della Roguelike (50 piani) assegna 30 Punti Forza se sono passate almeno quattro ore dall’ultima vittoria premiata.',
+    'Un timer in Casse Potenza mostra quanto manca per poter ricevere di nuovo il bonus finale da 30 PF; le casse ogni cinque piani non hanno cooldown.',
+    'Finn l’Umano con un ritratto speciale spiega alla prima apertura dei Bauli Campagna le due ricompense, le rarità e tutti i premi possibili.',
+    'Le Casse Potenza hanno un altro mini-dialogo separato con Finn, dedicato ai loro Punti Forza e al bonus finale.',
+    'Le ricompense per piano e vittoria hanno identificativi della run: non possono essere riscosse due volte semplicemente ricaricando o facendo doppio click.'
+  ]},
   {id:'campaign-chests-scientist',category:'champions',date:'02/11/2026',title:'Bauli della campagna e Topolino scienziato',items:[
     'Ogni missione completata in una delle tre campagne assegna un Baule Campagna, conservabile nel menu.',
     'Chi ha già completato missioni riceve automaticamente tutti i bauli mancanti, senza duplicati.',
