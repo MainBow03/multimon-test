@@ -474,7 +474,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const activeMission = activeSector.missions[campaignState.missionIdx] || activeSector.missions[0];
 
           // Funzione di avanzamento campagna condivisa
-          const advanceCampaign = (...__args) => advanceCampaignImpl({ activeCampaign, activeCampaignId, campaignState, setAppMode, setCampaignState }, ...__args);
+          const advanceCampaign = (...__args) => advanceCampaignImpl({ activeCampaign, activeCampaignId, campaignState, setAppMode, setCampaignState, updateLocalStats }, ...__args);
 
           // --- LOGICA LORE DINAMICO (Spostata al top level per evitare violazioni di React Hooks) ---
           const campaignDialogueMemo = React.useMemo(() => {
