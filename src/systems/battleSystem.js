@@ -2,7 +2,7 @@ import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefens
 import { ignoresShields, immuneToStatDrops, powerForAccordo, effectiveTaserPower,
   incomingRockEnchantmentFactor, affectedOpponents, addStickyTrap, trapEntries,
   stickyTrapEntryDamage } from './rockstarAgentEffects.js';
-import { getHeldPowerFactor, getHeldRecoil, getMahitoMultiplier, canDistortSoul, getDistortedSoulDamage } from './heldEquipment.js';
+import { getHeldPowerFactor, getHeldRecoil, getHeldEvasion, getHeldEndTurnHeal, useHeldGem, getMahitoMultiplier, canDistortSoul, getDistortedSoulDamage } from './heldEquipment.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleForceSkipImpl = (ctx) => {
 const { calculateTurn, gameState, generateCPUActionsForPlayer, getActivePlayers, isCalculatingRef, setActionMenuMode, setCommandingIdx, setPendingHyper, setSystemAlert, setTargetingMoveIdx, updateState } = ctx;
@@ -1989,8 +1989,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                     // Elusione individuale: una mossa con precisione 100% contro Bugs
                     // colpisce solo nell'80% dei casi dopo un uso di Dentro la Tana.
                     // Il controllo è per bersaglio, anche per gli attacchi ad area.
-                    if (isEnemyTarget && t.char.evasionBonus > 0 && Math.random() < t.char.evasionBonus) {
-                        events.push({type:'text',text:`🐰 ${t.char.name} schiva l'attacco grazie alla sua elusione!`});
+                    if (isEnemyTarget && Math.random() < (1-(1-Math.min(0.95,t.char.evasionBonus||0))*(1-getHeldEvasion(t.char)))) {
+                        events.push({type:'text',text:`💨 ${t.char.name} schiva l’attacco grazie alla sua elusione e/o al Mantello dell’Invisibilità!`});
                         continue;
                     }
 
@@ -2541,6 +2541,12 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                     events.push({ type: 'text', text: '👁️ Mahito usa Trasfigurazione Oziosa! Cambia forma e aumenta Attacco e Attacco Speciale di uno stadio!' });
                 }
 
+                // Le gemme amplificano tutta la PRIMA mossa offensiva del tipo
+                // corrispondente, poi si rompono solo per questa battaglia.
+                // Il possesso nel profilo non cambia.
+                if(move.power>0 && useHeldGem(attacker,move)){
+                    events.push({type:'text',text:`💎 La gemma di ${attacker.name} sprigiona energia e si rompe! (+30% di potenza)`});
+                }
                 const heldRecoil = getHeldRecoil(attacker, move);
                 if (heldRecoil > 0 && attacker.hp > 0) {
                     applyDamage(attacker, heldRecoil, player, charTeamIdx, `💪 L'Iperband fa perdere ${heldRecoil} PS a ${attacker.name}!`);
@@ -2738,6 +2744,13 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
         for (let target of eotTargets) {
             let char = workingTeams[target.player]?.[target.charTeamIdx];
             if (!char || char.hp <= 0 || !char.statuses) continue;
+
+            const leftoversHeal=getHeldEndTurnHeal(char);
+            if(leftoversHeal && char.hp<char.maxHp){
+                char.hp=Math.min(char.maxHp,char.hp+leftoversHeal);
+                events.push({type:'damage',text:`🍲 ${char.name} recupera ${leftoversHeal} PS grazie agli Avanzi!`,
+                    targetPlayer:target.player,targetIdx:target.charTeamIdx,newHp:char.hp});
+            }
 
             // --- NUOVA LOGICA: PASSIVE ON_TURN_END ---
             if (char.passive && char.passive.type === 'on_turn_end') {
