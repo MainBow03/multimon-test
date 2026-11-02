@@ -16,6 +16,35 @@ export function ItemArtwork({id,size=54,className=''}) {
  if(id==='mantello_invisibilita')return <svg role="img" aria-label="Mantello dell’Invisibilità" viewBox="0 0 100 100" width={size} height={size} className={className}><path d="M31 14 Q50 2 69 14 L83 80 Q67 70 52 86 Q34 71 15 82 Z" fill="#172554" fillOpacity=".6" stroke="#67e8f9" strokeWidth="3"/><path d="M31 14 L48 35 L69 14 M48 35 L52 86" fill="none" stroke="#a5f3fc" strokeWidth="3" strokeOpacity=".8"/><circle cx="49" cy="34" r="7" fill="#e0f2fe" opacity=".65"/></svg>;
  if(id==='avanzi')return <svg role="img" aria-label="Avanzi" viewBox="0 0 100 100" width={size} height={size} className={className}><ellipse cx="50" cy="70" rx="38" ry="17" fill="#475569" stroke="#f8fafc" strokeWidth="3"/><path d="M16 60 Q50 40 84 60 L77 70 Q50 87 23 70Z" fill="#7c2d12" stroke="#f59e0b" strokeWidth="3"/><path d="M29 49 Q44 28 50 50 Q61 25 73 48" fill="none" stroke="#fcd34d" strokeWidth="9" strokeLinecap="round"/><path d="M33 15 Q25 27 34 36 M52 12 Q44 27 52 36" stroke="#e2e8f0" strokeWidth="3" fill="none" strokeLinecap="round" opacity=".6"/></svg>;
 
+ if(id==='germoglio_curativo')return <svg role="img" aria-label="Germoglio Curativo" viewBox="0 0 100 100" width={size} height={size} className={className}>
+  <defs><linearGradient id="sprout-leaf" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#d9f99d"/><stop offset="1" stopColor="#15803d"/></linearGradient></defs>
+  <path d="M22 76 Q50 91 78 76 L70 94 H31Z" fill="#a16207" stroke="#facc15" strokeWidth="3"/>
+  <path d="M50 82 Q49 50 54 28" stroke="#4ade80" fill="none" strokeWidth="6" strokeLinecap="round"/>
+  <path d="M50 56 Q15 57 14 20 Q51 22 50 56 M53 39 Q61 8 86 13 Q86 48 53 39Z" fill="url(#sprout-leaf)" stroke="#bbf7d0" strokeWidth="3"/>
+  <path d="M50 56 L24 31 M53 39 L73 22" stroke="#dcfce7" strokeOpacity=".65" strokeWidth="2"/>
+  <circle cx="65" cy="64" r="5" fill="#fef08a" opacity=".85"/>
+ </svg>;
+ if(id==='spray_neutralizzante')return <svg role="img" aria-label="Spray Neutralizzante" viewBox="0 0 100 100" width={size} height={size} className={className}>
+  <path d="M33 30 H67 L72 88 H28Z" fill="#164e63" stroke="#a5f3fc" strokeWidth="4"/>
+  <path d="M39 15 H61 V30 H39Z" fill="#64748b" stroke="#e0f2fe" strokeWidth="3"/>
+  <path d="M45 9 H77 V15 H45Z" fill="#d1d5db" stroke="#f8fafc" strokeWidth="2"/>
+  <path d="M76 18 L88 12 M78 27 L91 26 M74 36 L90 43" stroke="#67e8f9" strokeWidth="4" strokeLinecap="round"/>
+  <circle cx="50" cy="62" r="15" fill="#06b6d4" stroke="#e0f2fe" strokeWidth="3"/>
+  <path d="M43 62 L49 69 L60 54" stroke="#fff" strokeWidth="5" fill="none" strokeLinecap="round"/>
+ </svg>;
+ if(id==='freccia_cupido')return <svg role="img" aria-label="Freccia di Cupido" viewBox="0 0 100 100" width={size} height={size} className={className}>
+  <path d="M50 91 C31 70 11 57 13 35 C16 12 43 12 50 30 C60 10 86 14 88 35 C91 57 68 74 50 91Z" fill="#db2777" stroke="#fbcfe8" strokeWidth="4"/>
+  <path d="M10 78 L84 12" stroke="#fef3c7" strokeWidth="5" strokeLinecap="round"/>
+  <path d="M73 11 L89 8 L86 26Z" fill="#facc15" stroke="#fff7ed" strokeWidth="2"/>
+  <path d="M12 70 L5 60 M12 70 L23 83" stroke="#fef3c7" strokeWidth="4" strokeLinecap="round"/>
+ </svg>;
+ if(id==='scudo_antimagia')return <svg role="img" aria-label="Scudo Anti-Magia" viewBox="0 0 100 100" width={size} height={size} className={className}>
+  <defs><linearGradient id="anti-magic-shield" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#818cf8"/><stop offset="1" stopColor="#312e81"/></linearGradient></defs>
+  <path d="M50 7 L86 21 L83 59 Q77 80 50 95 Q23 80 17 59 L14 21Z" fill="url(#anti-magic-shield)" stroke="#c7d2fe" strokeWidth="4"/>
+  <circle cx="50" cy="48" r="19" fill="#1e1b4b" stroke="#e9d5ff" strokeWidth="3"/>
+  <path d="M32 64 L68 31" stroke="#f5d0fe" strokeWidth="6" strokeLinecap="round"/>
+  <path d="M45 26 L50 18 L55 26 M36 48 H26 M74 48 H64 M45 72 L50 79 L55 72" stroke="#a5f3fc" strokeWidth="3" fill="none"/>
+ </svg>;
  if(id==='iperband')return <svg role="img" aria-label="Iperband, bracciale viola" viewBox="0 0 100 100" width={size} height={size} className={className} xmlns="http://www.w3.org/2000/svg">
  <defs><linearGradient id="hb-metal" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#d4d4e8"/><stop offset=".48" stopColor="#595975"/><stop offset="1" stopColor="#17172c"/></linearGradient><linearGradient id="hb-glow" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#f5d0fe"/><stop offset=".5" stopColor="#d946ef"/><stop offset="1" stopColor="#6d28d9"/></linearGradient></defs>
  <path d="M28 17 Q50 7 72 17 L83 31 L81 72 L70 85 Q50 96 30 85 L19 72 L17 31 Z" fill="url(#hb-metal)" stroke="#e8e5ff" strokeWidth="3"/>
