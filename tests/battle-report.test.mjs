@@ -111,8 +111,24 @@ test('Le schermate di fine incontro includono le statistiche in ogni modalità',
   const campaign=readFileSync(new URL('../src/screens/campaign/CampaignTeamSelectView.jsx',import.meta.url),'utf8');
   assert.match(engine,/events\.push\(\{type:'battle_actor',player,charTeamIdx,kind:action\.type\}\)/);
   assert.match(engine,/events\.push\(\{type:'battle_actor_end'\}\)/);
-  assert.match(engine,/battleReport: accumulateBattleReport\(gameState\.battleReport, startOfTurnTeams, events\)/);
+  assert.match(engine,/battleReport: accumulateBattleReport\(gameState\.battleReport, startOfTurnTeams, events,/);
   assert.match(engine,/evt\.type === 'battle_actor' \|\| evt\.type === 'battle_actor_end'/);
   assert.match(campaign,/state\.battleReport = accumulateBattleReport\(state\.battleReport, state\.teams, initialEvents/);
   assert.equal((gameover.match(/<BattleReportPanel /g)||[]).length,4);
+});
+
+test('Danni fra alleati in multipla o Juggernaut non assegnano KO avversari',()=>{
+  const teams={p1:[fighter('a','Alleato A',100)],p2:[fighter('b','Alleato B',100)],p3:[fighter('e','Nemico',100)]};
+  const events=[{type:'battle_actor',player:'p1',charTeamIdx:0,kind:'attack'},
+    {type:'damage',targetPlayer:'p2',targetIdx:0,newHp:0},
+    {type:'damage',targetPlayer:'p3',targetIdx:0,newHp:0}];
+  const report=accumulateBattleReport(null,teams,events,{gameMode:'multipla'});
+  assert.equal(report.entries['p1:0'].damageDealt,100);
+  assert.equal(report.entries['p1:0'].kos,1);
+  assert.equal(report.entries['p2:0'].damageTaken,100);
+
+  const bossMode=accumulateBattleReport(null,teams,events,
+    {gameMode:'juggernaut',settings:{juggernautPlayer:'p3'}});
+  assert.equal(bossMode.entries['p1:0'].damageDealt,100);
+  assert.equal(bossMode.entries['p1:0'].kos,1);
 });
