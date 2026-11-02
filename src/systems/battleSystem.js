@@ -1,7 +1,7 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
 import { applyBattleStatModifier } from './statBalance.js';
 import { isOnlineHealingLimited, isLimitedHealingItem, onlineHealingRemaining, ONLINE_HEAL_ITEM_LIMIT } from './onlineHealingLimit.js';
-import { consumeRaidShieldHit } from './finalRaidBalance.js';
+import { consumeRaidShieldHit, createRaidShieldUpdateEvent, applyRaidShieldUpdateEvent } from './finalRaidBalance.js';
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { resolvePoisonEndTurn } from './battleStatusTurns.js';
@@ -1134,7 +1134,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     if (thresholdTriggered) {
                         const hitsToGrant = target.shieldGrantedHits || 4;
                         target.juggHitsRemaining = hitsToGrant;
-                        events.push({ type: 'text', text: `💥 ${target.name} si infuria! Uno Scudo Assoluto assorbirà i prossimi ${hitsToGrant} colpi! 💥` });
+                        events.push(createRaidShieldUpdateEvent(targetPlayer,targetIdx,hitsToGrant, `💥 ${target.name} si infuria! Uno Scudo Assoluto assorbirà i prossimi ${hitsToGrant} colpi! 💥`, true));
                     }
                 }
 
@@ -2241,12 +2241,12 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                         
                         const raidHit=!bypassEnemyShields&&consumeRaidShieldHit(t.char);
                         if(raidHit?.absorbed) {
+                             events.push(createRaidShieldUpdateEvent(t.player,t.idx,raidHit.remaining,`${attacker.name} usa ${move.name} su ${t.char.name}... ma lo Scudo ha assorbito l'attacco! (${raidHit.remaining} cariche scudo rimaste)`));
                             if(raidHit.broken) {
                                 events.push({ type: 'text', text: `🛡️ Lo Scudo di ${t.char.name} si è infranto!` });
                                 let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 applyDamage(t.char, recoilDmg, t.player, t.idx, `💥 La frantumazione dello scudo infligge ${recoilDmg} danni a ${t.char.name}!`);
                             }
-                            events.push({ type: 'text', text: `${attacker.name} usa ${move.name} su ${t.char.name}... ma Lo Scudo ha assorbito l'attacco! (${t.char.juggHitsRemaining} cariche scudo rimaste)` });
                         } else {
                             applyDamage(t.char, dmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText} Gli toglie ${dmg} PS!`);
                         }
@@ -2268,6 +2268,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             if (raidHit?.absorbed) {
                                 juggHitsAbsorbed++;
                                 actualHits++;
+                                 events.push(createRaidShieldUpdateEvent(t.player,t.idx,raidHit.remaining,`${attacker.name} usa ${move.name} su ${t.char.name}: lo Scudo assorbe il colpo ${i+1}${hits>1?`/${hits}`:''}! (${raidHit.remaining} cariche rimaste)`));
                                 if (raidHit.broken) {
                                     events.push({ type: 'text', text: `🛡️ Lo Scudo di ${t.char.name} si è infranto!` });
                                     // Danno da contraccolpo per rottura scudo (5% HP Max)
@@ -2376,7 +2377,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                                 if (thresholdTriggered) {
                                     const hitsToGrant = t.char.shieldGrantedHits || 4;
                                     t.char.juggHitsRemaining = hitsToGrant;
-                                    events.push({ type: 'text', text: `💥 ${t.char.name} si infuria! Uno Scudo Assoluto assorbirà i prossimi ${hitsToGrant} colpi! 💥` });
+                                    events.push(createRaidShieldUpdateEvent(t.player,t.idx,hitsToGrant, `💥 ${t.char.name} si infuria! Uno Scudo Assoluto assorbirà i prossimi ${hitsToGrant} colpi! 💥`, true));
                                 }
                             }
 
@@ -2390,8 +2391,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                         let groppaText = attacker.statuses.some(s => s.type === 'In_Groppa') ? ` (Danni +25% in Groppa!)` : '';
 
                         if (juggHitsAbsorbed > 0 && totalDmg === 0) {
-                            let absTxt = actualHits > 1 ? `Lo Scudo ha assorbito tutti i ${actualHits} colpi!` : `Lo Scudo ha assorbito l'attacco!`;
-                            events.push({ type: 'text', text: `${attacker.name} usa ${move.name} su ${t.char.name}... ma ${absTxt} (${t.char.juggHitsRemaining} cariche scudo rimaste)` });
+                             // I singoli colpi assorbiti sono già mostrati dagli eventi raid_shield_update.
                         } else if (totalDmg > 0) {
                             let shieldTxt = juggHitsAbsorbed > 0 ? ` (Lo scudo ha assorbito ${juggHitsAbsorbed} colpi).` : '';
                             const previousDamageTaken=t.char.damageTakenThisTurn||0;
@@ -3634,7 +3634,11 @@ const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, set
                        currentDisplay[evt.player][evt.charTeamIdx].isHyper = true;
                        setDisplayTeams({ ...currentDisplay });
                    }
-                } else if (evt.type === 'damage') {
+                 } else if (evt.type === 'raid_shield_update') {
+                    if (applyRaidShieldUpdateEvent(currentDisplay, evt)) {
+                        setDisplayTeams({ ...currentDisplay });
+                    }
+                 } else if (evt.type === 'damage') {
                   if (currentDisplay[evt.targetPlayer] && currentDisplay[evt.targetPlayer][evt.targetIdx]) {
                       currentDisplay[evt.targetPlayer][evt.targetIdx].hp = evt.newHp;
                       setDisplayTeams({ ...currentDisplay });
@@ -3662,7 +3666,7 @@ const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, set
                    }
                 }
                 
-                let delay = 1600;
+                 let delay = evt.type === 'raid_shield_update' && !evt.activated ? 650 : 1600;
                 if (evt.isPassive) delay = 2200; // Tempo extra per far leggere la passiva
                 if (evt.type === 'hyper_transform') delay = 4500; // Tempo extra per ammirare la lunghissima trasformazione
                 await new Promise(r => setTimeout(r, delay)); 
