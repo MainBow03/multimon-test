@@ -1,3 +1,4 @@
+import { CHAR_PRICES } from '../data/prices.js';
 // Potenziamenti lievi permanenti: indipendenti da PE/Padronanza e monete.
 // Ciascuna statistica ha livello 1..10; il livello 1 dà +1 gratuitamente.
 // Raggiungendo livello 10 ciascuna riceve +10, massimo +30 totali.
@@ -16,7 +17,7 @@ export function strengthTotalLevels(upgrades,id){
 export function canTrainCharacter(character,profile){
   return !!character && !character.isCampaignMonster && !character.isSummonOnly &&
     !character.isSecretUnlock && !character.fusionOf &&
-    (!character.price || (profile?.unlockedChars||[]).includes(character.id));
+    (!(CHAR_PRICES[character.id]>0) || (profile?.unlockedChars||[]).includes(character.id));
 }
 export function trainStrength(profile,character,stat){
   if(!STRENGTH_STATS.some(s=>s.key===stat)||!canTrainCharacter(character,profile))
@@ -56,3 +57,17 @@ export const strengthSummary = (character,upgrades)=>STRENGTH_STATS.map(({key,la
     nextValue:(Number(character[key])||0)+Math.min(currentLevel+1,STRENGTH_MAX_LEVEL),
     cost:strengthUpgradeCost(currentLevel)};
 });
+
+// Un solo potenziamento tutorial gratuito per profilo. Segna la richiesta
+// e il livello nello stesso aggiornamento persistente.
+export function grantTutorialStrengthUpgrade(profile,character,stat){
+  if(profile?.freeLabUpgradeUsed)return {ok:false,reason:'Hai già ricevuto il regalo del laboratorio.',profile};
+  if(!STRENGTH_STATS.some(s=>s.key===stat)||!canTrainCharacter(character,profile))
+    return {ok:false,reason:'Seleziona un Multimon che possiedi.',profile};
+  const current=strengthLevel(profile.strengthUpgrades,character.id,stat);
+  if(current>=STRENGTH_MAX_LEVEL)return {ok:false,reason:'Questa statistica è già al massimo.',profile};
+  const upgrades={...(profile.strengthUpgrades||{})};
+  upgrades[character.id]={...(upgrades[character.id]||{}),[stat]:current+1};
+  return {ok:true,level:current+1,profile:{...profile,strengthUpgrades:upgrades,
+    freeLabUpgradeUsed:true,labTutorialStep:7}};
+}

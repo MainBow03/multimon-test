@@ -18,6 +18,8 @@ import { renderRoguelikeMapView } from './screens/roguelike/RoguelikeMapView.jsx
 import { renderRoguelikeCoopLobbyView } from './screens/roguelike/RoguelikeCoopLobbyView.jsx';
 import { renderShopView } from './screens/hub/ShopView.jsx';
 import { StrengthLabView } from './screens/hub/StrengthLabView.jsx';
+import { migrateCampaignChests } from './systems/campaignChests.js';
+import { CampaignChestsView } from './screens/hub/CampaignChestsView.jsx';
 import { renderStatsView } from './screens/hub/StatsView.jsx';
 import { renderTypeChartView } from './screens/hub/TypeChartView.jsx';
 import { renderCatalogView } from './screens/hub/CatalogView.jsx';
@@ -472,7 +474,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const activeMission = activeSector.missions[campaignState.missionIdx] || activeSector.missions[0];
 
           // Funzione di avanzamento campagna condivisa
-          const advanceCampaign = (...__args) => advanceCampaignImpl({ activeCampaign, activeCampaignId, campaignState, setAppMode, setCampaignState }, ...__args);
+          const advanceCampaign = (...__args) => advanceCampaignImpl({ activeCampaign, activeCampaignId, campaignState, setAppMode, setCampaignState, updateLocalStats }, ...__args);
 
           // --- LOGICA LORE DINAMICO (Spostata al top level per evitare violazioni di React Hooks) ---
           const campaignDialogueMemo = React.useMemo(() => {
@@ -942,6 +944,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
           function getPlayerData() {
               const key = `multiverse_rpg_global_profile`;
+              const reconcile = data => {
+                  const migration=migrateCampaignChests(data,CAMPAIGNS,localStorage);
+                  if(migration.changed)localStorage.setItem(key,JSON.stringify(migration.profile));
+                  return migration.profile;
+              };
               const raw = localStorage.getItem(key);
               if (raw) {
                   let data = JSON.parse(raw);
@@ -967,7 +974,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                       localStorage.setItem(key, JSON.stringify(data));
                   }
                   
-                  return data;
+                  return reconcile(data);
               }
 
               // Migrazione dal vecchio salvataggio (basato sul nome) se esiste
@@ -995,12 +1002,12 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                               data.bugFixCompensation200 = true;
                           }
                           localStorage.setItem(key, JSON.stringify(data));
-                          return data;
+                          return reconcile(data);
                       }
                   }
               }
 
-              return { matches: 0, wins: 0, playtime: 0, chars: {}, moves: {}, coins: 500, inventory: { cura_totale: 1 }, unlockedChars: [], strengthPoints: 0, strengthUpgrades: {}, apologyGiftReceived: true, bugFixCompensation200: true, maxSurvivalRound: 0 };
+              return reconcile({ matches: 0, wins: 0, playtime: 0, chars: {}, moves: {}, coins: 500, inventory: { cura_totale: 1 }, unlockedChars: [], strengthPoints: 0, strengthUpgrades: {}, apologyGiftReceived: true, bugFixCompensation200: true, maxSurvivalRound: 0 });
           }
 
           const updateLocalStats = (...__args) => {
@@ -1256,7 +1263,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           // --- INTELLIGENZA ARTIFICIALE CPU (Migliorata per Tutti i Bot) ---
           const generateCPUActionsForPlayer = (...__args) => generateCPUActionsForPlayerImpl({ gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, roguelikeState }, ...__args);
 
-          const commitAction = (...__args) => commitActionImpl({ appMode, commandingIdx, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState }, ...__args);
+          const commitAction = (...__args) => commitActionImpl({ appMode, commandingIdx, ITEMS_DB, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState }, ...__args);
 
           const handleSelectMoveTarget = (...__args) => handleSelectMoveTargetImpl({ commandingIdx, commitAction, gameState, getActivePlayers, getTournamentMatchOpponents, playerRole, selectedMultiTargets, setSelectedMultiTargets, targetingMoveIdx }, ...__args);
 
@@ -1264,7 +1271,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
           const calculateDamage = (...__args) => calculateDamageImpl({  }, ...__args);
 
-          const calculateTurn = (...__args) => calculateTurnImpl({ CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, playerName, updateLocalStats, updateState }, ...__args);
+          const calculateTurn = (...__args) => calculateTurnImpl({ CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDamage, gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, playerName, updateLocalStats, updateState }, ...__args);
 
     const handleNextTournamentMatch = (...__args) => handleNextTournamentMatchImpl({ appMode, gameState, setCombatLog, setCommandingIdx, setIsLogOpen, setPlayerRole, updateState }, ...__args);
 
@@ -1465,9 +1472,18 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
   if (__screen !== undefined) return __screen;
 }
 
+    if (appMode === 'chests') {
+  return <CampaignChestsView profile={getPlayerData()} onOpen={()=>updateLocalStats({openCampaignChest:true})}
+    onAcknowledge={()=>updateLocalStats({acknowledgeChestReveal:true})}
+    onBack={()=>setAppMode('menu')}/>;
+}
+
     if (appMode === 'strength_lab') {
   return <StrengthLabView characters={CHARACTERS} profile={getPlayerData()}
     onUpgrade={(charId,stat)=>updateLocalStats({strengthUpgrade:{charId,stat}})}
+    onTutorialUpgrade={(charId,stat)=>updateLocalStats({freeLabUpgrade:{charId,stat}})}
+    onTutorialStep={step=>updateLocalStats({labTutorialStep:step})}
+    onTutorialComplete={()=>updateLocalStats({completeLabTutorial:true})}
     onBack={()=>setAppMode('menu')}/>;
 }
 

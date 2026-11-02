@@ -157,6 +157,14 @@ if (appMode === 'menu') {
                                  <GridIcon size={20}/> Tabella Tipi
                             </button>
                         </div>
+                        <button type="button" onClick={()=>{if(!playerName.trim())setSystemAlert('Inserisci il tuo nome per aprire i bauli!');else setAppMode('chests');}}
+                          className="w-full mt-3 bg-gradient-to-r from-amber-800 via-yellow-700 to-amber-900 border border-amber-400/70 hover:brightness-110 rounded-xl py-4 text-white font-black shadow-[0_0_24px_rgba(251,191,36,.16)] flex justify-center items-center gap-3 transition-all">
+                          <span className="h-8 w-9 rounded-md bg-gradient-to-br from-yellow-300 via-amber-700 to-slate-900 border-2 border-yellow-200/60 shadow-inner relative">
+                            <span className="absolute left-1/2 -translate-x-1/2 top-2 w-2.5 h-3 rounded-sm bg-cyan-300 border border-yellow-200"/>
+                            <span className="absolute inset-x-0 top-0.5 border-t-2 border-yellow-200/60"/>
+                          </span>
+                          <span>Bauli Campagna <span className="block text-xs text-amber-100/85 font-semibold">{playerData.chests?.pending?.length||0} bauli da aprire · 2 premi ciascuno</span></span>
+                        </button>
                         <button onClick={() => { if(!playerName.trim()) setSystemAlert("Inserisci il tuo nome per accedere al Laboratorio!"); else setAppMode('strength_lab'); }}
                             className="w-full mt-3 bg-gradient-to-r from-cyan-700 via-indigo-700 to-violet-800 hover:from-cyan-600 hover:to-violet-700 text-white font-black py-4 rounded-xl border border-cyan-400/60 shadow-[0_0_24px_rgba(34,211,238,.20)] flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5">
                             <span className="text-2xl">⚡</span>

@@ -11,6 +11,21 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'campaign-chests-scientist',category:'champions',date:'02/11/2026',title:'Bauli della campagna e Topolino scienziato',items:[
+    'Ogni missione completata in una delle tre campagne assegna un Baule Campagna, conservabile nel menu.',
+    'Chi ha già completato missioni riceve automaticamente tutti i bauli mancanti, senza duplicati.',
+    'Ogni baule contiene due ricompense casuali indipendenti: cure 40%, Punti Forza 28%, monete 25%, Multimon 4%, strumenti da battaglia 3%.',
+    'Punti Forza possibili: 5, 7, 9, 15, 20 o 40. Monete fra 15 e 50. I curativi includono pozioni, rimedi status e rivitalizzanti.',
+    'I Multimon non posseduti sono i soli candidati alle ricompense rare. Se una categoria è completa, si ricevono Punti Forza sostitutivi.',
+    'Lo scrigno illustrato e le due carte premio utilizzano animazioni e colori di rarità. Il risultato è registrato prima della rivelazione.',
+    'Il Professor Topolino guida al primo ingresso nel Laboratorio usando il suo ritratto e regala un solo +1 gratuito a una statistica di un Multimon posseduto.'
+  ]},
+  {id:'online-heal-cap',category:'balance',date:'02/11/2026',title:'Tre strumenti curativi per giocatore nelle lotte online',items:[
+    'Le lotte online permettono fino a tre utilizzi complessivi di strumenti curativi per giocatore per battaglia.',
+    'Contano Pozione, Cura Totale, Revitalizzante, Cura Status e Pozione Rigenerante; le mosse di cura dei Multimon non sono strumenti.',
+    'Il limite viene applicato sia al menu oggetti sia al motore dei turni, e riparte da zero in una nuova battaglia.',
+    'La campagna e le partite in locale mantengono le regole precedenti.'
+  ]},
   {id:'strength-lab',category:'balance',date:'02/11/2026',title:'⚡ Laboratorio e Punti Forza',items:[
     'Aggiunta la valuta Punti Forza (separata dalle monete). Tutti i profili partono da 0 Punti Forza.',
     'I Multimon posseduti possono aumentare separatamente Attacco, Difesa e Velocità dal livello 1 al 10.',
