@@ -12,6 +12,7 @@ export function copyKirbyMoveOnHit(kirby, victim, victimKey, random=Math.random)
     // Combinazioni e mosse che chiedono un partner specifico non sono
     // eseguibili in modo affidabile da Kirby.
     !m.isCombo && !m.isKirbyCopy && !m.isStolen &&
+    m.remainingUses!==0 && m.uses!==0 &&
     !m.requiredStatus && !m.requiresMove && !m.requireSummonsDead &&
     !kirby.moves.some(owned=>owned.name===m.name)
   );
@@ -20,9 +21,11 @@ export function copyKirbyMoveOnHit(kirby, victim, victimKey, random=Math.random)
   const index=Math.max(0,Math.min(candidates.length-1,Math.floor((Number.isFinite(roll)?roll:0)*candidates.length)));
   const selected=candidates[index];
   // Clonazione indipendente: la mossa originale non perde utilizzi.
-  const maxUses=Number.isFinite(selected.maxUses)?selected.maxUses:3;
-  const remainingUses=Number.isFinite(selected.remainingUses)
-    ? Math.max(0,Math.min(maxUses,selected.remainingUses)) : maxUses;
+  const maxUses=Number.isFinite(selected.maxUses)?selected.maxUses
+    :Number.isFinite(selected.uses)?selected.uses:3;
+  const availableUses=Number.isFinite(selected.remainingUses)?selected.remainingUses
+    :Number.isFinite(selected.uses)?selected.uses:maxUses;
+  const remainingUses=Math.max(0,Math.min(maxUses,availableUses));
   const copied={...structuredClone(selected),isKirbyCopy:true,copySource:victim.name,
     maxUses,remainingUses,uses:remainingUses,currentCooldown:0};
   kirby.moves.push(copied);
