@@ -1115,6 +1115,25 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                             events.push({ type: 'text', text: `🔥 ${target.name} attiva ${target.passive.name}! Aumenta ${statTexts.join(" e ")}!`, isPassive: true, passiveChar: target.name, passiveName: target.passive.name });
                         }
 
+                        // Cyborg conserva la precedente scarica di Malfunzionamento,
+                        // ma lo Scudo Anti-Magia blocca gli effetti negativi
+                        // prodotti da passive nemiche.
+                        if(target.passive.aoeDamagePercentMaxHp){
+                            const enemies=affectedOpponents(targetPlayer,gameState.gameMode,
+                              activeMatchPlayers,getTournamentMatchOpponents,gameState.settings);
+                            for(const ep of enemies)for(const eIdx of workingField[ep]||[]){
+                                const enemy=workingTeams[ep]?.[eIdx];
+                                if(!enemy||enemy.hp<=0)continue;
+                                if(blockedEnemyPassive(enemy)){
+                                    events.push({type:'text',text:`🛡️ ${enemy.name} evita la scarica di ${target.name} grazie allo Scudo Anti-Magia!`});
+                                    continue;
+                                }
+                                const passiveDmg=Math.max(1,Math.floor(enemy.maxHp*target.passive.aoeDamagePercentMaxHp));
+                                applyDamage(enemy,passiveDmg,ep,eIdx,
+                                  `⚡ ${target.name} attiva ${target.passive.name}: ${enemy.name} perde ${passiveDmg} PS!`);
+                            }
+                        }
+
                         // AGGIUNTO: GESTIONE PURIFICAZIONE STATUS (es. Zazan - Corazza Mutante)
                         if (target.passive.removeNegativeStatuses) {
                             const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'];
