@@ -5,7 +5,7 @@ import { resolvePoisonEndTurn } from '../src/systems/battleStatusTurns.js';
 
 const poison=(hp=100,turns=1)=>({hp,maxHp:100,statuses:[{type:'Avvelenato',turns}]});
 
-test('veneno: il danno aumenta a ogni turno e si ferma al 25%',()=>{
+test('veleno: il danno aumenta a ogni turno e si ferma al 15%',()=>{
   const c=poison(100,1);
   let d=0;
   let outcome=resolvePoisonEndTurn(c,amount=>{d=amount;c.hp-=amount;});
@@ -14,7 +14,10 @@ test('veneno: il danno aumenta a ogni turno e si ferma al 25%',()=>{
   assert.equal(c.statuses[0].turns,2);
   for(let i=0;i<6;i++){c.hp=100;resolvePoisonEndTurn(c,amount=>c.hp-=amount);}
   assert.equal(c.statuses[0].turns,8);
-  assert.equal(resolvePoisonEndTurn({...c,hp:100},()=>{}).damage,25);
+  assert.equal(resolvePoisonEndTurn({...c,hp:100},()=>{}).damage,15);
+  const v=poison(100,3);
+  assert.equal(resolvePoisonEndTurn(v,()=>{}).damage,15);
+  assert.equal(resolvePoisonEndTurn(poison(100,100),()=>{}).damage,15);
 });
 
 test('regressione Cell: un KO da veleno cancella gli status e NON provoca TypeError turns',()=>{
