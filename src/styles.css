@@ -111,3 +111,31 @@ body { background-color: #020617; color: white; }
 @media (prefers-reduced-motion: reduce) {
   .battlefield-snowstorm::after { animation: none; }
 }
+
+
+/* Chiarezza durante la lotta: mostra nomi completi, durata e statistiche. */
+.battle-effects-panel{display:flex;flex-direction:column;align-items:center;gap:4px;max-width:100%;margin-top:5px}
+.battle-passive-pill{max-width:100%;padding:3px 7px;border:1px solid rgba(245,158,11,.5);border-radius:999px;background:rgba(120,53,15,.47);color:#fde68a;font-size:9px;font-weight:800;line-height:1.25;white-space:normal;overflow-wrap:anywhere;cursor:help}
+.battle-stat-effects,.battle-status-effects{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;width:100%}
+.battle-stat-effects>span,.battle-status-label{display:inline-flex;align-items:center;gap:2px;border:1px solid transparent;border-radius:5px;padding:2px 4px;font-size:9px;font-weight:900;line-height:1.35;max-width:100%;overflow-wrap:anywhere;cursor:help}
+.battle-effect-buff{color:#a7f3d0;background:rgba(6,78,59,.85);border-color:rgba(52,211,153,.5)!important}
+.battle-effect-debuff{color:#fecaca;background:rgba(127,29,29,.85);border-color:rgba(248,113,113,.5)!important}
+.battle-status-negative{color:#fecdd3;background:rgba(136,19,55,.75);border-color:rgba(251,113,133,.5)}
+.battle-status-positive{color:#a7f3d0;background:rgba(6,95,70,.7);border-color:rgba(52,211,153,.5)}
+.battle-status-protection{color:#bfdbfe;background:rgba(30,64,175,.65);border-color:rgba(147,197,253,.5)}
+/* Annunci chiari: critico, KO, cura, potenziamento e passiva distinguibili. */
+.battle-feedback-panel{position:relative;isolation:isolate}
+.battle-feedback-label{font-size:clamp(15px,2.9vw,30px);font-weight:1000;letter-spacing:.14em;text-shadow:0 3px 16px currentColor;margin-bottom:7px;animation:battle-feedback-pop .55s cubic-bezier(.12,1.35,.3,1)}
+.battle-feedback-ko{background:linear-gradient(90deg,rgba(69,10,10,.98),rgba(159,18,57,.97),rgba(69,10,10,.98))!important;border-color:#fb7185!important;box-shadow:0 0 58px rgba(225,29,72,.65)!important}
+.battle-feedback-ko .battle-feedback-label{color:#fda4af;font-size:clamp(24px,5vw,54px)}
+.battle-feedback-critical{background:linear-gradient(90deg,rgba(69,26,3,.97),rgba(180,83,9,.94),rgba(69,26,3,.97))!important;border-color:#fbbf24!important}
+.battle-feedback-critical .battle-feedback-label{color:#fde68a}
+.battle-feedback-passive .battle-feedback-label{color:#fcd34d}
+.battle-feedback-buff .battle-feedback-label,.battle-feedback-heal .battle-feedback-label{color:#6ee7b7}
+.battle-feedback-debuff .battle-feedback-label,.battle-feedback-status .battle-feedback-label{color:#fda4af}
+.battle-ko-character{position:relative!important;opacity:1!important;transform:scale(1)!important;animation:battle-knockout .95s cubic-bezier(.2,.5,.2,1) forwards;filter:grayscale(.7)}
+.battle-impact-shake{animation:battle-arena-impact .48s ease-out}
+@keyframes battle-feedback-pop{0%{transform:translateY(14px) scale(.7);opacity:0}65%{transform:translateY(-2px) scale(1.09);opacity:1}100%{transform:translateY(0) scale(1);opacity:1}}
+@keyframes battle-knockout{0%{transform:translateY(0) scale(1);opacity:1}35%{transform:translateY(-7px) rotate(-5deg) scale(1.08)}100%{transform:translateY(27px) rotate(10deg) scale(.68);opacity:.22;filter:grayscale(1)}}
+@keyframes battle-arena-impact{0%,100%{transform:translateX(0)}15%{transform:translateX(-3px)}35%{transform:translateX(4px)}55%{transform:translateX(-2px)}80%{transform:translateX(1px)}}
+@media(prefers-reduced-motion:reduce){.battle-feedback-label,.battle-ko-character,.battle-impact-shake{animation:none!important}}

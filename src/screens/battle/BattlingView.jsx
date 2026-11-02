@@ -1,11 +1,13 @@
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { BattleCodexLauncher } from '../../components/BattleCodex.jsx';
+import { BattleStatusBadges, battleFeedbackKind, BATTLE_FEEDBACK_LABELS } from '../../components/BattleStatusBadges.jsx';
 import { isMasteryEligible, masteryDeploymentTier } from '../../systems/masterySystem.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderBattlingView(ctx) {
 const { ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
 if (gameState.status === 'battling' || gameState.status === 'executing') {
         const activeMatchPlayers = getActivePlayers();
+        const feedbackKind = battleFeedbackKind(eventPlaybackText, !!eventPlaybackPassive);
         
         let bottomPlayers = [];
         let topPlayers = [];
@@ -132,6 +134,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
             if (!char) return null; 
             
             const isDead = char.hp <= 0;
+            const isFaintingNow = isDead && isPlayingEvents && feedbackKind === 'ko' &&
+                String(eventPlaybackText).includes(char.name);
             const masteryLevel = isMasteryEligible(char)
               ? (gameState.playerMastery?.[teamPlayer]?.[char.id] ||
                  (teamPlayer === playerRole ? ownMasteryLevels?.[char.id] : 0) || 1)
@@ -315,7 +319,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
             // ---------------------------------------------------
             
             return (
-                <div key={`${teamPlayer}-${charTeamIdx}`} className={`relative flex flex-col items-center cursor-pointer ${isJuggernaut ? 'w-56' : 'w-36'} transition-all ${isDead ? 'opacity-0 scale-0 absolute' : 'opacity-100'} ${isHyper ? 'z-[45]' : 'z-10'}`} onClick={() => {
+                <div key={`${teamPlayer}-${charTeamIdx}`} className={`relative flex flex-col items-center cursor-pointer ${isJuggernaut ? 'w-56' : 'w-36'} transition-all ${isDead && !isFaintingNow ? 'opacity-0 scale-0 absolute' : 'opacity-100'} ${isFaintingNow ? 'battle-ko-character' : ''} ${isHyper ? 'z-[45]' : 'z-10'}`} onClick={() => {
                     if (isTargetable) {
                         handleSelectMoveTarget(teamPlayer, fieldIdx);
                     } else {
@@ -341,7 +345,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                           {masteryTier.icon} LV {masteryLevel} · {masteryTier.name}
                         </div>}
                         {renderHealthBar(char.hp, char.maxHp)}
-                        {renderStatuses(char.statuses)}
+                        <BattleStatusBadges character={char} />
                     </div>
                     <div className={`relative ${masteryTier ? 'mastery-portrait mastery-stage-'+masteryTier.level : ''}`}>
                         {masteryTier && <div className={`mastery-entry-ribbon mastery-tier-${masteryTier.level}`} aria-hidden="true">
@@ -446,7 +450,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                 </span>
                             </div>
                         )}
-                        <div className={`w-full py-5 border-y-4 shadow-[0_0_40px_rgba(0,0,0,0.8)] text-center transition-colors duration-300 ${eventPlaybackPassive ? 'bg-amber-950/95 border-amber-500' : 'bg-black/85 border-yellow-500/60'}`}>
+                        <div className={`w-full py-5 border-y-4 shadow-[0_0_40px_rgba(0,0,0,0.8)] text-center transition-colors duration-300 battle-feedback-panel battle-feedback-${feedbackKind} ${eventPlaybackPassive ? 'bg-amber-950/95 border-amber-500' : 'bg-black/85 border-yellow-500/60'}`}>
+                             {feedbackKind !== 'normal' && <div className="battle-feedback-label" aria-live="polite">{BATTLE_FEEDBACK_LABELS[feedbackKind]}</div>}
                              <h2 className={`text-3xl md:text-4xl font-black italic drop-shadow-[0_3px_3px_rgba(0,0,0,1)] tracking-wider px-4 transition-colors duration-300 ${eventPlaybackPassive ? 'text-white' : 'text-yellow-400'}`}>
                                     {eventPlaybackText}
                              </h2>
@@ -455,7 +460,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                 )}
 
                 {/* BATTLE ARENA */}
-                <div className={`flex-1 p-4 flex flex-col relative overflow-hidden transition-colors duration-700 ${gameState.battleWeather?.type === 'snowstorm' ? 'battlefield-snowstorm' : 'bg-slate-950'}`}>
+                <div className={`flex-1 p-4 flex flex-col relative overflow-hidden transition-colors duration-700 ${gameState.battleWeather?.type === 'snowstorm' ? 'battlefield-snowstorm' : 'bg-slate-950'} ${isPlayingEvents && (feedbackKind === 'ko' || feedbackKind === 'critical') ? 'battle-impact-shake' : ''}`}>
                     
                     {!isEventBattle&&<button onClick={() => playerRole === 'spectator' ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-4 left-4 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
                          <LogOut size={16} /> {playerRole === 'spectator' ? 'Esci' : 'Resa'}

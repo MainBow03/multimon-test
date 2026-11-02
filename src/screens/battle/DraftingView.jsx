@@ -1,8 +1,9 @@
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { canEquipHeldItem } from '../../systems/heldEquipment.js';
+import { TEAM_ROLES, getCharacterRoles, filterTeamRoster, characterPrice } from '../../systems/teamBuilderFilters.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderDraftingView(ctx) {
-const { ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState } = ctx;
+const { ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftRole, setDraftRole, draftPrice, setDraftPrice, draftFavorites, draftFavoritesOnly, setDraftFavoritesOnly, toggleDraftFavorite, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState } = ctx;
 if (gameState.status === 'drafting') {
         if (playerRole === 'spectator') {
             return (
@@ -50,17 +51,10 @@ if (gameState.status === 'drafting') {
         const myUnlocked = IS_PREVIEW ? baseRoster.map(c => c.id) : (getPlayerData().unlockedChars || []);
         const draftableChars = baseRoster.filter(c => !c.isSummonOnly && ((!c.price && !c.isSecretUnlock) || myUnlocked.includes(c.id)));
 
-        let filteredDraftableChars = draftableChars.filter(c => {
-            if (draftFilterType !== 'Tutti' && !c.types.includes(draftFilterType)) return false;
-            if (draftSearch.trim() !== '' && !c.name.toLowerCase().includes(draftSearch.toLowerCase())) return false;
-            return true;
+        const filteredDraftableChars = filterTeamRoster(draftableChars,{
+            type:draftFilterType,search:draftSearch,sort:draftSort,role:draftRole,
+            price:draftPrice,favoritesOnly:draftFavoritesOnly,favorites:draftFavorites
         });
-
-        if (draftSort === 'alpha') {
-            filteredDraftableChars.sort((a, b) => a.name.localeCompare(b.name));
-        } else if (draftSort === 'type') {
-            filteredDraftableChars.sort((a, b) => a.types[0].localeCompare(b.types[0]));
-        }
 
         return (
             <div className="h-[100dvh] min-h-[520px] bg-slate-900 text-white p-3 sm:p-5 flex flex-col relative overflow-hidden">
@@ -276,13 +270,47 @@ if (gameState.status === 'drafting') {
                                             <option value="default">Predefinito</option>
                                             <option value="alpha">A-Z</option>
                                             <option value="type">Per Tipo</option>
+                                            <option value="attack">Attacco più alto</option>
+                                            <option value="defense">Difesa più alta</option>
+                                            <option value="speed">Velocità più alta</option>
+                                            <option value="health">PS più alti</option>
+                                            <option value="price_asc">Prezzo crescente</option>
+                                            <option value="price_desc">Prezzo decrescente</option>
                                         </select>
                                     </div>
                                 </div>
 
+                                <div className="flex flex-wrap gap-2 mb-2 items-center shrink-0">
+                                    <label className="flex items-center gap-2 text-xs text-slate-300 font-bold">
+                                        Ruolo
+                                        <select aria-label="Filtra ruolo" value={draftRole} onChange={e=>setDraftRole(e.target.value)}
+                                            className="bg-slate-800 border border-slate-600 rounded-lg text-white p-2 text-xs">
+                                            {TEAM_ROLES.map(role=><option key={role.id} value={role.id}>{role.label}</option>)}
+                                        </select>
+                                    </label>
+                                    <label className="flex items-center gap-2 text-xs text-slate-300 font-bold">
+                                        Prezzo
+                                        <select aria-label="Filtra prezzo" value={draftPrice} onChange={e=>setDraftPrice(e.target.value)}
+                                            className="bg-slate-800 border border-slate-600 rounded-lg text-white p-2 text-xs">
+                                            <option value="all">Tutte le fasce</option>
+                                            <option value="free">Gratis</option>
+                                            <option value="cheap">1–150 monete</option>
+                                            <option value="medium">151–250 monete</option>
+                                            <option value="premium">Oltre 250 monete</option>
+                                        </select>
+                                    </label>
+                                    <button type="button" aria-pressed={draftFavoritesOnly}
+                                        onClick={()=>setDraftFavoritesOnly(!draftFavoritesOnly)}
+                                        className={`rounded-xl border px-3 py-2 text-xs font-black ${draftFavoritesOnly?'bg-amber-500/20 border-amber-400 text-amber-300':'bg-slate-800 border-slate-600 text-slate-300'}`}>
+                                        ★ Solo preferiti ({draftFavorites.filter(id=>draftableChars.some(c=>c.id===id)).length})
+                                    </button>
+                                    <span className="text-xs font-semibold text-slate-400" aria-live="polite">{filteredDraftableChars.length} Multimon trovati</span>
+                                </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 2xl:grid-cols-11 gap-3 w-full flex-1 min-h-0 overflow-y-auto content-start custom-scrollbar p-2">
+                                    {filteredDraftableChars.length === 0 && <div className="col-span-full rounded-xl bg-slate-900 border border-slate-700 p-8 text-center text-slate-400">Nessun Multimon corrisponde ai filtri. Modifica ricerca, tipo, ruolo o prezzo.</div>}
                                     {filteredDraftableChars.map(char => {
                                         const isSelected = myDraft.some(c => c.id === char.id);
+                                        const isFavorite = draftFavorites.includes(char.id);
                                         return (
                                             <div 
                                                 key={char.id} 
@@ -316,8 +344,20 @@ if (gameState.status === 'drafting') {
                                                 }}
                                                 className={`relative overflow-hidden bg-slate-900/80 backdrop-blur-md border rounded-2xl p-4 text-center transition-all duration-300 ${isSelected ? 'border-emerald-400 bg-emerald-900/30 scale-105 shadow-[0_0_15px_rgba(16,185,129,0.5)] opacity-50 grayscale' : 'border-slate-700/50 hover:border-cyan-500/50 hover:-translate-y-1 cursor-pointer shadow-lg'}`}
                                             >
+                                                <button type="button" title={isFavorite?'Togli dai preferiti':'Aggiungi ai preferiti'}
+                                                    aria-label={(isFavorite?'Togli ':'Aggiungi ')+char.name+(isFavorite?' dai preferiti':' ai preferiti')}
+                                                    aria-pressed={isFavorite}
+                                                    onClick={e=>{e.stopPropagation();toggleDraftFavorite(char.id);}}
+                                                    onTouchStart={e=>e.stopPropagation()}
+                                                    className={`absolute z-30 right-1.5 top-1.5 rounded-full border px-2 py-1 text-lg shadow-lg ${isFavorite?'border-amber-300 bg-amber-600 text-white':'border-slate-600 bg-slate-950/85 text-slate-400 hover:text-amber-300'}`}>
+                                                    {isFavorite?'★':'☆'}
+                                                </button>
                                                 <img src={char.img} alt={char.name} className={`w-16 h-16 rounded-full object-cover mx-auto mb-3 border-2 ${isSelected ? 'border-emerald-400' : 'border-slate-600/50'}`} />
-                                                <h4 className="font-bold text-sm mb-2 truncate text-slate-100">{char.name}</h4>
+                                                <h4 className="font-bold text-sm mb-1 truncate text-slate-100">{char.name}</h4>
+                                                <div className="text-[10px] font-bold text-amber-300 mb-1">{characterPrice(char)} monete</div>
+                                                <div className="text-[9px] font-semibold text-cyan-300 mb-2 truncate" title={getCharacterRoles(char).join(', ')}>
+                                                    {getCharacterRoles(char).map(id=>TEAM_ROLES.find(r=>r.id===id)?.label).filter(Boolean).join(' · ')}
+                                                </div>
                                                 <div className="flex flex-wrap gap-1 justify-center mb-3">
                                                     {char.types.map(t => (
                                                         <span key={t} className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{t}</span>
