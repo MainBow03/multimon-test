@@ -1,6 +1,7 @@
 import { renderMenuView } from './screens/hub/MenuView.jsx';
 import { MultiverseEventHub } from './screens/events/MultiverseEventHub.jsx';
 import { AccountGate } from './components/AccountGate.jsx';
+import { UpdateHistoryPanel } from './components/UpdateHistoryPanel.jsx';
 import { renderCampaignSelectView } from './screens/campaign/CampaignSelectView.jsx';
 import { renderCampaignIntroView } from './screens/campaign/CampaignIntroView.jsx';
 import { renderCampaignSelectProtagonistView } from './screens/campaign/CampaignSelectProtagonistView.jsx';
@@ -1519,6 +1520,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
     return (
         <>
             <MultiverseEventHub appMode={appMode} user={user} playerName={playerName} playerAvatarUrl={playerAvatarUrl} playerTitle={getPlayerTitle()} getPlayerData={getPlayerData} updateLocalStats={updateLocalStats} />
+            <UpdateHistoryPanel appMode={appMode} />
             {showLeaveConfirm && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
                     <div className="bg-slate-900 border border-rose-500/50 p-6 rounded-3xl max-w-sm w-full text-center shadow-[0_0_50px_rgba(244,63,94,0.2)] relative overflow-hidden">

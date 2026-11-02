@@ -1,4 +1,5 @@
 import { applyBattleStatModifier } from './statBalance.js';
+import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { CHARACTERS } from '../data/characters.js';
 import { getMultiplier } from './typeSystem.js';
 import { calculateDamageImpl } from './battleSystem.js';
@@ -75,7 +76,7 @@ function fighter(id,owner,item){
  atk:c.atk,baseAtk:c.atk,def:c.def,baseDef:c.def,spDef:c.spDef||c.def,baseSpDef:c.spDef||c.def,spd:c.spd,baseSpd:c.spd,spAtk:c.spAtk||c.atk,baseSpAtk:c.spAtk||c.atk,passive:c.passive||null,heldItem:item||null,gemSpent:false,healingSproutUsed:false,neutralizingSprayUsed:false,rapidTransmutationReady:false,hyper:false,statuses:[],
  moves:c.moves.map(m=>({name:m.name,type:m.type,power:m.power||0,accuracy:m.accuracy??100,
  targetCount:m.targetCount||1,uses:m.maxUses??null,contact:!!m.contact,
- special:!!m.special,recharge:!!m.recharge,transform:!!m.transformMahito,effect:m.statusEffect||null,buff:m.selfStatBuff||m.statBuff||null,
+ special:!!m.special,recharge:!!m.recharge,transform:!!m.transformMahito,effect:m.statusEffect||null,buff:m.selfStatBuff||m.statBuff||null,drain:m.drain||0,
  heal:m.heal||0,enemyDebuff:m.targetStatDebuff||null,snowstormTurns:m.snowstormTurns||0,
  evasionGain:m.evasionGain||0,crystalShieldPercent:m.crystalShieldPercent||0,
  refractionTurns:m.refractionTurns||0,bonusAgainstFaster:m.bonusAgainstFaster||0,
@@ -270,6 +271,10 @@ export function eventTurn(b,submissions,s,random=Math.random){
   if(actor.hp<=0)continue;
   const oldMalus=activateNeutralizingSpray(actor);
   if(oldMalus.length)log.push('Spray Neutralizzante di '+actor.name+' rimuove '+oldMalus.join(', ')+'!');
+  if(actor.statuses.includes('Stordito')){
+    actor.statuses=actor.statuses.filter(s=>s!=='Stordito');
+    log.push(actor.name+' è stordito e salta il turno!');continue;
+  }
   if(actor.statuses.includes('Ricarica')){
     actor.statuses=actor.statuses.filter(s=>s!=='Ricarica');
     log.push(actor.name+' deve ricaricarsi e perde il turno.');continue;
@@ -352,6 +357,16 @@ export function eventTurn(b,submissions,s,random=Math.random){
    const actualMove=m.scalingEnemyCount?{...m,power:powerForAccordo(visible.length)}:
      m.bonusIfSlowed?{...m,power:effectiveTaserPower(t)}:m;
    const damage=hurt(actor,t,actualMove);
+   if(damage>0 && m.drain && actor.hp>0){
+     const gained=Math.max(1,Math.floor(damage*m.drain));
+     const restored=Math.min(gained,actor.maxHp-actor.hp);
+     actor.hp+=restored;
+     if(restored>0)log.push(actor.name+' recupera '+restored+' PS con '+m.name+'!');
+   }
+   if(damage>0 && actor.hp>0){
+     const copied=copyKirbyMoveOnHit(actor,t,t.key,random);
+     if(copied)log.push('⭐ '+actor.name+' attiva Copia Abilità: impara '+copied.name+' da '+t.name+'! ('+actor.kirbyCopiedTargets.length+'/2)');
+   }
    if(t.hp&&damage&&actor.id==='mahito'&&m.contact&&random()<.3&&!t.statuses.includes('Anima Distorta')){
      t.statuses.push('Anima Distorta');log.push('Anima Distorta su '+t.name);
    }

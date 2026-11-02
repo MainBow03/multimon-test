@@ -138,5 +138,6 @@ export const MASTERY_CHARACTER_TITLES = Object.freeze({
   "sumo": "Titano del Ring",
   "elly": "Signora Pinscher",
   "arievicente": "Lama della Perfezione",
-  "mechajohnny": "Johnny d’Acciaio"
+  "mechajohnny": "Johnny d’Acciaio",
+  "kirby": "Eroe delle Stelle"
 });
