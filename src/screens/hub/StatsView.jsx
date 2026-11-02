@@ -1,4 +1,4 @@
-import { masteryLevel, masteryProgress, masteryRank, masteryTitle, isMasteryUnlocked, equippedMasteryTitle } from '../../systems/masterySystem.js';
+import { masteryLevel, masteryProgress, masteryRank, masteryTitle, isMasteryUnlocked, equippedMasteryTitle, isMasteryEligible, MASTERY_REWARDS } from '../../systems/masterySystem.js';
 // La padronanza è visibile nel profilo, con titoli puramente estetici.
 export function renderStatsView(ctx) {
 const { ArrowLeft, Swords, Target, Trophy, Users, CHARACTERS, FUSION_CHARACTERS, appMode,
@@ -25,7 +25,7 @@ if (appMode === 'stats') {
         };
 
         const winRate = stats.matches > 0 ? Math.round((stats.wins / stats.matches) * 100) : 0;
-        const roster = [...CHARACTERS, ...FUSION_CHARACTERS];
+        const roster = CHARACTERS.filter(isMasteryEligible);
         const currentTitle = equippedMasteryTitle(stats, roster);
         const completed = roster.filter(char => isMasteryUnlocked(stats, char.id)).length;
         const filteredRoster = roster
@@ -112,7 +112,10 @@ if (appMode === 'stats') {
                             <div>
                                 <h3 className="text-2xl font-black text-violet-300">✦ Padronanza Multimon</h3>
                                 <p className="text-slate-400 text-sm mt-1">20 livelli per ogni Multimon · +40 PE per battaglia giocata, +20 PE per la vittoria.</p>
-                                <p className="text-slate-500 text-xs mt-1">I PE vengono dati soltanto ai Multimon che entrano in campo. Nessun bonus alle statistiche.</p>
+                                <p className="text-slate-500 text-xs mt-1">Solo i Multimon normali: mostri campagna, evocazioni e fusioni sono esclusi. Ogni 5 livelli sblocchi effetti d’ingresso cumulativi. Nessun bonus alle statistiche.</p>
+                                <div className="mt-3 flex flex-wrap gap-1.5">
+                                  {MASTERY_REWARDS.map(r=><span key={r.level} title={r.description} className="rounded-lg border border-violet-500/40 bg-violet-950/40 px-2 py-1 text-[11px] text-violet-200">{r.icon} Liv. {r.level}: {r.name}</span>)}
+                                </div>
                             </div>
                             <span className="text-amber-300 font-bold bg-amber-950/30 border border-amber-600/40 px-3 py-2 rounded-xl">{completed} titoli sbloccati</span>
                         </div>
@@ -151,6 +154,7 @@ if (appMode === 'stats') {
                                     <div className="font-bold text-white text-sm truncate">{char.name}</div>
                                     <div className="text-xs font-semibold text-violet-300">Livello {progress.level}/20 · {masteryRank(progress.level)}</div>
                                     <div className="text-[11px] text-slate-400">{unlocked?'Padronanza massima':`${progress.inLevel}/${progress.required} PE al prossimo livello`}</div>
+                                    <div className="text-[10px] text-cyan-300 mt-1">{progress.level>=20?'★ Entrata Leggendaria':progress.level>=15?'✧ Scia del Maestro':progress.level>=10?'◈ Aura dell’Esperto':progress.level>=5?'✦ Ingresso Stellare':'Effetto successivo al livello 5'}</div>
                                   </div>
                                 </div>
                                 <div className="h-2 rounded-full bg-slate-800 overflow-hidden mt-3">
