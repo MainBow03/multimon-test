@@ -1151,13 +1151,13 @@ export const CAMPAIGNS = [
           {
             id: 'monarch_akuma',
             title: "L'Ombra di Monarch",
-            shortTitle: "Terza Campagna",
+            shortTitle: "Quarta Campagna",
             description: "La festa per la vittoria nel Torneo viene interrotta da sciami di Akuma! Usa Ladybug e Chat Noir per purificare i tuoi amici corrotti dalle emozioni negative.",
             bg: "from-purple-900 to-slate-950",
             intro: {
                 title: "L'Ombra di Monarch",
                 subtitle: "Prologo: Il Banchetto Interrotto",
-                p1: "Sono passati alcuni mesi da quando gli eroi hanno salvato i loro universi nel Torneo Assoluto. Zeno e Discord hanno organizzato un enorme banchetto interdimensionale per festeggiare in pace.",
+                p1: "Sono passati alcuni mesi da quando Jake, Marceline e la Resistenza hanno liberato le anime di Echomax. Zeno e Discord hanno organizzato un enorme banchetto interdimensionale per festeggiare in pace.",
                 p2: "Ma la felicità di molti nasconde la frustrazione di altri. Attratto da questa incredibile concentrazione di emozioni, Monarch (il portatore del Miraculous della Farfalla) ha invaso il Villaggio dei Campioni. Il suo piano è akumizzare i campioni uno ad uno per impadronirsi dei Miraculous di Ladybug e Chat Noir!"
             },
             sectors: [
