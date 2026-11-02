@@ -1,4 +1,5 @@
 import { applyBattleStatModifier } from './statBalance.js';
+import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { CHARACTERS } from '../data/characters.js';
 import { getMultiplier } from './typeSystem.js';
 import { calculateDamageImpl } from './battleSystem.js';
@@ -352,6 +353,10 @@ export function eventTurn(b,submissions,s,random=Math.random){
    const actualMove=m.scalingEnemyCount?{...m,power:powerForAccordo(visible.length)}:
      m.bonusIfSlowed?{...m,power:effectiveTaserPower(t)}:m;
    const damage=hurt(actor,t,actualMove);
+   if(damage>0 && actor.hp>0){
+     const copied=copyKirbyMoveOnHit(actor,t,t.key,random);
+     if(copied)log.push('⭐ '+actor.name+' attiva Copia Abilità: impara '+copied.name+' da '+t.name+'! ('+actor.kirbyCopiedTargets.length+'/2)');
+   }
    if(t.hp&&damage&&actor.id==='mahito'&&m.contact&&random()<.3&&!t.statuses.includes('Anima Distorta')){
      t.statuses.push('Anima Distorta');log.push('Anima Distorta su '+t.name);
    }
