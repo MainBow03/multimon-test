@@ -29,7 +29,7 @@ if (appMode === 'stats') {
         const currentTitle = equippedMasteryTitle(stats, roster);
         const completed = roster.filter(char => isMasteryUnlocked(stats, char.id)).length;
         const filteredRoster = roster
-          .filter(char => char.name.toLocaleLowerCase('it').includes((masterySearch || '').toLocaleLowerCase('it')))
+          .filter(char => [char.name, masteryTitle(char)].some(value => value.toLocaleLowerCase('it').includes((masterySearch || '').toLocaleLowerCase('it'))))
           .filter(char => masteryFilter === 'completed' ? isMasteryUnlocked(stats, char.id)
             : masteryFilter === 'played' ? (stats.mastery?.[char.id] || 0) > 0 : true)
           .sort((a,b) => (stats.mastery?.[b.id] || 0) - (stats.mastery?.[a.id] || 0)
@@ -126,11 +126,11 @@ if (appMode === 'stats') {
                             {stats.equippedMasteryTitle !== null &&
                               <button className="mt-2 text-xs text-amber-200 hover:text-white underline"
                                 onClick={() => updateLocalStats({equipMasteryTitle:null})}>Nascondi titolo</button>}
-                            <p className="text-slate-400 text-xs mt-2">Raggiungi il livello 20 per sbloccare un titolo esclusivo. Poi premi «Indossa» sul tuo preferito.</p>
+                            <p className="text-slate-400 text-xs mt-2">Ogni Multimon ha un titolo personale legato alla sua identità: sbloccalo al livello 20 e premi «Indossa».</p>
                         </div>
 
                         <div className="flex flex-wrap gap-2">
-                            <input type="search" placeholder="Cerca un Multimon..." value={masterySearch}
+                            <input type="search" placeholder="Cerca Multimon o titolo..." value={masterySearch}
                               onChange={e => setMasterySearch(e.target.value)}
                               className="flex-1 min-w-[170px] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-violet-400" />
                             <select value={masteryFilter} onChange={e => setMasteryFilter(e.target.value)}
@@ -161,7 +161,7 @@ if (appMode === 'stats') {
                                   <div className={`h-full rounded-full ${unlocked?'bg-amber-400':'bg-violet-500'}`} style={{width:`${progress.percent}%`}} />
                                 </div>
                                 <div className="flex items-center justify-between gap-2 mt-3">
-                                  <span className={`text-xs truncate ${unlocked?'text-amber-300':'text-slate-500'}`}
+                                  <span className={`text-xs min-w-0 break-words leading-snug ${unlocked?'text-amber-300':'text-slate-500'}`}
                                     title={masteryTitle(char)}>{unlocked?'✦ '+masteryTitle(char):'🔒 Titolo: '+masteryTitle(char)}</span>
                                   {unlocked && <button onClick={() => updateLocalStats({equipMasteryTitle:char.id})}
                                     disabled={equipped} className="shrink-0 rounded-lg bg-amber-600/25 border border-amber-400/50 text-amber-200 font-bold text-xs px-3 py-1.5 disabled:opacity-50">
