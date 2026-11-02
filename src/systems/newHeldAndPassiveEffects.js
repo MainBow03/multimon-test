@@ -30,25 +30,29 @@ export function activateNeutralizingSpray(character){
  return cured;
 }
 export const isPhysicalMove=move=>!!move&&move.power>0&&move.special!==true;
-export function activateCupidArrow(attacker,move,target,random=Math.random,hit=true){
+export function activateCupidArrow(attacker,move,target,random=Math.random,hit=true,asString=false){
  if(!hit||!attacker||attacker.heldItem!=='freccia_cupido'||
     !isPhysicalMove(move)||!target||target.hp<=0||target.passive?.immuneToNegativeStatuses||
     (target.statuses||[]).some(s=>statusName(s)==='Infatuato')||random()>=0.10)return false;
  target.statuses||=[];
- target.statuses.push(typeof target.statuses[0]==='string'?'Infatuato':{type:'Infatuato',turns:4});
+ target.statuses.push(asString||typeof target.statuses[0]==='string'?'Infatuato':{type:'Infatuato',turns:4});
  return true;
 }
 export function rapidTransmutationPriority(character,move){
  return character?.passive?.type==='rapid_transmutation'&&character.rapidTransmutationReady&&
     ['Robot','Terra'].includes(move?.type)?1:0;
 }
-export function markRapidTransmutationEntry(character){
+export function markRapidTransmutationEntry(character,enteredDuringTurn=false){
  if(character?.passive?.type!=='rapid_transmutation')return false;
  character.rapidTransmutationReady=true;
+ character.rapidTransmutationFresh=enteredDuringTurn;
  return true;
 }
 export function endRapidTransmutationTurn(character){
- if(character?.passive?.type==='rapid_transmutation')character.rapidTransmutationReady=false;
+ if(character?.passive?.type==='rapid_transmutation'){
+  if(character.rapidTransmutationFresh)character.rapidTransmutationFresh=false;
+  else character.rapidTransmutationReady=false;
+ }
 }
 export const immuneToCritical=character=>!!character?.passive?.criticalImmunity||
   character?.passive?.type==='critical_immunity';
