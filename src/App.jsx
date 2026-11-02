@@ -1176,11 +1176,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
           const isAllPlayersJoined = (...__args) => isAllPlayersJoinedImpl({ gameState, getRequiredPlayers }, ...__args);
 
-          const handleCreateRoom = (...__args) => handleCreateRoomImpl({ appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, playerName, setAppMode, setDoc, setPlayerRole, setRoomId, setSystemAlert, user }, ...__args);
+          const handleCreateRoom = (...__args) => handleCreateRoomImpl({ appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), setAppMode, setDoc, setPlayerRole, setRoomId, setSystemAlert, user }, ...__args);
 
-          const handleCreateRoguelikeCoop = (...__args) => handleCreateRoguelikeCoopImpl({ appId, db, doc, initialGameState, playerAvatarUrl, playerName, setAppMode, setCoopRoomId, setDoc, setPlayerRole, setRoomId, setSystemAlert, user }, ...__args);
+          const handleCreateRoguelikeCoop = (...__args) => handleCreateRoguelikeCoopImpl({ appId, db, doc, initialGameState, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), setAppMode, setCoopRoomId, setDoc, setPlayerRole, setRoomId, setSystemAlert, user }, ...__args);
 
-          const handleJoinRoom = (...__args) => handleJoinRoomImpl({ appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, playerName, roomIdInput, setAppMode, setCoopRoomId, setPlayerRole, setRoomId, setSystemAlert, runTransaction, user }, ...__args);
+          const handleJoinRoom = (...__args) => handleJoinRoomImpl({ appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), roomIdInput, setAppMode, setCoopRoomId, setPlayerRole, setRoomId, setSystemAlert, runTransaction, user }, ...__args);
 
           const chooseReplacement = (...__args) => commitReplacementChoiceImpl({ appMode, appId, db, doc, gameState, playerRole, roomId, runTransaction, setSystemAlert, updateState, user }, ...__args);
 
@@ -1188,12 +1188,12 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
           const handleRemovePlayer = (...__args) => handleRemovePlayerImpl({ updateState }, ...__args);
 
-          const handleLocalStart = (...__args) => handleLocalStartImpl({ getPlayerData, initialGameState, playerAvatarUrl, playerName, setAppMode, setGameState, setPlayerRole }, ...__args);
+          const handleLocalStart = (...__args) => handleLocalStartImpl({ getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), setAppMode, setGameState, setPlayerRole }, ...__args);
 
-          const handleVsCpuStart = (...__args) => handleVsCpuStartImpl({ getPlayerData, initialGameState, playerAvatarUrl, playerName, setAppMode, setGameState, setPlayerRole }, ...__args);
+          const handleVsCpuStart = (...__args) => handleVsCpuStartImpl({ getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), setAppMode, setGameState, setPlayerRole }, ...__args);
 
           // --- AGGIUNTO: AVVIO MODALITÀ SOPRAVVIVENZA ---
-          const handleSurvivalStart = (...__args) => handleSurvivalStartImpl({ getPlayerData, initialGameState, playerAvatarUrl, playerName, setAppMode, setGameState, setPlayerRole }, ...__args);
+          const handleSurvivalStart = (...__args) => handleSurvivalStartImpl({ getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), setAppMode, setGameState, setPlayerRole }, ...__args);
           // ----------------------------------------------
 
           const handlePick = (...__args) => handlePickImpl({ CHARACTERS, FUSION_CHARACTERS, gameState, playerRole, setDraftTimeLeft, updateState }, ...__args);
