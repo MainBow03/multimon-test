@@ -1,3 +1,4 @@
+import { ECHO_CAMPAIGN } from './echoCampaign.js';
 export const CAMPAIGNS = [
           {
             id: 'crisi_varco',
@@ -1145,8 +1146,9 @@ export const CAMPAIGNS = [
               ]
             }
           ]
-        },
-        {
+          },
+          ECHO_CAMPAIGN,
+          {
             id: 'monarch_akuma',
             title: "L'Ombra di Monarch",
             shortTitle: "Terza Campagna",
