@@ -11,13 +11,13 @@ if (appMode === 'campaign_select') {
                 </button>
                 <h1 className="text-5xl font-black mb-10 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500 text-center z-10 drop-shadow-md">Scegli la tua Avventura</h1>
                 
-                <div className="flex flex-col md:flex-row gap-8 max-w-5xl w-full z-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-6xl w-full z-10">
                     {CAMPAIGNS.map(camp => {
                         const saved = localStorage.getItem(`multiverse_rpg_campaign_save_${camp.id}`);
                         const isInProgress = !!saved;
                         const prerequisite = getCampaignLock(camp.id);
                         const locked = !!prerequisite;
-                        const unlockLabel = prerequisite === 'crisi_varco' ? 'Completa La Crisi del Varco Rotto' : 'Completa Il Torneo Assoluto';
+                        const unlockLabel = prerequisite === 'crisi_varco' ? 'Completa La Crisi del Varco Rotto' : prerequisite === 'torneo_assoluto' ? 'Completa Il Torneo Assoluto' : 'Completa L\'Eco delle Anime';
                         return (
                             <div key={camp.id} className={`flex-1 rounded-3xl p-8 border border-slate-700/50 relative overflow-hidden group ${locked ? 'cursor-not-allowed grayscale-[.35] opacity-70' : 'cursor-pointer hover:-translate-y-2'} transition-transform shadow-2xl bg-gradient-to-br ${camp.bg}`}
                                 onClick={() => {
