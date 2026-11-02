@@ -123,7 +123,7 @@ test('Integrazione: ricompense per fase, raid compatto, 24 personaggi, sblocco d
  assert.match(team,/charInst\.juggShieldHpThresholds=\[0\.8,0\.6,0\.4,0\.2\]/);
  assert.match(team,/charInst\.isEchoRaidBoss=true/);
  assert.match(team,/\? 6200 :/);
- assert.match(battle,/collectEchoSoul\(workingTeams,workingField,char,targetPlayer,events\)/);
+ assert.match(battle,/collectEchoSoul\(workingTeams,workingField,char,targetPlayer,events,/);
  assert.match(battle,/expireEchoCopies\(workingTeams,workingField,events\)/);
  assert.match(battle,/!attacker\.isEchoRaidBoss/);
  assert.match(ui,/isEchoRaid && !isEnemySide/);
@@ -164,4 +164,13 @@ test('La mappa obbliga alla scelta del percorso e il raid non lo richiede',()=>{
  assert.match(map,/claimEchoRoute\(p,mission.id,route.id,CHARACTERS\)/);
  assert.match(map,/mission.echoMission&&!mission.echoFinal&&!campaignState.echoRouteChoices/);
  assert.match(team,/applyEchoRouteToTeam\(p1Team,campaignState.echoRouteChoices/);
+});
+
+test('La Legione non conta i KO degli alleati in una battaglia multipla',()=>{
+ const t={p1:[hero('echomax')],p2:[hero('ally')],p3:[hero('enemy')]};
+ const f={p1:[0],p2:[0],p3:[0]};const e=[];
+ collectEchoSoul(t,f,t.p2[0],'p2',e,{gameMode:'multipla'});
+ assert.equal(t.p1[0].echoSoulCharges??0,0);
+ collectEchoSoul(t,f,t.p3[0],'p3',e,{gameMode:'multipla'});
+ assert.equal(t.p1[0].echoSoulCharges,1);
 });
