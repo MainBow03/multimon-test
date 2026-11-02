@@ -159,7 +159,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
  return{status:'running',entrants,matches:battle.finished?completeEventMatch(matches,battle.matchId,battle.winner):matches,activeBattle:battle,displayPhase:'battle'};
  }));
  const showBracket=()=>operate(()=>hostUpdate(activeId,uid,old=>
-   old.status==='running'&&old.activeBattle?.finished?{displayPhase:'bracket'}:null));
+   ['running','finished'].includes(old.status)&&old.activeBattle?.finished?{displayPhase:'bracket'}:null));
  const next=()=>operate(()=>hostUpdate(activeId,uid,old=>{
  if(old.status!=='running'||!old.activeBattle?.finished||old.displayPhase!=='bracket')return null;
  const match=nextEventMatch(old.matches);if(!match)return null;
@@ -251,10 +251,10 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
  <div className={card}><h3 className="font-black">Iscritti</h3><div className="flex flex-wrap gap-2 mt-2">{[...players,...event.bots].map(p=><span key={p.uid||p.id} className="rounded-lg px-3 py-2 border border-slate-700 text-xs">{p.name} {p.ready?'✅':'⌛'}</span>)}</div></div>
  </>}
  {event.status!=='lobby'&&<>
- {(event.displayPhase==='bracket'||event.status==='finished'||!event.activeBattle)&&
+ {(event.displayPhase==='bracket'||!event.activeBattle)&&
    <div className={card}><h2 className="text-xl font-black mb-3">Bracket del Multiverso</h2>
    <Bracket matches={event.matches} current={event.activeBattle?.matchId}/></div>}
- {event.activeBattle&&event.displayPhase!=='bracket'&&event.status!=='finished'&&
+ {event.activeBattle&&event.displayPhase!=='bracket'&&
    <Arena key={event.activeBattle.matchId+'-'+event.activeBattle.turn}
      participants={[...players,...event.bots.map(b=>({uid:b.id,name:b.name}))]}
      battle={event.activeBattle} settings={event.settings} uid={uid}
@@ -262,7 +262,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,getP
      submit={send} force={force} isHost={isHost} busy={busy} onContinue={showBracket}/>}
  {isHost&&event.status==='running'&&event.activeBattle?.finished&&event.displayPhase==='bracket'&&
    <button className={btn} onClick={next} disabled={busy}>Avvia il prossimo incontro →</button>}
- {event.status==='finished'&&event.placements&&<div className={`${card} border-amber-400/50 text-center`}><h2 className="text-3xl text-amber-300 font-black mb-3">🏆 Il Torneo è finito!</h2>
+ {event.status==='finished'&&event.displayPhase==='bracket'&&event.placements&&<div className={`${card} border-amber-400/50 text-center`}><h2 className="text-3xl text-amber-300 font-black mb-3">🏆 Il Torneo è finito!</h2>
  {event.entrants.map(e=><div key={e.id} className="p-2 border-b border-slate-700 text-sm">{e.name} · #{event.placements.entrants[e.id]||4} · {EVENT_PRIZES[event.placements.entrants[e.id]]||50} monete</div>)}
  <p className="text-slate-400 mt-3 text-xs">I premi vengono accreditati una volta per evento nel profilo locale.</p></div>}
  </>}
