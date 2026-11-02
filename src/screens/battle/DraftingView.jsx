@@ -270,10 +270,42 @@ if (gameState.status === 'drafting') {
                                             <option value="default">Predefinito</option>
                                             <option value="alpha">A-Z</option>
                                             <option value="type">Per Tipo</option>
+                                            <option value="attack">Attacco più alto</option>
+                                            <option value="defense">Difesa più alta</option>
+                                            <option value="speed">Velocità più alta</option>
+                                            <option value="health">PS più alti</option>
+                                            <option value="price_asc">Prezzo crescente</option>
+                                            <option value="price_desc">Prezzo decrescente</option>
                                         </select>
                                     </div>
                                 </div>
 
+                                <div className="flex flex-wrap gap-2 mb-2 items-center shrink-0">
+                                    <label className="flex items-center gap-2 text-xs text-slate-300 font-bold">
+                                        Ruolo
+                                        <select aria-label="Filtra ruolo" value={draftRole} onChange={e=>setDraftRole(e.target.value)}
+                                            className="bg-slate-800 border border-slate-600 rounded-lg text-white p-2 text-xs">
+                                            {TEAM_ROLES.map(role=><option key={role.id} value={role.id}>{role.label}</option>)}
+                                        </select>
+                                    </label>
+                                    <label className="flex items-center gap-2 text-xs text-slate-300 font-bold">
+                                        Prezzo
+                                        <select aria-label="Filtra prezzo" value={draftPrice} onChange={e=>setDraftPrice(e.target.value)}
+                                            className="bg-slate-800 border border-slate-600 rounded-lg text-white p-2 text-xs">
+                                            <option value="all">Tutte le fasce</option>
+                                            <option value="free">Gratis</option>
+                                            <option value="cheap">1–150 monete</option>
+                                            <option value="medium">151–250 monete</option>
+                                            <option value="premium">Oltre 250 monete</option>
+                                        </select>
+                                    </label>
+                                    <button type="button" aria-pressed={draftFavoritesOnly}
+                                        onClick={()=>setDraftFavoritesOnly(!draftFavoritesOnly)}
+                                        className={`rounded-xl border px-3 py-2 text-xs font-black ${draftFavoritesOnly?'bg-amber-500/20 border-amber-400 text-amber-300':'bg-slate-800 border-slate-600 text-slate-300'}`}>
+                                        ★ Solo preferiti ({draftFavorites.filter(id=>draftableChars.some(c=>c.id===id)).length})
+                                    </button>
+                                    <span className="text-xs font-semibold text-slate-400" aria-live="polite">{filteredDraftableChars.length} Multimon trovati</span>
+                                </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 2xl:grid-cols-11 gap-3 w-full flex-1 min-h-0 overflow-y-auto content-start custom-scrollbar p-2">
                                     {filteredDraftableChars.map(char => {
                                         const isSelected = myDraft.some(c => c.id === char.id);
