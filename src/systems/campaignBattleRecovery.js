@@ -19,3 +19,13 @@ export function shouldRecoverCampaignCommand(state,role,currentIndex){
   return !Number.isInteger(currentIndex) || currentIndex<0 ||
     currentIndex>=field.length || !fighter || !(fighter.hp>0) || chosen;
 }
+
+/** Se il salvataggio conserva solo alcuni Cell Jr. o contiene vecchi KO,
+ *  entra in campo soltanto chi ha PS positivi; gli indici restano corretti. */
+export function initialCampaignField(team,fieldSize){
+  if(!Array.isArray(team))return [];
+  const limit=Math.max(0,Math.floor(Number(fieldSize)||0));
+  return team.map((fighter,index)=>({fighter,index}))
+    .filter(({fighter})=>Number(fighter?.hp)>0)
+    .slice(0,limit).map(({index})=>index);
+}
