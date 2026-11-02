@@ -1014,7 +1014,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
               char.echoFaintProcessed=true;
               events.push({ text: `${char.name} è esausto!`, type: 'faint' });
               // La Legione di Echomax si attiva una sola volta per KO nemico.
-              collectEchoSoul(workingTeams,workingField,char,targetPlayer,events);
+              collectEchoSoul(workingTeams,workingField,char,targetPlayer,events,
+                  {gameMode:gameState.gameMode,settings:gameState.settings});
               
               // --- RIMOZIONE STATUS IN_GROPPA SE YOSHI MUORE ---
               activeMatchPlayers.forEach(pAlly => {
