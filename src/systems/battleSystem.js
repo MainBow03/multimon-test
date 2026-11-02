@@ -464,7 +464,7 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
               teams: teams,
               field: field,
               events: initialEvents,
-              battleReport: createBattleReport(),
+              battleReport: accumulateBattleReport(createBattleReport(), teams, initialEvents, {countTurn:false}),
               healingItemsUsed: {p1:0,p2:0,p3:0,p4:0,p5:0,p6:0,p7:0,p8:0},
               turnExpiresAt: null,
               actions: { p1: {}, p2: {}, p3: {}, p4: {}, p5: {}, p6: {}, p7: {}, p8: {} },
