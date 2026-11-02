@@ -2,7 +2,7 @@ import { CHARACTERS } from '../data/characters.js';
 // Padronanza estetica: non modifica statistiche, mosse o probabilità di vittoria.
 // Mostri della campagna, evocazioni e fusioni non partecipano ai prestigi.
 export const MASTERY_ELIGIBLE_IDS = new Set(CHARACTERS.filter(c =>
-  !c.isCampaignMonster && !c.isSummonOnly && !c.fusionOf
+  !c.isCampaignMonster && !c.isSecretUnlock && !c.isSummonOnly && !c.fusionOf
 ).map(c=>c.id));
 export const isMasteryEligible = character => !!character?.id &&
   MASTERY_ELIGIBLE_IDS.has(character.id);
