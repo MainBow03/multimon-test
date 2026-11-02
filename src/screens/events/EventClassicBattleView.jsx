@@ -65,7 +65,7 @@ function HealthBar(hp,maxHp){
  </div>;
 }
 export function EventClassicBattleView({battle,settings,participants=[],currentUid,perspective,
-  setPerspective,moveDraft,setMoveDraft,submit,busy,hostForce,isHost,onContinue}) {
+  setPerspective,moveDraft,setMoveDraft,submit,busy,hostForce,isHost,onContinue,onMinimize}) {
  const [targetingMoveIdx,setTargetingMoveIdx]=useState(null);
  const [actionMenuMode,setActionMenuMode]=useState('moves');
  const [pendingHyper,setPendingHyper]=useState(false);
@@ -141,6 +141,10 @@ export function EventClassicBattleView({battle,settings,participants=[],currentU
      text-[10px] sm:text-xs text-fuchsia-300 font-black max-w-[65vw] truncate">
       🏆 TORNEO DEL MULTIVERSO · {labelA} VS {labelB}
    </div>
+   <button type="button" onClick={onMinimize}
+     className="fixed top-2 right-3 z-[180] bg-slate-950/95 border border-cyan-400/70
+       rounded-xl px-3 py-2 text-xs font-black text-cyan-200 shadow-xl hover:bg-slate-800"
+     title="Riduci solo la visualizzazione: il torneo continua">↘ Riduci vista</button>
    {renderBattlingView({
       ChevronRight,ITEMS_DB,Loader2,LogOut,PLAYER_THEMES,ScrollText,Shield,
       TYPE_STYLES,Target,Trophy,XIcon,actionMenuMode,combatLog:log,
