@@ -1,7 +1,10 @@
 import React from 'react';
 import { ITEMS_DB } from '../data/items.js';
+import { AdvancedItemArtwork, ADVANCED_HELD_ART_IDS } from './AdvancedItemArtwork.jsx';
 // Illustrazione SVG originale, niente emoji per gli strumenti equipaggiabili.
 export function ItemArtwork({id,size=54,className=''}) {
+ if(ADVANCED_HELD_ART_IDS.includes(id))
+   return <AdvancedItemArtwork id={id} size={size} className={className} name={ITEMS_DB[id]?.name}/>;
  const gem=ITEMS_DB[id]?.gemType;
  if(gem){
   const color=ITEMS_DB[id].gemColor;
