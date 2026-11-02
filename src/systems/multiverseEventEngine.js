@@ -1,3 +1,4 @@
+import { applyBattleStatModifier } from './statBalance.js';
 import { CHARACTERS } from '../data/characters.js';
 import { getMultiplier } from './typeSystem.js';
 import { calculateDamageImpl } from './battleSystem.js';
@@ -71,7 +72,7 @@ export function eventPlacements(matches,entrants){
 function fighter(id,owner,item){
  const c=CHARACTERS.find(x=>x.id===id);if(!c)throw Error('Multimon mancante: '+id);
  return{key:owner+'-'+id,id,owner,name:c.name,img:c.img,types:c.types||[],hp:c.maxHp,maxHp:c.maxHp,
- atk:c.atk,def:c.def,baseDef:c.def,spDef:c.spDef||c.def,baseSpDef:c.spDef||c.def,spd:c.spd,baseSpd:c.spd,spAtk:c.spAtk||c.atk,passive:c.passive||null,heldItem:item||null,gemSpent:false,healingSproutUsed:false,neutralizingSprayUsed:false,rapidTransmutationReady:false,hyper:false,statuses:[],
+ atk:c.atk,baseAtk:c.atk,def:c.def,baseDef:c.def,spDef:c.spDef||c.def,baseSpDef:c.spDef||c.def,spd:c.spd,baseSpd:c.spd,spAtk:c.spAtk||c.atk,baseSpAtk:c.spAtk||c.atk,passive:c.passive||null,heldItem:item||null,gemSpent:false,healingSproutUsed:false,neutralizingSprayUsed:false,rapidTransmutationReady:false,hyper:false,statuses:[],
  moves:c.moves.map(m=>({name:m.name,type:m.type,power:m.power||0,accuracy:m.accuracy??100,
  targetCount:m.targetCount||1,uses:m.maxUses??null,contact:!!m.contact,
  special:!!m.special,recharge:!!m.recharge,transform:!!m.transformMahito,effect:m.statusEffect||null,buff:m.selfStatBuff||m.statBuff||null,
@@ -193,7 +194,7 @@ export function eventTurn(b,submissions,s,random=Math.random){
  const applyBuff=(actor,buffs)=>{
   if(!buffs)return;
   for(const [k,value] of Object.entries(buffs)){
-    if(Number.isFinite(actor[k]))actor[k]=Math.max(1,Math.floor(actor[k]*value));
+    if(Number.isFinite(actor[k]))applyBattleStatModifier(actor,k,value);
   }
  };
  const status=(target,effect)=>{
@@ -297,6 +298,7 @@ export function eventTurn(b,submissions,s,random=Math.random){
   const m=actor.moves[Number(command.moveIndex)]||actor.moves[0];if(!m||m.uses===0)continue;
   if(s.allowHyper&&command.hyper&&!x.hyperUsed[actor.owner]){
    x.hyperUsed[actor.owner]=true;actor.hyper=true;actor.atk=Math.round(actor.atk*1.5);
+   actor.baseAtk=Math.round(actor.baseAtk*1.5);actor.baseSpAtk=Math.round(actor.baseSpAtk*1.5);
    actor.spAtk=Math.round(actor.spAtk*1.5);actor.maxHp=Math.round(actor.maxHp*1.5);
    actor.hp=Math.min(actor.maxHp,Math.round(actor.hp*1.5));log.push(actor.name+' usa la forma Iper!');
   }
