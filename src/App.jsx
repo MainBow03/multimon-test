@@ -1178,7 +1178,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
           const handleCreateRoom = (...__args) => handleCreateRoomImpl({ appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), setAppMode, setDoc, setPlayerRole, setRoomId, setSystemAlert, user }, ...__args);
 
-          const handleCreateRoguelikeCoop = (...__args) => handleCreateRoguelikeCoopImpl({ appId, db, doc, initialGameState, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), setAppMode, setCoopRoomId, setDoc, setPlayerRole, setRoomId, setSystemAlert, user }, ...__args);
+          const handleCreateRoguelikeCoop = (...__args) => handleCreateRoguelikeCoopImpl({ appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), setAppMode, setCoopRoomId, setDoc, setPlayerRole, setRoomId, setSystemAlert, user }, ...__args);
 
           const handleJoinRoom = (...__args) => handleJoinRoomImpl({ appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), roomIdInput, setAppMode, setCoopRoomId, setPlayerRole, setRoomId, setSystemAlert, runTransaction, user }, ...__args);
 
