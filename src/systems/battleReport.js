@@ -45,7 +45,7 @@ function namedPassiveOwner(report,event,acting){
   return matches.length===1?matches[0]:null;
 }
 
-export function accumulateBattleReport(previous, teamsAtTurnStart, events){
+export function accumulateBattleReport(previous, teamsAtTurnStart, events, {countTurn=true}={}){
   const report=previous?.version===1
     ? {version:1,turns:integer(previous.turns),entries:JSON.parse(JSON.stringify(previous.entries||{}))}
     : createBattleReport();
@@ -112,13 +112,15 @@ export function accumulateBattleReport(previous, teamsAtTurnStart, events){
     target.damageTaken+=lost;
     const source=passiveOwner || (actor&&report.entries[battleKey(actor.player,actor.idx)]);
     if(!source)continue;
-    if(lost && actor?.kind==='attack' && actor.player!==event.targetPlayer && !event.isPassive){
+    const offensive=actor?.kind==='attack' && actor.player!==event.targetPlayer && !event.isPassive;
+    const passiveDamage=event.isPassive && passiveOwner && passiveOwner.player!==event.targetPlayer;
+    if(lost && (offensive||passiveDamage)){
       source.damageDealt+=lost;
       if(after===0 && before>0)source.kos+=1;
     }
     if(gained)source.healing+=gained;
   }
-  report.turns+=1;
+  if(countTurn)report.turns+=1;
   return report;
 }
 
