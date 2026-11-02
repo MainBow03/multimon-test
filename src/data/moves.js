@@ -125,7 +125,7 @@ export const MOVES_DB = {
 
           'Polline fastidioso': { name: 'Polline fastidioso', type: 'Erba', power: 40, maxUses: 4, targetCount: 2, statusEffects: [{ type: 'Addormentato', chance: 0.35 }, { type: 'Elettrizzato', chance: 0.35 }], desc: 'Colpisce fino a 2 nemici con potenza 40; 35% di addormentare e 35% di paralizzare ciascun bersaglio. (4 utilizzi)' },
           'Foglia Danzerina': { name: 'Foglia Danzerina', type: 'Erba', power: 65, statusEffect: { type: 'Confuso', chance: 0.30 }, desc: 'Una danza di foglie affilate. 30% di probabilità di confondere.' },
-          'Fotosintesi clorofiliana': { name: 'Fotosintesi clorofiliana', type: 'Erba', power: 0, maxUses: 2, targetMode: 'team_smart_heal', healAlone: 0.8, healTeam: 0.35, desc: 'Se è sola si cura dell’80% dei PS massimi. Con alleati, cura ogni membro del team in campo del 35%. (2 utilizzi)' },
+          'Fotosintesi clorofiliana': { name: 'Fotosintesi clorofiliana', type: 'Erba', power: 0, maxUses: 2, strictUses: true, targetMode: 'team_smart_heal', healAlone: 0.8, healTeam: 0.35, desc: 'Se è sola si cura dell’80% dei PS massimi. Con alleati, cura ogni membro del team in campo del 35%. (2 utilizzi)' },
           'L ho fatta nel vaso': { name: 'L ho fatta nel vaso', type: 'Erba', power: 0, target: 'self', heal: 0.25, statBuff: { def: 1.5 }, desc: 'Si sistema comodamente: recupera il 25% dei PS e aumenta la propria Difesa del 50%.' },
 
           'Bolla Turbo': { name: 'Bolla Turbo', type: 'Acqua', power: 45, targetCount: 4, selfStatBuff: { spd: 1.5 }, desc: 'Attacco rapido d\'acqua che colpisce più bersagli possibili e aumenta la Velocità di chi la usa.' },
@@ -258,7 +258,7 @@ export const MOVES_DB = {
           'Alito Congelante': { name: 'Alito Congelante', type: 'Ghiaccio', power: 85, statusEffect: { type: 'Congelato', chance: 0.35 }, desc: 'Soffia aria gelida per abbassare la temperatura corporea. 35% di prob. di congelare.' },
           'Sguardo Spirituale': { name: 'Sguardo Spirituale', type: 'Spettro', power: 0, targetStatDebuff: { atk: 0.5, spd: 0.5 }, desc: 'Uno sguardo terrificante dall\'oltretomba che dimezza l\'Attacco e la Velocità del nemico.' },
           'Tormenta Spettrale': { name: 'Tormenta Spettrale', type: 'Spettro', power: 80, targetCount: 4, desc: 'Evoca anime in pena in mezzo a una tormenta, colpendo tutti i nemici in campo.' },
-          'Fascino Glaciale': { name: 'Fascino Glaciale', type: 'Ghiaccio', power: 0, maxUses: 3, statusEffect: { type: 'Infatuato', chance: 0.75 }, desc: 'Può infatuare il nemico con il 75% di probabilità. (3 utilizzi)' },
+          'Fascino Glaciale': { name: 'Fascino Glaciale', type: 'Ghiaccio', power: 0, maxUses: 3, strictUses: true, statusEffect: { type: 'Infatuato', chance: 0.75 }, desc: 'Può infatuare il nemico con il 75% di probabilità. (3 utilizzi)' },
 
           // NUOVE MOSSE CYBORG
           'Cannone Sonico': { name: 'Cannone Sonico', type: 'Robot', power: 85, targetCount: 2, desc: 'Un\'onda d\'urto sonica ad alta frequenza che colpisce fino a 2 bersagli.' },
@@ -563,7 +563,7 @@ export const MOVES_DB = {
 
           // NUOVE MOSSE PLANKTON
           'Laser Mentale': { name: 'Laser Mentale', type: 'Robot', power: 85, statusEffect: { type: 'Confuso', chance: 0.3 }, desc: 'Spari ad alta tecnologia. 30% di probabilità di confondere il nemico.' },
-          'Piano Z': { name: 'Piano Z', type: 'Oscuro', power: 0, target: 'self', statBuff: { atk: 1.5, spd: 1.3 }, maxUses: 2, desc: 'Il piano malvagio definitivo! +50% Attacco e +30% Velocità. (2 utilizzi)' },
+          'Piano Z': { name: 'Piano Z', type: 'Oscuro', power: 0, target: 'self', statBuff: { atk: 1.5, spd: 1.3 }, maxUses: 2, strictUses: true, desc: 'Il piano malvagio definitivo! +50% Attacco e +30% Velocità. (2 utilizzi)' },
           'Karen, Aiuto!': { name: 'Karen, Aiuto!', type: 'Robot', power: 0, targetMode: 'ally', targetStatBuff: { def: 2.0 }, heal: 0.3, desc: 'Sfrutta l\'aiuto di sua moglie Karen per curare un alleato del 30% e raddoppiarne la Difesa.' },
           'Furto della Ricetta': { name: 'Furto della Ricetta', type: 'Oscuro', power: 75, drain: 0.6, targetStatDebuff: { atk: 0.7 }, desc: 'Ruba l\'energia (e la ricetta!) al nemico. Drena il 60% del danno e ne riduce l\'Attacco.' },
 
@@ -621,7 +621,7 @@ export const MOVES_DB = {
           'Guanto Ruba-Mosse': { name: 'Guanto Ruba-Mosse', type: 'Robot', power: 40, stealMove: { turns: 3 }, desc: 'Ruba una mossa a caso dal bersaglio per 3 turni e infligge leggeri danni.' },
           'Torcia Cambia-Tipo': { name: 'Torcia Cambia-Tipo', type: 'Magico', power: 0, targetMode: 'ally', priority: 1, copyRandomEnemyType: true, desc: 'Priorità +1. Seleziona un alleato (o te stesso): copia i tipi di un nemico a caso e glieli assegna per sorprenderlo!' },
           'Cannone ad Aria': { name: 'Cannone ad Aria', type: 'Aria', power: 80, desc: 'Spara un potente proiettile d\'aria compressa dal suo iconico gadget.' },
-          'Gadget di Supporto': { name: 'Gadget di Supporto', type: 'Robot', power: 0, targetMode: 'team', maxTeamTargets: 2, maxUses: 2, targetStatBuff: { atk: 1.5, def: 1.5 }, desc: 'Estrae gadget dalla tasca 4D: +50% Attacco e Difesa fino a 2 alleati in campo. (2 utilizzi)' },
+          'Gadget di Supporto': { name: 'Gadget di Supporto', type: 'Robot', power: 0, targetMode: 'team', maxTeamTargets: 2, maxUses: 2, strictUses: true, targetStatBuff: { atk: 1.5, def: 1.5 }, desc: 'Estrae gadget dalla tasca 4D: +50% Attacco e Difesa fino a 2 alleati in campo. (2 utilizzi)' },
 
           // NUOVE MOSSE BULMA E AIUTANTI
           'Senzu per tutti': { name: 'Senzu per tutti', type: 'Normale', power: 0, targetMode: 'team_smart_heal', healAlone: 0.5, healTeam: 0.5, maxUses: 2, desc: 'Cura il 50% dei PS massimi di tutti gli alleati in campo. (2 utilizzi)' },
