@@ -1,4 +1,5 @@
 import { partitionCampaignUnlocks } from '../../systems/campaignRoster.js';
+import { BattleReportPanel } from '../../components/BattleReportPanel.jsx';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderGameoverView(ctx) {
 const { CHARACTERS, ChevronRight, Coins, RotateCcw, Trophy, activeCampaign, activeCampaignId, campaignState, gameState, getDefaultAvatar, leaveRoom, playerName, roguelikeState, setAppMode, setCampaignDialogueIdx, setCampaignSelectedTeam, setCampaignState, setRoguelikeState, setSystemAlert, updateLocalStats } = ctx;
@@ -19,13 +20,14 @@ if (gameState.status === 'gameover') {
             return (
                 <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
                     <div className={`absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] ${isWin || isScriptedDefeat ? 'from-emerald-900/40' : 'from-rose-900/40'} via-slate-950 to-black pointer-events-none`}></div>
-                    <div className="relative z-10 bg-slate-900/80 p-12 rounded-3xl border border-slate-700/50 shadow-2xl backdrop-blur-xl">
+                    <div className="relative z-10 w-full max-w-6xl bg-slate-900/80 p-5 sm:p-8 rounded-3xl border border-slate-700/50 shadow-2xl backdrop-blur-xl">
                         <h1 className={`text-7xl font-black mb-8 text-transparent bg-clip-text bg-gradient-to-r ${isWin || isScriptedDefeat ? 'from-emerald-400 to-teal-500' : 'from-rose-500 to-red-600'}`}>{isWin ? 'VITTORIA!' : (isScriptedDefeat ? 'SOPRAFATTI...' : 'SCONFITTA!')}</h1>
                         
                         {isWin || isScriptedDefeat ? (
                             <>
                                 <p className="text-xl text-slate-300 mb-4 font-medium">{isWin ? winMessage : 'L\'avversario era troppo potente... ma la storia non finisce qui!'}</p>
                                 <p className="text-2xl font-bold text-yellow-400 mb-8 flex items-center justify-center gap-2"><Coins size={28}/> +20 Monete Globali!</p>
+                                <BattleReportPanel report={gameState.battleReport} players={gameState.players} />
                                 <button onClick={() => {
                                     // Il salvataggio statistico non deve bloccare il percorso narrativo.
                                     const saveGlobalUnlock = characterId => {
@@ -148,6 +150,7 @@ if (gameState.status === 'gameover') {
                                         </div>
                                     );
                                 })()}
+                                <BattleReportPanel report={gameState.battleReport} players={gameState.players} />
 
                                 <button onClick={() => {
                                     const newRosterStats = { ...campaignState.rosterStats };
@@ -208,7 +211,7 @@ if (gameState.status === 'gameover') {
             return (
                 <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
                     <div className={`absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] ${isWin ? 'from-fuchsia-900/40' : 'from-rose-900/40'} via-slate-950 to-black pointer-events-none`}></div>
-                    <div className="relative z-10 bg-slate-900/80 p-12 rounded-3xl border border-slate-700/50 shadow-2xl backdrop-blur-xl max-w-2xl">
+                    <div className="relative z-10 bg-slate-900/80 p-12 rounded-3xl border border-slate-700/50 shadow-2xl backdrop-blur-xl w-full max-w-6xl">
                         <h1 className={`text-6xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r ${isWin ? 'from-fuchsia-400 to-purple-500' : 'from-rose-500 to-red-600'}`}>
                             {isWin ? (roguelikeState.floor === roguelikeState.maxFloor ? 'SPEDIZIONE COMPLETATA!' : 'VITTORIA!') : 'SPEDIZIONE FALLITA'}
                         </h1>
@@ -218,6 +221,7 @@ if (gameState.status === 'gameover') {
                                 ? (roguelikeState.floor === roguelikeState.maxFloor ? 'Hai superato l\'ultimo piano. Sei una leggenda del Multiverso!' : 'I nemici sono stati sconfitti! Ti prepari al prossimo piano.') 
                                 : 'Il tuo team è caduto. Dovrai ricominciare la scalata da zero.'}
                         </p>
+                        <BattleReportPanel report={gameState.battleReport} players={gameState.players} />
                         
                         {isWin && roguelikeState.floor !== roguelikeState.maxFloor && (
                              <div className="flex items-center justify-center gap-2 mb-8 text-2xl font-black text-yellow-400 bg-yellow-500/10 py-3 rounded-full border border-yellow-500/30">
@@ -491,6 +495,7 @@ if (gameState.status === 'gameover') {
                     
                     {/* INIEZIONE TABELLONE NEL GAMEOVER */}
                     {renderTournamentUI()}
+                    <BattleReportPanel report={gameState.battleReport} players={gameState.players} />
 
                     {rankText && <h3 className="text-2xl font-bold text-emerald-400 mb-4 drop-shadow-sm">{rankText}</h3>}
                     {rewardText && <p className="text-xl font-black text-yellow-400 mb-10 flex items-center justify-center gap-2 bg-yellow-500/10 px-6 py-3 rounded-full border border-yellow-500/30 backdrop-blur-sm"><Coins size={28}/> {rewardText}</p>}
