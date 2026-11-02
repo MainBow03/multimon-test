@@ -1,7 +1,8 @@
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
+import { isMasteryEligible, masteryDeploymentTier } from '../../systems/masterySystem.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderBattlingView(ctx) {
-const { ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
+const { ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
 if (gameState.status === 'battling' || gameState.status === 'executing') {
         const activeMatchPlayers = getActivePlayers();
         
@@ -130,6 +131,11 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
             if (!char) return null; 
             
             const isDead = char.hp <= 0;
+            const masteryLevel = isMasteryEligible(char)
+              ? (gameState.playerMastery?.[teamPlayer]?.[char.id] ||
+                 (teamPlayer === playerRole ? ownMasteryLevels?.[char.id] : 0) || 1)
+              : 1;
+            const masteryTier = masteryDeploymentTier(masteryLevel);
             
             let isTargetable = false;
             if (targetingMoveIdx !== null && !isDead && activeCommandChar) {
@@ -304,6 +310,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
             let extraAnimClass = "";
             if (formLevel === 1 || formLevel === 2) extraAnimClass = "animate-morph-spin";
             if (formLevel === 'hyper') extraAnimClass = "animate-hyper-awaken";
+            else if (masteryTier) extraAnimClass = "mastery-deploy-pop";
             // ---------------------------------------------------
             
             return (
@@ -329,11 +336,19 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                             ))}
                         </div>
 
+                        {masteryTier && <div className={`mastery-tier-tag mastery-tier-${masteryTier.level}`} title={masteryTier.description}>
+                          {masteryTier.icon} LV {masteryLevel} · {masteryTier.name}
+                        </div>}
                         {renderHealthBar(char.hp, char.maxHp)}
                         {renderStatuses(char.statuses)}
                     </div>
-                    <div className="relative">
-                        <img key={`img-${char.id}-form-${formLevel}`} src={displayImg} style={{ filter: char.imageFilter || 'none' }} className={`${isJuggernaut ? 'w-48 h-48 md:w-56 md:h-56' : 'w-28 h-28'} object-cover rounded-xl border-4 ${borderClass} transition-all ${extraAnimClass}`} alt="" />
+                    <div className={`relative ${masteryTier ? 'mastery-portrait mastery-stage-'+masteryTier.level : ''}`}>
+                        {masteryTier && <div className={`mastery-entry-ribbon mastery-tier-${masteryTier.level}`} aria-hidden="true">
+                          {masteryTier.icon} {masteryTier.name}
+                        </div>}
+                        {masteryTier?.level >= 10 && <div className="mastery-radiance" aria-hidden="true" />}
+                        {masteryTier?.level >= 15 && <div className="mastery-sparks" aria-hidden="true"><i>✦</i><i>✧</i><i>★</i><i>✦</i></div>}
+                        <img key={`img-${char.id}-form-${formLevel}`} src={displayImg} style={{ filter: char.imageFilter || 'none' }} className={`${isJuggernaut ? 'w-48 h-48 md:w-56 md:h-56' : 'w-28 h-28'} object-cover rounded-xl border-4 ${borderClass} transition-all ${extraAnimClass} ${masteryTier ? 'mastery-portrait-image mastery-border-'+masteryTier.level : ''}`} alt="" />
                         {ITEMS_DB[char.heldItem]?.type === 'held' && <span
                             title={ITEMS_DB[char.heldItem].name+(char.gemSpent?' · gemma scaricata':' · equipaggiato')}
                             className={'absolute -top-2 -right-2 bg-violet-700 border border-violet-300 text-base rounded-full w-8 h-8 flex items-center justify-center z-20 shadow-lg '+(char.gemSpent?'opacity-45 grayscale':'')}>
