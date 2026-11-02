@@ -34,3 +34,24 @@ export function consumeRaidShieldHit(target){
   target.juggHitsRemaining=Math.max(0,Math.trunc(target.juggHitsRemaining)-1);
   return {absorbed:true,broken:target.juggHitsRemaining===0,remaining:target.juggHitsRemaining};
 }
+
+  
+// Replay di battaglia: ogni modifica del contatore deve essere mostrata
+// nello stesso ordine in cui viene risolta, non solo a fine turno.
+export function createRaidShieldUpdateEvent(targetPlayer,targetIdx,remainingHits,text=null,activated=false){
+  const event={
+    type:'raid_shield_update',targetPlayer,targetIdx,
+    remainingHits:Math.max(0,Math.trunc(Number(remainingHits)||0))
+  };
+  if(text)event.text=text;
+  if(activated)event.activated=true;
+  return event;
+}
+
+export function applyRaidShieldUpdateEvent(displayTeams,event){
+  if(event?.type!=='raid_shield_update')return false;
+  const target=displayTeams?.[event.targetPlayer]?.[event.targetIdx];
+  if(!target)return false;
+  target.juggHitsRemaining=Math.max(0,Math.trunc(Number(event.remainingHits)||0));
+  return true;
+}
