@@ -1,4 +1,7 @@
 import { applyBattleStatModifier } from './statBalance.js';
+import { reduceIncomingHeldDamage, useHeroSash, activateHourglass, boostedStatusChance,
+  markCompassOnHit, recordOffensiveMove, activateVictoryBoots, endVictoryBootsTurn,
+  shortenNegativeStatus, reflectNegativeStatus, activateRescueBell } from './advancedHeldItems.js';
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { CHARACTERS } from '../data/characters.js';
@@ -200,10 +203,16 @@ export function eventTurn(b,submissions,s,random=Math.random){
     if(Number.isFinite(actor[k]))applyBattleStatModifier(actor,k,value);
   }
  };
- const status=(target,effect)=>{
-  if(!effect||random()>=(effect.chance??0)||target.hp<=0)return;
+ const status=(target,effect,source=null)=>{
+  if(!effect||target.hp<=0)return;
+  const chance=source?boostedStatusChance(source,effect.chance??1):effect.chance??1;
+  if(random()>=chance)return;
   const name=effect.type;
-  if(!target.statuses.includes(name))target.statuses.push(name);
+  if(!target.statuses.includes(name)){
+    target.statuses.push(name);
+    if(source&&reflectNegativeStatus(target,source,name,random,true))
+      log.push('Specchio delle Maledizioni di '+target.name+' riflette '+name+' su '+source.name+'!');
+  }
   if(name==='Accecato')target.blindTurns=effect.turns||3;
   if(name==='Incantato'){target.enchantedTurns=effect.turns||10;target.enchantedFresh=true;}
   log.push(target.name+' riceve lo stato '+name+'!');
@@ -220,9 +229,21 @@ export function eventTurn(b,submissions,s,random=Math.random){
   const crit=!immuneToCritical(target)&&random()<.05;
   const bonusDamage=crit?Math.max(1,Math.floor(raw*1.5)):raw;
   const defense=ignoresShields(attacker,m)?{damage:bonusDamage,absorbed:0,refracted:false}:directHitAfterCrystalDefense(target,bonusDamage);
+  const prepared=reduceIncomingHeldDamage(target,defense.damage,{directAttack:true,superEffective:multiplier>1});
+  defense.damage=prepared.damage;
+  for(const name of prepared.activations)log.push(name+' protegge '+target.name+'!');
   if(crit)log.push('Brutto colpo di '+attacker.name+'!');
+
   const hpBefore=target.hp;
-  target.hp=Math.max(0,target.hp-defense.damage);
+  if(useHeroSash(target,defense.damage,{directAttack:true})){
+    log.push('Fascia dell’Eroe: '+target.name+' sopravvive con 1 PS!');
+  }else target.hp=Math.max(0,target.hp-defense.damage);
+  if(activateHourglass(target))log.push('Clessidra della Rapidità: '+target.name+' Velocità +20% fino alla fine dello scontro!');
+  if(hpBefore>=target.maxHp*.25 && target.hp>0 && target.hp<target.maxHp*.25){
+    const owners=x.teams.A.includes(target)?'A':'B';
+    const bellOwner=activateRescueBell(activeEventFighters(x,owners,s),target);
+    if(bellOwner)log.push('Campanella del Soccorso di '+bellOwner.name+' protegge '+target.name+' dal prossimo attacco!');
+  }
   const heal=activateHealingSprout(target);
   if(heal)log.push('Germoglio Curativo di '+target.name+': recupera '+heal+' PS!');
   if(defense.damage>0&&hpBefore>0&&target.hp>0){
@@ -257,6 +278,11 @@ export function eventTurn(b,submissions,s,random=Math.random){
       }
     }
   }
+
+  if(defense.damage>0&&hpBefore>0&&target.hp===0&&activateVictoryBoots(attacker))
+    log.push('Stivali dello Slancio: '+attacker.name+' Velocità +15% per il prossimo turno!');
+  if(defense.damage>0&&markCompassOnHit(attacker,target,hpBefore,defense.damage))
+    log.push('Bussola del Predatore di '+attacker.name+' potenzia il colpo!');
   if(!target.hp){
     for(const ally of activeEventFighters(x,side,s).filter(u=>u!==attacker&&u.passive?.type==='failed_star')){
       const healed=daffyCelebration(ally);
@@ -334,7 +360,7 @@ export function eventTurn(b,submissions,s,random=Math.random){
      if(immuneToStatDrops(t))log.push(t.name+' è immune ai cali di statistiche!');
      else{applyBuff(t,m.enemyDebuff);log.push(t.name+' subisce un calo di statistiche!');}
    }
-   if(t)status(t,m.effect);
+   if(t)status(t,m.effect,actor);
    log.push(actor.name+' usa '+m.name);
    if(m.recharge&&actor.hp>0){
       if(!actor.statuses.includes('Ricarica'))actor.statuses.push('Ricarica');
@@ -372,12 +398,13 @@ export function eventTurn(b,submissions,s,random=Math.random){
    if(t.hp&&damage&&actor.id==='mahito'&&m.contact&&random()<.3&&!t.statuses.includes('Anima Distorta')){
      t.statuses.push('Anima Distorta');log.push('Anima Distorta su '+t.name);
    }
-   if(t.hp)status(t,m.effect);
+   if(t.hp)status(t,m.effect,actor);
    if(t.hp&&m.enemyDebuff){
      if(immuneToStatDrops(t))log.push(t.name+' è immune ai cali di statistiche!');
      else{applyBuff(t,m.enemyDebuff);log.push(t.name+' perde statistiche!');}
    }
   }
+  recordOffensiveMove(actor,m);
   if(hitAny&&useHeldGem(actor,m))log.push('La gemma di '+actor.name+' si rompe dopo aver potenziato '+m.name+'!');
   if(m.recharge&&hitAny&&actor.hp>0){
      if(!actor.statuses.includes('Ricarica'))actor.statuses.push('Ricarica');
@@ -395,7 +422,10 @@ export function eventTurn(b,submissions,s,random=Math.random){
  for(const team of ['A','B']){
   for(const u of activeEventFighters(x,team,s)){
    if(u.hp<=0)continue;
-   if(team===side)endRapidTransmutationTurn(u);
+   if(team===side){
+     endRapidTransmutationTurn(u);
+     if(endVictoryBootsTurn(u))log.push('Stivali dello Slancio: bonus Velocità di '+u.name+' terminato.');
+   }
    const cured=activateNeutralizingSpray(u);
    if(cured.length)log.push('Spray Neutralizzante di '+u.name+' rimuove '+cured.join(', ')+'!');
    const leftovers=getHeldEndTurnHeal(u);

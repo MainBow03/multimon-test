@@ -11,6 +11,22 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'thirteen-held-items',category:'items',date:'02/11/2026',title:'13 nuovi strumenti da equipaggiare',items:[
+    'Fascia dell’Eroe (450 monete): da PS pieni resiste a un colpo diretto letale, restando con 1 PS. Una volta per battaglia.',
+    'Scudo Antielemento (320): la prima mossa superefficace subita infligge 25% danni in meno.',
+    'Ciondolo Antiveleno (260): danni da veleno ridotti del 40%.',
+    'Clessidra della Rapidità (350): sotto il 30% dei PS dà +20% Velocità PER TUTTA LA BATTAGLIA, senza durata di due turni. Una sola attivazione.',
+    'Lente della Fortuna (300): +10 punti percentuali alla prima probabilità di status non garantito (max 90%).',
+    'Risonatore Elementale (360): il secondo attacco offensivo consecutivo di tipo diverso ha +12% danni.',
+    'Nastro della Solidarietà (330): una mossa che potenzia un alleato lo cura anche dell’8% dei PS massimi, una volta.',
+    'Stivali dello Slancio (340): dopo un KO inflitto con una mossa, +15% Velocità per il turno successivo.',
+    'Bussola del Predatore (380): +15% danni al primo colpo riuscito contro un nemico sotto il 40% dei PS.',
+    'Specchio delle Maledizioni (420): 40% di riflettere sul nemico uno status negativo ricevuto, una volta.',
+    'Sigillo della Libertà (280): il primo status negativo temporaneo dura un turno in meno (minimo uno).',
+    'Piuma della Rinascita (290): dopo una resurrezione +15% Difesa per due turni, una volta.',
+    'Campanella del Soccorso (400): quando un alleato scende sotto il 25% dei PS, lo protegge dal 15% dei danni del successivo attacco, una volta.',
+    'Guanti Spinosi e Corona del Coraggio non sono stati aggiunti, come richiesto. Gli sblocchi restano permanenti ma gli effetti monouso si resettano per battaglia.'
+  ]},
   {id:'roguelike-power-chests',category:'balance',date:'02/11/2026',title:'Casse Potenza Roguelike, premio finale e due guide di Finn',items:[
     'Ogni cinque piani superati nella Roguelike solo si ottiene una Cassa Potenza, conservabile in un menu separato dai Bauli Campagna.',
     'Le Casse Potenza danno esclusivamente da 2 a 8 Punti Forza con probabilità uniforme; non contengono monete, pozioni, oggetti o personaggi.',

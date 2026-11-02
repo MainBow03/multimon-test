@@ -9,6 +9,11 @@ import { ignoresShields, immuneToStatDrops, powerForAccordo, effectiveTaserPower
   incomingRockEnchantmentFactor, affectedOpponents, addStickyTrap, trapEntries,
   stickyTrapEntryDamage } from './rockstarAgentEffects.js';
 import { getHeldPowerFactor, getHeldRecoil, getHeldEvasion, getHeldEndTurnHeal, useHeldGem, getMahitoMultiplier, canDistortSoul, getDistortedSoulDamage } from './heldEquipment.js';
+import { reduceIncomingHeldDamage, useHeroSash, activateHourglass,
+  boostedStatusChance, offensiveHeldFactor, recordOffensiveMove, markCompassOnHit,
+  healSupportAlly, activateVictoryBoots, endVictoryBootsTurn,
+  shortenNegativeStatus, reflectNegativeStatus, activatePhoenixFeather,
+  endPhoenixFeatherTurn, activateRescueBell } from './advancedHeldItems.js';
 import { activateHealingSprout, activateNeutralizingSpray, activateCupidArrow,
  blockedEnemyPassive, rapidTransmutationPriority, markRapidTransmutationEntry,
  endRapidTransmutationTurn, immuneToCritical, hannibalCanDebuff, isNegativeStatus } from './newHeldAndPassiveEffects.js';
@@ -933,7 +938,7 @@ const { appMode, calculateTurn, gameState, getActivePlayers, playerRole } = ctx;
 
 export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, isFirstAttackOfTurn = false, random = Math.random) => {
 
-            let pwr = move.power * getHeldPowerFactor(attacker, move);
+            let pwr = move.power * getHeldPowerFactor(attacker, move) * offensiveHeldFactor(attacker,defender,move);
             if (attacker.passive?.type === 'ghost_rockstar' && move.type === 'Suono') pwr *= 1.25;
             if (move.speedScaling) pwr += Math.floor(attacker.spd / 3);
             
@@ -1074,8 +1079,21 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                         return;
                     }
                 }
+
+                if(dmg>0 && options.directAttack){
+                    const reduced=reduceIncomingHeldDamage(target,dmg,{
+                      directAttack:true,superEffective:!!options.superEffective
+                    });
+                    dmg=reduced.damage;
+                    for(const item of reduced.activations)
+                      events.push({type:'text',text:`🛡️ ${item} protegge ${target.name}!`});
+                }
+                const hpBeforeDamage=target.hp;
                 let willSurvive = false;
-                
+                if(useHeroSash(target,dmg,options)){
+                    willSurvive=true;
+                    events.push({type:'text',text:`🎗️ Fascia dell'Eroe: ${target.name} resiste con 1 PS!`});
+                } else
                 // --- NUOVA LOGICA: PASSIVA SOPRAVVIVENZA KO (Es. Carlos, Cuore di Pietra) ---
                 if (target.hp - dmg <= 0 && target.passive && target.passive.type === 'survive_ko' && (target.passiveUses || 0) < (target.passive.maxUses || 1)) {
                     target.passiveUses = (target.passiveUses || 0) + 1;
@@ -1088,6 +1106,17 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 target.damageTakenThisTurn = (target.damageTakenThisTurn || 0) + dmg;
                 events.push({ type: 'damage', text: text, targetPlayer, targetIdx, newHp: target.hp });
                 const sproutHeal=activateHealingSprout(target);
+                if(activateHourglass(target))
+                    events.push({type:'text',text:`⌛ Clessidra della Rapidità di ${target.name}: Velocità +20% fino alla fine dello scontro!`});
+                if(hpBeforeDamage>=target.maxHp*.25 && target.hp>0 && target.hp<target.maxHp*.25){
+                    const alliedPlayers=gameState.gameMode==='multipla'
+                      ? (['p1','p2'].includes(targetPlayer)?['p1','p2']:['p3','p4'])
+                      : [targetPlayer];
+                    const allies=alliedPlayers.flatMap(p=>(workingField[p]||[])
+                      .map(idx=>workingTeams[p]?.[idx]).filter(Boolean));
+                    const bearer=activateRescueBell(allies,target);
+                    if(bearer)events.push({type:'text',text:`🔔 Campanella del Soccorso di ${bearer.name}: ${target.name} riceve uno scudo contro il prossimo attacco!`});
+                }
                 if(sproutHeal)events.push({type:'damage',targetPlayer,targetIdx,newHp:target.hp,
                    text:`🌱 Germoglio Curativo di ${target.name}: recupera ${sproutHeal} PS! (Attivazione unica)`});
                 
@@ -1541,6 +1570,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                               ally.hp = healAmount;
                               ally.statuses = [];
                               events.push({ type: 'damage', text: `${gameState.players[player]} usa ${itemDef.name}! ${ally.name} è tornato in vita!`, targetPlayer: deadAllyPlayer, targetIdx: deadAllyIdx, newHp: ally.hp });
+                              if(activatePhoenixFeather(ally))
+                                events.push({type:'text',text:`🪶 Piuma della Rinascita di ${ally.name}: Difesa +15% per 2 turni!`});
                           } else {
                               events.push({ type: 'text', text: `${gameState.players[player]} prova a usare ${itemDef.name}, ma non ci sono alleati da rianimare! (L'oggetto è stato consumato)` });
                           }
@@ -1586,6 +1617,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                       attacker.atk = attacker.baseAtk;
                       attacker.def = attacker.baseDef;
                       attacker.spd = attacker.baseSpd;
+                      // La Clessidra è un bonus per tutta la battaglia:
+                      // non deve sparire al cambio, unlike ordinary stat buffs.
+                      if(attacker.heldItem==='clessidra_rapidita'&&attacker.hourglassUsed)
+                        applyBattleStatModifier(attacker,'spd',1.2);
                       attacker.acc = 1.0;
                       attacker.consecutiveProtect = 0;
 
@@ -2357,7 +2392,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                         } else if (totalDmg > 0) {
                             let shieldTxt = juggHitsAbsorbed > 0 ? ` (Lo scudo ha assorbito ${juggHitsAbsorbed} colpi).` : '';
                             const previousDamageTaken=t.char.damageTakenThisTurn||0;
-                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText}${hitText}${magText}${groppaText} Infligge ${totalDmg} danni.${shieldTxt}`, {directAttack:true,bypassShields:bypassEnemyShields});
+                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText}${hitText}${magText}${groppaText} Infligge ${totalDmg} danni.${shieldTxt}`, {directAttack:true,bypassShields:bypassEnemyShields,superEffective:multiplier>1});
+                            if(markCompassOnHit(attacker,t.char,victimHpBeforeHit,totalDmg))
+                              events.push({type:'text',text:`🧭 Bussola del Predatore di ${attacker.name}: colpo potenziato contro bersaglio indebolito!`});
                             if(isEnemyTarget && t.char.hp>0 && (t.char.damageTakenThisTurn||0)>previousDamageTaken){
                               if(activateCupidArrow(attacker,move,t.char)){
                                 updateStatusUI(t.player,t.idx);
@@ -2379,9 +2416,12 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                                 events.push({ type: 'text', text: `👁️ ${attacker.name} distorce l'anima di ${t.char.name}! Perde il 5% dei PS ogni turno e subisce più danni da Mahito.` });
                             }
                         } else {
-                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText} Infligge ${totalDmg} danni.`, {directAttack:true,bypassShields:bypassEnemyShields});
+                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText} Infligge ${totalDmg} danni.`, {directAttack:true,bypassShields:bypassEnemyShields,superEffective:multiplier>1});
+                            markCompassOnHit(attacker,t.char,victimHpBeforeHit,totalDmg);
                         }
                         
+                        if(isEnemyTarget && totalDmg>0 && t.char.hp===0 && activateVictoryBoots(attacker))
+                            events.push({type:'text',text:`👢 Stivali dello Slancio: ${attacker.name} guadagna +15% Velocità per il prossimo turno!`});
                         // Daffy beneficia dei KO realizzati dagli ALTRI alleati in campo:
                         // funziona in doppio/multipla, mai per il proprio KO.
                         if (totalDmg > 0 && t.char.hp === 0 && isEnemyTarget && !t.char.daffyAllyKoAlreadyHandled) {
@@ -2524,6 +2564,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             events.push({ type: 'damage', text: `✨ ${wasDead ? t.char.name + ' viene rianimato e recupera' : t.char.name + ' recupera'} ${healAmount} PS!`, targetPlayer: t.player, targetIdx: t.idx, newHp: t.char.hp });
                             
                             if (wasDead) {
+                                if(activatePhoenixFeather(t.char))
+                                  events.push({type:'text',text:`🪶 Piuma della Rinascita di ${t.char.name}: Difesa +15% per 2 turni!`});
                                 t.char.statuses = [];
                                 updateStatusUI(t.player, t.idx);
                                 
@@ -2565,6 +2607,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             if (move.targetStatBuff.spd) { applyBattleStatModifier(t.char, 'spd', move.targetStatBuff.spd); statTexts.push("la Velocità"); }
                             if (statTexts.length > 0) {
                                 events.push({ type: 'text', text: `📈 ${statTexts.join(" e ")} di ${t.char.name} aumenta!` });
+                                if(!isEnemyTarget){
+                                  const healed=healSupportAlly(attacker,t.char,true);
+                                  if(healed>0)events.push({type:'damage',targetPlayer:t.player,targetIdx:t.idx,newHp:t.char.hp,
+                                    text:`🎀 Nastro della Solidarietà di ${attacker.name}: ${t.char.name} recupera ${healed} PS!`});
+                                }
                             }
                         }
 
@@ -2613,7 +2660,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'].includes(effect.type);
                             
                             // FIX CRITICO: Se la mossa non ha una "chance" specificata, assumiamo che sia 1.0 (100% garantita)!
-                            const chanceToApply = effect.chance !== undefined ? effect.chance : 1.0;
+                            const chanceToApply = boostedStatusChance(attacker,effect.chance !== undefined ? effect.chance : 1.0);
                             
                             if (isNegative && t.char.passive && t.char.passive.immuneToNegativeStatuses) {
                                 if (Math.random() < chanceToApply) {
@@ -2629,6 +2676,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                                 if (effect.type === 'Infatuato' && !effect.turns) turns = Math.floor(Math.random() * 2) + 4;
                                 
                                 let newStatus = { type: effect.type, turns: turns, ...(effect.type==='Incantato'?{justApplied:true}:{}) };
+                                if(shortenNegativeStatus(t.char,newStatus))
+                                  events.push({type:'text',text:`🔗 Sigillo della Libertà: ${effect.type} di ${t.char.name} durerà un turno in meno!`});
                                 // --- FIX: LOGICA DI "In_Groppa" DI YOSHI ---
                                 if (effect.type === 'In_Groppa') {
                                     newStatus.protectorIdx = charTeamIdx; // Assegna il protettore!
@@ -2638,6 +2687,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                                 if (existingIdx === -1) {
                                     t.char.statuses.push(newStatus);
                                     updateStatusUI(t.player, t.idx);
+                                    if(isEnemyTarget && reflectNegativeStatus(t.char,attacker,newStatus)){
+                                      updateStatusUI(player,charTeamIdx);
+                                      events.push({type:'text',text:`🪞 Specchio delle Maledizioni di ${t.char.name}: ${effect.type} si riflette su ${attacker.name}!`});
+                                    }
                                     if (effect.type === 'Ombra Rapida') {
                                         events.push({ type: 'text', text: `${t.char.name} si avvolge nell'Ombra Rapida!` });
                                     } else if (effect.type === 'In_Groppa') {
@@ -2862,6 +2915,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     if(cured.length)events.push({type:'text',text:`🧴 Spray Neutralizzante di ${attacker.name}: annulla Ricarica e gli altri malus!`});
                 }
 
+                if(move.power>0)recordOffensiveMove(attacker,move);
                 if (move.suicide && attacker.hp > 0) {
                     applyDamage(attacker, attacker.hp, player, charTeamIdx, `${attacker.name} va in cortocircuito ed esplode sacrificandosi!`);
                 }
@@ -2879,6 +2933,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             let char = workingTeams[target.player]?.[target.charTeamIdx];
             if (!char || char.hp <= 0 || !char.statuses) continue;
             endRapidTransmutationTurn(char);
+            if(endVictoryBootsTurn(char))
+              events.push({type:'text',text:`👢 Il bonus Velocità degli Stivali dello Slancio di ${char.name} svanisce.`});
+            if(endPhoenixFeatherTurn(char))
+              events.push({type:'text',text:`🪶 Il bonus Difesa della Piuma della Rinascita di ${char.name} svanisce.`});
             const sproutAtEnd=activateHealingSprout(char);
             if(sproutAtEnd)events.push({type:'damage',targetPlayer:target.player,targetIdx:target.charTeamIdx,newHp:char.hp,
               text:`🌱 ${char.name} recupera ${sproutAtEnd} PS grazie al Germoglio Curativo!`});

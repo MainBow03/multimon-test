@@ -1,3 +1,4 @@
+import { poisonDamageReduction } from './advancedHeldItems.js';
 // Danno da veleno di fine turno. Il motore di battaglia può rimuovere
 // tutti gli status durante applyDamage (KO, rinascita, purificazione
 // di una passiva): non conservare mai indici dentro un array mutabile.
@@ -8,7 +9,8 @@ export function resolvePoisonEndTurn(character, applyDamage) {
 
   const turnValue=Number(poison.turns);
   const turnsActive=Number.isFinite(turnValue)&&turnValue>0 ? turnValue : 1;
-  const damage=Math.max(5,Math.floor(character.maxHp*Math.min(0.15,0.05*turnsActive)));
+  const rawDamage=Math.max(5,Math.floor(character.maxHp*Math.min(0.15,0.05*turnsActive)));
+  const damage=poisonDamageReduction(character,rawDamage);
   applyDamage(damage);
 
   // Il KO elimina lo status. Anche una passiva può cambiare l'array.
