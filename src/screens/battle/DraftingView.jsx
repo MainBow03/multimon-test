@@ -1,5 +1,6 @@
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { canEquipHeldItem } from '../../systems/heldEquipment.js';
+import { TEAM_ROLES, getCharacterRoles, filterTeamRoster, characterPrice } from '../../systems/teamBuilderFilters.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderDraftingView(ctx) {
 const { ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState } = ctx;
