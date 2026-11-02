@@ -1,4 +1,9 @@
 export const MOVES_DB = {
+          // Kirby · copia al primo colpo una mossa di ciascuno dei primi 2 nemici distinti.
+          'Stella Sparata': { name:'Stella Sparata',type:'Magico',power:85,statusEffect:{type:'Stordito',chance:0.2,turns:1},desc:'Lancia una stella luminosa: potenza 85, 20% di stordire il bersaglio.' },
+          'Super Risucchio': { name:'Super Risucchio',type:'Magico',power:70,drain:0.25,desc:'Potenza 70. Kirby recupera il 25% dei danni inflitti.' },
+          'Calcio Stellare': { name:'Calcio Stellare',type:'Folletto',power:95,priority:1,desc:'Calcio rapido: potenza 95, priorità +1.' },
+          'Stella Warp': { name:'Stella Warp',type:'Magico',power:0,target:'self',statBuff:{spd:2.0},maxUses:2,strictUses:true,desc:'Kirby prende la sua stella e aumenta la Velocità di due livelli (+100%), fino al limite dei potenziamenti. (2 utilizzi)' },
           // Danny Phantom / T.U.F.F. Puppy: Ember e Kitty
           'Assolo Spettrale': { name:'Assolo Spettrale',type:'Suono',power:90,accuracy:1,statusEffect:{type:'Confuso',chance:0.2,turns:3},desc:'Potenza 90. Ha il 20% di confondere.' },
           'Onda Fantasma': { name:'Onda Fantasma',type:'Spettro',power:85,accuracy:1,desc:'Onda spettrale, potenza 85.' },
