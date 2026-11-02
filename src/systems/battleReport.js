@@ -15,7 +15,15 @@ export function createBattleReport(){
 
 const battleKey=(player,idx)=>player+':'+idx;
 const integer=(value)=>Math.max(0,Math.trunc(Number(value)||0));
-const hasOwn=(obj,key)=>Object.prototype.hasOwnProperty.call(obj,key);
+function areOpponents(attacker,target,mode,settings){
+  if(attacker===target)return false;
+  if(mode==='multipla')return ['p1','p2'].includes(attacker)!==['p1','p2'].includes(target);
+  if(mode==='juggernaut'||mode==='survival'){
+    const boss=settings?.juggernautPlayer||(mode==='survival'?'p2':'p1');
+    return (attacker===boss)!==(target===boss);
+  }
+  return true;
+}
 
 function register(report,player,idx,char){
   if(!player || !Number.isInteger(Number(idx)) || idx<0 || !char)return null;
@@ -45,7 +53,7 @@ function namedPassiveOwner(report,event,acting){
   return matches.length===1?matches[0]:null;
 }
 
-export function accumulateBattleReport(previous, teamsAtTurnStart, events, {countTurn=true}={}){
+export function accumulateBattleReport(previous, teamsAtTurnStart, events, {countTurn=true,gameMode='classica',settings={}}={}){
   const report=previous?.version===1
     ? {version:1,turns:integer(previous.turns),entries:JSON.parse(JSON.stringify(previous.entries||{}))}
     : createBattleReport();
@@ -91,7 +99,7 @@ export function accumulateBattleReport(previous, teamsAtTurnStart, events, {coun
       const key=battleKey(event.targetPlayer,event.targetIdx);
       const old=shields.get(key)??0;
       const next=integer(event.remainingHits);
-      if(!event.activated && old>0 && next===0 && actor?.kind==='attack' && actor.player!==event.targetPlayer){
+      if(!event.activated && old>0 && next===0 && actor?.kind==='attack' && areOpponents(actor.player,event.targetPlayer,gameMode,settings)){
         const attacker=report.entries[battleKey(actor.player,actor.idx)];
         if(attacker)attacker.shieldsBroken+=1;
       }
@@ -112,8 +120,8 @@ export function accumulateBattleReport(previous, teamsAtTurnStart, events, {coun
     target.damageTaken+=lost;
     const source=passiveOwner || (actor&&report.entries[battleKey(actor.player,actor.idx)]);
     if(!source)continue;
-    const offensive=actor?.kind==='attack' && actor.player!==event.targetPlayer && !event.isPassive;
-    const passiveDamage=event.isPassive && passiveOwner && passiveOwner.player!==event.targetPlayer;
+    const offensive=actor?.kind==='attack' && areOpponents(actor.player,event.targetPlayer,gameMode,settings) && !event.isPassive;
+    const passiveDamage=event.isPassive && passiveOwner && areOpponents(passiveOwner.player,event.targetPlayer,gameMode,settings);
     if(lost && (offensive||passiveDamage)){
       source.damageDealt+=lost;
       if(after===0 && before>0)source.kos+=1;
