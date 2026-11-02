@@ -1,4 +1,5 @@
 import { roomRoleForUid, recoverableLegacyRole, findJoinableSlot, getRequiredSwitches, ROOM_SESSION_KEY } from './roomRecovery.js';
+import { masteryVisibleLevels } from './masterySystem.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleAvatarUploadImpl = (ctx, e) => {
 const { setPlayerAvatarUrl } = ctx;
@@ -239,6 +240,7 @@ const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, player
             state.phaseStartedAt = Date.now();
             state.playerAvatars.p1 = playerAvatarUrl;
             state.playerTitles.p1 = playerTitle || '';
+            state.playerMastery.p1 = masteryVisibleLevels(getPlayerData());
             state.inventory.p1 = getPlayerData().inventory;
             
             const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', newRoomId);
@@ -292,6 +294,7 @@ const { appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, play
         [`playerUids.${slot}`]:user.uid,
         [`playerAvatars.${slot}`]:playerAvatarUrl,
         [`playerTitles.${slot}`]:playerTitle || '',
+        [`playerMastery.${slot}`]:masteryVisibleLevels(getPlayerData()),
         [`isBot.${slot}`]:false,
         [`inventory.${slot}`]:room.isRoguelikeCoop
           ?{pozione:2,resurrezione:1}:getPlayerData().inventory
@@ -354,6 +357,7 @@ const { gameState, updateState } = ctx;
                 [`playerUids.${slot}`]: null,
                 [`playerAvatars.${slot}`]: `https://api.dicebear.com/7.x/bottts/svg?seed=CpuBot${botNum}&backgroundColor=020617`,
                 [`playerTitles.${slot}`]: '',
+                [`playerMastery.${slot}`]: {},
                 [`isBot.${slot}`]: true,
                 [`inventory.${slot}`]: { cura_totale: 1 }
             });
@@ -368,6 +372,7 @@ const { updateState } = ctx;
                 [`playerUids.${slot}`]: null,
                 [`playerAvatars.${slot}`]: '',
                 [`playerTitles.${slot}`]: '',
+                [`playerMastery.${slot}`]: {},
                 [`isBot.${slot}`]: false,
                 [`inventory.${slot}`]: {}
             });
@@ -381,6 +386,7 @@ const { getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitl
             state.players.p1 = playerName || "Gioc. 1";
             state.playerAvatars.p1 = playerAvatarUrl;
             state.playerTitles.p1 = playerTitle || '';
+            state.playerMastery.p1 = masteryVisibleLevels(getPlayerData());
             state.inventory.p1 = getPlayerData().inventory;
             setGameState(state);
             setPlayerRole('p1');
@@ -395,6 +401,7 @@ const { getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitl
             state.players.p1 = playerName || "Giocatore";
             state.playerAvatars.p1 = playerAvatarUrl;
             state.playerTitles.p1 = playerTitle || '';
+            state.playerMastery.p1 = masteryVisibleLevels(getPlayerData());
             state.inventory.p1 = getPlayerData().inventory;
             state.players.p2 = "Bot Supremo";
             state.playerAvatars.p2 = 'https://api.dicebear.com/7.x/bottts/svg?seed=CpuBot&backgroundColor=020617';
