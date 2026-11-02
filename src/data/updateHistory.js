@@ -1,0 +1,112 @@
+// Registro pubblico degli aggiornamenti introdotti nelle sessioni recenti.
+// Ordine: più recente prima. Le schede descrivono le modifiche effettivamente
+// presenti nel gioco, distinguendo bilanciamento, funzionalità e correzioni.
+export const UPDATE_CATEGORIES = [
+  {id:'all',name:'Tutto',icon:'📜'},
+  {id:'balance',name:'Bilanciamento',icon:'⚖️'},
+  {id:'champions',name:'Personaggi e abilità',icon:'⭐'},
+  {id:'items',name:'Strumenti',icon:'🎒'},
+  {id:'interface',name:'Grafica e interfaccia',icon:'🎨'},
+  {id:'mastery',name:'Padronanza',icon:'🏆'},
+  {id:'fixes',name:'Bug risolti',icon:'🛠️'}
+];
+export const GAME_UPDATES = [
+  {id:'kirby',category:'champions',date:'02/11/2026',title:'⭐ Kirby entra nel multiverso',items:[
+    'Nuovo Multimon Magico / Folletto, acquistabile per 200 monete. PS 100, Attacco 105, Difesa 85, Velocità 95.',
+    'Passiva Copia Abilità: al primo attacco che infligge danni a ciascun nemico distinto, Kirby copia una sua mossa utilizzabile. Massimo 2 mosse copiate contemporaneamente; nessuna sottrazione all’avversario.',
+    'Stella Sparata: Magico, potenza 85, 20% probabilità di stordire.',
+    'Super Risucchio: Magico, potenza 70, cura del 25% del danno inflitto.',
+    'Calcio Stellare: Folletto, potenza 95, priorità +1.',
+    'Stella Warp: potenzia la Velocità di due livelli (+100%, nel limite delle statistiche), 2 utilizzi.',
+    'Nuovo titolo di Padronanza livello 20: Eroe delle Stelle.'
+  ]},
+  {id:'nerfs',category:'balance',date:'02/11/2026',title:'⚖️ Dieci nerf approvati',items:[
+    '1. Veleno: i danni aumentano del 5% → 10% → 15% dei PS massimi; non superano più il 15% per turno (prima 25%).',
+    '2. Fratelli Bros (Mario + Luigi): potenza 300 → 250; bonus +50% → +30% alla Difesa di Mario e alla Velocità di Luigi. Rimane il costo del 20% dei PS per entrambi.',
+    '3. A caccia di meduse (SpongeBob + Patrick): potenza 250 invariata. Il bonus di SpongeBob a ATK, DEF e VEL scende da +100% a +50%; Patrick perde sempre il 75% dei PS.',
+    '4. Esplosione Solare (Bloom): scotta ancora al 100%, ma può colpire massimo 2 nemici scelti invece di 4.',
+    '5. Polline fastidioso (Leslie): ora potenza 40, con 35% probabilità di addormentare e 35% di elettrizzare ogni bersaglio (prima 50% ciascuno); massimo 2 bersagli, 4 utilizzi.',
+    '6. Fotosintesi clorofiliana (Leslie): cura da sola 80% dei PS massimi (prima 100%), con alleati 35% a ogni membro in campo (prima 50%); 2 utilizzi effettivi.',
+    '7. Gadget di Supporto (Doraemon): massimo 2 utilizzi, mantenendo +50% Attacco e Difesa fino a 2 compagni.',
+    '8. Fascino Glaciale (Yuki-Onna): 75% di infatuare (prima 100%), massimo 3 utilizzi.',
+    '9. Sou Giakuru! (Penny): potenza 150 → 125 e confusione 100% → 70%, 2 utilizzi.',
+    '10. Piano Z (Plankton): bonus Attacco +100% → +50%, Velocità +50% → +30%, 2 utilizzi.',
+    'Le descrizioni delle mosse e la gestione dei limiti di utilizzo riflettono questi nuovi valori.'
+  ]},
+  {id:'buffs',category:'balance',date:'02/11/2026',title:'📈 Potenziamenti di Carlos, Kevin e Spyro',items:[
+    'Carlos Oliveira: Attacco 90 → 100 e Velocità 70 → 80. La passiva di sopravvivenza al KO resta identica.',
+    'Kevin: Attacco 90 → 100; Pugno Minerale potenza 60 → 80. Difesa e Velocità invariate.',
+    'Spyro: PS massimi 85 → 95; Difesa 70 → 75. Le altre mosse rimangono invariate.'
+  ]},
+  {id:'poison-fix',category:'fixes',date:'02/11/2026',title:'☠️ KO da veleno senza blocco del turno',items:[
+    'Risolto il TypeError «Cannot read properties of undefined (reading turns)». Un KO rimuove lo status e ora il motore non tenta di modificarlo dopo la cancellazione.',
+    'Gestiti anche i casi in cui una passiva purifica il veleno o riporta in vita il combattente.',
+    'Aggiunti test contro i KO da veleno, anche per lo scontro con Cell.'
+  ]},
+  {id:'cell-rematch',category:'fixes',date:'02/11/2026',title:'🧬 Rematch della campagna contro Cell',items:[
+    'Corretta la gestione dei comandi della campagna che poteva lasciare «In attesa degli altri giocatori…» nonostante la CPU fosse presente.',
+    'All’avvio di un nuovo tentativo vengono azzerate le animazioni e selezioni residue del combattimento precedente.',
+    'La ricostruzione del campo non assegna slot attivi a Cell Jr. con 0 PS nel salvataggio. I progressi della campagna restano salvati.'
+  ]},
+  {id:'mastery-titles',category:'mastery',date:'02/11/2026',title:'🏆 Titoli individuali al livello 20',items:[
+    'Ogni Multimon idoneo ha un titolo narrativo unico invece di un’etichetta generica. Con Kirby i titoli individuali arrivano a 137.',
+    'Esempi: Sage — Guaritrice; Nicole — La Mamma Demoniaca; Kirby — Eroe delle Stelle; Alphonse — Trasmutatore Supremo; Yoshi — Compagno dal Guscio Verde.',
+    'In Statistiche → Padronanza puoi cercare per nome del personaggio o titolo, leggere i titoli completi e indossare quelli sbloccati.',
+    'Chi aveva già raggiunto il livello 20 mantiene tutti i PE e riceve automaticamente il nuovo titolo.',
+    'Boss della campagna, evocazioni e fusioni non acquisiscono Padronanza.'
+  ]},
+  {id:'mastery-cosmetics',category:'mastery',date:'02/11/2026',title:'✨ Ricompense visive per la Padronanza',items:[
+    'Livello 5: cornice ciano intorno al Multimon.',
+    'Livello 10: aura speciale.',
+    'Livello 15: scintille.',
+    'Livello 20: ingresso dorato e titolo personale.',
+    'I progressi e i titoli non vengono assegnati ai mostri esclusivi della campagna, alle fusioni o ai personaggi evocati.'
+  ]},
+  {id:'battle-visuals',category:'interface',date:'02/11/2026',title:'💥 KO e battaglie più spettacolari',items:[
+    'Annunci speciali per KO, colpi critici, cure, passive, alterazioni di stato, buff e debuff.',
+    'Animazione di caduta del personaggio sconfitto, impatto sull’arena, lampi e colori diversi per gli eventi importanti.',
+    'Le animazioni rispettano l’impostazione di sistema di riduzione del movimento.'
+  ]},
+  {id:'status-clarity',category:'interface',date:'02/11/2026',title:'🔎 Buff, status e passive leggibili',items:[
+    'Indicatori che mostrano percentuali effettive di Attacco, Difesa, Velocità e statistiche speciali rispetto ai valori di base.',
+    'Status con nome completo, colori distinti per effetti positivi, negativi e protezioni, e turni residui quando disponibili.',
+    'Passiva visibile sopra i personaggi: passando sopra il badge puoi leggerne la descrizione.',
+    'Enciclopedia della battaglia consultabile per capire status, priorità, protezioni, strumenti e passive.'
+  ]},
+  {id:'builder',category:'interface',date:'02/11/2026',title:'🧩 Team builder avanzato',items:[
+    'Ricerca per nome e filtri combinabili per tipo, ruolo stimato e prezzo.',
+    'Ruoli suggeriti dalle statistiche e dalle mosse: Attaccante, Difensore, Curatore, Supporto e Controllo.',
+    'Ordina i personaggi per Attacco, Difesa, Velocità, PS, prezzo o nome.',
+    'Preferiti con la stellina ★ salvati nel browser, senza alterare la selezione della squadra.',
+    'Le schede mostrano il prezzo e i ruoli stimati di ciascun Multimon.'
+  ]},
+  {id:'snow',category:'interface',date:'02/11/2026',title:'❄️ Arena innevata con Tempesta di Neve',items:[
+    'Quando è attiva Tempesta di Neve l’arena assume colori azzurri, una foschia fredda e fiocchi animati.',
+    'Il campo torna normale allo scadere del meteo; l’effetto grafico non modifica da solo danni o durata.',
+    'L’animazione rispetta le preferenze di riduzione del movimento.'
+  ]},
+  {id:'hyper',category:'balance',date:'02/11/2026',title:'🔥 Forme Iper riequilibrate',items:[
+    'Battaglie classiche: bonus Iper di Attacco, Difesa e Velocità ridotti dal +50% al +35%.',
+    'Torneo del Multiverso: bonus Iper a Attacco, Attacco Speciale e PS ridotti dal +50% al +35%.',
+    'Mosse aggiuntive, animazioni e trasformazioni speciali rimangono disponibili.'
+  ]},
+  {id:'stat-stacking',category:'balance',date:'02/11/2026',title:'📊 Potenziamenti e malus con limiti chiari',items:[
+    'I modificatori delle statistiche si sommano rispetto al valore base, anziché moltiplicarsi senza controllo.',
+    'Potenziamenti massimi +100% rispetto alla statistica base; riduzioni massime −50%.',
+    'Le regole valgono per bonus e malus di mosse e passive; le trasformazioni Iper sono gestite separatamente.',
+    'La voce Potenziamenti dell’Enciclopedia spiega i limiti.'
+  ]},
+  {id:'items',category:'items',date:'02/11/2026',title:'🎒 Quattro strumenti da battaglia',items:[
+    'Germoglio Curativo: quando il portatore scende alla soglia del 50% dei PS, recupera il 25% dei PS massimi. Si attiva una sola volta.',
+    'Spray Neutralizzante: rimuove status negativi e Ricarica quando si attivano. Si consuma dopo il primo utilizzo.',
+    'Freccia di Cupido: gli attacchi fisici a contatto possono infatuare il bersaglio con probabilità del 10%, senza limite di attivazioni.',
+    'Scudo Anti-Magia: protegge dagli effetti negativi delle passive nemiche; non annulla automaticamente i danni diretti delle mosse.'
+  ]},
+  {id:'new-passives',category:'champions',date:'02/11/2026',title:'🧬 Nuove passive e poteri',items:[
+    'Nicole Watterson — Mamma Demoniaca: quando entra in campo, riduce del 20% l’Attacco dei nemici.',
+    'Alphonse Elric — Trasmutazione Rapida: mosse Robot e Terra con priorità +1 nel primo turno in campo.',
+    'Cyborg — Corazza Titan: protezione dai colpi critici e potenziamento difensivo.',
+    'Altri effetti speciali e protezioni ricevono indicatori leggibili nel Codex e in battaglia.'
+  ]}
+];
+export const UPDATE_COUNT=GAME_UPDATES.reduce((sum,section)=>sum+section.items.length,0);
