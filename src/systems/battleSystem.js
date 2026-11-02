@@ -289,6 +289,9 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
 
             const isCustomDraft = customDraft && typeof customDraft === 'object' && !customDraft.nativeEvent && (customDraft.p1 || customDraft.p2);
             const teams = JSON.parse(JSON.stringify(isCustomDraft ? customDraft : gameState.draft));
+            // I bonus delle gemme si ricaricano tra partite diverse.
+            // Il loro acquisto nel profilo rimane permanente.
+            Object.values(teams).forEach(team=>(team||[]).forEach(char=>{char.gemSpent=false;}));
             let fieldSize = gameState.settings.fieldSize;
             if (gameState.gameMode === 'multipla') fieldSize = 1; 
             
