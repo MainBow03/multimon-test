@@ -233,6 +233,18 @@ if (gameState.status === 'gameover') {
                                     if (!c.isSummonOnly) newStats[c.id] = c.hp;
                                 });
                                 const leftoverInventory = gameState.inventory.p1 || {};
+                                // Ricompense con ID run stabile: nessuna duplica
+                                // se si ritorna sulla pagina o si clicca due volte.
+                                if(roguelikeState.runId && roguelikeState.floor%5===0)
+                                    updateLocalStats({roguelikeMilestone:{
+                                      runId:roguelikeState.runId,floor:roguelikeState.floor
+                                    }});
+                                if(roguelikeState.runId && roguelikeState.floor===roguelikeState.maxFloor)
+                                    updateLocalStats({roguelikeComplete:{
+                                      runId:roguelikeState.runId,floor:roguelikeState.floor,
+                                      maxFloor:roguelikeState.maxFloor
+                                    }});
+
                                 
                                 if (roguelikeState.floor === roguelikeState.maxFloor) {
                                     // Ha finito il gioco
