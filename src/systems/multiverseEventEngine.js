@@ -221,7 +221,7 @@ export function eventTurn(b,submissions,s,random=Math.random){
   target.hp=Math.max(0,target.hp-defense.damage);
   const heal=activateHealingSprout(target);
   if(heal)log.push('Germoglio Curativo di '+target.name+': recupera '+heal+' PS!');
-  if(target.hp<hpBefore&&target.hp>0){
+  if(defense.damage>0&&hpBefore>0&&target.hp>0){
     if(activateCupidArrow(attacker,m,target,random,true,true)){
       log.push('Freccia di Cupido di '+attacker.name+': '+target.name+' è infatuato!');
     }
@@ -254,6 +254,20 @@ export function eventTurn(b,submissions,s,random=Math.random){
   return ((mb?.priority||0)+rapidTransmutationPriority(b,mb))-((ma?.priority||0)+rapidTransmutationPriority(a,ma))||b.spd-a.spd;
  })){
   if(actor.hp<=0)continue;
+  const oldMalus=activateNeutralizingSpray(actor);
+  if(oldMalus.length)log.push('Spray Neutralizzante di '+actor.name+' rimuove '+oldMalus.join(', ')+'!');
+  if(actor.statuses.includes('Ricarica')){
+    actor.statuses=actor.statuses.filter(s=>s!=='Ricarica');
+    log.push(actor.name+' deve ricaricarsi e perde il turno.');continue;
+  }
+  if(actor.statuses.includes('Infatuato')){
+    actor.cupidCharmTurns=(actor.cupidCharmTurns??4)-1;
+    if(actor.cupidCharmTurns<=0){
+      actor.statuses=actor.statuses.filter(s=>s!=='Infatuato');actor.cupidCharmTurns=0;
+    }else if(random()<.5){
+      log.push(actor.name+' è troppo infatuato e salta il turno!');continue;
+    }
+  }
   const command=commands.get(actor.key);
   if(!command){log.push(actor.name+' passa.');continue;}
   if(command.type==='switch'&&command.switchTo){
@@ -261,6 +275,8 @@ export function eventTurn(b,submissions,s,random=Math.random){
    const current=x.activeKeys[actor.owner]||[];
    if(ally&&!current.includes(ally.key)){
      x.activeKeys[actor.owner]=current.map(k=>k===actor.key?ally.key:k);
+     markRapidTransmutationEntry(ally,true);
+     applyEventEntryPassive(x,side,ally,s,random,log);
      log.push(actor.name+' rientra, entra '+ally.name+'!');
    }else log.push(actor.name+' non riesce a cambiare.');
    continue;
@@ -296,6 +312,11 @@ export function eventTurn(b,submissions,s,random=Math.random){
    }
    if(t)status(t,m.effect);
    log.push(actor.name+' usa '+m.name);
+   if(m.recharge&&actor.hp>0){
+      if(!actor.statuses.includes('Ricarica'))actor.statuses.push('Ricarica');
+      const cured=activateNeutralizingSpray(actor);
+      if(cured.length)log.push('Spray Neutralizzante di '+actor.name+' annulla Ricarica!');
+   }
    continue;
   }
   const visible=activeEventFighters(x,oppo,s).filter(v=>v.hp>0);
@@ -324,6 +345,11 @@ export function eventTurn(b,submissions,s,random=Math.random){
    }
   }
   if(hitAny&&useHeldGem(actor,m))log.push('La gemma di '+actor.name+' si rompe dopo aver potenziato '+m.name+'!');
+  if(m.recharge&&hitAny&&actor.hp>0){
+     if(!actor.statuses.includes('Ricarica'))actor.statuses.push('Ricarica');
+     const cured=activateNeutralizingSpray(actor);
+     if(cured.length)log.push('Spray Neutralizzante di '+actor.name+' neutralizza Ricarica!');
+  }
   if(hitAny&&m.buff)applyBuff(actor,m.buff);
   if(hitAny&&m.snowstormTurns){x.weather={type:'snowstorm',turns:m.snowstormTurns};log.push('Una tempesta di neve investe il campo!');}
   if(hitAny&&s.allowItems&&actor.heldItem==='iperband'){
@@ -335,12 +361,17 @@ export function eventTurn(b,submissions,s,random=Math.random){
  for(const team of ['A','B']){
   for(const u of activeEventFighters(x,team,s)){
    if(u.hp<=0)continue;
+   if(team===side)endRapidTransmutationTurn(u);
+   const cured=activateNeutralizingSpray(u);
+   if(cured.length)log.push('Spray Neutralizzante di '+u.name+' rimuove '+cured.join(', ')+'!');
    const leftovers=getHeldEndTurnHeal(u);
    if(leftovers&&u.hp<u.maxHp){u.hp=Math.min(u.maxHp,u.hp+leftovers);log.push(u.name+' recupera '+leftovers+' PS dagli Avanzi!');}
    if(u.statuses.includes('Anima Distorta')){
      const d=Math.max(1,Math.floor(u.maxHp*.05));u.hp=Math.max(0,u.hp-d);
      log.push(u.name+' perde '+d+' PS per Anima Distorta.');
    }
+   const sprout=activateHealingSprout(u);
+   if(sprout)log.push('Germoglio Curativo di '+u.name+' recupera '+sprout+' PS!');
    if(u.hp<=0)continue;
    if(u.enchantedTurns>0){
      if(u.enchantedFresh)u.enchantedFresh=false;
@@ -356,7 +387,7 @@ export function eventTurn(b,submissions,s,random=Math.random){
      if(random()<.5){const stat=randomBuff(u,random);log.push(u.name+' aumenta '+stat+' del 15%!');}
      const enemies=activeEventFighters(x,team==='A'?'B':'A',s).filter(v=>v.hp>0);
      if(enemies.length){const target=enemies[Math.floor(random()*enemies.length)];
-       if(immuneToStatDrops(target))log.push(target.name+' resiste al calo di statistiche!');
+       if(immuneToStatDrops(target)||blockedEnemyPassive(target))log.push(target.name+' resiste al calo di statistiche!');
        else{const stat=randomDebuff(target,random);log.push(u.name+' abbassa '+stat+' di '+target.name+'!');}}
    }
   }
@@ -367,6 +398,8 @@ export function eventTurn(b,submissions,s,random=Math.random){
     const effect=snowstormOutcome(u,true);
     if(effect.damage){u.hp=Math.max(0,u.hp-effect.damage);log.push(u.name+' perde '+effect.damage+' PS per la neve!');}
     if(u.hp&&effect.heal){u.hp=Math.min(u.maxHp,u.hp+effect.heal);log.push(u.name+' recupera '+effect.heal+' PS dal freddo!');}
+   const sprout=activateHealingSprout(u);
+   if(sprout)log.push('Germoglio Curativo di '+u.name+' recupera '+sprout+' PS!');
    }
   }
   x.weather.turns--;if(x.weather.turns===0)x.weather=null;
