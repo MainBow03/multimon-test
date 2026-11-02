@@ -1,6 +1,7 @@
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { canEquipHeldItem } from '../../systems/heldEquipment.js';
 import { initialCampaignField } from '../../systems/campaignBattleRecovery.js';
+import { applyStrengthToFighter, canTrainCharacter } from '../../systems/strengthLab.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
 const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
@@ -339,11 +340,13 @@ if (appMode === 'campaign_team_select') {
                 const baseChar = CHARACTERS.find(c => c.id === id);
                 if (!baseChar) return null; // FIX: Previene crash fatali
                 const hp = campaignState.rosterStats[id] || 100;
-                return {
+                const instance={
                     ...JSON.parse(JSON.stringify(baseChar)), hp: hp, statuses: [], consecutiveProtect: 0, heldItem: campaignHeldItems[id] || null,
                     baseAtk: baseChar.atk, baseDef: baseChar.def, baseSpd: baseChar.spd,
                     moves: baseChar.moves.filter(Boolean).map(m => ({ ...m, remainingUses: m.maxUses !== undefined ? m.maxUses : null }))
                 };
+                const personal=getPlayerData();
+                return canTrainCharacter(baseChar,personal) ? applyStrengthToFighter(instance,personal.strengthUpgrades):instance;
             }).filter(Boolean); // Rimuove i null per sicurezza
 
             let p2Team = [];

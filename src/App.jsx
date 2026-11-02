@@ -17,6 +17,7 @@ import { renderRoguelikeDraftView } from './screens/roguelike/RoguelikeDraftView
 import { renderRoguelikeMapView } from './screens/roguelike/RoguelikeMapView.jsx';
 import { renderRoguelikeCoopLobbyView } from './screens/roguelike/RoguelikeCoopLobbyView.jsx';
 import { renderShopView } from './screens/hub/ShopView.jsx';
+import { StrengthLabView } from './screens/hub/StrengthLabView.jsx';
 import { renderStatsView } from './screens/hub/StatsView.jsx';
 import { renderTypeChartView } from './screens/hub/TypeChartView.jsx';
 import { renderCatalogView } from './screens/hub/CatalogView.jsx';
@@ -945,6 +946,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               if (raw) {
                   let data = JSON.parse(raw);
                   if (data.coins === undefined) data.coins = 100;
+                  if (data.strengthPoints === undefined) data.strengthPoints = 0;
+                  if (data.strengthUpgrades === undefined) data.strengthUpgrades = {};
                   if (data.inventory === undefined) data.inventory = { cura_totale: 1 };
                   if (data.unlockedChars === undefined) data.unlockedChars = [];
                   if (data.maxSurvivalRound === undefined) data.maxSurvivalRound = 0;
@@ -976,6 +979,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                           localStorage.setItem(key, oldRaw);
                           let data = JSON.parse(oldRaw);
                           if (data.coins === undefined) data.coins = 100;
+                          if (data.strengthPoints === undefined) data.strengthPoints = 0;
+                          if (data.strengthUpgrades === undefined) data.strengthUpgrades = {};
                           if (data.inventory === undefined) data.inventory = { cura_totale: 1 };
                           if (data.unlockedChars === undefined) data.unlockedChars = [];
                           if (data.maxSurvivalRound === undefined) data.maxSurvivalRound = 0;
@@ -995,12 +1000,13 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                   }
               }
 
-              return { matches: 0, wins: 0, playtime: 0, chars: {}, moves: {}, coins: 500, inventory: { cura_totale: 1 }, unlockedChars: [], apologyGiftReceived: true, bugFixCompensation200: true, maxSurvivalRound: 0 };
+              return { matches: 0, wins: 0, playtime: 0, chars: {}, moves: {}, coins: 500, inventory: { cura_totale: 1 }, unlockedChars: [], strengthPoints: 0, strengthUpgrades: {}, apologyGiftReceived: true, bugFixCompensation200: true, maxSurvivalRound: 0 };
           }
 
           const updateLocalStats = (...__args) => {
-              updateLocalStatsImpl({ getPlayerData }, ...__args);
+              const result=updateLocalStatsImpl({ getPlayerData }, ...__args);
               setProfileRevision(previous => previous + 1);
+              return result;
           };
           const getPlayerTitle = () => equippedMasteryTitle(getPlayerData(), [...CHARACTERS, ...FUSION_CHARACTERS]);
 
@@ -1457,6 +1463,12 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
     if (appMode === 'roguelike_coop_lobby') {
   const __screen = renderRoguelikeCoopLobbyView({ ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Loader2, Wifi, appMode, coopRoomId, gameState, getDefaultAvatar, playerRole, setAppMode, setCoopRoomId, updateState });
   if (__screen !== undefined) return __screen;
+}
+
+    if (appMode === 'strength_lab') {
+  return <StrengthLabView characters={CHARACTERS} profile={getPlayerData()}
+    onUpgrade={(charId,stat)=>updateLocalStats({strengthUpgrade:{charId,stat}})}
+    onBack={()=>setAppMode('menu')}/>;
 }
 
     if (appMode === 'shop') {

@@ -1,6 +1,7 @@
 import { ITEMS_DB } from '../data/items.js';
 import { CHARACTERS } from '../data/characters.js';
 import { grantMasteryXP, isMasteryUnlocked, isMasteryEligible } from './masterySystem.js';
+import { trainStrength } from './strengthLab.js';
 
 const masteryEligibleIds = new Set(CHARACTERS.filter(isMasteryEligible).map(char => char.id));
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
@@ -27,7 +28,18 @@ const { getPlayerData } = ctx;
               if (updates.move) {
                   current.moves[updates.move] = (current.moves[updates.move] || 0) + 1;
               }
-              if (updates.addCoins) current.coins += updates.addCoins;
+              // Spesa atomica sul profilo locale; non si possono comprare
+              // livelli non posseduti, oltre il limite o senza punti.
+              if (updates.strengthUpgrade) {
+                  const {charId,stat}=updates.strengthUpgrade;
+                  const character=CHARACTERS.find(c=>c.id===charId);
+                  const result=trainStrength(current,character,stat);
+                  if(!result.ok)return {ok:false,reason:result.reason};
+                  current=result.profile;
+              }
+              if (updates.addStrengthPoints && Number.isFinite(updates.addStrengthPoints) && updates.addStrengthPoints>0)
+                  current.strengthPoints=(current.strengthPoints||0)+Math.floor(updates.addStrengthPoints);
+                            if (updates.addCoins) current.coins += updates.addCoins;
               if (updates.spendCoins) current.coins -= updates.spendCoins;
               if (updates.buyItem) {
                   // Uno strumento da lotta viene sbloccato una volta per sempre,
@@ -56,5 +68,6 @@ const { getPlayerData } = ctx;
               }
               
               localStorage.setItem(key, JSON.stringify(current));
+              return {ok:true};
           
 };

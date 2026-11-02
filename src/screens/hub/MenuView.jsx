@@ -157,6 +157,11 @@ if (appMode === 'menu') {
                                  <GridIcon size={20}/> Tabella Tipi
                             </button>
                         </div>
+                        <button onClick={() => { if(!playerName.trim()) setSystemAlert("Inserisci il tuo nome per accedere al Laboratorio!"); else setAppMode('strength_lab'); }}
+                            className="w-full mt-3 bg-gradient-to-r from-cyan-700 via-indigo-700 to-violet-800 hover:from-cyan-600 hover:to-violet-700 text-white font-black py-4 rounded-xl border border-cyan-400/60 shadow-[0_0_24px_rgba(34,211,238,.20)] flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5">
+                            <span className="text-2xl">⚡</span>
+                            <span>Laboratorio di Potenziamento <span className="block text-xs font-semibold text-cyan-100/85">Punti Forza: {playerData.strengthPoints||0} · ATK / DEF / VEL</span></span>
+                        </button>
                         <div className="grid grid-cols-2 gap-3 mt-3">
                             <button onClick={() => { if(!playerName.trim()) setSystemAlert("Inserisci il tuo nome per usare lo Shop!"); else setAppMode('shop'); }} className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 text-sm shadow-md">
                                  <ShoppingCart size={20}/> Negozio

@@ -1,4 +1,5 @@
 import { applyBattleStatModifier } from './statBalance.js';
+import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { CHARACTERS } from '../data/characters.js';
 import { getMultiplier } from './typeSystem.js';
@@ -70,9 +71,9 @@ export function eventPlacements(matches,entrants){
  for(const e of entrants)for(const uid of e.members){let rank=ranks[e.id]||4;participants[uid]={rank,coins:EVENT_PRIZES[rank]||50}}
  return{entrants:ranks,participants};
 }
-function fighter(id,owner,item){
+function fighter(id,owner,item,upgrades){
  const c=CHARACTERS.find(x=>x.id===id);if(!c)throw Error('Multimon mancante: '+id);
- return{key:owner+'-'+id,id,owner,name:c.name,img:c.img,types:c.types||[],hp:c.maxHp,maxHp:c.maxHp,
+ const baseline={key:owner+'-'+id,id,owner,name:c.name,img:c.img,types:c.types||[],hp:c.maxHp,maxHp:c.maxHp,
  atk:c.atk,baseAtk:c.atk,def:c.def,baseDef:c.def,spDef:c.spDef||c.def,baseSpDef:c.spDef||c.def,spd:c.spd,baseSpd:c.spd,spAtk:c.spAtk||c.atk,baseSpAtk:c.spAtk||c.atk,passive:c.passive||null,heldItem:item||null,gemSpent:false,healingSproutUsed:false,neutralizingSprayUsed:false,rapidTransmutationReady:false,hyper:false,statuses:[],
  moves:c.moves.map(m=>({name:m.name,type:m.type,power:m.power||0,accuracy:m.accuracy??100,
  targetCount:m.targetCount||1,uses:m.maxUses??null,contact:!!m.contact,
@@ -82,10 +83,11 @@ function fighter(id,owner,item){
  refractionTurns:m.refractionTurns||0,bonusAgainstFaster:m.bonusAgainstFaster||0,
  priority:m.priority||0,ignoreShields:!!m.ignoreShields,ignoreTaunt:!!m.ignoreTaunt,
  placeStickyTrap:!!m.placeStickyTrap,scalingEnemyCount:!!m.scalingEnemyCount,bonusIfSlowed:m.bonusIfSlowed||0,
- ignoreDefBuffs:!!m.ignoreDefBuffs,speedScaling:!!m.speedScaling}))}
+ ignoreDefBuffs:!!m.ignoreDefBuffs,speedScaling:!!m.speedScaling}))};
+ return upgrades?applyStrengthToFighter(baseline,upgrades):baseline;
 }
 export function buildEventBattle(match,people,s){
- const make=side=>side.members.flatMap(uid=>people[uid].teamIds.map(id=>fighter(id,uid,s.allowItems?people[uid].heldItems?.[id]:null)));
+ const make=side=>side.members.flatMap(uid=>people[uid].teamIds.map(id=>fighter(id,uid,s.allowItems?people[uid].heldItems?.[id]:null,people[uid].strengthUpgrades)));
  const teams={A:make(match.sideA),B:make(match.sideB)};
  const owners={A:match.sideA.members,B:match.sideB.members};
  const activeKeys=Object.fromEntries([...owners.A,...owners.B].map(uid=>[
