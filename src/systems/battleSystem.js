@@ -1269,15 +1269,16 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, calculateDamage, game
                         if (char && char.hp > 0 && !char.isHyper) {
                             char.isHyper = true;
                             
-                            // Aumenta Base Stats (Così i buff/debuff scalano su questo nuovo valore)
-                            char.baseAtk = Math.floor(char.baseAtk * 1.5);
-                            char.baseDef = Math.floor(char.baseDef * 1.5);
-                            char.baseSpd = Math.floor(char.baseSpd * 1.5);
-                            
-                            // Aumenta Stats Correnti
-                            char.atk = Math.floor(char.atk * 1.5);
-                            char.def = Math.floor(char.def * 1.5);
-                            char.spd = Math.floor(char.spd * 1.5);
+                            // Nerf leggero: la forma Iper resta speciale, ma il bonus
+                            // alle statistiche passa da +50% a +35%. Aggiorniamo
+                            // anche le basi per mantenere coerenti i buff futuri.
+                            char.baseAtk = Math.floor(char.baseAtk * 1.35);
+                            char.baseDef = Math.floor(char.baseDef * 1.35);
+                            char.baseSpd = Math.floor(char.baseSpd * 1.35);
+
+                            char.atk = Math.floor(char.atk * 1.35);
+                            char.def = Math.floor(char.def * 1.35);
+                            char.spd = Math.floor(char.spd * 1.35);
                             
                             if (char.id === 'gardevoir') {
                                 char.types = ['Psico', 'Erba'];
