@@ -5,6 +5,7 @@ import {COOP_HUMANS,COOP_SHOP,coopHumanPlayers,coopRecruitWeights,
 import {CHARACTERS} from '../../data/characters.js';
 import {RoguelikeEventView} from './RoguelikeEventView.jsx';
 import {ROGUE_RELICS} from '../../systems/roguelikeEvents.js';
+import {isHostFresh} from '../../systems/roomRecovery.js';
 
 export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext,onPurchase,onVoteEvent,onFinalizeEvent,onExit}){
  const [busy,setBusy]=useState(false);
@@ -13,13 +14,15 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
  // Il countdown avanza anche se nessun altro giocatore produce snapshot Firestore.
  // Non affidarsi a render casuali: altrimenti il pulsante di recupero non appare.
  useEffect(()=>{
-   if(room.status!=='coop_event')return;
+   if(!['gameover','coop_camp','coop_event'].includes(room.status))return;
    setClock(Date.now());
    const timer=setInterval(()=>setClock(Date.now()),1000);
    return ()=>clearInterval(timer);
  },[room.status,room.phaseStartedAt]);
  const run=room.coopRun||{};
  const humans=coopHumanPlayers(room),isWin=room.winner&&room.winner!==room.players?.p4&&room.winner!=='Pareggio';
+ // Aggiorna l'abilitazione del capogruppo anche se Firestore non emette snapshot.
+ const canLeadNow=humans.includes(playerRole) && (playerRole==='p1'||!isHostFresh(room,clock));
  const stage=room.status,isVictory=stage==='gameover'&&isWin;
  const failed=stage==='gameover'&&!isWin;
  const completed=stage==='coop_complete';
@@ -68,7 +71,7 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
      votes={run.eventVotes||{}} players={room.players} humanRoles={humans}
      playerRole={playerRole} busy={busy}
      onChoice={choice=>runAction(()=>onVoteEvent(choice))}/>}
-   {stage==='coop_event'&&canLead&&
+   {stage==='coop_event'&&canLeadNow&&
      <div className="text-center text-slate-300 text-sm">
        {clock-(room.phaseStartedAt||clock)>=75000?
          <button disabled={busy} type="button" onClick={()=>runAction(onFinalizeEvent)}
@@ -141,11 +144,11 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
    {isVictory&&<BattleReportPanel report={room.battleReport} players={room.players}/>}
    {error&&<p role="alert" className="rounded-xl border border-rose-500/70 bg-rose-950/40 p-3 text-rose-200">{error}</p>}
    <div className="flex flex-wrap justify-center gap-3 pb-8">
-    {isVictory&&(canLead?
+    {isVictory&&(canLeadNow?
       <button disabled={busy} onClick={()=>runAction(onClaimWin)}
         className="rounded-2xl bg-emerald-600 px-8 py-4 font-black text-lg hover:bg-emerald-500 disabled:opacity-50">🎁 Raccogli le ricompense di squadra</button>:
       <p className="rounded-xl border border-slate-700 bg-slate-900 p-4 text-slate-300">In attesa che l'host raccolga le ricompense…</p>)}
-    {stage==='coop_camp'&&(canLead?
+    {stage==='coop_camp'&&(canLeadNow?
       <button disabled={busy} onClick={()=>runAction(onNext)}
        className="rounded-2xl bg-gradient-to-r from-fuchsia-600 to-indigo-600 px-8 py-4 font-black text-lg hover:brightness-110 disabled:opacity-50">
        ⚔️ Affronta il piano {run.floor||1}</button>:
