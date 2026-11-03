@@ -143,8 +143,9 @@ function resolveEffect(event, choiceId, coins, relics, nextBattlePower) {
 }
 
 export function applySoloRogueChoice(run, choiceId, rosterDb) {
-  if (!run?.pendingEvent || run.pendingEvent.floor !== run.floor)
-    throw new Error('Non c’è nessun incontro da risolvere.');
+  // Un doppio clic durante il rendering non deve applicare l'evento due volte
+  // né generare un errore React: la seconda scelta non cambia lo stato.
+  if (!run?.pendingEvent || run.pendingEvent.floor !== run.floor) return run;
   const out = resolveEffect(run.pendingEvent,choiceId,run.coins,run.relics,run.nextBattlePower);
   const rosterStats = out.heal ? adjustSoloHp(run.rosterStats,run.roster,rosterDb,out.heal,false)
     : out.damage ? adjustSoloHp(run.rosterStats,run.roster,rosterDb,out.damage,true)
