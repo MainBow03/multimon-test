@@ -1,33 +1,15 @@
-import {coopEnemyForFloor} from '../../systems/coopExpedition.js';
+// Scelte e avvio sono preparati atomicamente da Firestore nell'host.
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderRoguelikeCoopLobbyView(ctx) {
-const { ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Loader2, Wifi, appMode, coopRoomId, gameState, getDefaultAvatar, playerRole, setAppMode, setCoopRoomId, leaveRoom, updateState } = ctx;
+const { ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Loader2, Wifi, appMode, coopRoomId, gameState, getDefaultAvatar, playerRole, setAppMode, setCoopRoomId, leaveRoom, startCoopDraft } = ctx;
 if (appMode === 'roguelike_coop_lobby') {
         const isHost = playerRole === 'p1';
 
         const handleStartSpedizione = () => {
-            if(gameState.status!=='lobby')return;
-            if(!gameState.players.p2)return;
-            const baseRoster = gameState.settings.fusionMode ? FUSION_CHARACTERS : CHARACTERS;
-            const draftable = baseRoster.filter(c => !c.isSummonOnly && !c.isSecretUnlock);
-            
-            let updates = { status: 'drafting' };
-            
-            // Genera le 3 scelte per il draft contemporaneo per tutti i giocatori presenti
-            ['p1', 'p2', 'p3'].forEach(p => {
-                if (gameState.players[p]) {
-                    const shuffled = [...draftable].sort(() => 0.5 - Math.random());
-                    updates[`draftChoices.${p}`] = shuffled.slice(0, 3);
-                    updates[`draftRerolls.${p}`] = 2;
-                }
+            if(!isHost||gameState.status!=='lobby'||!gameState.players.p2)return;
+            Promise.resolve(startCoopDraft()).catch(error=>{
+              console.error('Avvio spedizione fallito:',error);
             });
-
-            // Assegna il primo mostro nemico a p4
-            const humanCount=['p1','p2','p3'].filter(p=>gameState.players[p]).length;
-            const enemy = coopEnemyForFloor(1,draftable,humanCount,[]);
-            updates['draft.p4'] = [enemy];
-
-            updateState(updates);
         };
 
         return (
