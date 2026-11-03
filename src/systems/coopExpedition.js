@@ -222,7 +222,13 @@ export function chooseCoopEventWinner(event,votes,humans){
  ranked.sort((a,b)=>b.count-a.count);
  if(ranked.length>1&&ranked[0].count===ranked[1].count&&choices.includes(votes.p1))
    return votes.p1;
- return ranked[0].count?ranked[0].id:choices[choices.length-1];
+ if(ranked[0].count)return ranked[0].id;
+ // Se nessuno vota, evita automaticamente il sentiero più rischioso.
+ if(event?.altType){
+   const safety={merchant:4,trainer:3,chest:2,bargain:1};
+   return (safety[event.type]||0)>=(safety[event.altType]||0)?'pathA':'pathB';
+ }
+ return choices[choices.length-1];
 }
 
 /** Recovery: dopo 75s l'host (o chi lo sostituisce) può chiudere il voto.
