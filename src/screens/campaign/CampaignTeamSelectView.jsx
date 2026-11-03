@@ -5,6 +5,7 @@ import { applyStrengthToFighter, canTrainCharacter } from '../../systems/strengt
 import { finalRaidBossStats, rebalanceSavedFinalRaidBoss } from '../../systems/finalRaidBalance.js';
 import { accumulateBattleReport } from '../../systems/battleReport.js';
 import { applyEchoRouteToTeam } from '../../systems/echoRoutes.js';
+import { echoRaidStarters, toggleEchoRaidStarter, orderEchoRaidRoster, isCompleteEchoRaidLineup, ECHO_ACTIVE_LIMIT } from '../../systems/echoRaidLineup.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
 const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
@@ -31,6 +32,7 @@ if (appMode === 'campaign_team_select') {
         const mission = sector.missions[campaignState.missionIdx] || sector.missions[0];
         const isEchoFinalRaid = activeCampaignId === 'eco_anime' && mission.echoFinal;
         if (isEchoFinalRaid) maxTeamSize = 24;
+        const echoStartingSix = isEchoFinalRaid ? echoRaidStarters(campaignSelectedTeam,campaignState.echoStartingSix) : [];
         const activeBosses = mission.isAnomaly && mission.id === 'm12_5' && campaignState.anomalyTargets && campaignState.anomalyTargets.length > 0 ? campaignState.anomalyTargets : mission.boss;
 
         const showSelectionDialogue = (charId, isDeselect = false) => {
@@ -288,6 +290,16 @@ if (appMode === 'campaign_team_select') {
             }
 
             if (mission.forcedRoster) {
+                // Tutti e 24 restano arruolati: al raid puoi scegliere soltanto
+                // quali SEI iniziano in campo, gli altri sono riserve.
+                if(isEchoFinalRaid){
+                    setCampaignState(prev=>({
+                        ...prev,
+                        echoStartingSix:toggleEchoRaidStarter(campaignSelectedTeam,
+                            prev.echoStartingSix ?? campaignSelectedTeam.slice(0,ECHO_ACTIVE_LIMIT),id)
+                    }));
+                    return;
+                }
                 setSystemAlert("Questa missione richiede una squadra fissa per motivi di trama!");
                 return;
             }
@@ -319,6 +331,8 @@ if (appMode === 'campaign_team_select') {
             if (campaignSelectedTeam.length === 0) return setSystemAlert("Seleziona almeno un personaggio!");
             if (isEchoFinalRaid && (campaignSelectedTeam.length !== 24 || !campaignState.roster.every(id=>campaignSelectedTeam.includes(id))))
                 return setSystemAlert('Il raid contro Echomax richiede tutti i 24 membri della Resistenza!');
+            if(isEchoFinalRaid && !isCompleteEchoRaidLineup(campaignSelectedTeam,echoStartingSix))
+                return setSystemAlert('Scegli esattamente 6 titolari. Gli altri 18 resteranno disponibili per le sostituzioni!');
             
             if (activeCampaignId === 'torneo_assoluto') {
                 if (campaignState.roster.length > maxTeamSize && campaignSelectedTeam.length !== maxTeamSize) {
@@ -343,7 +357,8 @@ if (appMode === 'campaign_team_select') {
                 }));
             }
             
-            const p1Team = campaignSelectedTeam.map(id => {
+            const battleRoster = isEchoFinalRaid ? orderEchoRaidRoster(campaignSelectedTeam,echoStartingSix) : campaignSelectedTeam;
+            const p1Team = battleRoster.map(id => {
                 const baseChar = CHARACTERS.find(c => c.id === id);
                 if (!baseChar) return null; // FIX: Previene crash fatali
                 const hp = campaignState.rosterStats[id] || 100;
@@ -502,7 +517,7 @@ if (appMode === 'campaign_team_select') {
                     }
 
                     if(isEchoFinalRaid && charInst.id==='echomax'){
-                        // Echomax affronta 24 campioni contemporaneamente.
+                        // Echomax affronta sei campioni per volta e fino a 24 nell'intero raid.
                         charInst.isEchoRaidBoss=true;
                         charInst.isJuggernaut=true;
                         charInst.juggHitsRemaining=0;
@@ -525,9 +540,12 @@ if (appMode === 'campaign_team_select') {
             state.isEchoFinalBattle = isEchoFinalRaid;
             state.campaignBattleId = mission.id;
             
-            // MODIFICA REGOLE ARENA: Se è il torneo assoluto, forza 6 in campo (6vs6). Altrimenti logica standard.
+            // La battaglia usa il motore classico: 6 titolari, 18 in panchina.
+            // Gli altri incontri della campagna mantengono le loro regole standard.
             let fSize = 1;
-            if (activeCampaignId === 'torneo_assoluto') {
+            if (isEchoFinalRaid) {
+                fSize = ECHO_ACTIVE_LIMIT;
+            } else if (activeCampaignId === 'torneo_assoluto') {
                 fSize = 6;
             } else {
                 fSize = Math.min(4, Math.max(p1Team.length > 4 ? 4 : p1Team.length, p2Team.length));
@@ -614,13 +632,19 @@ if (appMode === 'campaign_team_select') {
 
                 <div className="flex-1 flex flex-col items-center justify-center mt-6 w-full z-10">
                     <h2 className="text-4xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500 text-center">
-                        {mission.forcedRoster 
+                        {isEchoFinalRaid
+                            ? `Scegli i 6 titolari (${echoStartingSix.length}/6)`
+                            : mission.forcedRoster
                             ? "Squadra Tattica Obbligatoria!"
                             : (activeCampaignId === 'torneo_assoluto' && campaignState.roster.length <= maxTeamSize 
                                 ? `Schiera i tuoi Campioni (${campaignSelectedTeam.length}/${Math.min(maxTeamSize, campaignState.roster.filter(id => campaignState.rosterStats[id] > 0).length)})` 
                                 : `Seleziona la tua Resistenza (${campaignSelectedTeam.length}/${maxTeamSize})`
                             )
                         }
+                        {isEchoFinalRaid && <span className="block text-base text-cyan-300 mt-3">
+                            Tutti i 24 Multimon partecipano: 6 iniziano in campo e 18 restano in panchina.
+                            Tocca i ritratti per scegliere i titolari. Durante la battaglia potrai cambiarli normalmente.
+                        </span>}
                         {activeCampaignId === 'torneo_assoluto' && campaignState.roster.length > maxTeamSize && !mission.forcedRoster && <span className="block text-sm text-indigo-400 mt-2">Forma l'Alleanza fissa da 8 (5 Membri + 3 Riserve)</span>}
                     </h2>
                     
@@ -691,6 +715,7 @@ if (appMode === 'campaign_team_select') {
                             const hp = campaignState.rosterStats[id] || 0;
                             const isDead = hp <= 0;
                             const isSelected = campaignSelectedTeam.includes(id);
+                            const isStarting = isEchoFinalRaid && echoStartingSix.includes(id);
                             const isAnomalyTarget = mission.isAnomaly && mission.id === 'm12_5' && campaignState.anomalyTargets && campaignState.anomalyTargets.includes(id);
 
                             return (
@@ -703,9 +728,9 @@ if (appMode === 'campaign_team_select') {
                                         }
                                         toggleChar(id);
                                     }}
-                                    className={`relative overflow-hidden bg-slate-900/80 backdrop-blur-md border rounded-2xl p-4 text-center transition-all duration-300 ${isDead ? 'opacity-50 grayscale border-rose-900 cursor-not-allowed' : isAnomalyTarget ? 'border-fuchsia-500 opacity-50 cursor-not-allowed' : isSelected ? 'border-emerald-400 bg-emerald-900/30 scale-105 shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'border-slate-700/50 hover:border-cyan-500/50 hover:-translate-y-1 cursor-pointer shadow-lg'}`}
+                                    className={`relative overflow-hidden bg-slate-900/80 backdrop-blur-md border rounded-2xl p-4 text-center transition-all duration-300 ${isDead ? 'opacity-50 grayscale border-rose-900 cursor-not-allowed' : isAnomalyTarget ? 'border-fuchsia-500 opacity-50 cursor-not-allowed' : isEchoFinalRaid ? (isStarting ? 'border-amber-300 bg-amber-900/25 shadow-[0_0_18px_rgba(251,191,36,0.3)] cursor-pointer':'border-slate-600/80 hover:border-cyan-400 cursor-pointer') : isSelected ? 'border-emerald-400 bg-emerald-900/30 scale-105 shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'border-slate-700/50 hover:border-cyan-500/50 hover:-translate-y-1 cursor-pointer shadow-lg'}`}
                                 >
-                                    <img src={char.img} alt={char.name} className={`w-16 h-16 rounded-full object-cover mx-auto mb-3 border-2 ${isSelected ? 'border-emerald-400' : 'border-slate-600/50'}`} />
+                                    <img src={char.img} alt={char.name} className={`w-16 h-16 rounded-full object-cover mx-auto mb-3 border-2 ${isEchoFinalRaid ? (isStarting?'border-amber-300':'border-slate-600') : isSelected ? 'border-emerald-400' : 'border-slate-600/50'}`} />
                                     <h4 className="font-bold text-sm mb-2 truncate text-slate-100">{char.name}</h4>
                                     <div className="flex flex-wrap gap-1 justify-center mb-3">
                                         {char.types.map(t => (
@@ -714,7 +739,9 @@ if (appMode === 'campaign_team_select') {
                                     </div>
                                     {renderHealthBar(hp, char.maxHp)}
                                     
-                                    {isSelected && (
+                                    {isEchoFinalRaid && <div className={`mt-3 text-[11px] font-black uppercase tracking-wide ${isStarting?'text-amber-300':'text-slate-400'}`}>{isStarting?'In campo':'Riserva'}</div>}
+                                    {isStarting && <div className="absolute top-2 right-2 bg-amber-400 text-black rounded-full px-2 py-0.5 font-black text-xs shadow-md">{echoStartingSix.indexOf(id)+1}</div>}
+                                    {isSelected && !isEchoFinalRaid && (
                                         <div className="absolute top-2 right-2 bg-emerald-500 text-white rounded-full w-5 h-5 flex items-center justify-center font-black text-xs shadow-md">✓</div>
                                     )}
                                     {isAnomalyTarget && (
