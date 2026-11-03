@@ -132,7 +132,18 @@ if (gameState.status === 'drafting') {
                          )}
 
                          {allReady && appMode === 'online_room' && playerRole !== 'p1' && (
-                                 <p className="text-emerald-400 animate-pulse flex items-center gap-3 text-xl bg-slate-900/50 px-8 py-4 rounded-xl"><Loader2 className="animate-spin"/> Tutti pronti! In attesa dell'Host...</p>
+                            gameState.isRoguelikeCoop ? (
+                              <div className="flex flex-col items-center gap-3">
+                                <p className="text-emerald-400 text-center text-lg">Tutti pronti! L'host può avviare la spedizione.</p>
+                                <button onClick={startBattle}
+                                  className="rounded-xl bg-indigo-700 hover:bg-indigo-600 px-6 py-3 font-bold text-white">
+                                  Avvia se l'host si è disconnesso
+                                </button>
+                                <p className="max-w-md text-center text-xs text-slate-400">Disponibile dopo 45 secondi senza presenza dell'host. La stanza verifica l'autorizzazione.</p>
+                              </div>
+                            ) : (
+                              <p className="text-emerald-400 animate-pulse flex items-center gap-3 text-xl bg-slate-900/50 px-8 py-4 rounded-xl"><Loader2 className="animate-spin"/> Tutti pronti! In attesa dell'Host...</p>
+                            )
                          )}
                     </div>
                 ) : (
