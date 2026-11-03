@@ -338,7 +338,7 @@ export const ECHO_CAMPAIGN={
  intro:{
    title:"L'Eco delle Anime",subtitle:"Prologo: Il silenzio della Resistenza",
    p1:"Cinquecento anni fa gli dèi sigillarono Echomax, un'entità che voleva trasformare ogni anima in un burattino. Durante la sconfitta di Trigon e Gaster, il sigillo si incrinò. L'essere risvegliò un'eco malvagia dell'anima di Trigon e cominciò a muoversi nell'ombra.",
-   p2:"Tre mesi dopo il Torneo Assoluto, Finn e Topolino scompaiono. La vecchia Resistenza è dissolta; Jake e Marceline devono trovare i superstiti, liberare le anime catturate e scoprire la verità. Tutti i 24 alleati combatteranno insieme nella battaglia finale."
+   p2:"Tre mesi dopo il Torneo Assoluto, Finn e Topolino scompaiono. La vecchia Resistenza è dissolta; Jake e Marceline devono trovare i superstiti, liberare le anime catturate e scoprire la verità. Nell'ultima battaglia avrai tutti i 24 alleati a disposizione: 6 in campo per volta e 18 riserve, con i normali cambi della campagna."
  },
  sectors:chapters.map((chapter,chapterIdx)=>({
    name:chapter.name,description:chapter.description,bg:chapter.bg,
