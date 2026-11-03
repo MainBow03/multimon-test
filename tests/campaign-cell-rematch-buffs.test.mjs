@@ -64,13 +64,13 @@ test('il codice di avvio e il renderer ripristinano comandi e azzerano il filmat
   assert.match(select,/Number\(savedC.hp\) > 0/);
 });
 
-test('i tre potenziamenti restano piccoli e rispettano i valori concordati',()=>{
+test('i potenziamenti di Carlos restano invariati; Kevin e Spyro seguono il nuovo bilanciamento',()=>{
   const byId=id=>CHARACTERS.find(c=>c.id===id);
   assert.equal(byId('carlos').atk,100);
   assert.equal(byId('carlos').spd,80);
-  assert.equal(byId('kevin').atk,100);
-  assert.equal(MOVES_DB['Pugno Minerale'].power,80);
-  assert.equal(byId('spyro').hp,95);
-  assert.equal(byId('spyro').maxHp,95);
-  assert.equal(byId('spyro').def,75);
+  assert.equal(byId('kevin').atk,112);
+  assert.equal(MOVES_DB['Pugno Minerale'].power,92);
+  assert.equal(byId('spyro').hp,110);
+  assert.equal(byId('spyro').maxHp,110);
+  assert.equal(byId('spyro').def,85);
 });
