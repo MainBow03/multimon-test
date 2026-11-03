@@ -712,7 +712,7 @@ export const MOVES_DB = {
           'Caos Totale': { name: 'Caos Totale', type: 'Oscuro', power: 95, targetCount: 4, removeBuffs: true, desc: 'Azzera i potenziamenti di tutti i nemici in campo e infligge ingenti danni.' },
           'Cancellazione': { name: 'Cancellazione', type: 'Psico', power: 250, maxUses: 1, ignoreDefBuffs: true, desc: 'Cancella letteralmente l\'esistenza del bersaglio. Danni cosmici, usabile 1 sola volta.' },
           'Giochiamo!': { name: 'Giochiamo!', type: 'Normale', power: 0, targetMode: 'team', targetStatBuff: { atk: 1.5, spd: 1.5 }, desc: 'Zeno vuole divertirsi! Aumenta Attacco e Velocità di tutto il suo team del 50%.' },
-          'Sguardo Onnipotente': { name: 'Sguardo Onnipotente', type: 'Psico', power: 0, targetCount: 4, targetStatDebuff: { atk: 0.5, def: 0.5, spd: 0.5 }, maxUses: 2, desc: 'Uno sguardo che terrorizza gli universi. Dimezza tutte le statistiche dei nemici.' },
+          'Sguardo Onnipotente': { name: 'Sguardo Onnipotente', type: 'Psico', power: 75, targetCount: 2, targetStatDebuff: { atk: 0.5, def: 0.5, spd: 0.5 }, maxUses: 2, desc: 'Uno sguardo cosmico che infligge danni (potenza 75) fino a due bersagli a scelta e dimezza Attacco, Difesa e Velocità dei bersagli colpiti. Massimo 2 utilizzi per battaglia.' },
 
           // NUOVE MOSSE PERIDOT E SHINOBU
           'Dita Laser': { name: 'Dita Laser', type: 'Robot', power: 30, multiHit: { min: 2, max: 4 }, desc: 'Spara raffiche laser dai suoi potenziamenti. Colpisce da 2 a 4 volte.' },

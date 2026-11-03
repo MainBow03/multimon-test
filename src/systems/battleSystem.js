@@ -1,5 +1,6 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
 import { applyBattleStatModifier } from './statBalance.js';
+import { applyPerfezioneBonus, firstHitProtectionFactor } from './nerfPassives.js';
 import { isOnlineHealingLimited, isLimitedHealingItem, onlineHealingRemaining, ONLINE_HEAL_ITEM_LIMIT } from './onlineHealingLimit.js';
 import { consumeRaidShieldHit, createRaidShieldUpdateEvent, applyRaidShieldUpdateEvent } from './finalRaidBalance.js';
 import { createBattleReport, accumulateBattleReport } from './battleReport.js';
@@ -1893,8 +1894,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     if (action.targetPlayer && action.targetIdx !== undefined) {
                         const intendedTarget = workingTeams[action.targetPlayer]?.[action.targetIdx];
                         if (intendedTarget && intendedTarget.passive && intendedTarget.passive.type === 'perfezione_assoluta' && intendedTarget.hp > 0) {
-                            applyBattleStatModifier(intendedTarget, 'def', 1.2);
-                            events.push({ type: 'text', text: `✨ ${intendedTarget.name} attiva ${intendedTarget.passive.name}! Schiva con eleganza e aumenta la sua Difesa del 20%!`, isPassive: true, passiveChar: intendedTarget.name, passiveName: intendedTarget.passive.name });
+                            if (applyPerfezioneBonus(intendedTarget,'def'))
+                                events.push({ type: 'text', text: `✨ ${intendedTarget.name} attiva ${intendedTarget.passive.name}! Schiva e aumenta la Difesa del 15%! (massimo 2 volte)`, isPassive: true, passiveChar: intendedTarget.name, passiveName: intendedTarget.passive.name });
                         }
                     }
                     continue;
@@ -2148,7 +2149,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
 
                     let isInvincibleShield = false;
                     let isPerfectBarrier = false;
-                    let isFirstHitImmunity = false; // AGGIUNTO PER DIAMANTE BIANCO
+                    let isFirstHitProtection = false; // Diamante Bianco: il primo attacco è ridotto, non annullato
 
                     // Elusione individuale: una mossa con precisione 100% contro Bugs
                     // colpisce solo nell'80% dei casi dopo un uso di Dentro la Tana.
@@ -2170,11 +2171,12 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             isPerfectBarrier = true;
                         }
                     }
-                    if (t.char.passive && t.char.passive.type === 'first_hit_immunity' && !t.char.firstHitImmunityUsed && isEnemyTarget) {
-                        isFirstHitImmunity = true;
+                    if (t.char.passive?.type === 'first_hit_immunity' && !t.char.firstHitImmunityUsed &&
+                        isEnemyTarget && !bypassEnemyShields) {
+                        isFirstHitProtection = true;
                     }
 
-                    if (!bypassEnemyShields && (isProtectedFromEnemy || isInvincibleShield || isPerfectBarrier || isFirstHitImmunity)) {
+                    if (!bypassEnemyShields && (isProtectedFromEnemy || isInvincibleShield || isPerfectBarrier)) {
                         if (isProtectedFromEnemy) {
                             events.push({ type: 'text', text: `🛡️ ${t.char.name} si è protetto dall'attacco di ${attacker.name}!` });
                             if (t.char.statuses.some(s => s.type === 'Rashield') && attacker.hp > 0 && move.power > 0) {
@@ -2186,12 +2188,13 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             events.push({ type: 'text', text: `🛡️ Lo Scudo Invincibile blocca l'attacco su ${t.char.name}! Sconfiggi Natsu o Po prima!` });
                         } else if (isPerfectBarrier) {
                             events.push({ type: 'text', text: `🛡️ La Barriera Perfetta protegge Cell! Sconfiggi prima tutti i Cell Jr.!` });
-                        } else if (isFirstHitImmunity) {
-                            t.char.firstHitImmunityUsed = true;
-                            events.push({ type: 'text', text: `💎 ${t.char.name} attiva ${t.char.passive.name}! Il primo attacco contro di lei viene completamente annullato!`, isPassive: true, passiveChar: t.char.name, passiveName: t.char.passive.name });
                         }
                         attackSucceeded = true;
                         continue; // SCARTA TUTTO IL RESTO (Danni, status, debuff)
+                    }
+                    if (isFirstHitProtection) {
+                        t.char.firstHitImmunityUsed = true;
+                        events.push({ type: 'text', text: `💎 ${t.char.name} attiva ${t.char.passive.name}! Subisce il 70% di danni in meno dal primo attacco e blocca gli effetti negativi!`, isPassive: true, passiveChar: t.char.name, passiveName: t.char.passive.name });
                     }
                     
                     let superEffectiveResisted = false;
@@ -2209,8 +2212,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     else if (multiplier < 1 && multiplier > 0) {
                         effectivenessText = " Non è molto efficace...";
                         if (attacker.passive && attacker.passive.type === 'perfezione_assoluta' && attacker.hp > 0) {
-                            applyBattleStatModifier(attacker, 'atk', 1.2);
-                            events.push({ type: 'text', text: `✨ ${attacker.name} attiva ${attacker.passive.name}! La resistenza avversaria accende la sua lama: Attacco +20%!`, isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
+                            if (applyPerfezioneBonus(attacker,'atk'))
+                                events.push({ type: 'text', text: `✨ ${attacker.name} attiva ${attacker.passive.name}! La resistenza avversaria accende la sua lama: Attacco +15%! (massimo 2 volte)`, isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
                         }
                     }
                     else if (multiplier === 0) effectivenessText = " Non ha alcun effetto!";
@@ -2248,6 +2251,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             dmg = Math.max(1, Math.floor(t.char.maxHp * move.percentDmgMax));
                         }
                         if (isRedirectedDmgReduced) dmg = Math.max(1, Math.floor(dmg * 0.5));
+                        if (isFirstHitProtection) dmg = Math.max(1,Math.floor(dmg * firstHitProtectionFactor(t.char,true)));
                         
                         // --- PASSIVA RIDUZIONE DANNO IN BASE ALLA MOSSA SCELTA ---
                         if (t.char.passive && t.char.passive.type === 'damage_reduction_on_move') {
@@ -2332,8 +2336,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             if (isCritical && i === 0) {
                                 events.push({ type: 'text', text: `💥 BOOM! Colpo Critico di ${attacker.name}!` });
                                 if (attacker.passive && attacker.passive.type === 'perfezione_assoluta' && attacker.hp > 0) {
-                                    applyBattleStatModifier(attacker, 'spd', 1.2);
-                                    events.push({ type: 'text', text: `✨ ${attacker.name} attiva ${attacker.passive.name}! Il colpo perfetto aumenta la sua Velocità del 20%!`, isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
+                                    if (applyPerfezioneBonus(attacker,'spd'))
+                                        events.push({ type: 'text', text: `✨ ${attacker.name} attiva ${attacker.passive.name}! Il colpo perfetto aumenta la sua Velocità del 15%! (massimo 2 volte)`, isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
                                 }
                             }
 
@@ -2373,6 +2377,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             }
                             // -----------------------------------------------------------
 
+                            if (isFirstHitProtection) hitDmg = Math.max(1,Math.floor(hitDmg * firstHitProtectionFactor(t.char,true)));
                             // --- GESTIONE CURE SU ALLEATI CON DANNO (es. Tempesta di Farfalle) ---
                             if (!isEnemyTarget && move.healAlliesByDamage) {
                                 const healAmount = hitDmg;
@@ -2385,7 +2390,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             totalDmg += hitDmg;
                             actualHits++;
                             
-                            if (move.hitStatDebuff && !immuneToStatDrops(t.char) && Math.random() < move.hitStatDebuff.chance) {
+                            if (move.hitStatDebuff && !isFirstHitProtection && !immuneToStatDrops(t.char) && Math.random() < move.hitStatDebuff.chance) {
                                 let statTexts = [];
                                 if (move.hitStatDebuff.def) { applyBattleStatModifier(t.char, 'def', move.hitStatDebuff.def); statTexts.push("la Difesa"); }
                                 if (move.hitStatDebuff.atk) { 
@@ -2430,7 +2435,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText}${hitText}${magText}${groppaText} Infligge ${totalDmg} danni.${shieldTxt}`, {directAttack:true,directHits:Math.max(0,actualHits-juggHitsAbsorbed),bypassShields:bypassEnemyShields,superEffective:multiplier>1});
                             if(markCompassOnHit(attacker,t.char,victimHpBeforeHit,totalDmg))
                               events.push({type:'text',text:`🧭 Bussola del Predatore di ${attacker.name}: colpo potenziato contro bersaglio indebolito!`});
-                            if(isEnemyTarget && t.char.hp>0 && (t.char.damageTakenThisTurn||0)>previousDamageTaken){
+                            if(isEnemyTarget && !isFirstHitProtection && t.char.hp>0 && (t.char.damageTakenThisTurn||0)>previousDamageTaken){
                               if(activateCupidArrow(attacker,move,t.char)){
                                 updateStatusUI(t.player,t.idx);
                                 events.push({type:'text',text:`💘 Freccia di Cupido! ${t.char.name} è infatuato!`});
@@ -2445,7 +2450,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                                 events.push({type:'text',text:`🧴 Spray Neutralizzante di ${t.char.name}: rimuove ${cleared.join(', ')}!`});
                               }
                             }
-                            if (canDistortSoul(attacker, move, t.char) && !t.char.statuses.some(s => s.type === 'Anima Distorta')) {
+                            if (!isFirstHitProtection && canDistortSoul(attacker, move, t.char) && !t.char.statuses.some(s => s.type === 'Anima Distorta')) {
                                 t.char.statuses.push({ type: 'Anima Distorta', turns: 99 });
                                 updateStatusUI(t.player, t.idx);
                                 events.push({ type: 'text', text: `👁️ ${attacker.name} distorce l'anima di ${t.char.name}! Perde il 5% dei PS ogni turno e subisce più danni da Mahito.` });
@@ -2493,7 +2498,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             events.push({ type: 'damage', text: `${attacker.name} assorbe energia e recupera ${healAmount} HP!`, targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp });
                         }
 
-                        if (move.targetStatDebuff && t.char.hp > 0 && !immuneToStatDrops(t.char)) {
+                        if (move.targetStatDebuff && !isFirstHitProtection && t.char.hp > 0 && !immuneToStatDrops(t.char)) {
                             let statTexts = [];
                             if (move.targetStatDebuff.atk) { 
                                 if (t.char.passive && t.char.passive.type === 'immune_to_atk_debuff') {
@@ -2512,7 +2517,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                         }
 
                         // LOGICA RIMOZIONE POTENZIAMENTI
-                        if (move.removeBuffs && t.char.hp > 0 && !immuneToStatDrops(t.char)) {
+                        if (move.removeBuffs && !isFirstHitProtection && t.char.hp > 0 && !immuneToStatDrops(t.char)) {
                             let removed = false;
                             if (t.char.atk > t.char.baseAtk) { t.char.atk = t.char.baseAtk; removed = true; }
                             if (t.char.def > t.char.baseDef) { t.char.def = t.char.baseDef; removed = true; }
@@ -2527,7 +2532,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             events.push({ type: 'text', text: `${attacker.name} usa ${move.name} su ${t.char.name}!` });
                         }
                         
-                        if (move.targetStatDebuff && t.char.hp > 0 && !immuneToStatDrops(t.char)) {
+                        if (move.targetStatDebuff && !isFirstHitProtection && t.char.hp > 0 && !immuneToStatDrops(t.char)) {
                             let statTexts = [];
                             if (move.targetStatDebuff.atk) { 
                                 if (t.char.passive && t.char.passive.type === 'immune_to_atk_debuff') {
@@ -2560,7 +2565,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     }
 
                     // --- PASSIVA ON_KO (Zabuza, Brago, Juri) ---
-                    if (wasAlive && t.char.hp <= 0 && attacker.hp > 0 && attacker.passive && attacker.passive.type === 'on_ko') {
+                    if (wasAlive && t.char.hp <= 0 && attacker.hp > 0 && attacker.passive && attacker.passive.type === 'on_ko' &&
+                        (attacker.passive.maxUses === undefined || (attacker.passiveUses||0) < attacker.passive.maxUses)) {
+                        attacker.passiveUses = (attacker.passiveUses||0)+1;
                         if (attacker.passive.statBuff) {
                             let statTexts = [];
                             if (attacker.passive.statBuff.atk) { applyBattleStatModifier(attacker, 'atk', attacker.passive.statBuff.atk); statTexts.push("Attacco"); }
@@ -2682,7 +2689,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             }
                         }
 
-                        if (move.stealMove && t.char.hp > 0 && t.char.moves.length > 0) {
+                        if (move.stealMove && !isFirstHitProtection && t.char.hp > 0 && t.char.moves.length > 0) {
                             const randomMoveIdx = Math.floor(Math.random() * t.char.moves.length);
                             const stolenMove = t.char.moves[randomMoveIdx];
                             t.char.moves.splice(randomMoveIdx, 1);
@@ -2697,7 +2704,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             // FIX CRITICO: Se la mossa non ha una "chance" specificata, assumiamo che sia 1.0 (100% garantita)!
                             const chanceToApply = boostedStatusChance(attacker,effect.chance !== undefined ? effect.chance : 1.0);
                             
-                            if (isNegative && t.char.passive && t.char.passive.immuneToNegativeStatuses) {
+                            if (isNegative && (isFirstHitProtection || t.char.passive?.immuneToNegativeStatuses)) {
                                 if (Math.random() < chanceToApply) {
                                     events.push({ type: 'text', text: `🛡️ ${t.char.name} resiste a ${effect.type} grazie a ${t.char.passive.name}!`, isPassive: true, passiveChar: t.char.name, passiveName: t.char.passive.name });
                                 }
