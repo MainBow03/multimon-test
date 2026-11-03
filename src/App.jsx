@@ -778,6 +778,19 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                       return; 
                   }
                   
+                  if(gameState.isRoguelikeCoop){
+                      // Il bottino della Co-op è SOLO quello condiviso nel documento Firestore.
+                      // Non assegnare 110 monete del Juggernaut per ogni piano e
+                      // non sovrascrivere lo zaino del profilo globale.
+                      const won=gameState.winner!==gameState.players.p4 && gameState.winner!=='Pareggio';
+                      if(myKey && masteryIds.length){
+                          statsUpdates.masteryIds=masteryIds;
+                          statsUpdates.masteryWon=won;
+                      }
+                      if(won)statsUpdates.win=true;
+                      if(Object.keys(statsUpdates).length)updateLocalStats(statsUpdates);
+                      return;
+                  }
                   if (myKey && gameState.inventory[myKey] && !gameState.isRoguelikeBattle) { // FIX: Ignora l'inventario del roguelike per non sovrascrivere quello globale
                       statsUpdates.overwriteInventory = gameState.inventory[myKey];
                   }
@@ -863,8 +876,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           }, [gameState.status, hasRewarded, playerName, gameState.winner, gameState.gameMode, gameState.tournamentResults, gameState.settings.teamSize, gameState.inventory, gameState.players, gameState.isCampaignBattle]);
 
           useEffect(() => {
-              const saveableModes = ['local_room', 'online_room'];
-              if (appMode==='online_room' && (!user?.uid || !roomId || !playerRole)) return;
+              const saveableModes = ['local_room', 'online_room', 'roguelike_coop_lobby'];
+              if ((appMode==='online_room'||appMode==='roguelike_coop_lobby') && (!user?.uid || !roomId || !playerRole)) return;
               if (saveableModes.includes(appMode)) {
                   localStorage.setItem(ROOM_SESSION_KEY, JSON.stringify({
                       appMode,
