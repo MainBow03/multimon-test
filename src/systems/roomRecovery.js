@@ -58,6 +58,20 @@ export function phaseIsStale(room,now=Date.now(),observedAt=null){
  return Number.isFinite(base)&&now-base>ROOM_PHASE_TIMEOUT_MS;
 }
 export function resolveMultiplayerWinner(room,players){
+ // Un turno può venire interrotto dopo un KO (refresh, host offline):
+ // anche il Juggernaut Co-op deve essere in grado di calcolare il vincitore
+ // in recupero, altrimenti rimane in "battling" senza avversari validi.
+ if(room?.isRoguelikeCoop && room.gameMode==='juggernaut'){
+  const boss=room.settings?.juggernautPlayer||'p4';
+  const humans=['p1','p2','p3'].filter(p=>p!==boss && room.players?.[p] && !room.isBot?.[p]);
+  const hasAlive=p=>(room.teams?.[p]||[]).some(playable);
+  const bossAlive=hasAlive(boss);
+  const alliesAlive=humans.some(hasAlive);
+  if(bossAlive&&alliesAlive)return null;
+  if(!bossAlive&&!alliesAlive)return 'Pareggio';
+  if(bossAlive)return room.players?.[boss]||'Guardiano del Piano';
+  return humans.map(p=>room.players[p]).join(' & ');
+ }
  if(!['classica','multipla'].includes(room.gameMode))return null;
  const alive=p=>(room.teams?.[p]||[]).some(playable);
  const teamA=room.gameMode==='multipla'?['p1','p2']:['p1'];
