@@ -49,8 +49,8 @@ export function addZodiacTrap(target,turns=3){
  if(!target || target.hp<=0 || target.passive?.immuneToNegativeStatuses)return false;
  target.statuses ||= [];
  const old=target.statuses.find(s=>s.type===ZODIAC_TRAP);
- if(old)old.turns=turns;
- else target.statuses.push({type:ZODIAC_TRAP,turns});
+ if(old){old.turns=turns;old.justApplied=true;}
+ else target.statuses.push({type:ZODIAC_TRAP,turns,justApplied:true});
  return true;
 }
 export function zodiacTrapSpeedFactor(character){
