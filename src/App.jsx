@@ -18,7 +18,7 @@ import { renderRoguelikeDraftView } from './screens/roguelike/RoguelikeDraftView
 import { renderRoguelikeMapView } from './screens/roguelike/RoguelikeMapView.jsx';
 import { renderRoguelikeCoopLobbyView } from './screens/roguelike/RoguelikeCoopLobbyView.jsx';
 import { RoguelikeCoopCampView } from './screens/roguelike/RoguelikeCoopCampView.jsx';
-import {prepareCoopDraft,finishCoopFloor,nextCoopFloor,coopCampPurchase} from './systems/coopExpedition.js';
+import {prepareCoopDraft,finishCoopFloor,nextCoopFloor,coopCampPurchase,voteCoopEvent,finalizeCoopEvent} from './systems/coopExpedition.js';
 import { renderShopView } from './screens/hub/ShopView.jsx';
 import { StrengthLabView } from './screens/hub/StrengthLabView.jsx';
 import { migrateCampaignChests } from './systems/campaignChests.js';
@@ -1445,6 +1445,10 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
         applyOnEnterPassive(char,p,idx,teams,field,events,ctx.gameMode,ctx.settings,false)));
     const buyCoopCampCare=(kind,targetPlayer,targetIdx)=>coopRoomAction(['coop_camp'],false,
       room=>coopCampPurchase(room,CHARACTERS,kind,targetPlayer,targetIdx));
+    const castCoopEventVote=choice=>coopRoomAction(['coop_event'],false,
+      room=>voteCoopEvent(room,playerRole,choice));
+    const closeCoopEventVote=()=>coopRoomAction(['coop_event'],true,
+      room=>finalizeCoopEvent(room));
 
     // --- RENDERERS ---
 
@@ -1595,11 +1599,12 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (gameState.isRoguelikeCoop &&
-       ['gameover','coop_camp','coop_complete'].includes(gameState.status)) {
+       ['gameover','coop_event','coop_camp','coop_complete'].includes(gameState.status)) {
       return <RoguelikeCoopCampView room={gameState} playerRole={playerRole}
         canLead={playerRole==='p1'||!isHostFresh(gameState)}
         onClaimWin={claimCoopFloor} onNext={startCoopNextFloor}
-        onPurchase={buyCoopCampCare} onExit={leaveRoom}/>;
+        onPurchase={buyCoopCampCare} onVoteEvent={castCoopEventVote}
+        onFinalizeEvent={closeCoopEventVote} onExit={leaveRoom}/>;
     }
 
     if (gameState.status === 'gameover') {
