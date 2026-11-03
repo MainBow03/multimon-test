@@ -1,3 +1,4 @@
+import {maybeRogueEvent,canChooseRogueEvent,applyCoopRogueChoice,getRogueEvent} from './roguelikeEvents.js';
 // Funzioni pure per la spedizione co-op. La stanza Firestore è la sola fonte di verità.
 export const COOP_HUMANS=['p1','p2','p3'];
 export const COOP_BOSS='p4';
@@ -121,11 +122,13 @@ export function finishCoopFloor(room,roster,random=Math.random){
    if(c.hp>0)c.hp=Math.min(c.maxHp,c.hp+Math.floor(c.maxHp*.4));
  const lastEnemies=[...new Set([...(run.encounteredEnemies||[]),...(room.teams?.p4||[]).filter(real).map(c=>c.id)])];
  const complete=floor>=COOP_MAX_FLOOR;
- return {status:complete?'coop_complete':'coop_camp',teams,
+ const nextEvent=complete?null:maybeRogueEvent(floor+1,COOP_MAX_FLOOR,run.relics||[],random);
+ return {status:complete?'coop_complete':nextEvent?'coop_event':'coop_camp',teams,
   coopRun:{...run,floor:complete?floor:floor+1,lastClearFloor:floor,
    coins:(run.coins||0)+coins,lastCoins:coins,lastRecruit:recruited,
    recruitBonus:recruited?0:Math.min(.55,Math.round(((run.recruitBonus||0)+.02)*100)/100),
-   encounteredEnemies:lastEnemies,finished:complete},
+   encounteredEnemies:lastEnemies,finished:complete,
+   pendingEvent:nextEvent,eventVotes:{},lastEventResult:null},
   phaseStartedAt:Date.now(),events:[],actions:emptyActions(),winner:null};
 }
 export function coopCampPurchase(room,roster,kind,player,idx){
@@ -160,8 +163,10 @@ export function nextCoopFloor(room,roster,applyOnEnter=null,random=Math.random){
  const humans=coopHumanPlayers(room);
  if(humans.length<2)throw new Error('Servono almeno due giocatori.');
  const teams={...structuredClone(room.teams)},field=emptyFields();
+ const relics=room.coopRun?.relics||[], nextBattlePower=room.coopRun?.nextBattlePower||1;
  for(const p of humans){
   teams[p]=(room.teams[p]||[]).filter(real).map(c=>freshCoopFighter(roster.find(b=>b.id===c.id)||c,c));
+  for(const c of teams[p]){c.rogueRelics=[...relics];c.roguePowerBonus=nextBattlePower;c.rogueShiftUsed=false;}
   const idx=teams[p].findIndex(c=>c.hp>0);
   if(idx>=0)field[p]=[idx];
  }
@@ -184,7 +189,53 @@ export function nextCoopFloor(room,roster,applyOnEnter=null,random=Math.random){
   hyperUsed:{p1:false,p2:false,p3:false,p4:false},
   pendingSwitches:{p1:0,p2:0,p3:0,p4:0},
   switchActions:{p1:[],p2:[],p3:[],p4:[]},switchZodiacChoices:{p1:{},p2:{},p3:{},p4:{}},
-  winner:null,coopRun:{...room.coopRun,lastRecruit:null,lastCoins:0},
+  winner:null,rogueRelics:[...relics],rogueDawnUsed:false,
+  coopRun:{...room.coopRun,nextBattlePower:1,lastRecruit:null,lastCoins:0},
   // Start fresh combat reports on each floor.
   battleReport:{version:1,turns:0,entries:{}}};
+}
+
+
+/** Ogni voto è salvato in una transazione Firestore. Vince la maggioranza;
+ * in parità decide l'host (p1). L'ultimo voto risolve l'evento in modo atomico.
+ */
+export function voteCoopEvent(room,player,choiceId){
+ if(!room?.isRoguelikeCoop||room.status!=='coop_event'||!room.coopRun?.pendingEvent)
+   throw new Error('Non ci sono eventi aperti.');
+ const humans=coopHumanPlayers(room);
+ if(!humans.includes(player))throw new Error('Non partecipi alla spedizione.');
+ const run=room.coopRun;
+ if(!canChooseRogueEvent(run.pendingEvent,choiceId,run.coins,run.relics))
+   throw new Error('Questa scelta non è disponibile.');
+ const votes={...(run.eventVotes||{}),[player]:choiceId};
+ if(humans.every(p=>votes[p])){
+   const chosen=chooseCoopEventWinner(run.pendingEvent,votes,humans);
+   return applyCoopRogueChoice({...room,coopRun:{...run,eventVotes:votes}},chosen);
+ }
+ return {coopRun:{...run,eventVotes:votes}};
+}
+
+export function chooseCoopEventWinner(event,votes,humans){
+ const choices=getRogueEvent(event)?.choices.map(c=>c.id)||[];
+ if(!choices.length)throw new Error('Evento sconosciuto.');
+ const ranked=choices.map(id=>({id,count:humans.filter(p=>votes[p]===id).length}));
+ ranked.sort((a,b)=>b.count-a.count);
+ if(ranked.length>1&&ranked[0].count===ranked[1].count&&choices.includes(votes.p1))
+   return votes.p1;
+ return ranked[0].count?ranked[0].id:choices[choices.length-1];
+}
+
+/** Recovery: dopo 75s l'host (o chi lo sostituisce) può chiudere il voto.
+ * Nessun voto viene inventato per conto di giocatori scollegati.
+ */
+export function finalizeCoopEvent(room,now=Date.now()){
+ if(!room?.isRoguelikeCoop||room.status!=='coop_event')
+   throw new Error('La votazione non è più aperta.');
+ if(now-(room.phaseStartedAt||now)<75000)
+   throw new Error('Attendi il termine del tempo per i voti.');
+ const humans=coopHumanPlayers(room);
+ const chosen=chooseCoopEventWinner(room.coopRun.pendingEvent,room.coopRun.eventVotes||{},humans);
+ if(!canChooseRogueEvent(room.coopRun.pendingEvent,chosen,room.coopRun.coins,room.coopRun.relics))
+   throw new Error('La scelta non è disponibile.');
+ return applyCoopRogueChoice(room,chosen);
 }
