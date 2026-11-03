@@ -1269,9 +1269,9 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           // --- INTELLIGENZA ARTIFICIALE CPU (Migliorata per Tutti i Bot) ---
           const generateCPUActionsForPlayer = (...__args) => generateCPUActionsForPlayerImpl({ gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, roguelikeState }, ...__args);
 
-          const commitAction = (...__args) => commitActionImpl({ appMode, commandingIdx, ITEMS_DB, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState }, ...__args);
+          const commitAction = (...__args) => commitActionImpl({ appMode, commandingIdx, ITEMS_DB, MOVES_DB, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState }, ...__args);
 
-          const handleSelectMoveTarget = (...__args) => handleSelectMoveTargetImpl({ commandingIdx, commitAction, gameState, getActivePlayers, getTournamentMatchOpponents, playerRole, selectedMultiTargets, setSelectedMultiTargets, targetingMoveIdx }, ...__args);
+          const handleSelectMoveTarget = (...__args) => handleSelectMoveTargetImpl({ commandingIdx, commitAction, gameState, getActivePlayers, getTournamentMatchOpponents, MOVES_DB, pendingHyper, playerRole, selectedMultiTargets, setSelectedMultiTargets, targetingMoveIdx }, ...__args);
 
           const checkTurnReady = (...__args) => checkTurnReadyImpl({ appMode, calculateTurn, gameState, getActivePlayers, playerRole }, ...__args);
 
