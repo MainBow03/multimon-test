@@ -12,6 +12,26 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov3-ten-nerfs',category:'balance',date:'03/11/2026',title:'⚖️ Top 10 nerf approvati: Zeno, Discord, Gaster e altri sette Multimon',items:[
+    'Zeno: PS 250→200, Attacco 200→170, Difesa 150→130, Velocità 150→130. Mantiene il suo status di personaggio segreto e tutte le mosse.',
+    'Discord: PS 180→155, Attacco 130→120, Velocità 120→110; Difesa invariata a 100.',
+    'W.D. Gaster: Velocità 140→130 e passiva Senza Spazio né Tempo da +25% a +15% danni quando attacca per primo.',
+    'Cell: Paura Perfetta riduce ora l’Attacco dei nemici del 20% anziché del 30%, per un massimo di 2 ingressi per battaglia anziché 3.',
+    'Ainz Ooal Gown: Aura di Disperazione riduce Attacco e Velocità dei nemici del 15% anziché del 20%.',
+    'Peridot: Tablet Alieno concede +25% Velocità e +20% Difesa all’ingresso, anziché +50% e +30%.',
+    'Juri: Tifo del Pubblico concede +15% ad Attacco, Difesa e Velocità per KO anziché +30%, con un massimo di 3 attivazioni per battaglia.',
+    'Meliodas: Marchio Demoniaco, sotto il 30% dei PS, aumenta Attacco e Velocità del 35% anziché del 50%.',
+    'Diamante Bianco: Il Capo del Pianeta Natale riduce del 70% i danni del primo attacco nemico anziché annullarlo; i malus del primo attacco restano bloccati.',
+    'Arie Vicente: Perfezione Assoluta concede bonus del 15% anziché 20% ad Attacco, Difesa o Velocità, con un massimo di 2 bonus per ciascuna statistica per battaglia.',
+    'Nessun Multimon viene eliminato e non cambiano le regole speciali delle battaglie contro i boss.'
+  ]},
+  {id:'nov3-zeno-omnipotent-gaze',category:'balance',date:'03/11/2026',title:'👁️ Zeno: Sguardo Onnipotente diventa un attacco per due bersagli',items:[
+    'Sguardo Onnipotente è ora una mossa Psico di potenza 75 (prima non infliggeva danni).',
+    'Puoi selezionare fino a 2 nemici invece di colpire automaticamente tutti gli avversari sul campo.',
+    'Conserva i 2 utilizzi per battaglia e l’indebolimento di Attacco, Difesa e Velocità dei bersagli colpiti.',
+    'Zeno mantiene Cancellazione, Giochiamo! e Stato Avatar: nessuna mossa è stata rimossa dal suo repertorio.',
+    'Le modifiche a Sguardo Onnipotente e alle statistiche di Zeno valgono anche per le battaglie nelle campagne quando il personaggio è giocabile.'
+  ]},
   {id:'nov3-zazan-sage-arctic-move-balance',category:'balance',date:'03/11/2026',title:'⚖️ Zazan, Sage e Orso Bianco: nuove regole di bilanciamento',items:[
     'Zazan — Corazza Mutante: ora si attiva quando scende al 40% dei PS o meno, anziché al 30%. Conserva il raddoppio della Difesa, la rimozione degli status negativi e il limite di un’attivazione per battaglia.',
     'Sage — Vandal: diventa una mossa di tipo Cristallo anziché Normale. Mantiene potenza 80 e il 15% di probabilità di stordire. Sage può sfruttare il bonus del proprio tipo Cristallo.',
