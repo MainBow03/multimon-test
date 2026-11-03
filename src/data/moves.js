@@ -25,7 +25,7 @@ export const MOVES_DB = {
           'Ascia di Ghiaccio': { name:'Ascia di Ghiaccio',type:'Ghiaccio',power:85,accuracy:1,statusEffect:{type:'Congelato',chance:0.15},desc:'Potenza 85, precisione 100. 15% di congelare.' },
           'Carica Valanga': { name:'Carica Valanga',type:'Roccia',power:100,accuracy:0.95,contact:true,desc:'Potenza 100, precisione 95.' },
           'Tecnica dell’Orso': { name:'Tecnica dell’Orso',type:'Ghiaccio',power:0,target:'self',statBuff:{atk:1.5,def:1.5},heal:0.10,desc:'Aumenta Attacco e Difesa di uno stadio e recupera il 10% dei PS massimi.' },
-          'Furia dell’Artico': { name:'Furia dell’Artico',type:'Ghiaccio',power:140,accuracy:1,targetCount:4,snowstormTurns:5,desc:'Colpisce tutti i nemici e provoca 5 turni di tempesta di neve: -2% PS per turno a chi non è Ghiaccio, Roccia o Robot.' },
+          'Furia dell’Artico': { name:'Furia dell’Artico',type:'Ghiaccio',power:140,accuracy:1,targetCount:4,snowstormTurns:5,maxUses:1,strictUses:true,desc:'Utilizzabile una sola volta per battaglia. Colpisce tutti i nemici e provoca 5 turni di tempesta di neve: -2% PS per turno a chi non è Ghiaccio, Roccia o Robot.' },
 
           'Carota Esplosiva': { name:'Carota Esplosiva',type:'Fuoco',power:75,accuracy:1,statusEffect:{type:'Scottato',chance:0.1},desc:'Potenza 75. Ha il 10% di scottare.' },
           'Dentro la Tana': { name:'Dentro la Tana',type:'Normale',power:0,target:'self',maxUses:2,strictUses:true,evasionGain:0.2,desc:'Aumenta l’elusione di Bugs del 20% contro gli attacchi diretti a lui, per un massimo di due usi.' },
@@ -372,7 +372,7 @@ export const MOVES_DB = {
           'Muro Protettivo': { name: 'Muro Protettivo', type: 'Magico', power: 0, targetMode: 'team', statusEffect: { type: 'Protetto', turns: 1 }, priority: 5, maxUses: 1, strictUses: true, desc: 'Alza un muro che difende tutti i compagni in campo per un turno. (1 utilizzo)' },
           'Sfera rallentante': { name: 'Sfera rallentante', type: 'Ghiaccio', power: 0, targetCount: 2, targetStatDebuff: { spd: 0.5 }, desc: 'Lancia una sfera rallentante sotto i piedi di due nemici diminuendone permanentemente la Velocità.' },
           'Non ucciderai i miei alleati!': { name: 'Non ucciderai i miei alleati!', type: 'Magico', power: 0, targetMode: 'revive', heal: 0.5, maxUses: 1, desc: 'Riporta in vita un personaggio sconfitto (tuo o di un compagno di squadra) con il 50% dei PS massimi.' },
-          'Vandal': { name: 'Vandal', type: 'Normale', power: 80, statusEffect: { type: 'Stordito', chance: 0.15 }, desc: 'Spara con il fucile d\'assalto. 15% di probabilità di stordire il bersaglio (Headshot!).' },
+          'Vandal': { name: 'Vandal', type: 'Cristallo', power: 80, statusEffect: { type: 'Stordito', chance: 0.15 }, desc: 'Spara con il fucile d\'assalto a munizioni cristalline. 15% di probabilità di stordire il bersaglio (Headshot!).' },
           'questo è il mio vero potenziale': { name: 'questo è il mio vero potenziale', type: 'Cristallo', power: 0, targetMode: 'team', heal: 0.7, removeNegativeStatuses: true, targetStatBuff: { spd: 1.1 }, maxUses: 1, strictUses: true, desc: 'Sprigiona il suo vero potenziale! Cura tutto il team del 70% dei PS, rimuove gli status negativi e aumenta la Velocità di tutti del 10%. (1 utilizzo)' },
 
           'YUH!': { name: 'YUH!', type: 'Normale', power: 0, target: 'self', statBuff: { atk: 1.5 }, desc: 'Il suo iconico grido di battaglia che aumenta l\'Attacco del 50%.' },

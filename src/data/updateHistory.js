@@ -12,6 +12,20 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov3-zazan-sage-arctic-move-balance',category:'balance',date:'03/11/2026',title:'⚖️ Zazan, Sage e Orso Bianco: nuove regole di bilanciamento',items:[
+    'Zazan — Corazza Mutante: ora si attiva quando scende al 40% dei PS o meno, anziché al 30%. Conserva il raddoppio della Difesa, la rimozione degli status negativi e il limite di un’attivazione per battaglia.',
+    'Sage — Vandal: diventa una mossa di tipo Cristallo anziché Normale. Mantiene potenza 80 e il 15% di probabilità di stordire. Sage può sfruttare il bonus del proprio tipo Cristallo.',
+    'Orso Bianco — Furia dell’Artico: continua ad avere potenza 140, colpire tutti gli avversari e scatenare la Tempesta di Neve per 5 turni, ma ora dispone di un solo utilizzo per battaglia.',
+    'La difficoltà de L’Eco delle Anime resta progressiva: ogni atto aumenta del 5% i PS e del 3% Attacco e Difesa dei boss ordinari rispetto alle statistiche base; Echomax conserva il bilanciamento speciale del raid.'
+  ]},
+  {id:'nov3-four-new-passives-bulma',category:'champions',date:'03/11/2026',title:'⭐ Quattro nuove passive e due potenziamenti: Crash, Gaston, Luigi, Mecha Johnny e Bulma',items:[
+    'Crash Bandicoot — Extra Vita: alla prima sconfitta della battaglia si rialza immediatamente con il 30% dei PS massimi. Può attivarsi soltanto una volta per battaglia.',
+    'Gaston — Velocità aumentata da 60 a 68. La nuova passiva Cacciatore Esperto infligge il 20% di danni extra ai bersagli con Velocità inferiore alla sua.',
+    'Luigi — La nuova passiva Acchiappafantasmi aumenta del 25% i danni delle sue mosse contro i Multimon che possiedono il tipo Spettro, anche se hanno un secondo tipo.',
+    'Mecha Johnny Test — Reattore Nucleare: alla fine di ogni turno in campo recupera il 5% dei PS massimi, senza superare il massimo.',
+    'Bulma — Rifornimento Capsule Corp.: la cura a fine turno passa dal 3% al 5% dei propri PS massimi.',
+    'Le nuove passive funzionano nel normale motore dei combattimenti e si applicano anche nelle campagne.'
+  ]},
   {id:'nov3-hyper-immediate-moves',category:'fixes',date:'03/11/2026',title:'⚡ Forme Iper: trasformazione prima delle mosse e mosse speciali subito selezionabili',items:[
     'Quando selezioni la Forma Iper, le sue nuove mosse appaiono immediatamente nel menu, già nel turno di attivazione: non devi aspettare il turno successivo.',
     'Se disattivi l’opzione Iper prima di confermare una mossa, le mosse speciali scompaiono subito senza alterare il moveset normale.',
