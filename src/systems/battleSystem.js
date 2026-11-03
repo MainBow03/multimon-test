@@ -423,7 +423,7 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
                 });
 
                 // --- APPLICAZIONE BUFF JUGGERNAUT (Solo Modalità Juggernaut) ---
-                if (gameState.gameMode === 'juggernaut' && teams[juggPlayer] && teams[juggPlayer][0]) {
+                if (gameState.gameMode === 'juggernaut' && !gameState.isRoguelikeCoop && teams[juggPlayer] && teams[juggPlayer][0]) {
                     const numOpponents = Math.max(1, activeJugg.length - 1); // FIX: Assicura un valore valido
                     const jugg = teams[juggPlayer][0];
                     // Moltiplica enormemente HP per sopravvivere all'assalto combinato
