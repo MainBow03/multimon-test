@@ -59,3 +59,15 @@ export const immuneToCritical=character=>!!character?.passive?.criticalImmunity|
 export const hannibalCanDebuff=(attacker,target,random=Math.random)=>
  !!attacker&&attacker.passive?.type==='psychological_manipulation'&&target?.hp>0&&
  !blockedEnemyPassive(target)&&target.passive?.type!=='undercover_agent'&&random()<0.20;
+
+// Barile Pimpante: esclusivamente colpi di attacco diretto sopravvissuti.
+// Le mosse multicolpo contano ogni singolo impatto, ma non gli scudi assorbiti,
+// il veleno, il meteo, i contraccolpi, né i colpi che mandano KO.
+export function survivedBarrelHits(character,hits=1){
+ if(!character||character.heldItem!=='barile_pimpante'||character.barrelBroken||
+    character.hp<=0||!Number.isFinite(hits)||hits<=0)return false;
+ character.barrelSurvivedHits=Math.min(4,(character.barrelSurvivedHits||0)+Math.floor(hits));
+ if(character.barrelSurvivedHits<4)return false;
+ character.barrelBroken=true;
+ return true;
+}
