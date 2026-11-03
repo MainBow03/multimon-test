@@ -24,6 +24,7 @@ test('Soundwave: Jammer di Frequenza area -20% Attacco e Velocità, tre usi',()=
   assert.deepEqual(m.targetStatDebuff,{atk:.8,spd:.8});
   assert.equal(m.targetCount,4);
   assert.equal(m.maxUses,3);
+  assert.equal(m.strictUses,true,'Il limite deve sopravvivere alla normalizzazione generale delle mosse');
   assert.ok(hero('soundwave').moves.some(x=>x.name===m.name&&x.maxUses===3));
   const battle=file('src/systems/battleSystem.js');
   const battleUI=file('src/screens/battle/BattlingView.jsx');
@@ -94,6 +95,7 @@ test('Godzilla: Ruggito del Re solo 2 usi e -20%; Colpo di Coda è Drago e colpi
   assert.equal(roar.targetCount,4);
   assert.deepEqual(roar.targetStatDebuff,{atk:.8,spd:.8});
   assert.equal(roar.maxUses,2);
+  assert.equal(roar.strictUses,true,'Solo due utilizzi, senza espansione automatica a cinque');
   assert.equal(roar.statusEffect.chance,.2);
   assert.equal(tail.type,'Drago');
   assert.equal(tail.power,85);
