@@ -7,7 +7,7 @@ const real=c=>Boolean(c&&!c.isSummonOnly);
 export const coopHumanPlayers=room=>COOP_HUMANS.filter(p=>Boolean(room?.players?.[p])&&!room?.isBot?.[p]);
 export const coopCount=(room,p)=>(room.teams?.[p]||[]).filter(real).length;
 export const coopRosterIds=room=>new Set(COOP_HUMANS.flatMap(p=>(room.teams?.[p]||[]).filter(real).map(c=>c.id)));
-export const coopRecruitChance=run=>Math.min(.85,.30+(run?.recruitBonus||0));
+export const coopRecruitChance=run=>Math.min(.85,Math.round((.30+(run?.recruitBonus||0))*100)/100);
 export const COOP_SHOP={
  heal:{price:20,desc:'Recupera il 50% dei PS massimi a un Multimon vivo'},
  revive:{price:50,desc:'Rianima un Multimon sconfitto con il 50% dei PS'},
@@ -101,7 +101,7 @@ export function finishCoopFloor(room,roster,random=Math.random){
  return {status:complete?'coop_complete':'coop_camp',teams,
   coopRun:{...run,floor:complete?floor:floor+1,lastClearFloor:floor,
    coins:(run.coins||0)+coins,lastCoins:coins,lastRecruit:recruited,
-   recruitBonus:recruited?0:Math.min(.55,(run.recruitBonus||0)+.02),
+   recruitBonus:recruited?0:Math.min(.55,Math.round(((run.recruitBonus||0)+.02)*100)/100),
    encounteredEnemies:lastEnemies,finished:complete},
   phaseStartedAt:Date.now(),events:[],actions:emptyActions(),winner:null};
 }
