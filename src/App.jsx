@@ -18,7 +18,7 @@ import { renderRoguelikeDraftView } from './screens/roguelike/RoguelikeDraftView
 import { renderRoguelikeMapView } from './screens/roguelike/RoguelikeMapView.jsx';
 import { renderRoguelikeCoopLobbyView } from './screens/roguelike/RoguelikeCoopLobbyView.jsx';
 import { RoguelikeCoopCampView } from './screens/roguelike/RoguelikeCoopCampView.jsx';
-import {finishCoopFloor,nextCoopFloor,coopCampPurchase} from './systems/coopExpedition.js';
+import {prepareCoopDraft,finishCoopFloor,nextCoopFloor,coopCampPurchase} from './systems/coopExpedition.js';
 import { renderShopView } from './screens/hub/ShopView.jsx';
 import { StrengthLabView } from './screens/hub/StrengthLabView.jsx';
 import { migrateCampaignChests } from './systems/campaignChests.js';
@@ -1436,6 +1436,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
         return patch;
       });
     };
+    const startCoopDraft=()=>coopRoomAction(['lobby'],true,room=>prepareCoopDraft(room,CHARACTERS))
+      .catch(error=>{setSystemAlert('Impossibile avviare la Co-op: '+(error.message||error));throw error;});
     const claimCoopFloor=()=>coopRoomAction(['gameover'],true,
       room=>finishCoopFloor(room,CHARACTERS));
     const startCoopNextFloor=()=>coopRoomAction(['coop_camp'],true,
@@ -1524,7 +1526,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
     // --- FINE NUOVE PAGINE ---
 
     if (appMode === 'roguelike_coop_lobby') {
-  const __screen = renderRoguelikeCoopLobbyView({ ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Loader2, Wifi, appMode, coopRoomId, gameState, getDefaultAvatar, playerRole, setAppMode, setCoopRoomId, leaveRoom, updateState });
+  const __screen = renderRoguelikeCoopLobbyView({ ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Loader2, Wifi, appMode, coopRoomId, gameState, getDefaultAvatar, playerRole, setAppMode, setCoopRoomId, leaveRoom, startCoopDraft });
   if (__screen !== undefined) return __screen;
 }
 
