@@ -147,3 +147,35 @@ test('L’host offline si può sostituire senza sovrascrivere il turno',()=>{
  s.status='executing';
  assert.equal(canCommitCoopTurn(s,'p2','uid-2',10000),false);
 });
+
+
+test('Il boss KO conclude subito il piano, senza una sostituzione inutile',()=>{
+ const s=room();
+ s.status='battling';
+ s.teams.p1=[makeHero('A',0),makeHero('B',50)];
+ s.teams.p2=[makeHero('C',100)];
+ s.teams.p4=[makeHero('D',0)];
+ s.field.p1=[];
+ s.field.p2=[0];
+ s.field.p4=[];
+ const emergency=prepareEmergencySwitch(s,players(s));
+ assert.equal(emergency.status,'gameover');
+ assert.equal(emergency.winner,'Host & Amico');
+ const phase=nextPhaseAfterExecution({...s,status:'executing',postExecStatus:'battling'},players(s));
+ assert.equal(phase.status,'gameover');
+ assert.equal(phase.winner,'Host & Amico');
+});
+
+test('Il piano 50 chiude la spedizione senza generare un piano 51',()=>{
+ const s=room();
+ s.status='gameover';
+ s.winner='Host & Amico';
+ s.coopRun.floor=50;
+ s.teams.p1=[makeHero('A',70)];
+ s.teams.p2=[makeHero('B',80)];
+ s.teams.p4=[makeHero('C',0)];
+ const finished=finishCoopFloor(s,roster,()=>.99);
+ assert.equal(finished.status,'coop_complete');
+ assert.equal(finished.coopRun.floor,50);
+ assert.equal(finished.coopRun.finished,true);
+});
