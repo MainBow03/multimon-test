@@ -22,7 +22,7 @@ export const GAME_UPDATES = [
   {id:'nov3-juvia-rainstorm',category:'balance',date:'03/11/2026',title:'🌧️ Juvia: Colpo impetuoso scatena la Tempesta e nuova passiva',items:[
     'Colpo impetuoso mantiene potenza 95 e ora ha il 25% di probabilità di creare una Tempesta di pioggia dopo aver colpito.',
     'La Tempesta dura 5 turni e riguarda tutto il campo: le mosse Acqua infliggono +25% danni, quelle Fuoco -25%. Il bonus funziona per entrambi i lati dello scontro.',
-    'Cuore di Pioggia è stata sostituita: durante Pioggia o Tempesta, Juvia ottiene +20 punti percentuali di elusione e schiva più facilmente gli attacchi.',
+    'Cuore di Pioggia è stata sostituita: durante Pioggia, Tempesta o Tempesta di Neve, Juvia ottiene +20 punti percentuali di elusione e schiva più facilmente gli attacchi.',
     'Il bonus di elusione di Juvia scompare quando il meteo termina e non si accumula a ogni turno. La Tempesta condivide il sistema meteo con la Tempesta di Neve.',
     'L’arena mostra un indicatore della Tempesta con i turni rimasti e il riepilogo dei modificatori.'
   ]},
