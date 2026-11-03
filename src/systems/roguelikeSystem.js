@@ -24,7 +24,8 @@ const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, player
                 maxPlayers: 4,
                 fieldSize: 1,
                 juggernautPlayer: 'p4',
-                draftBattle: true
+                draftBattle: true,
+                isRoguelikeCoop: true
             };
             state.players.p4 = "Guardiano del Piano";
             state.playerAvatars.p4 = 'https://api.dicebear.com/7.x/bottts/svg?seed=Skull&backgroundColor=020617';
