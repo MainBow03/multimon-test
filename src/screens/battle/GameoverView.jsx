@@ -1,3 +1,4 @@
+import {maybeRogueEvent} from '../../systems/roguelikeEvents.js';
 import { partitionCampaignUnlocks } from '../../systems/campaignRoster.js';
 import { BattleReportPanel } from '../../components/BattleReportPanel.jsx';
 // Schermata estratta senza alterare la struttura JSX originale.
@@ -296,7 +297,8 @@ if (gameState.status === 'gameover') {
                                             nextBonus += 0.02; // Aumenta di 2% ogni piano superato senza reclutamenti
                                         }
                                         
-                                        return { ...p, rosterStats: nextStats, roster: nextRoster, floor: p.floor + 1, coins: (p.coins || 0) + earnedCoins, inventory: leftoverInventory, isMerchantNext: chanceMerchant, recruitBonus: nextBonus, encounteredEnemies: nextEnemies };
+                                        return { ...p, rosterStats: nextStats, roster: nextRoster, floor: p.floor + 1, coins: (p.coins || 0) + earnedCoins, inventory: leftoverInventory, isMerchantNext: chanceMerchant, recruitBonus: nextBonus, encounteredEnemies: nextEnemies,
+                                            pendingEvent: maybeRogueEvent(p.floor + 1, p.maxFloor || 50, p.relics || []), lastEventResult:null };
                                     });
                                     setAppMode('roguelike_map');
                                     
