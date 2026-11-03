@@ -6,6 +6,7 @@ import { createBattleReport, accumulateBattleReport } from './battleReport.js';
 import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
+import { hyperPreviewMoves } from './hyperPreview.js';
 import { resolvePoisonEndTurn } from './battleStatusTurns.js';
 import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense, endRefractionTurn, snowstormOutcome, randomBuff, randomDebuff, daffyCelebration } from './championEffects.js';
 import { ignoresShields, immuneToStatDrops, powerForAccordo, effectiveTaserPower,
@@ -763,7 +764,7 @@ const { gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents,
 };
 
 export const commitActionImpl = (ctx, actionDetails) => {
-const { appMode, commandingIdx, ITEMS_DB, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState } = ctx;
+const { appMode, commandingIdx, ITEMS_DB, MOVES_DB, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState } = ctx;
 
             if (isSubmittingActionRef.current) return; // FIX: Evita che i doppi click sovrascrivano le azioni precedenti!
             isSubmittingActionRef.current = true;
@@ -788,6 +789,13 @@ const { appMode, commandingIdx, ITEMS_DB, gameState, getActivePlayers, isSubmitt
 
             let myNewActions = { ...(gameState.actions[playerRole] || {}) };
             
+            // Le nuove mosse Iper sono visibili in anteprima già durante la scelta:
+            // convalida l'indice prima di prenotare l'azione di questo turno.
+            if(actionDetails.type === 'attack' &&
+                !hyperPreviewMoves(activeCommandChar,pendingHyper,MOVES_DB)[actionDetails.moveIdx]){
+                isSubmittingActionRef.current=false;
+                return;
+            }
             // --- AGGIUNGE LA FORMA IPER ALL'AZIONE ---
             if (pendingHyper && actionDetails.type === 'attack') {
                 actionDetails.hyperize = true;
@@ -846,14 +854,14 @@ const { appMode, commandingIdx, ITEMS_DB, gameState, getActivePlayers, isSubmitt
 };
 
 export const handleSelectMoveTargetImpl = (ctx, targetPlayer, targetFieldIdx) => {
-const { commandingIdx, commitAction, gameState, getActivePlayers, getTournamentMatchOpponents, playerRole, selectedMultiTargets, setSelectedMultiTargets, targetingMoveIdx } = ctx;
+const { commandingIdx, commitAction, gameState, getActivePlayers, getTournamentMatchOpponents, MOVES_DB, pendingHyper, playerRole, selectedMultiTargets, setSelectedMultiTargets, targetingMoveIdx } = ctx;
 
             const activeCharTeamIdx = gameState.field[playerRole]?.[commandingIdx];
             if (activeCharTeamIdx === undefined) return;
             const activeCommandChar = gameState.teams[playerRole]?.[activeCharTeamIdx];
             if (!activeCommandChar) return;
             
-            const move = activeCommandChar.moves[targetingMoveIdx];
+            const move = hyperPreviewMoves(activeCommandChar,pendingHyper,MOVES_DB)[targetingMoveIdx];
             if (!move) return;
             
             const targetCount = move.targetCount || 1;
