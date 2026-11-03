@@ -6,6 +6,8 @@ import { createBattleReport, accumulateBattleReport } from './battleReport.js';
 import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
+import { hyperPreviewMoves } from './hyperPreview.js';
+import { isRainyWeather, RAINSTORM_TURNS, tryStartRainstorm, weatherMoveFactor, totalEvasionChance } from './rainstorm.js';
 import { resolvePoisonEndTurn } from './battleStatusTurns.js';
 import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense, endRefractionTurn, snowstormOutcome, randomBuff, randomDebuff, daffyCelebration } from './championEffects.js';
 import { ignoresShields, immuneToStatDrops, powerForAccordo, effectiveTaserPower,
@@ -19,7 +21,7 @@ import { reduceIncomingHeldDamage, useHeroSash, activateHourglass,
   endPhoenixFeatherTurn, activateRescueBell } from './advancedHeldItems.js';
 import { activateHealingSprout, activateNeutralizingSpray, activateCupidArrow,
  blockedEnemyPassive, rapidTransmutationPriority, markRapidTransmutationEntry,
- endRapidTransmutationTurn, immuneToCritical, hannibalCanDebuff, isNegativeStatus } from './newHeldAndPassiveEffects.js';
+ endRapidTransmutationTurn, immuneToCritical, hannibalCanDebuff, isNegativeStatus, survivedBarrelHits } from './newHeldAndPassiveEffects.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleForceSkipImpl = (ctx) => {
 const { calculateTurn, gameState, generateCPUActionsForPlayer, getActivePlayers, isCalculatingRef, setActionMenuMode, setCommandingIdx, setPendingHyper, setSystemAlert, setTargetingMoveIdx, updateState } = ctx;
@@ -763,7 +765,7 @@ const { gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents,
 };
 
 export const commitActionImpl = (ctx, actionDetails) => {
-const { appMode, commandingIdx, ITEMS_DB, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState } = ctx;
+const { appMode, commandingIdx, ITEMS_DB, MOVES_DB, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState } = ctx;
 
             if (isSubmittingActionRef.current) return; // FIX: Evita che i doppi click sovrascrivano le azioni precedenti!
             isSubmittingActionRef.current = true;
@@ -788,6 +790,13 @@ const { appMode, commandingIdx, ITEMS_DB, gameState, getActivePlayers, isSubmitt
 
             let myNewActions = { ...(gameState.actions[playerRole] || {}) };
             
+            // Le nuove mosse Iper sono visibili in anteprima già durante la scelta:
+            // convalida l'indice prima di prenotare l'azione di questo turno.
+            if(actionDetails.type === 'attack' &&
+                !hyperPreviewMoves(activeCommandChar,pendingHyper,MOVES_DB)[actionDetails.moveIdx]){
+                isSubmittingActionRef.current=false;
+                return;
+            }
             // --- AGGIUNGE LA FORMA IPER ALL'AZIONE ---
             if (pendingHyper && actionDetails.type === 'attack') {
                 actionDetails.hyperize = true;
@@ -846,14 +855,14 @@ const { appMode, commandingIdx, ITEMS_DB, gameState, getActivePlayers, isSubmitt
 };
 
 export const handleSelectMoveTargetImpl = (ctx, targetPlayer, targetFieldIdx) => {
-const { commandingIdx, commitAction, gameState, getActivePlayers, getTournamentMatchOpponents, playerRole, selectedMultiTargets, setSelectedMultiTargets, targetingMoveIdx } = ctx;
+const { commandingIdx, commitAction, gameState, getActivePlayers, getTournamentMatchOpponents, MOVES_DB, pendingHyper, playerRole, selectedMultiTargets, setSelectedMultiTargets, targetingMoveIdx } = ctx;
 
             const activeCharTeamIdx = gameState.field[playerRole]?.[commandingIdx];
             if (activeCharTeamIdx === undefined) return;
             const activeCommandChar = gameState.teams[playerRole]?.[activeCharTeamIdx];
             if (!activeCommandChar) return;
             
-            const move = activeCommandChar.moves[targetingMoveIdx];
+            const move = hyperPreviewMoves(activeCommandChar,pendingHyper,MOVES_DB)[targetingMoveIdx];
             if (!move) return;
             
             const targetCount = move.targetCount || 1;
@@ -989,7 +998,7 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
 };
 
 export const calculateTurnImpl = (ctx, currentActions) => {
-const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDamage, gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, playerName, updateLocalStats, updateState } = ctx;
+const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDamage: calculateRawDamage, gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, playerName, updateLocalStats, updateState } = ctx;
 
             let events = [];
             // Salvataggio stato d'inizio turno per garantire la suspense visiva
@@ -1003,6 +1012,12 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             let workingHyperUsed = JSON.parse(JSON.stringify(gameState.hyperUsed || {})); // <--- AGGIUNTO PER FORMA IPER
             // Meteo condiviso: si salva nello stato partita, non sul singolo personaggio.
             let workingWeather = gameState.battleWeather ? {...gameState.battleWeather} : null;
+            // Il meteo influenza TUTTE le mosse che infliggono danno, anche
+            // quelle eseguite più tardi nello stesso turno in cui nasce la Tempesta.
+            const calculateDamage=(...args)=>{
+                const base=calculateRawDamage(...args);
+                return Math.max(1,Math.floor(base*weatherMoveFactor(args[2],workingWeather)));
+            };
             let workingFieldTraps = {...(gameState.fieldTraps||{})};
             let workingTrapSeen = JSON.parse(JSON.stringify(gameState.fieldTrapSeen||{}));
             const activeMatchPlayers = getActivePlayers();
@@ -1113,6 +1128,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     target.hp = Math.max(0, target.hp - dmg);
                 }
                 
+                if(options.directAttack && target.hp>0 && dmg>0 &&
+                   survivedBarrelHits(target,options.directHits??1)){
+                    applyBattleStatModifier(target,'spd',1.75);
+                    events.push({type:'text',text:`🛢️ BARILE PIMPANTE! ${target.name} ha resistito a 4 colpi: il barile si rompe e la melma aumenta la Velocità del 75% fino alla fine della lotta!`});
+                }
                 target.damageTakenThisTurn = (target.damageTakenThisTurn || 0) + dmg;
                 events.push({ type: 'damage', text: text, targetPlayer, targetIdx, newHp: target.hp });
                 const sproutHeal=activateHealingSprout(target);
@@ -2132,8 +2152,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     // Elusione individuale: una mossa con precisione 100% contro Bugs
                     // colpisce solo nell'80% dei casi dopo un uso di Dentro la Tana.
                     // Il controllo è per bersaglio, anche per gli attacchi ad area.
-                    if (isEnemyTarget && Math.random() < (1-(1-Math.min(0.95,t.char.evasionBonus||0))*(1-getHeldEvasion(t.char)))) {
-                        events.push({type:'text',text:`💨 ${t.char.name} schiva l’attacco grazie alla sua elusione e/o al Mantello dell’Invisibilità!`});
+                    if (isEnemyTarget && Math.random() < totalEvasionChance(t.char,workingWeather,getHeldEvasion(t.char))) {
+                        events.push({type:'text',text:`💨 ${t.char.name} evita l’attacco grazie alla propria elusione, al meteo o allo strumento equipaggiato!`});
                         continue;
                     }
 
@@ -2406,7 +2426,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                         } else if (totalDmg > 0) {
                             let shieldTxt = juggHitsAbsorbed > 0 ? ` (Lo scudo ha assorbito ${juggHitsAbsorbed} colpi).` : '';
                             const previousDamageTaken=t.char.damageTakenThisTurn||0;
-                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText}${hitText}${magText}${groppaText} Infligge ${totalDmg} danni.${shieldTxt}`, {directAttack:true,bypassShields:bypassEnemyShields,superEffective:multiplier>1});
+                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText}${hitText}${magText}${groppaText} Infligge ${totalDmg} danni.${shieldTxt}`, {directAttack:true,directHits:Math.max(0,actualHits-juggHitsAbsorbed),bypassShields:bypassEnemyShields,superEffective:multiplier>1});
                             if(markCompassOnHit(attacker,t.char,victimHpBeforeHit,totalDmg))
                               events.push({type:'text',text:`🧭 Bussola del Predatore di ${attacker.name}: colpo potenziato contro bersaglio indebolito!`});
                             if(isEnemyTarget && t.char.hp>0 && (t.char.damageTakenThisTurn||0)>previousDamageTaken){
@@ -2784,6 +2804,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 if (attackSucceeded && move.snowstormTurns) {
                     workingWeather = {type:'snowstorm',turns:move.snowstormTurns};
                     events.push({type:'text',text:'❄️ La Furia dell’Artico scatena una TEMPESTA DI NEVE per 5 turni!'});
+                }
+                if(tryStartRainstorm(move,attackSucceeded)){
+                    workingWeather={type:'rainstorm',turns:RAINSTORM_TURNS};
+                    events.push({type:'text',text:`🌧️ ${attacker.name} usa ${move.name} e scatena una TEMPESTA! Per ${RAINSTORM_TURNS} turni: mosse Acqua +25% danni, Fuoco -25% danni; Cuore di Pioggia +20% elusione.`});
                 }
 
                 if (attackSucceeded && (move.selfHeal || move.selfHealRandom) && attacker.hp > 0) {
@@ -3299,6 +3323,14 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             workingWeather.turns--;
             if (workingWeather.turns <= 0) {
                 events.push({type:'text',text:'☀️ La tempesta di neve finisce.'});
+                workingWeather=null;
+            }
+        }
+        if(isRainyWeather(workingWeather)&&Number.isFinite(workingWeather.turns)){
+            events.push({type:'text',text:`🌧️ TEMPESTA · ${workingWeather.turns} turni rimasti. Acqua +25%, Fuoco -25%.`});
+            workingWeather.turns--;
+            if(workingWeather.turns<=0){
+                events.push({type:'text',text:'☀️ La tempesta si placa: il meteo torna normale.'});
                 workingWeather=null;
             }
         }

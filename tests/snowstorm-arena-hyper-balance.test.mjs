@@ -7,7 +7,8 @@ const read = file => readFileSync(new URL(file, import.meta.url), 'utf8');
 test('Il campo innevato si attiva solamente con Tempesta di neve', () => {
   const view = read('../src/screens/battle/BattlingView.jsx');
   const css = read('../src/styles.css');
-  assert.match(view, /gameState\.battleWeather\?\.type === 'snowstorm' \? 'battlefield-snowstorm' : 'bg-slate-950'/);
+  assert.match(view, /gameState\.battleWeather\?\.type === 'snowstorm' \? 'battlefield-snowstorm'/);
+  assert.match(view, /gameState\.battleWeather\?\.type === 'rainstorm'/);
   assert.match(css, /\.battlefield-snowstorm\s*\{/);
   assert.match(css, /\.battlefield-snowstorm::after/);
   assert.match(css, /@keyframes multimon-snowfall/);

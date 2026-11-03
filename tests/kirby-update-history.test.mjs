@@ -117,7 +117,7 @@ test('Registro in gioco: tutte le categorie, 10 nerf e aggiornamenti della conve
 });
 
 test('Registro aggiornamenti: 3 novembre contiene torneo, buff e terza campagna aggiornati',()=>{
-  const sections=GAME_UPDATES.slice(0,5);
+  const sections=GAME_UPDATES.slice(4,9);
   assert.deepEqual(sections.map(s=>s.id),[
     'nov3-tournament-roster','nov3-ten-character-buffs','nov3-echomax-final-raid',
     'nov3-echo-of-souls','nov3-echomax-unlock'
@@ -135,7 +135,9 @@ test('Registro aggiornamenti: 3 novembre contiene torneo, buff e terza campagna 
   }
   assert.ok(!GAME_UPDATES.find(x=>x.id==='nov3-tournament-roster').items
     .some(item=>item.includes('tutte le modalità')));
-  assert.ok(GAME_UPDATES.length>=20);
+  assert.ok(GAME_UPDATES.length>=24);
+  assert.deepEqual(GAME_UPDATES.slice(0,4).map(s=>s.id),[
+    'nov3-hyper-immediate-moves','nov3-juvia-rainstorm','nov3-glitter-barrel-items','nov3-equipment-ui']);
   assert.equal(UPDATE_COUNT,GAME_UPDATES.reduce((n,x)=>n+x.items.length,0));
 });
 

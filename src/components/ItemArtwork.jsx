@@ -16,6 +16,25 @@ export function ItemArtwork({id,size=54,className=''}) {
    <circle cx="36" cy="30" r="5" fill="white" opacity=".8"/>
   </svg>;
  }
+ if(id==='polvere_brillante')return <svg role="img" aria-label="Polvere Brillante" viewBox="0 0 100 100" width={size} height={size} className={className}>
+   <defs><linearGradient id="glitter-vial" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#fde68a"/><stop offset="1" stopColor="#a855f7"/></linearGradient></defs>
+   <path d="M42 13 H59 V32 L72 47 L79 80 Q80 89 65 91 H34 Q20 89 21 80 L29 48 L42 32Z" fill="#1e1b4b" stroke="#e9d5ff" strokeWidth="4"/>
+   <path d="M26 65 L73 65 L75 82 Q72 87 65 87 H34 Q26 87 25 82Z" fill="url(#glitter-vial)" opacity=".95"/>
+   <rect x="39" y="7" width="24" height="11" rx="3" fill="#a16207" stroke="#fef3c7" strokeWidth="3"/>
+   <path d="M50 40 L55 53 L68 57 L55 61 L50 74 L45 61 L32 57 L45 53Z" fill="#fef9c3" stroke="#fff" strokeWidth="2"/>
+   <circle cx="29" cy="26" r="4" fill="#fde68a"/><circle cx="75" cy="35" r="3" fill="#d8b4fe"/>
+   <path d="M76 10 V27 M67 19 H85" stroke="#fde68a" strokeWidth="4" strokeLinecap="round"/>
+  </svg>;
+ if(id==='barile_pimpante')return <svg role="img" aria-label="Barile Pimpante" viewBox="0 0 100 100" width={size} height={size} className={className}>
+   <defs><linearGradient id="barrel-wood" x1="0" y1="0" x2="1" y2="0"><stop stopColor="#7c2d12"/><stop offset=".5" stopColor="#d97706"/><stop offset="1" stopColor="#92400e"/></linearGradient></defs>
+   <path d="M24 21 Q50 13 76 21 L83 77 Q52 89 17 77Z" fill="url(#barrel-wood)" stroke="#fde68a" strokeWidth="3"/>
+   <path d="M28 24 Q50 12 72 24 L76 73 Q50 85 24 73Z" fill="none" stroke="#451a03" strokeWidth="2"/>
+   <path d="M18 35 Q50 43 82 35 M17 65 Q50 74 83 65" fill="none" stroke="#cbd5e1" strokeWidth="8"/>
+   <path d="M24 17 Q48 -2 76 17 L73 28 Q68 39 57 36 Q48 50 39 35 Q29 39 24 29Z" fill="#84cc16" stroke="#d9f99d" strokeWidth="3"/>
+   <path d="M36 25 Q33 43 37 53 M64 27 Q69 44 64 54 M51 30 Q54 51 50 65" stroke="#bef264" strokeWidth="5" strokeLinecap="round" fill="none"/>
+   <circle cx="47" cy="14" r="5" fill="#f7fee7"/><circle cx="59" cy="17" r="3" fill="#f7fee7"/>
+   <path d="M79 12 L86 18 L79 24 L72 18Z" fill="#e9d5ff" stroke="#fff" strokeWidth="2"/>
+  </svg>;
  if(id==='mantello_invisibilita')return <svg role="img" aria-label="Mantello dell’Invisibilità" viewBox="0 0 100 100" width={size} height={size} className={className}><path d="M31 14 Q50 2 69 14 L83 80 Q67 70 52 86 Q34 71 15 82 Z" fill="#172554" fillOpacity=".6" stroke="#67e8f9" strokeWidth="3"/><path d="M31 14 L48 35 L69 14 M48 35 L52 86" fill="none" stroke="#a5f3fc" strokeWidth="3" strokeOpacity=".8"/><circle cx="49" cy="34" r="7" fill="#e0f2fe" opacity=".65"/></svg>;
  if(id==='avanzi')return <svg role="img" aria-label="Avanzi" viewBox="0 0 100 100" width={size} height={size} className={className}><ellipse cx="50" cy="70" rx="38" ry="17" fill="#475569" stroke="#f8fafc" strokeWidth="3"/><path d="M16 60 Q50 40 84 60 L77 70 Q50 87 23 70Z" fill="#7c2d12" stroke="#f59e0b" strokeWidth="3"/><path d="M29 49 Q44 28 50 50 Q61 25 73 48" fill="none" stroke="#fcd34d" strokeWidth="9" strokeLinecap="round"/><path d="M33 15 Q25 27 34 36 M52 12 Q44 27 52 36" stroke="#e2e8f0" strokeWidth="3" fill="none" strokeLinecap="round" opacity=".6"/></svg>;
 

@@ -1,4 +1,5 @@
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
+import { HeldEquipmentCard, HeldEquipmentGuide } from '../../components/HeldEquipmentPicker.jsx';
 import { canEquipHeldItem } from '../../systems/heldEquipment.js';
 import { TEAM_ROLES, getCharacterRoles, filterTeamRoster, characterPrice } from '../../systems/teamBuilderFilters.js';
 // Schermata estratta senza alterare la struttura JSX originale.
@@ -88,20 +89,20 @@ if (gameState.status === 'drafting') {
 
                 {isReady ? (
                     <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col items-center justify-start bg-slate-950/60 rounded-3xl z-10 border border-slate-800/50 backdrop-blur-sm py-3">
-                         <div className="w-full max-w-5xl mb-5 rounded-2xl bg-slate-900/90 border border-violet-500/50 p-3 sm:p-4 max-h-[45vh] overflow-y-auto custom-scrollbar">
-                           <h3 className="text-lg sm:text-xl font-black text-violet-300 mb-1"><ItemArtwork id="iperband" size={25} className="inline-block align-middle mr-2"/> Assegna strumenti alla squadra</h3>
-                           <p className="text-xs text-slate-400 mb-3">Gli strumenti acquistati al negozio non si consumano. Una copia può essere assegnata a un solo campione per battaglia.</p>
-                           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-                             {myDraft.map((hero, idx) => <label key={idx} className="bg-slate-950/80 p-3 rounded-xl border border-slate-700 flex items-center gap-3 min-w-0">
-                               <img src={hero.img} alt="" className="w-11 h-11 rounded-full object-cover" />
-                               <span className="flex-1 min-w-0"><span className="block font-bold text-xs truncate">{hero.name}</span>
-                                 <select aria-label={`Strumento per ${hero.name}`} value={hero.heldItem || ''} onChange={e => equipItem(idx, e.target.value)} className="mt-1 w-full min-w-0 bg-slate-800 border border-slate-600 rounded-lg p-2 text-xs">
-                                   <option value="">Nessuno</option>
-                                   {Object.values(ITEMS_DB).filter(item => item.type === 'held' && heldInventory[item.id] > 0).map(item => <option key={item.id} value={item.id}>{item.name} (x{heldInventory[item.id]})</option>)}
-                                 </select>
-                               </span>
-                             </label>)}
+                         <div className="w-full max-w-6xl mb-5 rounded-2xl bg-slate-900/90 border border-violet-500/50 p-4 sm:p-5 max-h-[58vh] overflow-y-auto custom-scrollbar">
+                           <div className="flex items-center gap-3 mb-2">
+                             <ItemArtwork id="iperband" size={30}/>
+                             <div>
+                               <h3 className="text-lg sm:text-xl font-black text-violet-200">Equipaggia la tua squadra</h3>
+                               <p className="text-[11px] sm:text-xs text-slate-400">Ogni oggetto mostra il proprio effetto sotto il selettore. Gli strumenti equipaggiabili non si consumano.</p>
+                             </div>
                            </div>
+                           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 mt-4">
+                             {myDraft.map((hero,idx)=><HeldEquipmentCard key={hero.id+'-'+idx} hero={hero} index={idx}
+                               team={myDraft} inventory={heldInventory} selectedItem={hero.heldItem||''}
+                               onEquip={itemId=>equipItem(idx,itemId)}/>)}
+                           </div>
+                           <HeldEquipmentGuide inventory={heldInventory}/>
                          </div>
                          <h3 className="text-3xl sm:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500 font-black mb-4 sm:mb-8 drop-shadow-md text-center">Squadra Pronta!</h3>
                          

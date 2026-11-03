@@ -1,4 +1,6 @@
 import { onlineHealingRemaining, isLimitedHealingItem } from '../../systems/onlineHealingLimit.js';
+import { MOVES_DB } from '../../data/moves.js';
+import { hyperPreviewMoves } from '../../systems/hyperPreview.js';
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { BattleCodexLauncher } from '../../components/BattleCodex.jsx';
 import { BattleStatusBadges, battleFeedbackKind, BATTLE_FEEDBACK_LABELS } from '../../components/BattleStatusBadges.jsx';
@@ -91,6 +93,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
         const isMyTurn = gameState.status === 'battling' && !isSpectatorState && !gameState.isBot[playerRole] && commandingIdx >= 0 && commandingIdx < gameState.field[playerRole].length;
         const activeCommandCharIdx = isMyTurn ? gameState.field[playerRole][commandingIdx] : null;
         const activeCommandChar = activeCommandCharIdx !== null ? gameState.teams[playerRole][activeCommandCharIdx] : null;
+        // Anteprima immediata e reversibile delle mosse Iper, senza consumare la trasformazione.
+        const availableMoves = hyperPreviewMoves(activeCommandChar,pendingHyper,MOVES_DB);
 
         const currentField = isPlayingEvents ? displayField : gameState.field;
 
@@ -145,7 +149,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
             
             let isTargetable = false;
             if (targetingMoveIdx !== null && !isDead && activeCommandChar) {
-                    const move = activeCommandChar.moves[targetingMoveIdx];
+                    const move = availableMoves[targetingMoveIdx];
                     if (move.targetMode === 'ally' || move.targetMode === 'team') {
                             let myTeamPlayers = [playerRole];
                             if (gameState.gameMode === 'multipla') {
@@ -204,7 +208,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
 
             let effectivenessBadge = null;
             if (isTargetable && targetingMoveIdx !== null && activeCommandChar) {
-                    const move = activeCommandChar.moves[targetingMoveIdx];
+                    const move = availableMoves[targetingMoveIdx];
                     if (move && move.power > 0 && move.type && !move.targetMode && !move.isProtect && !move.isSummon) {
                             const multiplier = getMultiplier(move.type, char.types);
                             if (multiplier > 1) {
@@ -358,6 +362,10 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                             title={ITEMS_DB[char.heldItem].name+(char.gemSpent?' · gemma scaricata':' · equipaggiato')}
                             className={'absolute -top-2 -right-2 bg-violet-700 border border-violet-300 text-base rounded-full w-8 h-8 flex items-center justify-center z-20 shadow-lg '+(char.gemSpent?'opacity-45 grayscale':'')}>
                             <ItemArtwork id={char.heldItem} size={24}/></span>}
+                        {char.heldItem==='barile_pimpante' && <span title={char.barrelBroken?'Melma attiva: Velocità +75% fino alla fine della battaglia':`Colpi diretti sopravvissuti: ${char.barrelSurvivedHits||0}/4`}
+                          className={`absolute top-7 -right-4 z-20 rounded-full border px-2 py-0.5 text-[10px] font-black shadow-md ${char.barrelBroken?'bg-lime-600 text-black border-lime-200':'bg-amber-950 text-amber-200 border-amber-400'}`}>
+                            {char.barrelBroken?'MELMA +75%':`${char.barrelSurvivedHits||0}/4`}
+                        </span>}
                         {char.juggHitsRemaining > 0 && (
                             <div className="absolute inset-0 border-[6px] border-cyan-400 rounded-xl shadow-[inset_0_0_20px_rgba(34,211,238,0.8),_0_0_20px_rgba(34,211,238,0.8)] z-30 animate-pulse pointer-events-none flex items-center justify-center bg-cyan-900/30">
                                 <span className="text-cyan-100 text-6xl font-black drop-shadow-[0_4px_4px_black]">{char.juggHitsRemaining}</span>
@@ -460,7 +468,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                 )}
 
                 {/* BATTLE ARENA */}
-                <div className={`flex-1 p-4 flex flex-col relative overflow-hidden transition-colors duration-700 ${gameState.battleWeather?.type === 'snowstorm' ? 'battlefield-snowstorm' : 'bg-slate-950'} ${isPlayingEvents && (feedbackKind === 'ko' || feedbackKind === 'critical') ? 'battle-impact-shake' : ''}`}>
+                <div className={`flex-1 p-4 flex flex-col relative overflow-hidden transition-colors duration-700 ${gameState.battleWeather?.type === 'snowstorm' ? 'battlefield-snowstorm' : gameState.battleWeather?.type === 'rainstorm' ? 'bg-gradient-to-b from-sky-950 via-blue-950 to-slate-950' : 'bg-slate-950'} ${isPlayingEvents && (feedbackKind === 'ko' || feedbackKind === 'critical') ? 'battle-impact-shake' : ''}`}>
                     
                     {!isEventBattle&&<button onClick={() => playerRole === 'spectator' ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-4 left-4 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
                          <LogOut size={16} /> {playerRole === 'spectator' ? 'Esci' : 'Resa'}
@@ -552,6 +560,14 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                             drop-shadow-[0_0_15px_rgba(56,189,248,0.4)] text-center pointer-events-none">
                             ❄️ TEMPESTA DI NEVE · {gameState.battleWeather.turns} turni
                             <span className="block text-[9px] text-cyan-200/70 font-semibold">Ghiaccio / Roccia / Robot immuni</span>
+                        </div>
+                    )}
+                    {gameState.battleWeather?.type === 'rainstorm' && (
+                        <div className="absolute z-[44] top-[7.5rem] left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl
+                            border border-sky-300/70 bg-blue-950/95 text-sky-100 text-[11px] sm:text-sm font-black
+                            shadow-[0_0_24px_rgba(56,189,248,0.35)] text-center pointer-events-none">
+                            🌧️ TEMPESTA · {gameState.battleWeather.turns} turni
+                            <span className="block text-[9px] text-cyan-200/90 font-semibold">Acqua +25% · Fuoco −25% · Juvia +20% elusione</span>
                         </div>
                     )}
 
@@ -662,11 +678,11 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                     {!isPlayingEvents && isMyTurn && activeCommandChar && (
                                         targetingMoveIdx === null 
                                             ? (actionMenuMode === 'moves' ? `Cosa deve fare ${activeCommandChar.name}?` : (actionMenuMode === 'items' ? 'Seleziona un oggetto da usare' : 'Seleziona un compagno da mandare in campo'))
-                                            : (activeCommandChar.moves[targetingMoveIdx].targetMode === 'revive'
-                                                ? `Chi vuoi rianimare con ${activeCommandChar.moves[targetingMoveIdx].name}?`
-                                                : (activeCommandChar.moves[targetingMoveIdx].targetCount && activeCommandChar.moves[targetingMoveIdx].targetCount > 1 && activeCommandChar.moves[targetingMoveIdx].targetCount < 4
-                                                    ? `Seleziona i bersagli per ${activeCommandChar.moves[targetingMoveIdx].name}! (${selectedMultiTargets.length}/${activeCommandChar.moves[targetingMoveIdx].targetCount})`
-                                                    : `Seleziona il bersaglio per ${activeCommandChar.moves[targetingMoveIdx].name}!`))
+                                            : (availableMoves[targetingMoveIdx].targetMode === 'revive'
+                                                ? `Chi vuoi rianimare con ${availableMoves[targetingMoveIdx].name}?`
+                                                : (availableMoves[targetingMoveIdx].targetCount && availableMoves[targetingMoveIdx].targetCount > 1 && availableMoves[targetingMoveIdx].targetCount < 4
+                                                    ? `Seleziona i bersagli per ${availableMoves[targetingMoveIdx].name}! (${selectedMultiTargets.length}/${availableMoves[targetingMoveIdx].targetCount})`
+                                                    : `Seleziona il bersaglio per ${availableMoves[targetingMoveIdx].name}!`))
                                     )}
                                 </h3>
                          )}
@@ -725,16 +741,16 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                     return (
                                                         <div className="col-span-2 mb-1">
                                                             <button
-                                                                onClick={() => setPendingHyper(!pendingHyper)}
+                                                                onClick={() => { setPendingHyper(!pendingHyper); setTargetingMoveIdx(null); setSelectedMultiTargets([]); }}
                                                                 className={`w-full py-3 rounded-xl font-black uppercase tracking-widest transition-all shadow-md ${pendingHyper ? 'bg-gradient-to-r from-yellow-300 to-yellow-500 text-black shadow-[0_0_25px_rgba(250,204,21,0.8)] scale-[1.02]' : 'bg-slate-800 text-yellow-400 border border-yellow-500/50 hover:bg-yellow-900/30'}`}
                                                             >
-                                                                {pendingHyper ? '✨ FORMA IPER SELEZIONATA! Scegli una mossa! ✨' : `⚡ ATTIVA FORMA IPER${hyperTypeText} (1 Uso) ⚡`}
+                                                                {pendingHyper ? '✨ FORMA IPER PRONTA! Le mosse speciali sono disponibili qui sotto ✨' : `⚡ ATTIVA FORMA IPER${hyperTypeText} (1 Uso) ⚡`}
                                                             </button>
                                                         </div>
                                                     );
                                                 })()}
                                                 {/* --------------------------- */}
-                                                {activeCommandChar.moves.map((move, idx) => {
+                                                {availableMoves.map((move, idx) => {
                                                     let isDisabled = move.remainingUses === 0 || (move.currentCooldown && move.currentCooldown > 0);
                                                     if (move.requireSummonsDead && !isDisabled) {
                                                         if (gameState.teams[playerRole].some(c => move.requireSummonsDead.includes(c.id) && c.hp > 0)) {
@@ -845,7 +861,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                             className={`select-none bg-slate-800/80 backdrop-blur-md border border-slate-600 rounded-xl p-4 flex justify-between items-center transition-all duration-300 ${isDisabled ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:bg-slate-700 hover:-translate-y-1 hover:shadow-lg'}`}
                                                     >
                                                             <div className="flex flex-col items-start pointer-events-none">
-                                                                    <span className="font-bold text-lg drop-shadow-sm">{move.name}</span>
+                                                                    <span className="font-bold text-lg drop-shadow-sm">{move.name}{move.hyperPreview && <span className="ml-2 inline-flex items-center rounded-full bg-fuchsia-500/25 px-2 py-0.5 text-[10px] font-black text-fuchsia-200 border border-fuchsia-400">NUOVA IPER</span>}</span>
                                                                     {move.currentCooldown > 0 ? (
                                                                         <span className="text-[10px] text-rose-400 font-bold mt-1">In ricarica ({move.currentCooldown})</span>
                                                                     ) : (
@@ -956,7 +972,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                     </>
                                 ) : (
                                     <div className="w-full">
-                                        {activeCommandChar.moves[targetingMoveIdx].targetMode === 'revive' && (() => {
+                                        {availableMoves[targetingMoveIdx].targetMode === 'revive' && (() => {
                                             let myTeamPlayers = [playerRole];
                                             if (gameState.gameMode === 'multipla') {
                                                 myTeamPlayers = ['p1', 'p2'].includes(playerRole) ? ['p1', 'p2'] : ['p3', 'p4'];

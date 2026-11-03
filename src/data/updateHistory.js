@@ -12,6 +12,34 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov3-hyper-immediate-moves',category:'fixes',date:'03/11/2026',title:'⚡ Forme Iper: trasformazione prima delle mosse e mosse speciali subito selezionabili',items:[
+    'Quando selezioni la Forma Iper, le sue nuove mosse appaiono immediatamente nel menu, già nel turno di attivazione: non devi aspettare il turno successivo.',
+    'Se disattivi l’opzione Iper prima di confermare una mossa, le mosse speciali scompaiono subito senza alterare il moveset normale.',
+    'Le mosse Iper in anteprima possono essere selezionate e bersagliate correttamente anche al primo turno; la validazione degli indici evita mosse inesistenti.',
+    'La trasformazione Iper avviene in un pre-pass all’inizio dell’esecuzione del turno, prima di ordinare gli attacchi per priorità e Velocità: anche un Multimon lento si trasforma prima che agisca il nemico.',
+    'Il bonus Iper alle statistiche e il limite di una trasformazione per giocatore non sono stati alterati.'
+  ]},
+  {id:'nov3-juvia-rainstorm',category:'balance',date:'03/11/2026',title:'🌧️ Juvia: Colpo impetuoso scatena la Tempesta e nuova passiva',items:[
+    'Colpo impetuoso mantiene potenza 95 e ora ha il 25% di probabilità di creare una Tempesta di pioggia dopo aver colpito.',
+    'La Tempesta dura 5 turni e riguarda tutto il campo: le mosse Acqua infliggono +25% danni, quelle Fuoco -25%. Il bonus funziona per entrambi i lati dello scontro.',
+    'Cuore di Pioggia è stata sostituita: durante Pioggia, Tempesta o Tempesta di Neve, Juvia ottiene +20 punti percentuali di elusione e schiva più facilmente gli attacchi.',
+    'Il bonus di elusione di Juvia scompare quando il meteo termina e non si accumula a ogni turno. La Tempesta condivide il sistema meteo con la Tempesta di Neve.',
+    'L’arena mostra un indicatore della Tempesta con i turni rimasti e il riepilogo dei modificatori.'
+  ]},
+  {id:'nov3-glitter-barrel-items',category:'items',date:'03/11/2026',title:'✨ Due strumenti equipaggiabili: Polvere Brillante e Barile Pimpante',items:[
+    'Polvere Brillante (310 monete): fornisce +10% di probabilità di schivare gli attacchi nemici, per tutta la battaglia; si combina con l’elusione individuale.',
+    'Barile Pimpante (420 monete): dopo 4 colpi diretti sopravvissuti il barile si rompe, ricoprendo il Multimon di melma e aumentando la sua Velocità del 75% fino alla fine dello scontro.',
+    'Per il Barile ogni colpo reale di una mossa multicolpo conta separatamente; non contano gli attacchi schivati o assorbiti da scudi, gli status, il meteo e gli effetti di contraccolpo.',
+    'Il Barile si attiva una sola volta per battaglia e il contatore si azzera in una nuova lotta. Gli strumenti rimangono di proprietà dopo l’uso.',
+    'I due strumenti hanno illustrazioni vettoriali originali e compaiono nel Negozio insieme agli altri strumenti da tenere.'
+  ]},
+  {id:'nov3-equipment-ui',category:'interface',date:'03/11/2026',title:'🎒 Equipaggiamento più chiaro: immagini, effetti e guida cercabile',items:[
+    'Ridisegnata la scelta degli strumenti nel draft delle battaglie e nella preparazione delle missioni della campagna.',
+    'Ogni Multimon dispone ora di una scheda illustrata che mostra lo strumento scelto, il suo nome e la descrizione dettagliata dell’effetto.',
+    'La nuova Guida agli strumenti permette di cercare tra tutti gli oggetti equipaggiabili, vedere le icone, conoscere gli effetti e sapere quante copie possiedi.',
+    'I menu indicano le copie libere e impediscono di equipaggiare la stessa copia su più Multimon contemporaneamente.',
+    'Nessuna variazione alle regole di acquisto, al possesso permanente o al numero di strumenti assegnabili.'
+  ]},
   {id:'nov3-tournament-roster',category:'fixes',date:'03/11/2026',title:'🏟️ Torneo Assoluto: esclusi boss futuri e forme akumizzate',items:[
     'Nella seconda campagna non puoi più scegliere Monarch, Echomax e le forme akumizzate che appartengono alla storia successiva di Monarch.',
     'L’esclusione comprende Cuore Infranto, Terror Dash, Jake il Demone, Re della Rovina, Destriero Oscuro, Static Shocker (anche versione invincibile), Max e Marceline sottomesse e Maestro Spietato.',
