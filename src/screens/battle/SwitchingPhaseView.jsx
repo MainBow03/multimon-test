@@ -1,4 +1,5 @@
 import { getRequiredSwitches } from '../../systems/roomRecovery.js';
+import { ZodiacSwitchChoice } from '../../components/ZodiacSpiritPicker.jsx';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderSwitchingPhaseView(ctx) {
 const { Loader2, LogOut, TYPE_STYLES, appMode, gameState, getActivePlayers, getTournamentMatchOpponents, leaveRoom, playerRole, renderHealthBar, setPlayerRole, setShowLeaveConfirm, chooseReplacement, forceCompleteSwitches, canForceSwitch } = ctx;
@@ -80,6 +81,18 @@ if (gameState.status === 'switching_phase') {
                                 {gameState.teams[playerRole].map((char, i) => {
                                     const isAliveBench = char.hp > 0 && !gameState.field[playerRole].includes(i) && !char.isSummonOnly && !chosen.includes(i);
                                     if (!isAliveBench) return null;
+                                    const selectReplacement=(spiritId=null)=>{
+                                            const currentActions = gameState.switchActions[playerRole] || [];
+                                            const newActions = [...currentActions, i];
+                                            return chooseReplacement(i,spiritId).then(() => {
+                                                if (appMode === 'local_room') {
+                                                    const nextActive = getActivePlayers().filter(p => !gameState.isBot[p] && (p === playerRole ? newActions.length < gameState.pendingSwitches[p] : gameState.pendingSwitches[p] > (gameState.switchActions[p]?.length || 0)));
+                                                    if (nextActive.length > 0) setPlayerRole(nextActive[0]);
+                                                }
+                                            });
+                                    };
+                                    if(char.id==='lucy')return <ZodiacSwitchChoice key={i} hero={char}
+                                      actionLabel="Conferma sostituzione con Lucy" onChoose={selectReplacement}/>;
                                     return (
                                         <button key={i} onClick={() => {
                                             const currentActions = gameState.switchActions[playerRole] || [];
