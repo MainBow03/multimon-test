@@ -83,7 +83,7 @@ test('Diamante Bianco: primo attacco fa il 30% dei danni, ma non causa malus',()
  assert.equal(white.passive.damageReduction,.7);
  assert.ok(Math.abs(firstHitProtectionFactor(white,true)-.3)<1e-9);
  assert.equal(firstHitProtectionFactor(white,false),1);
- assert.equal(firstHitProtectionFactor(byId('gaster'),true),.3);
+ assert.equal(firstHitProtectionFactor(byId('gaster'),true),1);
  const battle=source('src/systems/battleSystem.js');
  assert.match(battle,/if \(isFirstHitProtection\) \{\s*t\.char\.firstHitImmunityUsed = true/);
  assert.match(battle,/if \(isFirstHitProtection\) hitDmg = Math\.max\(1,Math\.floor\(hitDmg \* firstHitProtectionFactor\(t\.char,true\)\)\)/);
