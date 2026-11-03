@@ -24,7 +24,7 @@ export const useHeldGem=(character,move)=>{
 export const getHeldRecoil=(character,move)=>
     character?.heldItem==='iperband'&&move?.power>0
     ? Math.max(1,Math.floor((character.maxHp||0)*.1)):0;
-export const getHeldEvasion=character=>character?.heldItem==='mantello_invisibilita'?.15:0;
+export const getHeldEvasion=character=>character?.heldItem==='mantello_invisibilita'?.15:character?.heldItem==='polvere_brillante'?.10:0;
 export const getHeldEndTurnHeal=character=>
     character?.heldItem==='avanzi'&&character.hp>0
     ? Math.max(1,Math.floor((character.maxHp||0)*.05)):0;
