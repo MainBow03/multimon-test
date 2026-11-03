@@ -144,6 +144,10 @@ test('L’host offline si può sostituire senza sovrascrivere il turno',()=>{
  assert.equal(canSubmitCoopAction(s,'p1','uid-1',10000),false);
  assert.equal(canCommitCoopTurn(s,'p1','uid-1',10000),false);
  assert.equal(canCommitCoopTurn(s,'p2','uid-2',10000),true);
+ s.turnCalculationStartedAt=Date.now()-30000;
+ assert.equal(canCommitCoopTurn(s,'p1','uid-1',10000),true);
+ s.turnCalculationStartedAt=Date.now();
+ assert.equal(canCommitCoopTurn(s,'p1','uid-1',10000),false);
  s.status='executing';
  assert.equal(canCommitCoopTurn(s,'p2','uid-2',10000),false);
 });
