@@ -934,7 +934,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                         {actionMenuMode === 'switch' && (() => {
                                             const benchedChars = gameState.teams[playerRole].map((c, i) => ({...c, originalIdx: i})).filter((c, i) => !gameState.field[playerRole].includes(i) && c.hp > 0 && !c.isSummonOnly);
                                             return (
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className={gameState.isEchoFinalBattle ? 'grid grid-cols-2 gap-3 max-h-[65vh] overflow-y-auto custom-scrollbar pr-2' : 'grid grid-cols-2 gap-4'}>
                                                     {benchedChars.length === 0 ? <div className="col-span-2 text-center text-slate-400 font-bold mt-4">Nessun compagno disponibile per il cambio.</div> : null}
                                                     {benchedChars.map(char => (
                                                         <button key={char.originalIdx} onClick={() => {
