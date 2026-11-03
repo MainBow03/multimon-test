@@ -3,6 +3,7 @@
 // presenti nel gioco, distinguendo bilanciamento, funzionalità e correzioni.
 export const UPDATE_CATEGORIES = [
   {id:'all',name:'Tutto',icon:'📜'},
+  {id:'campaigns',name:'Campagne e storia',icon:'📖'},
   {id:'balance',name:'Bilanciamento',icon:'⚖️'},
   {id:'champions',name:'Personaggi e abilità',icon:'⭐'},
   {id:'items',name:'Strumenti',icon:'🎒'},
@@ -11,6 +12,53 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov3-tournament-roster',category:'fixes',date:'03/11/2026',title:'🏟️ Torneo Assoluto: esclusi boss futuri e forme akumizzate',items:[
+    'Nella seconda campagna non puoi più scegliere Monarch, Echomax e le forme akumizzate che appartengono alla storia successiva di Monarch.',
+    'L’esclusione comprende Cuore Infranto, Terror Dash, Jake il Demone, Re della Rovina, Destriero Oscuro, Static Shocker (anche versione invincibile), Max e Marceline sottomesse e Maestro Spietato.',
+    'Il divieto si applica sia alla lista dei Multimon del torneo sia alla schermata di scelta del protagonista.',
+    'I salvataggi del Torneo Assoluto già avviati vengono ripuliti dai personaggi esclusi; i progressi, le monete e i PS degli altri alleati sono conservati. Le alleanze già ridotte a otto membri ricevono sostituti idonei.',
+    'Echomax, Monarch e le forme speciali restano nel database del gioco e non vengono rimossi dalle altre modalità o dalle loro campagne.'
+  ]},
+  {id:'nov3-ten-character-buffs',category:'balance',date:'03/11/2026',title:'📈 Dieci Multimon potenziati: statistiche, mosse e nuove passive',items:[
+    'Re Ghiaccio: PS 95→108, ATK 90→103, DEF 75→84, VEL 70→80; Vai Gunter! 25→30 di potenza per colpo. Nuova passiva Brina Regale: all’entrata riduce la Velocità dei nemici del 15%, una volta per battaglia.',
+    'Juvia: PS 90→105, ATK 100→108, DEF 70→84, VEL 80→90; Colpo impetuoso 80→95. Nuova passiva Cuore di Pioggia: sotto il 50% dei PS, +30% Difesa e +15% Velocità, una volta per battaglia.',
+    'Jake (DC): PS 90→105, ATK 90→106, DEF 75→86, VEL 85→95; Tom difendimi! 85→95 di potenza.',
+    'Roserade: PS 80→100, ATK 115→118, DEF 65→80, VEL 90→100; Gigassorbimento 85→95 di potenza, conservando la cura del 50% del danno.',
+    'Mantide: PS 70→90, ATK 110→118, DEF 60→75, VEL 115→125; Colpo della Mantide 70→82, mantenendo priorità +1.',
+    'Spike: PS 85→105, ATK 115→120, DEF 65→80, VEL 90→100; Campo di Cactus 45→55 di potenza su tutti i bersagli.',
+    'Spyro: PS 95→110, ATK 95→112, DEF 75→85, VEL 95→105; Pioggia di Gemme 25→32 di potenza per colpo.',
+    'Poison Ivy: PS 95→105, ATK 100→110, DEF 80→92, VEL 75→90; Radici Avvolgenti 70→82 di potenza.',
+    'Kevin: PS 110→125, ATK 100→112, DEF 100→112, VEL 50→60; Pugno Minerale 80→92. Nuova passiva Armatura Assorbente: sotto il 50% dei PS, +30% Difesa, una volta per battaglia.',
+    'Topolino: PS 105→115, ATK 85→100, DEF 75→85, VEL 105→110; Colpo Cartoon 50→68. Nuova passiva Spirito della Resistenza: quando entra, +10% Difesa agli alleati presenti sul campo.',
+    'Le modifiche si applicano alle statistiche e alle mosse generali dei personaggi, non soltanto alla seconda campagna; nessun altro Multimon viene indebolito in questo aggiornamento.'
+  ]},
+  {id:'nov3-echomax-final-raid',category:'campaigns',date:'03/11/2026',title:'🛡️ Echomax: raid corretto, 6 attivi e 18 riserve',items:[
+    'Nel combattimento finale de L’Eco delle Anime partecipano tutti i 24 alleati reclutati, ma sul terreno possono esserci soltanto 6 Multimon per volta: gli altri 18 restano in panchina.',
+    'Prima della battaglia scegli i sei titolari; i restanti Multimon rimangono disponibili tramite il normale comando Cambia (Squadra) e la sostituzione dopo un KO.',
+    'Lo scontro utilizza lo stesso motore classico delle altre campagne, con le stesse regole per turni, mosse, strumenti, ritratti e statistiche. Rimossa la vecchia griglia che schierava 24 personaggi contemporaneamente.',
+    'Echomax boss dispone di 6.200 PS, statistiche potenziate e quattro scudi da 8 colpi alle soglie dell’80%, 60%, 40% e 20% dei PS.',
+    'La passiva Legione dei Caduti accumula una Carica Anima per ogni KO nemico e, con 3 cariche, permette di evocare una Copia Perfetta per 3 turni; resta attiva una sola copia alla volta.',
+    'Nel raid Dominatore del Multiverso obbliga Echomax a ricaricare il turno successivo, ma non lo rende confuso.',
+    'Le liste di riserve e sostituzioni sono scorrevoli per permettere la scelta anche fra tutti i 18 personaggi in panchina.'
+  ]},
+  {id:'nov3-echo-of-souls',category:'campaigns',date:'03/11/2026',title:'📖 Nuova terza campagna: L’Eco delle Anime',items:[
+    'Aggiunta L’Eco delle Anime come terza modalità storia, dopo Il Torneo Assoluto e prima de L’Ombra di Monarch, ora quarta campagna.',
+    'La storia comprende 36 missioni principali distribuite in 6 atti, ognuna con combattimenti, dialoghi iniziali e dialoghi conclusivi.',
+    'Jake e Marceline sono i protagonisti iniziali: Finn e Topolino sono scomparsi e il loro destino si scopre solo proseguendo la storia.',
+    'Reclutando progressivamente 22 altri alleati, si arriva a una Resistenza di 24 combattenti. Cell e Gaster si uniscono nell’ultimo atto per affrontare una minaccia comune.',
+    'Prima delle missioni ordinarie puoi scegliere una via tattica: Assalto (+10% Attacco), Ricognizione (Scudo Team per un turno) o Rifugio (cura del 15% ai superstiti).',
+    'Dopo ciascuna missione compare una cassa con una scelta fra monete, cure alla squadra o soccorso a un alleato; rimangono anche i normali Bauli Campagna.',
+    'La storia collega lo scontro con Trigon e Gaster della prima campagna al risveglio di Echomax e prepara il successivo capitolo di Monarch.'
+  ]},
+  {id:'nov3-echomax-unlock',category:'champions',date:'03/11/2026',title:'👻 Echomax entra nel roster dopo la terza campagna',items:[
+    'Echomax è un nuovo Multimon di tipo Spettro/Buio. Si sblocca permanentemente soltanto dopo averlo sconfitto e completato L’Eco delle Anime.',
+    'Passiva Legione dei Caduti: ogni KO inflitto ai nemici fornisce una Carica Anima; con 3 cariche evoca una Copia Perfetta che combatte per tre turni.',
+    'Raggio dei Caduti: Spettro, potenza 100, precisione 80%, bersaglio singolo.',
+    'Le Tenebre vi Avvolgono: Buio, potenza 70, colpisce tutti i nemici presenti in campo.',
+    'Vieni a Me, Anima: Spettro, senza danno diretto, riduce Difesa e Velocità del nemico del 30%.',
+    'Dominatore del Multiverso: Spettro, potenza 150, bersaglio singolo; ricarica il turno dopo e confonde Echomax quando è usato come personaggio normale (non nel raid boss).',
+    'Dopo lo sblocco, Echomax è disponibile nelle modalità che utilizzano il roster generale, ma non come partecipante del Torneo Assoluto.'
+  ]},
   {id:'final-raid-trigon-gaster-balance',category:'balance',date:'02/11/2026',title:'RAID finale prima campagna: scudi da 6 e meno PS',items:[
     'Trigon nel raid finale passa da 4.250 a 3.375 PS massimi; W.D. Gaster da 3.375 a 2.436 PS.',
     'Gli scudi RAID dei due boss assorbono ora 6 colpi per attivazione anziché 15; rimangono le soglie al 75%, 50% e 25% della salute.',
@@ -56,7 +104,7 @@ export const GAME_UPDATES = [
     'Le ricompense per piano e vittoria hanno identificativi della run: non possono essere riscosse due volte semplicemente ricaricando o facendo doppio click.'
   ]},
   {id:'campaign-chests-scientist',category:'champions',date:'02/11/2026',title:'Bauli della campagna e Topolino scienziato',items:[
-    'Ogni missione completata in una delle tre campagne assegna un Baule Campagna, conservabile nel menu.',
+    'Ogni missione completata nelle campagne disponibili assegna un Baule Campagna, conservabile nel menu.',
     'Chi ha già completato missioni riceve automaticamente tutti i bauli mancanti, senza duplicati.',
     'Ogni baule contiene due ricompense casuali indipendenti: cure 40%, Punti Forza 28%, monete 25%, Multimon 4%, strumenti da battaglia 3%.',
     'Punti Forza possibili: 5, 7, 9, 15, 20 o 40. Monete fra 15 e 50. I curativi includono pozioni, rimedi status e rivitalizzanti.',
