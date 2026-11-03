@@ -23,7 +23,7 @@ export function weatherMoveFactor(move,weather){
 
 export function weatherEvasionBonus(character,weather){
   return character?.id==='juvia' && character?.passive?.type==='rain_evasion' &&
-    isRainyWeather(weather) ? 0.20 : 0;
+    (isRainyWeather(weather) || (weather?.type==='snowstorm'&&weather.turns>0)) ? 0.20 : 0;
 }
 
 export function totalEvasionChance(character,weather,heldEvasion=0){
