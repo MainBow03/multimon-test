@@ -1,9 +1,10 @@
+import { isTournamentEligibleCharacter } from '../../systems/tournamentEligibility.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignSelectProtagonistView(ctx) {
 const { CHARACTERS, appMode, campaignState, getCampaignStoryCharacters, setAppMode, setCampaignState } = ctx;
 if (appMode === 'campaign_select_protagonist') {
         const storyChars = getCampaignStoryCharacters('torneo_assoluto');
-        const draftableChars = CHARACTERS.filter(c => !c.isSummonOnly && !storyChars.includes(c.id));
+        const draftableChars = CHARACTERS.filter(c => isTournamentEligibleCharacter(c,storyChars));
         return (
             <div className="min-h-screen bg-slate-950 text-white flex flex-col p-6 relative overflow-hidden items-center justify-center">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/40 via-slate-950 to-black pointer-events-none opacity-60"></div>
