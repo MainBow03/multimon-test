@@ -1289,7 +1289,33 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
           const applyOnEnterPassive = (...__args) => applyOnEnterPassiveImpl({ CHARACTERS }, ...__args);
 
-          const startBattle = (...__args) => startBattleImpl({ appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartTimeRef, playerName, setCombatLog, setCommandingIdx, setIsLogOpen, setPlayerRole, updateLocalStats, updateState }, ...__args);
+          const startBattle = (...__args) => {
+            if(appMode==='online_room'&&gameState.isRoguelikeCoop){
+              // Una transazione impedisce avvii doppi e permette a un compagno
+              // di sostituire l'host quando la presenza è scaduta.
+              return coopRoomAction(['drafting'],true,room=>{
+                const humans=['p1','p2','p3'].filter(p=>room.players?.[p]&&!room.isBot?.[p]);
+                if(humans.length<2||humans.some(p=>(room.draft?.[p]||[]).length!==1)||
+                   (room.draft?.p4||[]).length!==1)
+                  throw new Error('Il draft non è completo per tutti i partecipanti.');
+                let patch=null;
+                startBattleImpl({
+                  appMode:'online_room',applyOnEnterPassive,gameState:room,
+                  getRequiredPlayers,matchStartTimeRef:{current:null},playerName:'',
+                  setCombatLog:()=>{},setCommandingIdx:()=>{},setIsLogOpen:()=>{},
+                  setPlayerRole:()=>{},updateLocalStats:()=>{},
+                  updateState:result=>{patch=result}
+                });
+                if(patch?.status!=='pre_battle')
+                  throw new Error('La preparazione dello scontro non è riuscita.');
+                return patch;
+              }).then(()=>{
+                matchStartTimeRef.current=Date.now();
+                setCombatLog([]);setIsLogOpen(false);
+              }).catch(error=>setSystemAlert('Non posso avviare la Co-op: '+(error.message||error)));
+            }
+            return startBattleImpl({ appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartTimeRef, playerName, setCombatLog, setCommandingIdx, setIsLogOpen, setPlayerRole, updateLocalStats, updateState }, ...__args);
+          };
 
           // --- HELPER PER OPPONENTI NEL TORNEO SIMULTANEO ---
           const getTournamentMatchOpponents = (...__args) => getTournamentMatchOpponentsImpl({ gameState }, ...__args);
