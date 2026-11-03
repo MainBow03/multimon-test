@@ -27,7 +27,7 @@ export const GAME_UPDATES = [
   ]},
   {id:'nov3-zeno-omnipotent-gaze',category:'balance',date:'03/11/2026',title:'👁️ Zeno: Sguardo Onnipotente diventa un attacco per due bersagli',items:[
     'Sguardo Onnipotente è ora una mossa Psico di potenza 75 (prima non infliggeva danni).',
-    'Puoi selezionare fino a 2 nemici invece di colpire automaticamente tutti gli avversari sul campo.',
+    'Puoi selezionare fino a 2 bersagli nemici invece di colpire automaticamente tutti gli avversari sul campo.',
     'Conserva i 2 utilizzi per battaglia e l’indebolimento di Attacco, Difesa e Velocità dei bersagli colpiti.',
     'Zeno mantiene Cancellazione, Giochiamo! e Stato Avatar: nessuna mossa è stata rimossa dal suo repertorio.',
     'Le modifiche a Sguardo Onnipotente e alle statistiche di Zeno valgono anche per le battaglie nelle campagne quando il personaggio è giocabile.'
