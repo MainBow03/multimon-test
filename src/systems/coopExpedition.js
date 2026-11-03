@@ -122,7 +122,7 @@ export function finishCoopFloor(room,roster,random=Math.random){
    if(c.hp>0)c.hp=Math.min(c.maxHp,c.hp+Math.floor(c.maxHp*.4));
  const lastEnemies=[...new Set([...(run.encounteredEnemies||[]),...(room.teams?.p4||[]).filter(real).map(c=>c.id)])];
  const complete=floor>=COOP_MAX_FLOOR;
- const nextEvent=complete?null:maybeRogueEvent(floor+1,COOP_MAX_FLOOR,run.relics||[],random);
+ const nextEvent=complete?null:maybeRogueEvent(floor+1,COOP_MAX_FLOOR,run.relics||[],random,true);
  return {status:complete?'coop_complete':nextEvent?'coop_event':'coop_camp',teams,
   coopRun:{...run,floor:complete?floor:floor+1,lastClearFloor:floor,
    coins:(run.coins||0)+coins,lastCoins:coins,lastRecruit:recruited,
@@ -216,7 +216,7 @@ export function voteCoopEvent(room,player,choiceId){
 }
 
 export function chooseCoopEventWinner(event,votes,humans){
- const choices=getRogueEvent(event)?.choices.map(c=>c.id)||[];
+ const choices=event?.altType?['pathA','pathB']:(getRogueEvent(event)?.choices.map(c=>c.id)||[]);
  if(!choices.length)throw new Error('Evento sconosciuto.');
  const ranked=choices.map(id=>({id,count:humans.filter(p=>votes[p]===id).length}));
  ranked.sort((a,b)=>b.count-a.count);
