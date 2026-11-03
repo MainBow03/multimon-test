@@ -83,6 +83,9 @@ export function resolveMultiplayerWinner(room,players){
 }
 export function prepareEmergencySwitch(room,players,now=Date.now()){
  if(!room||room.status!=='battling')return null;
+ // La battaglia non deve chiedere un cambio dopo che il Guardiano è già KO.
+ const terminalCoop=room.isRoguelikeCoop?resolveMultiplayerWinner(room,players):null;
+ if(terminalCoop)return {status:'gameover',winner:terminalCoop,phaseStartedAt:now};
  const replacement=getRequiredSwitches(room,players);
  if(replacement.any){
   const blank=Object.fromEntries(PLAYER_KEYS.map(p=>[p,0]));
@@ -173,6 +176,9 @@ export function resolveSwitchingRoom(room,players,now=Date.now(),force=false,app
 }
 export function nextPhaseAfterExecution(room,players,now=Date.now()){
  if(room?.status!=='executing')return null;
+ const terminalCoop=room.isRoguelikeCoop?resolveMultiplayerWinner(room,players):null;
+ if(terminalCoop)return {status:'gameover',winner:terminalCoop,
+   events:[],phaseStartedAt:now};
  let post=room.postExecStatus||'battling';
  const replacement=getRequiredSwitches(room,players);
  if(post!=='gameover'&&post!=='intermission'&&replacement.any)post='switching_phase';
