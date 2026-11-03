@@ -62,13 +62,15 @@ export const rogueDamageFactor = (attacker, effectiveness) =>
   (allRogueRelics(attacker?.rogueRelics).includes('prism') && effectiveness > 0 && effectiveness < 1 ? 1.4 : 1) *
   (Number.isFinite(attacker?.roguePowerBonus) ? Math.max(1,Math.min(1.5,attacker.roguePowerBonus)) : 1);
 
-export function maybeRogueEvent(floor, maxFloor = 50, relics = [], random = Math.random) {
+export function maybeRogueEvent(floor, maxFloor = 50, relics = [], random = Math.random, withPaths = false) {
   if (!Number.isInteger(floor) || floor < 2 || floor >= maxFloor || floor % 5 === 0 || random() >= 0.42) return null;
   const keys = Object.keys(ROGUE_EVENTS);
   const type = keys[Math.floor(random() * keys.length)];
+  const secondPool=keys.filter(key=>key!==type);
+  const altType=withPaths?secondPool[Math.floor(random()*secondPool.length)]:null;
   const available = Object.keys(ROGUE_RELICS).filter(id => !allRogueRelics(relics).includes(id));
   const relicId = available.length ? available[Math.floor(random() * available.length)] : null;
-  return {type, floor, relicId};
+  return {type, floor, relicId,...(altType?{altType}:{})};
 }
 
 export function getRogueEvent(event) {
@@ -76,6 +78,7 @@ export function getRogueEvent(event) {
 }
 
 export function canChooseRogueEvent(event, choiceId, coins, relics = []) {
+  if(event?.altType)return choiceId==='pathA'||choiceId==='pathB';
   const definition = getRogueEvent(event);
   if (!definition?.choices.some(c => c.id === choiceId)) return false;
   if (event.type === 'merchant' && choiceId === 'relic') {
@@ -83,6 +86,19 @@ export function canChooseRogueEvent(event, choiceId, coins, relics = []) {
     return !available || (coins || 0) >= 25;
   }
   return true;
+}
+
+// Per la Co-op si vota tra DUE eventi differenti, non tra due pulsanti dello
+// stesso evento. La decisione del sentiero determina un esito chiaro e noto.
+export function coopEventPath(event,choiceId,coins,relics=[]) {
+  if(!event?.altType)return {event,choiceId};
+  if(choiceId!=='pathA'&&choiceId!=='pathB')
+    throw new Error('Il sentiero votato non esiste.');
+  const type=choiceId==='pathA'?event.type:event.altType;
+  const actualChoice=type==='merchant'
+    ? (canChooseRogueEvent({type},'relic',coins,relics)?'relic':'coins')
+    : type==='chest'?'relic':type==='trainer'?'power':'risk';
+  return {event:{...event,type,altType:null},choiceId:actualChoice};
 }
 
 function adjustSoloHp(rosterStats, roster, rosterDb, fraction, damage) {
@@ -158,7 +174,8 @@ export function applyCoopRogueChoice(room, choiceId) {
   const event=room.coopRun?.pendingEvent;
   if (!event || room.status !== 'coop_event' || event.floor !== room.coopRun.floor)
     throw new Error('L’evento non è più disponibile.');
-  const out=resolveEffect(event,choiceId,room.coopRun.coins,room.coopRun.relics,room.coopRun.nextBattlePower);
+  const path=coopEventPath(event,choiceId,room.coopRun.coins,room.coopRun.relics);
+  const out=resolveEffect(path.event,path.choiceId,room.coopRun.coins,room.coopRun.relics,room.coopRun.nextBattlePower);
   const humans=['p1','p2','p3'].filter(p => room.players?.[p] && !room.isBot?.[p]);
   const teams=out.heal ? adjustCoopHp(room.teams,humans,out.heal,false)
     : out.damage ? adjustCoopHp(room.teams,humans,out.damage,true)
