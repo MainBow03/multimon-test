@@ -939,7 +939,45 @@ export const MOVES_DB = {
           'Raggio Bling-Bling': { name: 'Raggio Bling-Bling', type: 'Robot', power: 75, statusEffect: { type: 'Confuso', chance: 0.3 }, desc: 'Un raggio laser pacchiano e accecante. 30% di probabilità di confondere.' },
           'Zaino a Razzi': { name: 'Zaino a Razzi', type: 'Aria', power: 0, target: 'self', statBuff: { spd: 1.5, atk: 1.3 }, desc: 'Attiva lo zaino a razzi! Aumenta la Velocità del 50% e l\'Attacco del 30%.' },
           'Richiamo Dukey-Bot': { name: 'Richiamo Dukey-Bot', type: 'Normale', power: 60, targetCount: 2, desc: 'Lancia un segnale per far attaccare Dukey in versione cibernetica. Colpisce fino a 2 bersagli.' },
-          'Sovraccarico Nucleare': { name: 'Sovraccarico Nucleare', type: 'Elettro', power: 110, recoil: 0.2, desc: 'Un attacco energetico sconsiderato. Infligge ingenti danni ma subisce il 20% del danno come contraccolpo.' }
+          'Sovraccarico Nucleare': { name: 'Sovraccarico Nucleare', type: 'Elettro', power: 110, recoil: 0.2, desc: 'Un attacco energetico sconsiderato. Infligge ingenti danni ma subisce il 20% del danno come contraccolpo.' },
+          // LUCY HEARTFILIA E GLI OTTO SPIRITI STELLARI: solo Lucy è giocabile.
+          'Abito Stellare': { name:'Abito Stellare',type:'Normale',power:0,target:'self',statBuff:{atk:1.2},zodiacCharmOnDress:.4,desc:'Lucy indossa l’Abito Stellare: Attacco +20% e 40% di probabilità di infatuare un nemico casuale in campo.' },
+          'Frusta Celestiale': { name:'Frusta Celestiale',type:'Luce',power:80,hitStatDebuff:{spd:.8,chance:.2},desc:'Frustata stellare di potenza 80. Ha il 20% di probabilità di ridurre la Velocità del bersaglio del 20%.' },
+          'Pioggia di Stelle': { name:'Pioggia di Stelle',type:'Luce',power:70,targetCount:4,statusEffect:{type:'Accecato',chance:.3},desc:'Pioggia luminosa che colpisce tutti i nemici. 30% di probabilità di accecare ciascun bersaglio.' },
+          'Apertura Forzata': { name:'Apertura Forzata',type:'Magico',power:85,zodiacForceSecondary:true,desc:'Potenza 85. Se Lucy ha uno Spirito Stellare alleato attivo, attiva immediatamente anche il suo effetto secondario.' },
+
+          'Lana Celestiale': { name:'Lana Celestiale',type:'Folletto',power:70,hitStatDebuff:{atk:.8,chance:.3},desc:'Aries attacca con lana magica: 30% di probabilità di abbassare l’Attacco nemico del 20%.' },
+          'Nebbia del Sonno': { name:'Nebbia del Sonno',type:'Folletto',power:0,statusEffect:{type:'Addormentato',chance:.4},desc:'Aries avvolge il nemico nella nebbia. 40% di probabilità di addormentarlo.' },
+          'Abbraccio di Aries': { name:'Abbraccio di Aries',type:'Folletto',power:0,targetMode:'ally',heal:.3,desc:'Aries cura un alleato del 30% dei suoi PS massimi.' },
+
+          'Ascia del Toro': { name:'Ascia del Toro',type:'Lotta',power:100,desc:'Taurus infligge un potente colpo fisico con la sua ascia.' },
+          'Carica Selvaggia (Taurus)': { name:'Carica Selvaggia (Taurus)',type:'Lotta',power:120,selfStatBuff:{def:.7},desc:'Taurus carica con potenza 120 ma la sua Difesa cala del 30%.' },
+          'Ruggito Possente': { name:'Ruggito Possente',type:'Lotta',power:0,target:'self',statBuff:{atk:1.5},desc:'Taurus aumenta il proprio Attacco di un livello (+50%).' },
+
+          'Copia Perfetta': { name:'Copia Perfetta',type:'Psico',power:0,zodiacCopyLastEnemy:true,maxUses:5,strictUses:true,desc:'Gemini copia ed esegue l’ultima mossa usata dall’avversario scelto. Se il bersaglio non ha ancora usato mosse, fallisce.' },
+          'Doppio Fantasma': { name:'Doppio Fantasma',type:'Psico',power:0,target:'self',zodiacDodge:true,maxUses:3,strictUses:true,desc:'Gemini evita completamente il prossimo attacco diretto contro di sé (3 utilizzi).' },
+          'Confusione Gemella': { name:'Confusione Gemella',type:'Psico',power:70,statusEffect:{type:'Confuso',chance:.5},desc:'Gemini colpisce con potenza 70 e ha il 50% di probabilità di confondere.' },
+
+          'Forbici Lampo': { name:'Forbici Lampo',type:'Robot',power:40,multiHit:{min:3,max:3},desc:'Cancer colpisce esattamente 3 volte con potenza 40 per colpo.' },
+          'Taglio Fulmineo': { name:'Taglio Fulmineo',type:'Robot',power:90,desc:'Cancer esegue un taglio fulmineo di potenza 90.' },
+          'Difesa del Granchio': { name:'Difesa del Granchio',type:'Robot',power:0,target:'self',zodiacFlatBuff:{def:20,spd:20},desc:'Cancer aumenta di 20 punti la propria Difesa e Velocità (entro il limite del doppio del valore base).' },
+
+          'Regulus Impact': { name:'Regulus Impact',type:'Terra',power:110,desc:'Leo sprigiona un colpo stellare devastante di potenza 110.' },
+          'Lama Solare': { name:'Lama Solare',type:'Luce',power:85,ignoreDefBuffs:true,desc:'Leo colpisce con potenza 85 ignorando i potenziamenti della Difesa del nemico.' },
+          'Aura del Re': { name:'Aura del Re',type:'Terra',power:0,target:'self',statBuff:{atk:1.5,spd:1.5},desc:'Leo aumenta di un livello (+50%) Attacco e Velocità.' },
+
+          'Sepoltura Immediata': { name:'Sepoltura Immediata',type:'Terra',power:95,desc:'Virgo colpisce con un attacco terrestre di potenza 95.' },
+          'Prigione Sotterranea': { name:'Prigione Sotterranea',type:'Terra',power:0,zodiacTrapTurns:3,desc:'Intrappola per 3 turni: Velocità dimezzata e 50% di probabilità di mancare la mossa.' },
+          'Servizio Impeccabile': { name:'Servizio Impeccabile',type:'Terra',power:0,target:'self',priority:1,zodiacCleanLucy:true,desc:'Priorità +1. Virgo rimuove gli status negativi e i cali di statistiche dalla sua evocatrice Lucy.' },
+
+          'Tsunami Stellare': { name:'Tsunami Stellare',type:'Acqua',power:110,desc:'Aquarius scatena un’ondata di potenza 110.' },
+          'Tempesta Marina': { name:'Tempesta Marina',type:'Acqua',power:85,statusEffect:{type:'Congelato',chance:.3},desc:'Aquarius attacca con potenza 85 e ha il 30% di probabilità di congelare.' },
+          'Diluvio di Aquarius': { name:'Diluvio di Aquarius',type:'Acqua',power:0,target:'self',zodiacRainTurns:5,desc:'Aquarius scatena la Pioggia per 5 turni: mosse Acqua +25% danni, Fuoco −25%.' },
+
+          'Puntura Mortale': { name:'Puntura Mortale',type:'Veleno',power:80,statusEffect:{type:'Avvelenato',chance:.5},desc:'Scorpio attacca con potenza 80 e ha il 50% di probabilità di avvelenare.' },
+          'Veleno Imperiale': { name:'Veleno Imperiale',type:'Veleno',power:100,desc:'Scorpio usa un attacco velenoso di potenza 100.' },
+          'Agguato Silenzioso': { name:'Agguato Silenzioso',type:'Veleno',power:65,priority:1,desc:'Scorpio sorprende il nemico con un attacco rapido (priorità +1, potenza 65).' }
+
         };
 
 // Normalizzazione originale dei limiti di utilizzo delle mosse.
