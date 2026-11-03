@@ -114,7 +114,7 @@ test('Nicole rimane completamente esclusa dai nuovi nerf',()=>{
 });
 
 test('Registro aggiornamenti documenta tutti e nove i nerf e Nicole invariata',()=>{
-  const history=GAME_UPDATES[0];
+  const history=GAME_UPDATES.find(s=>s.id==='nov3-second-nerf-wave');
   assert.equal(history.id,'nov3-second-nerf-wave');
   assert.equal(history.category,'balance');
   assert.equal(history.date,'03/11/2026');
