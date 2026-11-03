@@ -1,4 +1,5 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
+import {rogueDamageFactor} from './roguelikeEvents.js';
 import { applyBattleStatModifier } from './statBalance.js';
 import { applyPerfezioneBonus, firstHitProtectionFactor } from './nerfPassives.js';
 import { isOnlineHealingLimited, isLimitedHealingItem, onlineHealingRemaining, ONLINE_HEAL_ITEM_LIMIT } from './onlineHealingLimit.js';
@@ -1017,7 +1018,7 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             const enchantedDamageFactor = incomingRockEnchantmentFactor(attacker);
             const fasterTargetBonus = move.bonusAgainstFaster && defender.spd > attacker.spd ? move.bonusAgainstFaster : 1;
 
-            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * teamDefFactor * stabFactor * enchantedDamageFactor * getMahitoMultiplier(attacker, defender, move) * fasterTargetBonus * (defender.passive?.type === 'petrosapien_armor' ? 0.8 : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1) * outgoingPassiveDamageFactor(attacker,defender,move)));
+            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * teamDefFactor * stabFactor * enchantedDamageFactor * getMahitoMultiplier(attacker, defender, move) * fasterTargetBonus * (defender.passive?.type === 'petrosapien_armor' ? 0.8 : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1) * outgoingPassiveDamageFactor(attacker,defender,move) * rogueDamageFactor(attacker,multiplier)));
           
 };
 
@@ -1033,6 +1034,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             let workingField = JSON.parse(JSON.stringify(gameState.field));
             let workingInventory = JSON.parse(JSON.stringify(gameState.inventory));
             const workingHealingItemsUsed={...(gameState.healingItemsUsed||{})};
+            let rogueDawnUsed=Boolean(gameState.rogueDawnUsed);
             let workingHyperUsed = JSON.parse(JSON.stringify(gameState.hyperUsed || {})); // <--- AGGIUNTO PER FORMA IPER
             // Meteo condiviso: si salva nello stato partita, non sul singolo personaggio.
             let workingWeather = gameState.battleWeather ? {...gameState.battleWeather} : null;
@@ -1148,6 +1150,15 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     target.passiveUses = (target.passiveUses || 0) + 1;
                     target.hp = 1;
                     willSurvive = true;
+                } else if (dmg > 0 && target.hp > 0 && target.hp - dmg <= 0 &&
+                    !rogueDawnUsed && gameState.rogueRelics?.includes('dawn') &&
+                    ((gameState.isRoguelikeBattle && targetPlayer === 'p1') ||
+                     (gameState.isRoguelikeCoop && ['p1','p2','p3'].includes(targetPlayer)))) {
+                    // Una sola rinascita per l'intera squadra e per battaglia.
+                    rogueDawnUsed = true;
+                    target.hp = Math.max(1,Math.floor(target.maxHp*0.2));
+                    events.push({type:'text',text:'🪶 Piuma della Seconda Alba! '+target.name+
+                        ' sfugge al colpo fatale e torna al 20% dei PS!'});
                 } else {
                     target.hp = Math.max(0, target.hp - dmg);
                 }
@@ -1712,6 +1723,20 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                         const dmg=stickyTrapEntryDamage(entering);
                         applyDamage(entering,dmg,player,action.toIdx,
                           `🪤 Trappola Segreta! ${entering.name} perde ${dmg} PS entrando in campo!`);
+                      }
+                      // Il Sigillo del Cambio cura soltanto al primo ingresso via cambio
+                      // di ciascun Multimon, non a ogni cambio ripetuto.
+                      if (entering?.hp>0 && entering.rogueRelics?.includes('shift') &&
+                          !entering.rogueShiftUsed) {
+                        entering.rogueShiftUsed = true;
+                        const amount = Math.min(entering.maxHp-entering.hp,
+                          Math.max(1,Math.floor(entering.maxHp*0.15)));
+                        if (amount > 0) {
+                          entering.hp += amount;
+                          events.push({type:'damage',targetPlayer:player,targetIdx:action.toIdx,
+                            newHp:entering.hp,text:'🔄 Sigillo del Cambio: '+entering.name+
+                            ' recupera '+amount+' PS entrando in campo!'});
+                        }
                       }
                       if(entering?.hp>0 && entering.passive?.type==='on_enter' &&
                          (entering.passiveUses||0)<(entering.passive.maxUses||1)){
@@ -3784,7 +3809,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
           fieldTraps: workingFieldTraps,
           fieldTrapSeen: workingTrapSeen,
           battleWeather: workingWeather,
-          hyperUsed: workingHyperUsed, 
+          hyperUsed: workingHyperUsed,
+          rogueDawnUsed,
           pendingSwitches: pendingSwitches,
           switchActions: { p1: [], p2: [], p3: [], p4: [], p5: [], p6: [], p7: [], p8: [] },
           tournamentResults: tResults,
