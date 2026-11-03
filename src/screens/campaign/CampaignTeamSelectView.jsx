@@ -1,4 +1,5 @@
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
+import { HeldEquipmentCard, HeldEquipmentGuide } from '../../components/HeldEquipmentPicker.jsx';
 import { canEquipHeldItem } from '../../systems/heldEquipment.js';
 import { initialCampaignField } from '../../systems/campaignBattleRecovery.js';
 import { applyStrengthToFighter, canTrainCharacter } from '../../systems/strengthLab.js';
@@ -759,22 +760,24 @@ if (appMode === 'campaign_team_select') {
                         });
                     })()}
                 </div>
-                {campaignSelectedTeam.length > 0 && <div className="w-full max-w-6xl bg-slate-950/80 border border-violet-500/50 rounded-2xl p-4 mb-4">
-                  <div className="font-black text-violet-300 text-lg mb-2"><ItemArtwork id="iperband" size={25} className="inline-block align-middle mr-2"/> Strumenti da battaglia</div>
-                  <div className="text-xs text-slate-400 mb-3">Seleziona prima la squadra, poi assegna gli strumenti acquistati nello shop. Non si consumano.</div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    {campaignSelectedTeam.map(id => {
-                      const character = CHARACTERS.find(c => c.id === id);
-                      return character ? <label key={id} className="flex items-center gap-2 bg-slate-900 p-2 rounded-xl min-w-0">
-                        <img src={character.img} className="w-10 h-10 object-cover rounded-full" alt="" />
-                        <span className="min-w-0 flex-1"><span className="text-xs font-bold block truncate">{character.name}</span>
-                        <select aria-label={`Strumento per ${character.name}`} className="w-full bg-slate-800 p-2 text-xs rounded-lg mt-1" value={campaignHeldItems[id] || ''} onChange={event => assignCampaignItem(id, event.target.value)}>
-                          <option value="">Nessuno</option>
-                          {Object.values(ITEMS_DB).filter(item => item.type === 'held' && equipInventory[item.id] > 0).map(item => <option key={item.id} value={item.id}>{item.name} (x{equipInventory[item.id]})</option>)}
-                        </select></span>
-                      </label> : null;
+                {campaignSelectedTeam.length > 0 && <div className="w-full max-w-6xl bg-gradient-to-b from-slate-900/95 to-indigo-950/80 border border-violet-400/45 rounded-3xl p-4 sm:p-6 mb-6 shadow-[0_0_35px_rgba(139,92,246,0.12)]">
+                  <div className="flex items-center gap-3 mb-3">
+                    <ItemArtwork id="iperband" size={35}/>
+                    <div>
+                      <h3 className="font-black text-violet-200 text-lg sm:text-xl">Assegna gli strumenti</h3>
+                      <p className="text-xs text-slate-300 mt-1">Ogni Multimon mostra il proprio strumento e una descrizione del suo effetto. Gli oggetti equipaggiati non vengono consumati.</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {campaignSelectedTeam.map((id,index) => {
+                      const hero=CHARACTERS.find(c=>c.id===id);
+                      const team=campaignSelectedTeam.map(heroId=>({heldItem:campaignHeldItems[heroId]||null}));
+                      return hero?<HeldEquipmentCard key={id} hero={hero} index={index} team={team}
+                        inventory={equipInventory} selectedItem={campaignHeldItems[id]||''}
+                        onEquip={itemId=>assignCampaignItem(id,itemId)}/>:null;
                     })}
                   </div>
+                  <HeldEquipmentGuide inventory={equipInventory}/>
                 </div>}
                 <button onClick={handleStartCampaignBattle} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-12 py-5 rounded-full font-black text-2xl shadow-[0_10px_30px_rgba(59,130,246,0.4)] hover:-translate-y-1 transition-all flex items-center gap-3">
                     <Swords size={28}/> Inizia Battaglia!
