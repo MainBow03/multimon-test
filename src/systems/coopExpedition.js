@@ -139,8 +139,11 @@ export function coopCampPurchase(room,roster,kind,player,idx){
  if((room.coopRun?.coins||0)<price)throw new Error('Monete della spedizione insufficienti.');
  if(!coopHumanPlayers(room).includes(player))throw new Error('Questo giocatore non partecipa alla spedizione.');
  const teams=structuredClone(room.teams);
+ // La cura globale non seleziona un bersaglio: deve funzionare anche
+ // se chi preme il pulsante ha una squadra vuota (gli altri alleati sono vivi).
  const target=teams[player]?.[idx];
- if(!target || target.isSummonOnly)throw new Error('Il Multimon scelto non è disponibile.');
+ if(kind!=='full' && (!target || target.isSummonOnly))
+   throw new Error('Il Multimon scelto non è disponibile.');
  if(kind==='heal'){
   if(target.hp<=0||target.hp>=target.maxHp)throw new Error('Scegli un Multimon vivo e ferito.');
   target.hp=Math.min(target.maxHp,target.hp+Math.floor(target.maxHp*.5));
