@@ -107,7 +107,7 @@ test('Cuore di Pioggia: +20% elusione soltanto sotto tempesta o pioggia',()=>{
  assert.equal(weatherEvasionBonus(juvia,storm),.2);
  assert.equal(weatherEvasionBonus(juvia,{type:'rain',turns:2}),.2);
  assert.equal(weatherEvasionBonus(juvia,null),0);
- assert.equal(weatherEvasionBonus(juvia,{type:'snowstorm',turns:4}),0);
+ assert.equal(weatherEvasionBonus(juvia,{type:'snowstorm',turns:4}),.2);
  assert.equal(weatherEvasionBonus(CHARACTERS.find(c=>c.id==='jake'),storm),0);
  assert.ok(Math.abs(totalEvasionChance(juvia,storm)-.2)<1e-10);
 });
