@@ -303,7 +303,9 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
             // Se un compagno ha acquisito il turno quando l'host era offline,
             // l'host riconnesso non deve avviare un secondo calcolo.
             if(appMode==='online_room'&&gameState.isRoguelikeCoop&&
-               gameState.turnCalculationOwner&&gameState.turnCalculationOwner!==user?.uid)return;
+               gameState.turnCalculationOwner&&gameState.turnCalculationOwner!==user?.uid&&
+               !(Number.isFinite(gameState.turnCalculationStartedAt)&&
+                 Date.now()-gameState.turnCalculationStartedAt>=25000))return;
             if(appMode==='online_room'&&playerRole!=='p1'){
               if(!canRecoverRoom(gameState,playerRole)){
                 setSystemAlert('L’host è ancora connesso: attendi il suo turno. In caso di KO, usa la sostituzione.');
