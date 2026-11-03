@@ -473,7 +473,7 @@ export const MOVES_DB = {
           // NUOVE MOSSE GODZILLA
           'Raggio Atomico': { name: 'Raggio Atomico', type: 'Fuoco', power: 120, ignoreDefBuffs: true, recharge: true, desc: 'Il suo iconico raggio radioattivo. Danni devastanti ma richiede un turno di ricarica.' },
           'Colpo di Coda': { name: 'Colpo di Coda', type: 'Drago', power: 85, targetCount: 2, desc: 'Una possente spazzata di tipo Drago con l\'enorme coda, che colpisce fino a 2 nemici.' },
-          'Ruggito del Re': { name: 'Ruggito del Re', type: 'Drago', power: 0, targetCount: 4, targetStatDebuff: { atk: 0.8, spd: 0.8 }, statusEffect: { type: 'Stordito', chance: 0.2 }, maxUses: 2, desc: 'Un ruggito assordante che terrorizza tutti i nemici, riducendo Attacco e Velocità del 20%. Può stordire con il 20% di probabilità. Solo 2 utilizzi per battaglia.' },
+          'Ruggito del Re': { name: 'Ruggito del Re', type: 'Drago', power: 0, targetCount: 4, targetStatDebuff: { atk: 0.8, spd: 0.8 }, statusEffect: { type: 'Stordito', chance: 0.2 }, maxUses: 2, strictUses: true, desc: 'Un ruggito assordante che terrorizza tutti i nemici, riducendo Attacco e Velocità del 20%. Può stordire con il 20% di probabilità. Solo 2 utilizzi per battaglia.' },
           'Rigenerazione G': { name: 'Rigenerazione G', type: 'Normale', power: 0, target: 'self', heal: 0.3, statBuff: { def: 1.3 }, desc: 'Sfrutta le sue cellule rigenerative per curarsi del 30% dei PS e aumentare la Difesa del 30%.' },
 
           // NUOVE MOSSE JURI (YU YU HAKUSHO)
@@ -666,7 +666,7 @@ export const MOVES_DB = {
           // NUOVE MOSSE SOUNDWAVE
           'Onda d\'Urto': { name: 'Onda d\'Urto', type: 'Suono', power: 85, statusEffect: { type: 'Stordito', chance: 0.2 }, desc: 'Un\'onda sonora devastante. 20% di probabilità di stordire il nemico.' },
           'Laserbeak, all\'attacco!': { name: 'Laserbeak, all\'attacco!', type: 'Robot', power: 45, multiHit: { min: 2, max: 2 }, desc: 'Invia il suo fido compagno a colpire 2 volte il bersaglio.' },
-          'Jammer di Frequenza': { name: 'Jammer di Frequenza', type: 'Elettro', power: 0, targetCount: 4, targetStatDebuff: { atk: 0.8, spd: 0.8 }, maxUses: 3, desc: 'Emette onde di disturbo. Riduce Attacco e Velocità di tutti i nemici del 20%. Solo 3 utilizzi per battaglia.' },
+          'Jammer di Frequenza': { name: 'Jammer di Frequenza', type: 'Elettro', power: 0, targetCount: 4, targetStatDebuff: { atk: 0.8, spd: 0.8 }, maxUses: 3, strictUses: true, desc: 'Emette onde di disturbo. Riduce Attacco e Velocità di tutti i nemici del 20%. Solo 3 utilizzi per battaglia.' },
 
           'Onda Melmosa': { name: 'Onda Melmosa', type: 'Veleno', power: 0, targetCount: 4, percentDmgMax: 0.30, statusEffect: { type: 'Avvelenato', chance: 0.4 }, desc: 'Un\'onda acida su tutti i nemici: toglie il 30% dei loro PS massimi e ha il 40% di avvelenare.' },
           
