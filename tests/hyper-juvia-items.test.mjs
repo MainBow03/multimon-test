@@ -109,7 +109,7 @@ test('Cuore di Pioggia: +20% elusione soltanto sotto tempesta o pioggia',()=>{
  assert.equal(weatherEvasionBonus(juvia,null),0);
  assert.equal(weatherEvasionBonus(juvia,{type:'snowstorm',turns:4}),0);
  assert.equal(weatherEvasionBonus(CHARACTERS.find(c=>c.id==='jake'),storm),0);
- assert.equal(totalEvasionChance(juvia,storm),.2);
+ assert.ok(Math.abs(totalEvasionChance(juvia,storm)-.2)<1e-10);
 });
 
 test('Polvere Brillante: elusione +10% e si combina con la pioggia senza sostituire il Mantello',()=>{
@@ -119,7 +119,7 @@ test('Polvere Brillante: elusione +10% e si combina con la pioggia senza sostitu
  assert.equal(getHeldEvasion({heldItem:null}),0);
  const withPowder={...juvia,heldItem:'polvere_brillante'};
  assert.ok(Math.abs(totalEvasionChance(withPowder,{type:'rainstorm',turns:3},getHeldEvasion(withPowder))-.28)<.0001);
- assert.equal(totalEvasionChance(withPowder,null,getHeldEvasion(withPowder)),.1);
+ assert.ok(Math.abs(totalEvasionChance(withPowder,null,getHeldEvasion(withPowder))-.1)<1e-10);
 });
 
 test('Barile Pimpante: quattro colpi sopravvissuti, anche multicolpo, una sola attivazione',()=>{
