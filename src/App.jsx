@@ -19,6 +19,7 @@ import { renderRoguelikeMapView } from './screens/roguelike/RoguelikeMapView.jsx
 import { renderRoguelikeCoopLobbyView } from './screens/roguelike/RoguelikeCoopLobbyView.jsx';
 import { RoguelikeCoopCampView } from './screens/roguelike/RoguelikeCoopCampView.jsx';
 import {prepareCoopDraft,finishCoopFloor,nextCoopFloor,coopCampPurchase,voteCoopEvent,finalizeCoopEvent} from './systems/coopExpedition.js';
+import {canSubmitCoopAction,canCommitCoopTurn} from './systems/coopTurnGuards.js';
 import { renderShopView } from './screens/hub/ShopView.jsx';
 import { StrengthLabView } from './screens/hub/StrengthLabView.jsx';
 import { migrateCampaignChests } from './systems/campaignChests.js';
@@ -1285,7 +1286,34 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           // --- INTELLIGENZA ARTIFICIALE CPU (Migliorata per Tutti i Bot) ---
           const generateCPUActionsForPlayer = (...__args) => generateCPUActionsForPlayerImpl({ gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, roguelikeState }, ...__args);
 
-          const commitAction = (...__args) => commitActionImpl({ appMode, commandingIdx, ITEMS_DB, MOVES_DB, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState }, ...__args);
+          // Un click vecchio, arrivato dopo il cambio turno o su una sessione diversa,
+          // non deve sostituire le azioni del nuovo combattimento.
+          const guardedCoopActionUpdate = async patch => {
+              if(appMode!=='online_room'||!gameState.isRoguelikeCoop)return updateState(patch);
+              if(!roomId||!user?.uid)throw new Error('Non sei collegato alla stanza.');
+              const key='actions.'+playerRole;
+              if(!Object.prototype.hasOwnProperty.call(patch,key))
+                  throw new Error('Azione Co-op non valida.');
+              const ref=doc(db,'artifacts',appId,'public','data','rooms',roomId);
+              try{
+                return await runTransaction(db,async tx=>{
+                  const snap=await tx.get(ref);
+                  if(!snap.exists())throw new Error('La stanza non esiste più.');
+                  const live=snap.data();
+                  if(!canSubmitCoopAction(live,playerRole,user.uid,gameState.phaseStartedAt))
+                    throw new Error('Il turno è già cambiato o il posto non è valido.');
+                  const current=live.actions?.[playerRole]||{};
+                  const submitted=patch[key]||{};
+                  tx.update(ref,{[key]:{...current,...submitted}});
+                  return true;
+                });
+              }catch(err){
+                setSystemAlert('Non sono riuscito a registrare la mossa: '+(err.message||err));
+                throw err;
+              }
+          };
+
+          const commitAction = (...__args) => commitActionImpl({ appMode, commandingIdx, ITEMS_DB, MOVES_DB, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState:guardedCoopActionUpdate }, ...__args);
 
           const handleSelectMoveTarget = (...__args) => handleSelectMoveTargetImpl({ commandingIdx, commitAction, gameState, getActivePlayers, getTournamentMatchOpponents, MOVES_DB, pendingHyper, playerRole, selectedMultiTargets, setSelectedMultiTargets, targetingMoveIdx }, ...__args);
 
@@ -1293,7 +1321,34 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
           const calculateDamage = (...__args) => calculateDamageImpl({  }, ...__args);
 
-          const calculateTurn = (...__args) => calculateTurnImpl({ CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDamage, gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, playerName, updateLocalStats, updateState }, ...__args);
+          // Anche il risultato del turno dev'essere condizionale: la prima
+          // transazione vincente termina la fase, le altre non riscrivono lo stato.
+          const guardedCoopTurnUpdate = async patch => {
+              if(appMode!=='online_room'||!gameState.isRoguelikeCoop)return updateState(patch);
+              if(!roomId||!user?.uid){isCalculatingRef.current=false;return false;}
+              const ref=doc(db,'artifacts',appId,'public','data','rooms',roomId);
+              try{
+                return await runTransaction(db,async tx=>{
+                  const snap=await tx.get(ref);
+                  if(!snap.exists())return false;
+                  const live=snap.data();
+                  if(!canCommitCoopTurn(live,playerRole,user.uid,gameState.phaseStartedAt))
+                    return false;
+                  tx.update(ref,{...patch,turnCalculationOwner:null,turnCalculationStartedAt:null});
+                  return true;
+                });
+              }catch(err){
+                console.error('Calcolo Co-op non registrato:',err);
+                setSystemAlert('Impossibile confermare il turno Co-op: '+(err.message||err));
+                return false;
+              }finally{
+                // Se il lock è scaduto o la rete è fallita non lasciare il client
+                // in uno stato "sto calcolando" per sempre.
+                isCalculatingRef.current=false;
+              }
+          };
+
+          const calculateTurn = (...__args) => calculateTurnImpl({ CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDamage, gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, playerName, updateLocalStats, updateState:guardedCoopTurnUpdate }, ...__args);
 
     const handleNextTournamentMatch = (...__args) => handleNextTournamentMatchImpl({ appMode, gameState, setCombatLog, setCommandingIdx, setIsLogOpen, setPlayerRole, updateState }, ...__args);
 
