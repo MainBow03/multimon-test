@@ -1473,7 +1473,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (appMode === 'roguelike_map') {
-  const __screen = renderRoguelikeMapView({ CHARACTERS, ChevronRight, Coins, Heart, ITEMS_DB, LogOut, Swords, Users, appMode, initialGameState, playerName, renderHealthBar, roguelikeState, setAppMode, setGameState, setPlayerRole, setRoguelikeState, setSystemAlert, updateLocalStats });
+  const __screen = renderRoguelikeMapView({ CHARACTERS, ChevronRight, Coins, Heart, ITEMS_DB, LogOut, Swords, Users, appMode, initialGameState, applyOnEnterPassive, playerName, renderHealthBar, roguelikeState, setAppMode, setGameState, setPlayerRole, setRoguelikeState, setSystemAlert, updateLocalStats });
   if (__screen !== undefined) return __screen;
 }
     // --- FINE NUOVE PAGINE ---
