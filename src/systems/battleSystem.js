@@ -7,6 +7,7 @@ import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { hyperPreviewMoves } from './hyperPreview.js';
+import { outgoingPassiveDamageFactor } from './offensivePassives.js';
 import { isRainyWeather, RAINSTORM_TURNS, tryStartRainstorm, weatherMoveFactor, totalEvasionChance } from './rainstorm.js';
 import { resolvePoisonEndTurn } from './battleStatusTurns.js';
 import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense, endRefractionTurn, snowstormOutcome, randomBuff, randomDebuff, daffyCelebration } from './championEffects.js';
@@ -993,7 +994,7 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             const enchantedDamageFactor = incomingRockEnchantmentFactor(attacker);
             const fasterTargetBonus = move.bonusAgainstFaster && defender.spd > attacker.spd ? move.bonusAgainstFaster : 1;
 
-            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * teamDefFactor * stabFactor * enchantedDamageFactor * getMahitoMultiplier(attacker, defender, move) * fasterTargetBonus * (defender.passive?.type === 'petrosapien_armor' ? 0.8 : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1)));
+            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * teamDefFactor * stabFactor * enchantedDamageFactor * getMahitoMultiplier(attacker, defender, move) * fasterTargetBonus * (defender.passive?.type === 'petrosapien_armor' ? 0.8 : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1) * outgoingPassiveDamageFactor(attacker,defender,move)));
           
 };
 
