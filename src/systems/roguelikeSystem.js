@@ -1,7 +1,7 @@
 import { masteryVisibleLevels } from './masterySystem.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleCreateRoguelikeCoopImpl = async (ctx) => {
-const { appId, db, doc, initialGameState, playerAvatarUrl, playerName, playerTitle, setAppMode, setCoopRoomId, setDoc, setPlayerRole, setRoomId, setSystemAlert, user } = ctx;
+const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle, setAppMode, setCoopRoomId, setDoc, setPlayerRole, setRoomId, setSystemAlert, user } = ctx;
 
             if (!playerName.trim()) return setSystemAlert("Inserisci il tuo nome!");
             if (!user) return setSystemAlert("Connessione ai server in corso, riprova tra un istante.");
@@ -16,6 +16,7 @@ const { appId, db, doc, initialGameState, playerAvatarUrl, playerName, playerTit
             state.playerMastery.p1 = masteryVisibleLevels(getPlayerData());
             state.inventory.p1 = { pozione: 2, resurrezione: 1 };
             state.isRoguelikeCoop = true;
+            state.coopRun = {floor:1,maxFloor:50,coins:0,lastCoins:0,recruitBonus:0,encounteredEnemies:[],lastRecruit:null,finished:false};
             state.gameMode = 'juggernaut'; // Il Juggernaut sarà il boss controllato dal Bot!
             state.settings = {
                 ...state.settings,
@@ -23,15 +24,20 @@ const { appId, db, doc, initialGameState, playerAvatarUrl, playerName, playerTit
                 maxPlayers: 4,
                 fieldSize: 1,
                 juggernautPlayer: 'p4',
-                draftBattle: true
+                draftBattle: true,
+                isRoguelikeCoop: true
             };
             state.players.p4 = "Guardiano del Piano";
             state.playerAvatars.p4 = 'https://api.dicebear.com/7.x/bottts/svg?seed=Skull&backgroundColor=020617';
             state.isBot.p4 = true;
             state.inventory.p4 = {};
+            state.isCampaignBattle=false;
+            // La CPU non è un quarto partecipante: lo slot p4 è solo l’avversario comune.
 
             const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', newRoomId);
-            await setDoc(roomRef, state);
+            try{await setDoc(roomRef, state)}catch(error){
+              setSystemAlert('Non riesco a creare la Roguelike Co-op: '+(error.message||error));return;
+            }
 
             setRoomId(newRoomId);
             setPlayerRole('p1');

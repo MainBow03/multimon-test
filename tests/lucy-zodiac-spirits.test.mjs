@@ -219,7 +219,7 @@ test('Selettore degli Spiriti integrato nei draft, campagna, roguelike e sostitu
 });
 
 test('Registro aggiornamenti: 9 nuovi personaggi, tutte le mosse e Spiriti non giocabili',()=>{
- const section=GAME_UPDATES[0];
+ const section=GAME_UPDATES.find(x=>x.id==='nov3-lucy-zodiac-spirit-system');
  assert.equal(section.id,'nov3-lucy-zodiac-spirit-system');
  assert.equal(section.category,'champions');
  assert.ok(section.items.length>=13);

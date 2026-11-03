@@ -4,6 +4,7 @@ import { hyperPreviewMoves } from '../../systems/hyperPreview.js';
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { ZodiacSwitchChoice } from '../../components/ZodiacSpiritPicker.jsx';
 import { BattleCodexLauncher } from '../../components/BattleCodex.jsx';
+import {BattleTypeChartLauncher} from '../../components/BattleTypeChartLauncher.jsx';
 import { BattleStatusBadges, battleFeedbackKind, BATTLE_FEEDBACK_LABELS } from '../../components/BattleStatusBadges.jsx';
 import { isMasteryEligible, masteryDeploymentTier } from '../../systems/masterySystem.js';
 // Schermata estratta senza alterare la struttura JSX originale.
@@ -177,7 +178,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
             }
 
             const isBeingCommanded = isMyTurn && teamPlayer === playerRole && fieldIdx === commandingIdx;
-            const isJuggernaut = char.isJuggernaut || ((gameState.gameMode === 'survival' || gameState.gameMode === 'juggernaut') && teamPlayer === (gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1')));
+            const isJuggernaut = char.isJuggernaut || (!gameState.isRoguelikeCoop && (gameState.gameMode === 'survival' || gameState.gameMode === 'juggernaut') && teamPlayer === (gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1')));
             const isHyper = char.isHyper; // <--- RILEVA FORMA IPER GIA' ATTIVA
             const isPendingHyperHere = pendingHyper && isBeingCommanded; // <--- RILEVA SE STA CARICANDO L'ENERGIA
             
@@ -190,7 +191,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
             }
             if (isPendingHyperHere) { // <--- EFFETTO CARICAMENTO PRE-ATTACCO (Quando scegli l'Iper)
                 borderClass = 'border-yellow-300 shadow-[0_0_40px_rgba(253,224,71,1)] scale-110 z-30 animate-pulse filter brightness-150';
-            } else if (isJuggernaut) {
+            } else if (isJuggernaut || char.isCoopBoss) {
                 borderClass = 'border-rose-600 shadow-[0_0_20px_rgba(225,29,72,0.6)]';
             } else if (isHyper) { // <--- EFFETTO FORMA IPER (Dopo che si è trasformato)
                 borderClass = 'border-yellow-400 shadow-[0_0_25px_rgba(250,204,21,0.8)] z-40';
@@ -481,6 +482,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     </button>
 
                     <BattleCodexLauncher gameState={gameState} />
+                    <BattleTypeChartLauncher/>
 
                     {/* PULSANTE FORZA SKIP */}
                     {(!isEventBattle||eventBattleCanForce)&&<button onClick={handleForceSkip} className="absolute top-28 left-4 flex items-center gap-2 text-yellow-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-yellow-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm" title="Usa questo tasto se la partita si blocca o se l'host scompare!">

@@ -12,6 +12,19 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov3-coop-roguelike-chart-battle',category:'features',date:'03/11/2026',title:'🧬 Chart dei tipi in battaglia e Roguelike Co-op finalmente condivisa',items:[
+    'La tabella completa dei 23 tipi è consultabile in qualsiasi battaglia dal nuovo pulsante 🧬 Chart tipi. Si apre e chiude senza perdere il turno o uscire dallo scontro; riusa i rapporti di efficacia reali del gioco.',
+    'Roguelike Co-op: la lobby online ora riceve gli aggiornamenti Firestore prima dell’inizio. Puoi condividere il codice e far entrare fino a tre giocatori umani, con uno slot CPU separato.',
+    'L’host può iniziare con due o tre giocatori: ognuno sceglie un solo Multimon nel draft iniziale e combatte controllando la propria squadra; in campo c’è un Multimon per persona.',
+    'La Co-op non applica più i moltiplicatori enormi della modalità Juggernaut al nemico normale. I nemici scalano per piano e numero di giocatori, con mini-boss ogni dieci piani.',
+    'Dopo ogni vittoria, tutti vedono un accampamento condiviso con squadre e PS conservati, monete della spedizione, reclutamento e possibilità di curare o rianimare i compagni.',
+    'Reclutamento: probabilità iniziale 30%, che aumenta del 2% dopo ogni piano senza reclute. Se un nemico si unisce alla spedizione, viene assegnato casualmente a un partecipante.',
+    'Chi possiede meno Multimon ha più probabilità di ricevere la recluta: peso pari a 1 + 3 per ogni membro in meno rispetto alla squadra più numerosa. Massimo 8 Multimon per giocatore.',
+    'Gli acquisti, le ricompense e l’avanzamento di piano usano transazioni Firestore per evitare doppi reclutamenti, spese duplicate o conflitti tra giocatori.',
+    'Un giocatore può curare un proprio Multimon oppure aiutare un amico: cura singola 20 monete, rianimazione 50, cura totale dei vivi 90. Ogni cinque piani i sopravvissuti recuperano il 40% dei PS.',
+    'Tra un piano e l’altro gli strumenti, gli HP e i compagni reclutati restano associati al proprietario. La spedizione prosegue fino a 50 piani; anche chi rientra con il proprio account recupera lo stato condiviso.',
+    'La Roguelike in solitaria non viene sovrascritta: conserva il proprio salvataggio e la progressione separata dalla Co-op.'
+  ]},
   {id:'nov3-lucy-zodiac-spirit-system',category:'champions',date:'03/11/2026',title:'✨ Lucy Heartfilia e gli otto Spiriti Stellari dello Zodiaco',items:[
     'Lucy Heartfilia è un nuovo personaggio giocabile di tipo Normale/Luce: 100 PS, 100 Attacco, 85 Difesa e 105 Velocità. Usa l’immagine scelta dal giocatore.',
     'Passiva Spiriti dello Zodiaco: selezioni uno Spirito Stellare da evocare all’ingresso in campo. Nel draft, in campagna, nella Roguelike e durante le sostituzioni puoi scegliere la chiave con le immagini e gli effetti descritti.',

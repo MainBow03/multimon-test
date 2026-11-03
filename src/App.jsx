@@ -17,6 +17,8 @@ import { renderCampaignEndingView } from './screens/campaign/CampaignEndingView.
 import { renderRoguelikeDraftView } from './screens/roguelike/RoguelikeDraftView.jsx';
 import { renderRoguelikeMapView } from './screens/roguelike/RoguelikeMapView.jsx';
 import { renderRoguelikeCoopLobbyView } from './screens/roguelike/RoguelikeCoopLobbyView.jsx';
+import { RoguelikeCoopCampView } from './screens/roguelike/RoguelikeCoopCampView.jsx';
+import {prepareCoopDraft,finishCoopFloor,nextCoopFloor,coopCampPurchase} from './systems/coopExpedition.js';
 import { renderShopView } from './screens/hub/ShopView.jsx';
 import { StrengthLabView } from './screens/hub/StrengthLabView.jsx';
 import { migrateCampaignChests } from './systems/campaignChests.js';
@@ -776,6 +778,19 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                       return; 
                   }
                   
+                  if(gameState.isRoguelikeCoop){
+                      // Il bottino della Co-op è SOLO quello condiviso nel documento Firestore.
+                      // Non assegnare 110 monete del Juggernaut per ogni piano e
+                      // non sovrascrivere lo zaino del profilo globale.
+                      const won=gameState.winner!==gameState.players.p4 && gameState.winner!=='Pareggio';
+                      if(myKey && masteryIds.length){
+                          statsUpdates.masteryIds=masteryIds;
+                          statsUpdates.masteryWon=won;
+                      }
+                      if(won)statsUpdates.win=true;
+                      if(Object.keys(statsUpdates).length)updateLocalStats(statsUpdates);
+                      return;
+                  }
                   if (myKey && gameState.inventory[myKey] && !gameState.isRoguelikeBattle) { // FIX: Ignora l'inventario del roguelike per non sovrascrivere quello globale
                       statsUpdates.overwriteInventory = gameState.inventory[myKey];
                   }
@@ -861,8 +876,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           }, [gameState.status, hasRewarded, playerName, gameState.winner, gameState.gameMode, gameState.tournamentResults, gameState.settings.teamSize, gameState.inventory, gameState.players, gameState.isCampaignBattle]);
 
           useEffect(() => {
-              const saveableModes = ['local_room', 'online_room'];
-              if (appMode==='online_room' && (!user?.uid || !roomId || !playerRole)) return;
+              const saveableModes = ['local_room', 'online_room', 'roguelike_coop_lobby'];
+              if ((appMode==='online_room'||appMode==='roguelike_coop_lobby') && (!user?.uid || !roomId || !playerRole)) return;
               if (saveableModes.includes(appMode)) {
                   localStorage.setItem(ROOM_SESSION_KEY, JSON.stringify({
                       appMode,
@@ -1040,7 +1055,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           // Ricollegamento: il documento server è la fonte di verità.
           // Nessun reset della partita al semplice errore di connessione.
           useEffect(() => {
-            if (appMode !== 'online_room' || !roomId || !user?.uid) return;
+            if ((appMode !== 'online_room' && appMode !== 'roguelike_coop_lobby') || !roomId || !user?.uid) return;
             const roomRef=doc(db,'artifacts',appId,'public','data','rooms',roomId);
             const unsubscribe=onSnapshot(roomRef,snapshot=>{
               if(!snapshot.exists()){
@@ -1065,7 +1080,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           // Host presente: heartbeat discreto, per permettere a un altro
           // giocatore di riparare una partita bloccata se l'host sparisce.
           useEffect(()=>{
-            if(appMode!=='online_room'||playerRole!=='p1'||!roomId||!user?.uid)return;
+            if((appMode!=='online_room'&&appMode!=='roguelike_coop_lobby')||playerRole!=='p1'||!roomId||!user?.uid)return;
             const ref=doc(db,'artifacts',appId,'public','data','rooms',roomId);
             const ping=()=>updateDoc(ref,{hostHeartbeatAt:Date.now()}).catch(e=>
               console.warn('Heartbeat della stanza non riuscito:',e));
@@ -1399,6 +1414,38 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
     // con il campo vuoto. Anche l'host di una stanza legacy può usarlo.
     const forceCompleteSwitches = () => recoverRoomPhase(true);
 
+
+    // Roguelike Co-op: ricompense, acquisti e nuovi piani sono transazioni
+    // atomiche sull'unico documento Firestore della stanza, mai sul salvataggio solo.
+    const coopRoomAction=async (allowedStages,leadOnly,makePatch)=>{
+      if(!roomId||!user?.uid||!gameState.isRoguelikeCoop)throw new Error('Non sei in una spedizione Co-op.');
+      const ref=doc(db,'artifacts',appId,'public','data','rooms',roomId);
+      return runTransaction(db,async tx=>{
+        const snap=await tx.get(ref);
+        if(!snap.exists())throw new Error('La stanza non esiste più.');
+        const room=snap.data();
+        if(!room.isRoguelikeCoop||!allowedStages.includes(room.status))
+          throw new Error('La fase della spedizione è già cambiata. La stanza si sta aggiornando.');
+        if(!room.players?.[playerRole]||room.isBot?.[playerRole]||
+          room.playerUids?.[playerRole]!==user.uid)
+          throw new Error('Non possiedi un posto valido in questa spedizione.');
+        if(leadOnly&&playerRole!=='p1'&&isHostFresh(room))
+          throw new Error('Solo l’host può proseguire finché è collegato.');
+        const patch=makePatch(room);
+        tx.update(ref,patch);
+        return patch;
+      });
+    };
+    const startCoopDraft=()=>coopRoomAction(['lobby'],true,room=>prepareCoopDraft(room,CHARACTERS))
+      .catch(error=>{setSystemAlert('Impossibile avviare la Co-op: '+(error.message||error));throw error;});
+    const claimCoopFloor=()=>coopRoomAction(['gameover'],true,
+      room=>finishCoopFloor(room,CHARACTERS));
+    const startCoopNextFloor=()=>coopRoomAction(['coop_camp'],true,
+      room=>nextCoopFloor(room,CHARACTERS,(char,p,idx,teams,field,events,ctx)=>
+        applyOnEnterPassive(char,p,idx,teams,field,events,ctx.gameMode,ctx.settings,false)));
+    const buyCoopCampCare=(kind,targetPlayer,targetIdx)=>coopRoomAction(['coop_camp'],false,
+      room=>coopCampPurchase(room,CHARACTERS,kind,targetPlayer,targetIdx));
+
     // --- RENDERERS ---
 
     const renderView = () => {
@@ -1479,7 +1526,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
     // --- FINE NUOVE PAGINE ---
 
     if (appMode === 'roguelike_coop_lobby') {
-  const __screen = renderRoguelikeCoopLobbyView({ ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Loader2, Wifi, appMode, coopRoomId, gameState, getDefaultAvatar, playerRole, setAppMode, setCoopRoomId, updateState });
+  const __screen = renderRoguelikeCoopLobbyView({ ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Loader2, Wifi, appMode, coopRoomId, gameState, getDefaultAvatar, playerRole, setAppMode, setCoopRoomId, leaveRoom, startCoopDraft });
   if (__screen !== undefined) return __screen;
 }
 
@@ -1546,6 +1593,14 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
   const __screen = renderBattlingView({ ownMasteryLevels: masteryVisibleLevels(getPlayerData()), ChevronRight, ITEMS_DB, appMode, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip: safeForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });
   if (__screen !== undefined) return __screen;
 }
+
+    if (gameState.isRoguelikeCoop &&
+       ['gameover','coop_camp','coop_complete'].includes(gameState.status)) {
+      return <RoguelikeCoopCampView room={gameState} playerRole={playerRole}
+        canLead={playerRole==='p1'||!isHostFresh(gameState)}
+        onClaimWin={claimCoopFloor} onNext={startCoopNextFloor}
+        onPurchase={buyCoopCampCare} onExit={leaveRoom}/>;
+    }
 
     if (gameState.status === 'gameover') {
   const __screen = renderGameoverView({ CHARACTERS, ChevronRight, Coins, RotateCcw, Trophy, activeCampaign, activeCampaignId, campaignState, gameState, getDefaultAvatar, leaveRoom, playerName, roguelikeState, setAppMode, setCampaignDialogueIdx, setCampaignSelectedTeam, setCampaignState, setRoguelikeState, setSystemAlert, updateLocalStats });

@@ -153,7 +153,7 @@ const { appId, appMode, db, doc, roomId, setGameState, updateDoc } = ctx;
                 return nextState;
               });
               return Promise.resolve();
-            } else if (appMode === 'online_room' && roomId) {
+            } else if ((appMode === 'online_room' || appMode === 'roguelike_coop_lobby') && roomId) {
               const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
               await updateDoc(roomRef, newState);
             }
@@ -278,7 +278,7 @@ const { appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, play
       if(existing){
         if(room.playerUids?.[existing]!==user.uid)
           tx.update(ref,{[`playerUids.${existing}`]:user.uid});
-        return {role:existing,returning:true,coop:!!room.isRoguelikeCoop};
+        return {role:existing,returning:true,coop:!!room.isRoguelikeCoop,status:room.status};
       }
       // Mai prendere il posto di un giocatore che si è disconnesso:
       // il suo UID mantiene la proprietà fino alla fine della stanza.
@@ -304,12 +304,12 @@ const { appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, play
         [`inventory.${slot}`]:room.isRoguelikeCoop
           ?{pozione:2,resurrezione:1}:getPlayerData().inventory
       });
-      return {role:slot,returning:false,coop:!!room.isRoguelikeCoop};
+      return {role:slot,returning:false,coop:!!room.isRoguelikeCoop,status:room.status};
     });
     setRoomId(code);
     setPlayerRole(joined.role);
     if(joined.coop)setCoopRoomId(code);
-    setAppMode(joined.coop?'roguelike_coop_lobby':'online_room');
+    setAppMode(joined.coop && joined.status==='lobby'?'roguelike_coop_lobby':'online_room');
     if(joined.returning)setSystemAlert('Rientro riuscito! Hai ripreso il tuo posto e la tua squadra.');
   }catch(error){
     console.error('Impossibile unirsi/rientrare:',error);
