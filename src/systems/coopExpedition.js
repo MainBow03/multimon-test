@@ -8,6 +8,29 @@ export const coopHumanPlayers=room=>COOP_HUMANS.filter(p=>Boolean(room?.players?
 export const coopCount=(room,p)=>(room.teams?.[p]||[]).filter(real).length;
 export const coopRosterIds=room=>new Set(COOP_HUMANS.flatMap(p=>(room.teams?.[p]||[]).filter(real).map(c=>c.id)));
 export const coopRecruitChance=run=>Math.min(.85,Math.round((.30+(run?.recruitBonus||0))*100)/100);
+/** Single-transaction draft start: guest joins can never occur between slot snapshot and draft. */
+export function prepareCoopDraft(room,roster,random=Math.random){
+ if(!room?.isRoguelikeCoop||room.status!=='lobby')
+   throw new Error('La lobby Co-op è già stata avviata.');
+ const humans=coopHumanPlayers(room);
+ if(humans.length<2||humans.length>3)throw new Error('Servono due o tre giocatori per iniziare.');
+ const draftable=roster.filter(c=>!c.isSummonOnly&&!c.isSecretUnlock&&!c.isCampaignMonster);
+ if(draftable.length<3)throw new Error('Il roster non contiene abbastanza Multimon.');
+ const choices={...(room.draftChoices||{})},rerolls={...(room.draftRerolls||{})};
+ const draft={...(room.draft||{})};
+ for(const p of humans){
+  const shuffled=[...draftable];
+  for(let i=shuffled.length-1;i>0;i--){
+   const j=Math.floor(random()*(i+1));
+   [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+  }
+  choices[p]=shuffled.slice(0,3);
+  rerolls[p]=2;draft[p]=[];
+ }
+ draft.p4=[coopEnemyForFloor(1,draftable,humans.length,[],random)];
+ return {status:'drafting',phaseStartedAt:Date.now(),draftChoices:choices,
+  draftRerolls:rerolls,draft,coopRun:{...room.coopRun,floor:1}};
+}
 export const COOP_SHOP={
  heal:{price:20,desc:'Recupera il 50% dei PS massimi a un Multimon vivo'},
  revive:{price:50,desc:'Rianima un Multimon sconfitto con il 50% dei PS'},
