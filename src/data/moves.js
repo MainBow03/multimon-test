@@ -144,7 +144,7 @@ export const MOVES_DB = {
           'Dittatura del Sorriso': { name: 'Dittatura del Sorriso', type: 'Oscuro', power: 90, targetCount: 4, statusEffect: { type: 'Confuso', chance: 0.5 }, desc: 'Obbliga tutti a sorridere! Colpisce tutti i nemici con energia oscura e ha il 50% di probabilità di confonderli.' },
 
           'Tempesta emotiva': { name: 'Tempesta emotiva', type: 'Aria', power: 110, targetCount: 2, maxUses: 5, desc: 'Un ciclone di emozioni e vento. Colpisce fino a due bersagli contemporaneamente.' },
-          'Colpo impetuoso': { name: 'Colpo impetuoso', type: 'Acqua', power: 95, desc: 'Un colpo d\'acqua violento e inarrestabile.' },
+          'Colpo impetuoso': { name: 'Colpo impetuoso', type: 'Acqua', power: 95, rainstormChance: 0.25, desc: 'Un potente colpo Acqua: 25% di probabilità di scatenare una Tempesta di 5 turni. Con Tempesta: Acqua +25% danni, Fuoco -25% danni.' },
           'Amore devoto': { name: 'Amore devoto', type: 'Magico', power: 0, maxUses: 3, targetMode: 'ally', targetStatBuff: { atk: 1.5, def: 1.5 }, desc: 'Il potere dell\'amore: potenzia grandemente l\'Attacco e la Difesa di un alleato in squadra.' },
           'Flirt': { name: 'Flirt', type: 'Normale', power: 0, maxUses: 5, statusEffect: { type: 'Infatuato', chance: 1.0 }, desc: 'Usa il fascino per far innamorare irrimediabilmente il bersaglio.' },
           'Abisso Disperato': { name: 'Abisso Disperato', type: 'Buio', power: 85, drain: 0.5, maxUses: 3, desc: 'L\'oscurità della sua gelosia avvolge il nemico. Drena il 50% del danno inflitto in PS. (3 utilizzi)' },
