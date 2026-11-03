@@ -350,7 +350,7 @@ export const ECHO_CAMPAIGN={
        postDialogue:postDialogue.map(([s,t])=>({s,t})),
        echoMission:true,echoAct:chapterIdx+1,echoNumber:number,
        echoReward:stageIdx===5?'legendaria':unlock.length?'resistenza':'superstite',
-       echoFinal:isFinal,forcedRoster:isFinal?[...ECHO_ALLIES]:undefined,forceFieldSize:isFinal?24:undefined
+       echoFinal:isFinal,forcedRoster:isFinal?[...ECHO_ALLIES]:undefined,forceFieldSize:isFinal?6:undefined
      };
    })
  }))
