@@ -244,11 +244,13 @@ if (appMode === 'roguelike_map') {
                 {(roguelikeState.relics || []).length > 0 && <div className="w-full max-w-3xl mb-5 rounded-2xl border border-fuchsia-500/30 bg-slate-900/70 p-4">
                     <h3 className="text-sm font-black text-fuchsia-200 mb-2">✨ Reliquie della spedizione</h3>
                     <div className="flex flex-wrap gap-2">{(roguelikeState.relics || []).map(id => ROGUE_RELICS[id] && (
-                        <span key={id} title={ROGUE_RELICS[id].desc} className="text-xs rounded-xl border border-indigo-500/50 px-3 py-2 bg-indigo-950/40 text-indigo-100">
-                            {ROGUE_RELICS[id].icon} {ROGUE_RELICS[id].name}
-                        </span>
+                        <div key={id} className="text-xs max-w-[240px] rounded-xl border border-indigo-500/50 px-3 py-2 bg-indigo-950/40 text-indigo-100">
+                            <p className="font-black">{ROGUE_RELICS[id].icon} {ROGUE_RELICS[id].name}</p>
+                            <p className="mt-1 text-slate-300">{ROGUE_RELICS[id].desc}</p>
+                        </div>
                     ))}</div>
                 </div>}
+                {(roguelikeState.nextBattlePower||1)>1&&<p className="mb-3 max-w-3xl text-sm text-center text-amber-200 border border-amber-500/30 bg-amber-950/30 rounded-xl px-4 py-3">🥋 Allenamento offensivo: +20% danni nella prossima battaglia.</p>}
                 {roguelikeState.lastEventResult && <p className="mb-4 max-w-3xl text-sm text-center text-emerald-200 bg-emerald-950/40 border border-emerald-600/40 rounded-xl p-3">{roguelikeState.lastEventResult}</p>}
                 {roguelikeState.roster.includes('lucy')&&<div className="w-full max-w-2xl mb-5">
                   <ZodiacSpiritPicker value={roguelikeState.zodiacSpiritId}
