@@ -35,6 +35,7 @@ const initialGameState = () => ({
           postExecStatus: 'battling', 
           pendingSwitches: { p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0, p7: 0, p8: 0 },
           switchActions: { p1: [], p2: [], p3: [], p4: [], p5: [], p6: [], p7: [], p8: [] },
+          switchZodiacChoices: { p1:{},p2:{},p3:{},p4:{},p5:{},p6:{},p7:{},p8:{} },
           tournamentMatch: null, 
           tournamentPhase: 'semis', // <--- AGGIUNTO PER LE LOTTE SIMULTANEE
           tournamentMatchStatus: { semi1: 'battling', semi2: 'battling', final: 'battling', bronze: 'battling' }, // <--- AGGIUNTO

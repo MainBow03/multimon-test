@@ -46,6 +46,7 @@ export const MASTERY_CHARACTER_TITLES = Object.freeze({
   "aang": "Ultimo Dominatore dell’Aria",
   "yugo": "Viaggiatore dei Portali",
   "sage": "Guaritrice",
+  "lucy": "Custode delle Chiavi Stellari",
   "ariana": "Regina delle Note Alte",
   "mario": "Eroe del Regno dei Funghi",
   "luigi": "Cacciatore di Fantasmi",

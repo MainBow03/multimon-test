@@ -1,5 +1,6 @@
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { HeldEquipmentCard, HeldEquipmentGuide } from '../../components/HeldEquipmentPicker.jsx';
+import { ZodiacSpiritPicker } from '../../components/ZodiacSpiritPicker.jsx';
 import { canEquipHeldItem } from '../../systems/heldEquipment.js';
 import { initialCampaignField } from '../../systems/campaignBattleRecovery.js';
 import { applyStrengthToFighter, canTrainCharacter } from '../../systems/strengthLab.js';
@@ -9,7 +10,7 @@ import { applyEchoRouteToTeam } from '../../systems/echoRoutes.js';
 import { echoRaidStarters, toggleEchoRaidStarter, orderEchoRaidRoster, isCompleteEchoRaidLineup, ECHO_ACTIVE_LIMIT } from '../../systems/echoRaidLineup.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
-const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
+const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, campaignZodiacChoices, setCampaignZodiacChoices, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
 if (appMode === 'campaign_team_select') {
         const equipInventory = getPlayerData().inventory || {};
         const assignCampaignItem = (id, itemId) => {
@@ -365,6 +366,7 @@ if (appMode === 'campaign_team_select') {
                 const hp = campaignState.rosterStats[id] || 100;
                 const instance={
                     ...JSON.parse(JSON.stringify(baseChar)), hp: hp, statuses: [], consecutiveProtect: 0, heldItem: campaignHeldItems[id] || null,
+                    ...(id==='lucy'?{zodiacSpiritId:campaignZodiacChoices[id]||'zodiac_aries'}:{}),
                     baseAtk: baseChar.atk, baseDef: baseChar.def, baseSpd: baseChar.spd,
                     moves: baseChar.moves.filter(Boolean).map(m => ({ ...m, remainingUses: m.maxUses !== undefined ? m.maxUses : null }))
                 };
@@ -778,6 +780,9 @@ if (appMode === 'campaign_team_select') {
                     })}
                   </div>
                   <HeldEquipmentGuide inventory={equipInventory}/>
+                </div>}
+                {campaignSelectedTeam.includes('lucy')&&<div className="w-full max-w-6xl mb-6">
+                  <ZodiacSpiritPicker value={campaignZodiacChoices.lucy} onChange={spiritId=>setCampaignZodiacChoices(prev=>({...prev,lucy:spiritId}))}/>
                 </div>}
                 <button onClick={handleStartCampaignBattle} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-12 py-5 rounded-full font-black text-2xl shadow-[0_10px_30px_rgba(59,130,246,0.4)] hover:-translate-y-1 transition-all flex items-center gap-3">
                     <Swords size={28}/> Inizia Battaglia!

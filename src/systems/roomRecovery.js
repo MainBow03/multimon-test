@@ -1,6 +1,7 @@
 // Prevenzione soft-lock nelle battaglie multigiocatore.
 // Pure helpers: usati dal motore, dai client online e dai test.
 import { markRapidTransmutationEntry,activateHealingSprout } from './newHeldAndPassiveEffects.js';
+import {normalizeZodiacSpirit} from './zodiacSpirits.js';
 export const ROOM_PHASE_TIMEOUT_MS = 120000;
 export const ROOM_HOST_TIMEOUT_MS = 45000;
 export const ROOM_SESSION_KEY = 'multiverse_rpg_session';
@@ -75,6 +76,7 @@ export function prepareEmergencySwitch(room,players,now=Date.now()){
     field:{...(room.field||{}),...replacement.field},
     pendingSwitches:{...blank,...replacement.need},
     switchActions:Object.fromEntries(PLAYER_KEYS.map(p=>[p,[]])),
+    switchZodiacChoices:Object.fromEntries(PLAYER_KEYS.map(p=>[p,{}])),
     actions:Object.fromEntries(PLAYER_KEYS.map(p=>[p,{}]))};
  }
  const winner=resolveMultiplayerWinner(room,players);
@@ -111,6 +113,8 @@ export function resolveSwitchingRoom(room,players,now=Date.now(),force=false,app
   for(const i of choices[p]||[]){
    if(field[p].includes(i)||!playable(teams[p]?.[i]))continue;
    field[p].push(i);teams[p][i].revealed=true;
+   if(teams[p][i].id==='lucy' && room.switchZodiacChoices?.[p]?.[i])
+      teams[p][i].zodiacSpiritId=normalizeZodiacSpirit(room.switchZodiacChoices[p][i]);
    markRapidTransmutationEntry(teams[p][i]);
    events.push({type:'switch',player:p,pos:field[p].length-1,newIdx:i,
      text:teams[p][i].name+' entra in campo dopo il KO!'});
@@ -148,6 +152,7 @@ export function resolveSwitchingRoom(room,players,now=Date.now(),force=false,app
    status:events.length?'executing':post,
    postExecStatus:events.length?post:null,events,
    pendingSwitches:reset,switchActions:resetActions,
+   switchZodiacChoices:Object.fromEntries(PLAYER_KEYS.map(p=>[p,{}])),
    ...(winner?{winner}:{}),
    phaseStartedAt:now,turnExpiresAt:now+92000
  }};

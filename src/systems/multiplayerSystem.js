@@ -1,4 +1,5 @@
 import { roomRoleForUid, recoverableLegacyRole, findJoinableSlot, getRequiredSwitches, ROOM_SESSION_KEY } from './roomRecovery.js';
+import {normalizeZodiacSpirit} from './zodiacSpirits.js';
 import { masteryVisibleLevels } from './masterySystem.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleAvatarUploadImpl = (ctx, e) => {
@@ -316,7 +317,7 @@ const { appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, play
   }
 };
 
-export const commitReplacementChoiceImpl = async (ctx,idx) => {
+export const commitReplacementChoiceImpl = async (ctx,idx,zodiacSpiritId=null) => {
  const {appMode,appId,db,doc,gameState,playerRole,roomId,runTransaction,
    setSystemAlert,updateState,user}=ctx;
  if(!playerRole||playerRole==='spectator')return;
@@ -341,11 +342,17 @@ export const commitReplacementChoiceImpl = async (ctx,idx) => {
     const current=snap.data();
     if(current.playerUids?.[playerRole] && current.playerUids[playerRole]!==user.uid)
      throw Error('Questo posto appartiene a un altro account.');
-    tx.update(ref,{[`switchActions.${playerRole}`]:pick(current)});
+    const patch={[`switchActions.${playerRole}`]:pick(current)};
+    if(current.teams?.[playerRole]?.[idx]?.id==='lucy')
+      patch[`switchZodiacChoices.${playerRole}.${idx}`]=normalizeZodiacSpirit(zodiacSpiritId||current.teams[playerRole][idx].zodiacSpiritId);
+    tx.update(ref,patch);
    });
   }else{
    const value=pick(gameState);
-   await updateState({[`switchActions.${playerRole}`]:value});
+   const patch={[`switchActions.${playerRole}`]:value};
+   if(gameState.teams?.[playerRole]?.[idx]?.id==='lucy')
+     patch[`switchZodiacChoices.${playerRole}.${idx}`]=normalizeZodiacSpirit(zodiacSpiritId||gameState.teams[playerRole][idx].zodiacSpiritId);
+   await updateState(patch);
   }
  }catch(error){
   setSystemAlert(error.message||'Impossibile confermare la sostituzione.');

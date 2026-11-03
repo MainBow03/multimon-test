@@ -134,7 +134,7 @@ test('Nuove passive di danno ignorano mosse non offensive e rispettano statistic
 });
 
 test('Registro aggiornamenti: nuove note per ogni buff senza dimenticare le precedenti',()=>{
- const recent=GAME_UPDATES.slice(3,5);
+ const recent=GAME_UPDATES.slice(4,6);
  assert.deepEqual(recent.map(s=>s.id),[
    'nov3-zazan-sage-arctic-move-balance','nov3-four-new-passives-bulma'
  ]);

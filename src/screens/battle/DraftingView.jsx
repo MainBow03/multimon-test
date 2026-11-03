@@ -1,5 +1,6 @@
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { HeldEquipmentCard, HeldEquipmentGuide } from '../../components/HeldEquipmentPicker.jsx';
+import { ZodiacSpiritPicker } from '../../components/ZodiacSpiritPicker.jsx';
 import { canEquipHeldItem } from '../../systems/heldEquipment.js';
 import { TEAM_ROLES, getCharacterRoles, filterTeamRoster, characterPrice } from '../../systems/teamBuilderFilters.js';
 // Schermata estratta senza alterare la struttura JSX originale.
@@ -104,6 +105,10 @@ if (gameState.status === 'drafting') {
                            </div>
                            <HeldEquipmentGuide inventory={heldInventory}/>
                          </div>
+                         {myDraft.map((hero,idx)=>hero.id==='lucy'?<div key={'lucy-zodiac-'+idx} className="w-full max-w-6xl px-3 mb-5">
+                           <ZodiacSpiritPicker value={hero.zodiacSpiritId} onChange={spiritId=>
+                             updateState({[`draft.${playerRole}`]:myDraft.map((c,i)=>i===idx?{...c,zodiacSpiritId:spiritId}:c)})}/>
+                         </div>:null)}
                          <h3 className="text-3xl sm:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500 font-black mb-4 sm:mb-8 drop-shadow-md text-center">Squadra Pronta!</h3>
                          
                          {appMode === 'local_room' && !allReady && (() => {

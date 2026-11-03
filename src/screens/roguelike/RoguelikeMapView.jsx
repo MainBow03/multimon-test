@@ -1,6 +1,7 @@
+import {ZodiacSpiritPicker} from '../../components/ZodiacSpiritPicker.jsx';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderRoguelikeMapView(ctx) {
-const { CHARACTERS, ChevronRight, Coins, Heart, ITEMS_DB, LogOut, Swords, Users, appMode, initialGameState, playerName, renderHealthBar, roguelikeState, setAppMode, setGameState, setPlayerRole, setRoguelikeState, setSystemAlert, updateLocalStats } = ctx;
+const { CHARACTERS, ChevronRight, Coins, Heart, ITEMS_DB, LogOut, Swords, Users, appMode, initialGameState, applyOnEnterPassive, playerName, renderHealthBar, roguelikeState, setAppMode, setGameState, setPlayerRole, setRoguelikeState, setSystemAlert, updateLocalStats } = ctx;
 if (appMode === 'roguelike_map') {
         const isBossFloor = roguelikeState.floor % 10 === 0;
         const isFinalBossFloor = roguelikeState.floor === roguelikeState.maxFloor;
@@ -113,7 +114,7 @@ if (appMode === 'roguelike_map') {
         const startRoguelikeCombat = () => {
             const myTeam = roguelikeState.roster.map(id => {
                 const base = CHARACTERS.find(c => c.id === id);
-                return { ...JSON.parse(JSON.stringify(base)), hp: roguelikeState.rosterStats[id], statuses: [], consecutiveProtect: 0, baseAtk: base.atk, baseDef: base.def, baseSpd: base.spd, moves: base.moves.filter(Boolean).map(m => ({ ...m, remainingUses: m.maxUses !== undefined ? m.maxUses : null })) };
+                return { ...JSON.parse(JSON.stringify(base)), ...(id==='lucy'?{zodiacSpiritId:roguelikeState.zodiacSpiritId||'zodiac_aries'}:{}), hp: roguelikeState.rosterStats[id], statuses: [], consecutiveProtect: 0, baseAtk: base.atk, baseDef: base.def, baseSpd: base.spd, moves: base.moves.filter(Boolean).map(m => ({ ...m, remainingUses: m.maxUses !== undefined ? m.maxUses : null })) };
             });
 
             // Generazione Nemici (Scala in base al piano)
@@ -170,6 +171,17 @@ if (appMode === 'roguelike_map') {
             state.inventory.p1 = JSON.parse(JSON.stringify(roguelikeState.inventory || {})); // Inietta l'inventario locale
             state.field.p1.forEach(idx => { if(state.teams.p1[idx]) state.teams.p1[idx].revealed = true; });
             state.field.p2.forEach(idx => { if(state.teams.p2[idx]) state.teams.p2[idx].revealed = true; });
+            // Lo start della Roguelike salta il draft classico: attiva le passive
+            // di ingresso anche qui, una sola volta e per gli attivi iniziali.
+            const initialEvents=[];
+            for(const p of ['p1','p2'])for(const idx of [...state.field[p]]){
+              const char=state.teams[p]?.[idx];
+              if(char?.passive?.type==='on_enter' && (char.passiveUses||0)<(char.passive.maxUses||1)){
+                char.passiveUses=(char.passiveUses||0)+1;
+                applyOnEnterPassive(char,p,idx,state.teams,state.field,initialEvents,state.gameMode,state.settings,false);
+              }
+            }
+            state.events=initialEvents;
             state.status = 'pre_battle';
             setGameState(state);
             setPlayerRole('p1');
@@ -212,6 +224,10 @@ if (appMode === 'roguelike_map') {
                     </div>
                 </div>
                 
+                {roguelikeState.roster.includes('lucy')&&<div className="w-full max-w-2xl mb-5">
+                  <ZodiacSpiritPicker value={roguelikeState.zodiacSpiritId}
+                    onChange={spiritId=>setRoguelikeState(old=>({...old,zodiacSpiritId:spiritId}))}/>
+                </div>}
                 <div className="w-full max-w-2xl bg-slate-900/80 p-6 rounded-3xl border border-slate-700/50 mb-8 flex gap-4 overflow-x-auto custom-scrollbar">
                     {roguelikeState.roster.map(id => {
                         const char = CHARACTERS.find(c=>c.id===id);
