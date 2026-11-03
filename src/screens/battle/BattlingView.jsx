@@ -178,7 +178,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
             }
 
             const isBeingCommanded = isMyTurn && teamPlayer === playerRole && fieldIdx === commandingIdx;
-            const isJuggernaut = char.isJuggernaut || ((gameState.gameMode === 'survival' || gameState.gameMode === 'juggernaut') && teamPlayer === (gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1')));
+            const isJuggernaut = char.isJuggernaut || (!gameState.isRoguelikeCoop && (gameState.gameMode === 'survival' || gameState.gameMode === 'juggernaut') && teamPlayer === (gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1')));
             const isHyper = char.isHyper; // <--- RILEVA FORMA IPER GIA' ATTIVA
             const isPendingHyperHere = pendingHyper && isBeingCommanded; // <--- RILEVA SE STA CARICANDO L'ENERGIA
             
@@ -191,7 +191,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
             }
             if (isPendingHyperHere) { // <--- EFFETTO CARICAMENTO PRE-ATTACCO (Quando scegli l'Iper)
                 borderClass = 'border-yellow-300 shadow-[0_0_40px_rgba(253,224,71,1)] scale-110 z-30 animate-pulse filter brightness-150';
-            } else if (isJuggernaut) {
+            } else if (isJuggernaut || char.isCoopBoss) {
                 borderClass = 'border-rose-600 shadow-[0_0_20px_rgba(225,29,72,0.6)]';
             } else if (isHyper) { // <--- EFFETTO FORMA IPER (Dopo che si è trasformato)
                 borderClass = 'border-yellow-400 shadow-[0_0_25px_rgba(250,204,21,0.8)] z-40';
