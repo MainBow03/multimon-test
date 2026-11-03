@@ -472,8 +472,8 @@ export const MOVES_DB = {
 
           // NUOVE MOSSE GODZILLA
           'Raggio Atomico': { name: 'Raggio Atomico', type: 'Fuoco', power: 120, ignoreDefBuffs: true, recharge: true, desc: 'Il suo iconico raggio radioattivo. Danni devastanti ma richiede un turno di ricarica.' },
-          'Colpo di Coda': { name: 'Colpo di Coda', type: 'Lotta', power: 85, targetCount: 2, desc: 'Una possente spazzata con l\'enorme coda che colpisce fino a 2 nemici.' },
-          'Ruggito del Re': { name: 'Ruggito del Re', type: 'Drago', power: 0, targetCount: 4, targetStatDebuff: { atk: 0.7, spd: 0.7 }, statusEffect: { type: 'Stordito', chance: 0.2 }, desc: 'Un ruggito assordante che terrorizza tutti i nemici, riducendo Attacco e Velocità. 20% di stordire.' },
+          'Colpo di Coda': { name: 'Colpo di Coda', type: 'Drago', power: 85, targetCount: 2, desc: 'Una possente spazzata di tipo Drago con l\'enorme coda, che colpisce fino a 2 nemici.' },
+          'Ruggito del Re': { name: 'Ruggito del Re', type: 'Drago', power: 0, targetCount: 4, targetStatDebuff: { atk: 0.8, spd: 0.8 }, statusEffect: { type: 'Stordito', chance: 0.2 }, maxUses: 2, desc: 'Un ruggito assordante che terrorizza tutti i nemici, riducendo Attacco e Velocità del 20%. Può stordire con il 20% di probabilità. Solo 2 utilizzi per battaglia.' },
           'Rigenerazione G': { name: 'Rigenerazione G', type: 'Normale', power: 0, target: 'self', heal: 0.3, statBuff: { def: 1.3 }, desc: 'Sfrutta le sue cellule rigenerative per curarsi del 30% dei PS e aumentare la Difesa del 30%.' },
 
           // NUOVE MOSSE JURI (YU YU HAKUSHO)
@@ -604,7 +604,7 @@ export const MOVES_DB = {
           'Carica del Re Fulmine': { name: 'Carica del Re Fulmine', type: 'Elettro', power: 220, maxUses: 1, isCombo: ['zatchbell', 'ponygon'], specificComboEffects: { 'zatchbell': { selfHeal: -0.15, statBuff: { atk: 1.5 } }, 'ponygon': { selfHeal: -0.15, statBuff: { spd: 2.0, def: 1.5 } } }, desc: 'Mossa Combinata: Danni devastanti (220). Zatch monta in sella a Ponygon in un assalto di fiamme e fulmini! Costa il 15% dei PS a entrambi, ma potenzia Zatch (+50% Atk) e Ponygon (+100% Spd, +50% Def).' },
 
           // NUOVE MOSSE TRIGON E GASTER
-          'Inferno demoniaco': { name: 'Inferno demoniaco', type: 'Fuoco', power: 100, targetCount: 4, statusEffect: { type: 'Scottato', chance: 0.5 }, desc: 'Fiamme infernali che colpiscono tutti i bersagli. 50% di probabilità di scottare i nemici.' },
+          'Inferno demoniaco': { name: 'Inferno demoniaco', type: 'Fuoco', power: 100, targetCount: 4, statusEffect: { type: 'Scottato', chance: 0.3 }, desc: 'Fiamme infernali che colpiscono tutti i bersagli. 30% di probabilità di scottare i nemici.' },
           'Sguardo dell\'abisso': { name: 'Sguardo dell\'abisso', type: 'Oscuro', power: 0, targetStatDebuff: { atk: 0.5 }, desc: 'Uno sguardo terrificante che terrorizza il nemico, dimezzandone permanentemente l\'Attacco (diminuisce di 2 stage).' },
           'Artigli dell\'apocalisse': { name: 'Artigli dell\'apocalisse', type: 'Oscuro', power: 90, drain: 0.6, desc: 'Fendente apocalittico. Ha una probabilità di recuperare gran parte dell\'energia (drena 60% danni inflitti).' },
           'Corvina unisciti a me!': { name: 'Corvina unisciti a me!', type: 'Oscuro', power: 0, isSummon: 'clone_corvina', maxUses: 2, strictUses: true, desc: 'Costringe un frammento dell\'anima di sua figlia a combattere. Evoca Clone Corvina. (2 utilizzi)' },
@@ -666,7 +666,7 @@ export const MOVES_DB = {
           // NUOVE MOSSE SOUNDWAVE
           'Onda d\'Urto': { name: 'Onda d\'Urto', type: 'Suono', power: 85, statusEffect: { type: 'Stordito', chance: 0.2 }, desc: 'Un\'onda sonora devastante. 20% di probabilità di stordire il nemico.' },
           'Laserbeak, all\'attacco!': { name: 'Laserbeak, all\'attacco!', type: 'Robot', power: 45, multiHit: { min: 2, max: 2 }, desc: 'Invia il suo fido compagno a colpire 2 volte il bersaglio.' },
-          'Jammer di Frequenza': { name: 'Jammer di Frequenza', type: 'Elettro', power: 0, targetCount: 4, targetStatDebuff: { atk: 0.7, spd: 0.7 }, desc: 'Emette onde di disturbo. Riduce Attacco e Velocità di tutti i nemici.' },
+          'Jammer di Frequenza': { name: 'Jammer di Frequenza', type: 'Elettro', power: 0, targetCount: 4, targetStatDebuff: { atk: 0.8, spd: 0.8 }, maxUses: 3, desc: 'Emette onde di disturbo. Riduce Attacco e Velocità di tutti i nemici del 20%. Solo 3 utilizzi per battaglia.' },
 
           'Onda Melmosa': { name: 'Onda Melmosa', type: 'Veleno', power: 0, targetCount: 4, percentDmgMax: 0.30, statusEffect: { type: 'Avvelenato', chance: 0.4 }, desc: 'Un\'onda acida su tutti i nemici: toglie il 30% dei loro PS massimi e ha il 40% di avvelenare.' },
           
@@ -728,7 +728,7 @@ export const MOVES_DB = {
           // NUOVE MOSSE MAESTRO SHIFU
           'Agilità del Maestro': { name: 'Agilità del Maestro', type: 'Aria', power: 0, target: 'self', isProtect: true, priority: 5, maxUses: 4, statBuff: { spd: 1.5 }, desc: 'Schiva ogni attacco con movimenti fluidi e aumenta la Velocità del 50%.' },
           'Tocco Paralizzante': { name: 'Tocco Paralizzante', type: 'Lotta', power: 50, statusEffect: { type: 'Stordito', chance: 0.5 }, desc: 'Un colpo preciso ai centri nervosi. 50% di probabilità di stordire il nemico.' },
-          'Saggezza di Oogway': { name: 'Saggezza di Oogway', type: 'Magico', power: 0, targetMode: 'ally', heal: 0.4, targetStatBuff: { atk: 1.5, def: 1.5 }, desc: 'Infonde pace interiore in un alleato: lo cura del 40% e aumenta Attacco e Difesa del 50%.' },
+          'Saggezza di Oogway': { name: 'Saggezza di Oogway', type: 'Magico', power: 0, targetMode: 'ally', heal: 0.3, targetStatBuff: { atk: 1.3, def: 1.3 }, desc: 'Infonde pace interiore in un alleato: lo cura del 30% e aumenta Attacco e Difesa del 30%.' },
           'Colpo del Loto': { name: 'Colpo del Loto', type: 'Lotta', power: 90, ignoreDefBuffs: true, desc: 'Un fendente marziale di altissima tecnica che ignora le difese avversarie.' },
 
           // NUOVE MOSSE GARDEVOIR E URSULA
@@ -897,7 +897,7 @@ export const MOVES_DB = {
           'Palla di Fuoco Suprema': { name: 'Palla di Fuoco Suprema', type: 'Fuoco', power: 75, statusEffect: { type: 'Scottato', chance: 0.3 }, desc: 'Sputa un\'enorme sfera di fuoco. 30% di probabilità di scottare il bersaglio.' },
           'Mille Falchi': { name: 'Mille Falchi', type: 'Elettro', power: 90, statusEffect: { type: 'Elettrizzato', chance: 0.2 }, desc: 'Concentra il fulmine nella mano per un colpo letale. 20% di probabilità di paralizzare.' },
           'Genjutsu: Sharingan': { name: 'Genjutsu: Sharingan', type: 'Magico', power: 0, targetStatDebuff: { def: 0.6, accFlat: 0.2 }, statusEffect: { type: 'Stordito', chance: 0.3 }, desc: 'Intrappola la mente del nemico. Ne riduce la Difesa (-40%) e Precisione (-20%), con il 30% di stordire.' },
-          'Amaterasu': { name: 'Amaterasu', type: 'Oscuro', power: 120, ignoreDefBuffs: true, statusEffect: { type: 'Scottato', chance: 1.0 }, recharge: true, desc: 'Fiamme nere inestinguibili. Ignora le difese, scotta sempre, ma richiede ricarica nel turno successivo.' },
+          'Amaterasu': { name: 'Amaterasu', type: 'Oscuro', power: 120, ignoreDefBuffs: true, statusEffect: { type: 'Scottato', chance: 0.75 }, recharge: true, desc: 'Fiamme nere inestinguibili. Ignora i potenziamenti difensivi, ha il 75% di probabilità di scottare e richiede ricarica nel turno successivo.' },
           
           // NUOVE MOSSE MELIODAS
           'Full Counter': { name: 'Full Counter', type: 'Magico', power: 0, target: 'self', isProtect: true, priority: 5, protectStatus: 'Rashield', maxUses: 4, desc: 'Respinge l\'attacco al mittente! Protegge e riflette il 25% del danno. Se usato di fila, la probabilità di successo si dimezza. (4 utilizzi)' },
@@ -921,7 +921,7 @@ export const MOVES_DB = {
           'Assolo di Keytar': { name: 'Assolo di Keytar', type: 'Suono', power: 85, targetCount: 2, statusEffect: { type: 'Confuso', chance: 0.3 }, desc: 'Suona un accordo assordante con il suo keytar. Colpisce fino a 2 nemici con il 30% di confonderli.' },
           'Scatto Predatorio': { name: 'Scatto Predatorio', type: 'Robot', power: 75, speedScaling: true, desc: 'Un balzo letale verso la preda. Il danno aumenta in base alla sua Velocità.' },
           'Occhi a Raggi X': { name: 'Occhi a Raggi X', type: 'Robot', power: 0, targetStatDebuff: { def: 0.7, accFlat: 0.2 }, desc: 'Analizza i punti deboli del nemico. Ne diminuisce la Difesa (-30%) e la Precisione.' },
-          'La Preferita': { name: 'La Preferita', type: 'Suono', power: 0, target: 'self', statBuff: { atk: 1.5, spd: 1.5 }, desc: 'Si auto-incoraggia ad alta voce! Aumenta il suo Attacco e Velocità del 50%.' },
+          'La Preferita': { name: 'La Preferita', type: 'Suono', power: 0, target: 'self', statBuff: { atk: 1.25, spd: 1.25 }, desc: 'Si auto-incoraggia ad alta voce! Aumenta il suo Attacco e Velocità del 25%.' },
           
           // NUOVE MOSSE DOLLI
           'Incubo di Pezza': { name: 'Incubo di Pezza', type: 'Spettro', power: 100, targetCount: 4, targetStatDebuff: { atk: 0.7 }, statusEffect: { type: 'Confuso', chance: 0.2 }, desc: 'La bambola si trasforma in un incubo! Colpisce tutti i nemici riducendone l\'Attacco e ha il 20% di confonderli.' },
