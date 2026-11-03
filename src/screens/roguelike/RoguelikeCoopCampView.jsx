@@ -46,10 +46,14 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
 
    {(run.relics||[]).length>0&&<section className="rounded-2xl border border-indigo-400/35 bg-indigo-950/30 p-4">
      <h2 className="font-black text-violet-200 mb-2">✨ Reliquie condivise</h2>
-     <div className="flex flex-wrap gap-2">{run.relics.map(id=>ROGUE_RELICS[id]&&<span key={id} title={ROGUE_RELICS[id].desc}
-       className="text-sm rounded-xl bg-slate-900 border border-indigo-500/40 px-3 py-2">{ROGUE_RELICS[id].icon} {ROGUE_RELICS[id].name}</span>)}</div>
+     <div className="flex flex-wrap gap-2">{run.relics.map(id=>ROGUE_RELICS[id]&&<div key={id}
+       className="text-xs max-w-[240px] rounded-xl bg-slate-900 border border-indigo-500/40 px-3 py-2">
+         <p className="font-black">{ROGUE_RELICS[id].icon} {ROGUE_RELICS[id].name}</p>
+         <p className="text-slate-300 mt-1">{ROGUE_RELICS[id].desc}</p>
+       </div>)}</div>
    </section>}
 
+   {(run.nextBattlePower||1)>1&&<p className="rounded-xl border border-amber-500/30 bg-amber-950/30 p-3 text-amber-200 text-sm">🥋 Allenamento offensivo: +20% danni nella prossima battaglia!</p>}
    {stage==='coop_event'&&run.pendingEvent&&<RoguelikeEventView
      event={run.pendingEvent} coins={run.coins||0} relics={run.relics||[]}
      votes={run.eventVotes||{}} players={room.players} humanRoles={humans}
