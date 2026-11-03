@@ -104,3 +104,26 @@ test('nuovo piano propaga le reliquie a entrambi gli alleati e consuma il buff',
   assert.equal(next.teams.p2[0].roguePowerBonus,1.2);
   assert.equal(next.coopRun.nextBattlePower,1);
 });
+
+
+test('la Co-op propone due eventi differenti nello stesso bivio', () => {
+  const event=maybeRogueEvent(2,50,[],()=>0,true);
+  assert.equal(event.type,'merchant');
+  assert.equal(event.altType,'chest');
+  assert.notEqual(event.type,event.altType);
+});
+
+test('i due sentieri della Co-op applicano l’evento votato, non un duello', () => {
+  const initial=room();
+  initial.coopRun.pendingEvent={type:'merchant',altType:'chest',floor:2,relicId:'dawn'};
+  const first=voteCoopEvent(initial,'p1','pathB');
+  assert.equal(first.coopRun.eventVotes.p1,'pathB');
+  const second=voteCoopEvent({...initial,coopRun:first.coopRun},'p2','pathB');
+  assert.equal(second.status,'coop_camp');
+  assert.equal(second.coopRun.relics.includes('dawn'),true);
+  assert.equal(second.teams.p1[0].hp,85);
+  assert.equal(second.coopRun.coins,40);
+  const tie=chooseCoopEventWinner(initial.coopRun.pendingEvent,
+    {p1:'pathA',p2:'pathB'},['p1','p2']);
+  assert.equal(tie,'pathA');
+});
