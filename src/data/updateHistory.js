@@ -12,6 +12,24 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov3-lucy-zodiac-spirit-system',category:'champions',date:'03/11/2026',title:'✨ Lucy Heartfilia e gli otto Spiriti Stellari dello Zodiaco',items:[
+    'Lucy Heartfilia è un nuovo personaggio giocabile di tipo Normale/Luce: 100 PS, 100 Attacco, 85 Difesa e 105 Velocità. Usa l’immagine scelta dal giocatore.',
+    'Passiva Spiriti dello Zodiaco: selezioni uno Spirito Stellare da evocare all’ingresso in campo. Nel draft, in campagna, nella Roguelike e durante le sostituzioni puoi scegliere la chiave con le immagini e gli effetti descritti.',
+    'Gli Spiriti evocabili sono Aries (Folletto), Taurus (Lotta), Gemini (Psico), Cancer (Robot), Leo (Terra), Virgo (Terra), Aquarius (Acqua) e Scorpio (Veleno). Sono tutti isSummonOnly: non si acquistano e non entrano nei draft come personaggi autonomi.',
+    'Ogni Lucy può avere al massimo un proprio Spirito vivo e schierato alla volta. I bot scelgono autonomamente. Se viene sconfitto, un nuovo Spirito potrà essere evocato al successivo ingresso di Lucy.',
+    'Lucy: Abito Stellare aumenta il suo Attacco del 20% e ha il 40% di probabilità di infatuare un nemico casuale; Frusta Celestiale è Luce potenza 80 con il 20% di ridurre la Velocità.',
+    'Lucy: Pioggia di Stelle è Luce potenza 70, colpisce tutti e ha il 30% di accecare; Apertura Forzata è Magico potenza 85 e richiama immediatamente l’effetto secondario dello Spirito attivo.',
+    'Aries: Lana Celestiale, Nebbia del Sonno (40% Addormentato) e Abbraccio di Aries (cura 30% un alleato).',
+    'Taurus: Ascia del Toro (100), Carica Selvaggia (120 e calo della propria Difesa), Ruggito Possente (+50% Attacco).',
+    'Gemini: Copia Perfetta replica l’ultima mossa usata dall’avversario; Doppio Fantasma evita il prossimo attacco; Confusione Gemella (70, 50% Confuso).',
+    'Cancer: Forbici Lampo (potenza 40, tre colpi), Taglio Fulmineo (90), Difesa del Granchio (+20 Difesa e Velocità).',
+    'Leo: Regulus Impact (110), Lama Solare (85, ignora i bonus di Difesa), Aura del Re (+50% Attacco e Velocità).',
+    'Virgo: Sepoltura Immediata (95); Prigione Sotterranea dura 3 turni con Velocità -50% e 50% di mancare; Servizio Impeccabile ha priorità +1 e cura gli status negativi e i debuff di Lucy.',
+    'Aquarius: Tsunami Stellare (110), Tempesta Marina (85 e 30% Congelato), Diluvio di Aquarius (Pioggia per 5 turni, Acqua +25%, Fuoco -25%).',
+    'Scorpio: Puntura Mortale (80, 50% Avvelenato), Veleno Imperiale (100), Agguato Silenzioso (priorità +1).',
+    'Apertura Forzata richiama rispettivamente il sonno di Aries, il buff di Taurus, la confusione di Gemini, la difesa di Cancer, l’aura di Leo, la prigione di Virgo, la pioggia di Aquarius o il veleno di Scorpio.',
+    'Le immagini degli otto Spiriti sono quelle indicate dal giocatore; per Scorpio, senza immagine specificata, è stata usata un’illustrazione riconoscibile dello Spirito di Fairy Tail.'
+  ]},
   {id:'nov3-second-nerf-wave',category:'balance',date:'03/11/2026',title:'⚖️ Seconda ondata di nerf: 9 modifiche approvate e Colpo di Coda Drago',items:[
     'Trigon: statistiche giocabili PS 170→150 e Attacco 140→125; Inferno demoniaco mantiene potenza 100 e colpisce tutti, ma la scottatura passa dal 50% al 30%. I PS fissi del raid della prima campagna restano invariati.',
     'Soundwave: Jammer di Frequenza riduce Attacco e Velocità di tutti i nemici del 20% anziché del 30%, con un limite di 3 utilizzi per battaglia.',
