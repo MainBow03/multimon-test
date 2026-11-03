@@ -20,6 +20,6 @@ export function applyPerfezioneBonus(character, stat) {
 // senza trasformarsi in invulnerabilità totale. Gli effetti dello stesso attacco
 // vengono ridotti tutti, comprese le singole componenti di un multicolpo.
 export function firstHitProtectionFactor(character, protectedAttack) {
-  if (!protectedAttack) return 1;
-  return Math.max(0, 1 - (character?.passive?.damageReduction ?? 0.7));
+  if (!protectedAttack || character?.passive?.type !== 'first_hit_immunity') return 1;
+  return Math.max(0, 1 - (character.passive.damageReduction ?? 0.7));
 }
