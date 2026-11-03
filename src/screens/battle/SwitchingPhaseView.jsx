@@ -34,13 +34,14 @@ if (gameState.status === 'switching_phase') {
         });
 
         return (
-            <div className="min-h-screen bg-slate-900 flex flex-col font-sans text-white p-6 relative overflow-hidden items-center justify-center">
+            <div className={gameState.isEchoFinalBattle ? "min-h-screen bg-slate-900 flex flex-col font-sans text-white p-4 sm:p-6 relative overflow-y-auto items-center justify-start" : "min-h-screen bg-slate-900 flex flex-col font-sans text-white p-6 relative overflow-hidden items-center justify-center"}>
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-slate-950 to-black pointer-events-none opacity-60"></div>
                 <button onClick={() => playerRole === 'spectator' ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-6 left-6 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-slate-900/80 px-4 py-2 rounded-xl border border-rose-500/50 z-20 shadow-lg">
                      <LogOut size={20} /> {playerRole === 'spectator' ? 'Esci' : 'Resa'}
                 </button>
-                <div className="bg-slate-800/90 backdrop-blur-xl p-8 rounded-3xl w-full max-w-3xl border border-slate-700/50 shadow-2xl text-center z-10">
+                <div className={gameState.isEchoFinalBattle ? "bg-slate-800/90 backdrop-blur-xl p-4 sm:p-8 rounded-3xl w-full max-w-5xl border border-slate-700/50 shadow-2xl text-center z-10 mt-16 max-h-[calc(100vh-5rem)] overflow-y-auto custom-scrollbar" : "bg-slate-800/90 backdrop-blur-xl p-8 rounded-3xl w-full max-w-3xl border border-slate-700/50 shadow-2xl text-center z-10"}>
                     <h2 className="text-4xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">Sostituzione Personaggio</h2>
+                    {gameState.isEchoFinalBattle && <p className="text-sm font-bold text-cyan-300 mb-4">Raid di Echomax: massimo 6 in campo. Le altre riserve ancora in vita restano disponibili per sostituire i KO.</p>}
                     {canForceSwitch && <div className="mb-5 flex justify-center gap-2">
                         <button onClick={forceCompleteSwitches}
                             className="rounded-xl border border-amber-400/60 bg-amber-950/70 px-4 py-2 text-amber-200 text-xs font-black hover:bg-amber-900/80">

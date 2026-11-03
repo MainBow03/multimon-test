@@ -3692,9 +3692,8 @@ const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, set
                 }
                 
                  let delay = evt.type === 'raid_shield_update' && !evt.activated ? 650 : 1600;
-                // 24 combattenti: riproduzione rapida senza minuti di testi obbligati.
-                if(gameState.isEchoFinalBattle)delay=evt.type==='raid_shield_update'?200:evt.type==='damage'?220:evt.type==='remove'?100:350;
-                if (evt.isPassive && !gameState.isEchoFinalBattle) delay = 2200; // Tempo extra per far leggere la passiva
+                // Le animazioni seguono il ritmo standard delle campagne.
+                if (evt.isPassive) delay = 2200; // Tempo extra per far leggere la passiva
                 if (evt.type === 'hyper_transform') delay = 4500; // Tempo extra per ammirare la lunghissima trasformazione
                 await new Promise(r => setTimeout(r, delay)); 
             }

@@ -8,6 +8,9 @@ import {CAMPAIGNS} from '../src/data/campaigns.js';
 import {CAMPAIGN_ORDER,getCampaignLock} from '../src/systems/campaignUnlocks.js';
 import {collectEchoSoul,expireEchoCopies} from '../src/systems/echoSoulLegion.js';
 import {claimEchoRoute,applyEchoRouteToTeam,ECHO_ROUTES} from '../src/systems/echoRoutes.js';
+import {ECHO_ACTIVE_LIMIT,echoRaidStarters,toggleEchoRaidStarter,orderEchoRaidRoster,isCompleteEchoRaidLineup} from '../src/systems/echoRaidLineup.js';
+import {initialCampaignField} from '../src/systems/campaignBattleRecovery.js';
+import {getRequiredSwitches} from '../src/systems/roomRecovery.js';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
 test('Echomax è la terza campagna prima di Monarch, non modifica le prime due',()=>{
@@ -40,7 +43,7 @@ test('Trentasei missioni in sei atti con dialoghi individuali, ricompense e boss
   if(i%6===5)assert.equal(m.echoReward,'legendaria');
  });
  assert.equal(stages[35].id,ECHO_FINAL_ID);
- assert.equal(stages[35].forceFieldSize,24);
+ assert.equal(stages[35].forceFieldSize,6);
  assert.deepEqual(stages[35].forcedRoster,ECHO_ALLIES);
  assert.deepEqual(stages[35].boss,['echomax']);
 });
@@ -111,7 +114,7 @@ test('Le copie non generano altre cariche e non si accumulano copie simultanee',
  assert.equal(teams.p2[0].echoSoulCharges,1);
 });
 
-test('Integrazione: ricompense per fase, raid compatto, 24 personaggi, sblocco di Echomax',()=>{
+test('Integrazione: battle classica, 6 in campo, 24 in squadra e sblocco Echomax',()=>{
  const team=read('src/screens/campaign/CampaignTeamSelectView.jsx');
  const battle=read('src/systems/battleSystem.js');
  const ui=read('src/screens/battle/BattlingView.jsx');
@@ -126,7 +129,14 @@ test('Integrazione: ricompense per fase, raid compatto, 24 personaggi, sblocco d
  assert.match(battle,/collectEchoSoul\(workingTeams,workingField,char,targetPlayer,events,/);
  assert.match(battle,/expireEchoCopies\(workingTeams,workingField,events\)/);
  assert.match(battle,/!attacker\.isEchoRaidBoss/);
- assert.match(ui,/isEchoRaid && !isEnemySide/);
+ assert.match(team,/state\.gameMode = 'classica'/);
+ assert.match(team,/state\.isCampaignBattle = true/);
+ assert.match(team,/fSize = ECHO_ACTIVE_LIMIT/);
+ assert.match(team,/orderEchoRaidRoster\(campaignSelectedTeam,echoStartingSix\)/);
+ assert.doesNotMatch(ui,/isEchoRaid && !isEnemySide/);
+ assert.match(ui,/renderFieldCharacter\(p, fIdx, charIdx, false\)/);
+ assert.match(ui,/gameState\.isEchoFinalBattle \? 'grid grid-cols-2 gap-3 max-h-/);
+ assert.match(read('src/screens/battle/SwitchingPhaseView.jsx'),/gameState\.isEchoFinalBattle \? "min-h-screen/);
  assert.match(over,/saveGlobalUnlock\('echomax'\)/);
  assert.match(post,/campaign_echo_chest/);
  assert.match(app,/renderEchoChestView/);
@@ -173,4 +183,53 @@ test('La Legione non conta i KO degli alleati in una battaglia multipla',()=>{
  assert.equal(t.p1[0].echoSoulCharges??0,0);
  collectEchoSoul(t,f,t.p3[0],'p3',e,{gameMode:'multipla'});
  assert.equal(t.p1[0].echoSoulCharges,1);
+});
+
+test('I sei titolari sono scelti fra 24 alleati e gli altri 18 restano disponibili',()=>{
+ assert.equal(ECHO_ACTIVE_LIMIT,6);
+ const starters=echoRaidStarters(ECHO_ALLIES);
+ assert.equal(starters.length,6);
+ assert.deepEqual(starters,ECHO_ALLIES.slice(0,6));
+ assert.equal(isCompleteEchoRaidLineup(ECHO_ALLIES,starters),true);
+
+ const five=toggleEchoRaidStarter(ECHO_ALLIES,starters,ECHO_ALLIES[0]);
+ assert.equal(five.length,5);
+ assert.equal(isCompleteEchoRaidLineup(ECHO_ALLIES,five),false);
+ const chosen=toggleEchoRaidStarter(ECHO_ALLIES,five,ECHO_ALLIES[18]);
+ assert.equal(chosen.length,6);
+ assert.ok(chosen.includes(ECHO_ALLIES[18]));
+ assert.ok(!chosen.includes(ECHO_ALLIES[0]));
+ const ordered=orderEchoRaidRoster(ECHO_ALLIES,chosen);
+ assert.equal(ordered.length,24);
+ assert.equal(new Set(ordered).size,24);
+ assert.deepEqual(ordered.slice(0,6),chosen);
+ assert.equal(ordered.slice(6).length,18);
+});
+
+test('Il campo iniziale contiene 6 combattenti, non 24, con 18 riserve e il boss singolo',()=>{
+ const ordered=orderEchoRaidRoster(ECHO_ALLIES,echoRaidStarters(ECHO_ALLIES));
+ const team=ordered.map(id=>hero(id));
+ const active=initialCampaignField(team,6);
+ assert.deepEqual(active,[0,1,2,3,4,5]);
+ assert.equal(team.length,24);
+ const room={gameMode:'classica',settings:{fieldSize:6,teamSize:24},
+   teams:{p1:team,p2:[hero('echomax')]},
+   field:{p1:active,p2:[0]},
+   switchActions:{p1:[],p2:[]}};
+ const ready=getRequiredSwitches(room,['p1','p2']);
+ assert.equal(ready.need.p1,0);
+ assert.equal(ready.need.p2,0);
+ assert.equal(ready.bench.p1.length,18);
+
+ // Se un titolare va KO, il motore deve chiedere una singola sostituzione.
+ room.teams.p1[0].hp=0;
+ room.field.p1=[1,2,3,4,5];
+ const afterKo=getRequiredSwitches(room,['p1','p2']);
+ assert.equal(afterKo.need.p1,1);
+ assert.equal(afterKo.bench.p1.length,18);
+ assert.deepEqual(afterKo.bench.p1.slice(0,2),[6,7]);
+ assert.equal(afterKo.need.p2,0);
+
+ room.field.p1=[1,2,3,4,5,6];
+ assert.equal(getRequiredSwitches(room,['p1','p2']).need.p1,0);
 });
