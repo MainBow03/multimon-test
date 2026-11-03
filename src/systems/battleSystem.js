@@ -133,7 +133,7 @@ const { CHARACTERS } = ctx;
                           newSummon.moves.forEach(m => { if (m.maxUses !== undefined) m.remainingUses = m.maxUses; });
                           
                           // --- POTENZIAMENTO EVOCAZIONI JUGGERNAUT / CAMPAGNA BOSS ---
-                          if (gameMode === 'juggernaut' && settings && p === (settings.juggernautPlayer || 'p1')) {
+                          if (gameMode === 'juggernaut' && settings && !settings.isRoguelikeCoop && p === (settings.juggernautPlayer || 'p1')) {
                               const numOpp = Object.keys(workingField).filter(k => workingTeams[k] && workingTeams[k].length > 0).length - 1;
                               if (numOpp > 0) {
                                   newSummon.maxHp = Math.floor(newSummon.maxHp * (1 + numOpp * 0.8));
