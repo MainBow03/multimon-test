@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React,{useState,useEffect} from 'react';
 import {BattleReportPanel} from '../../components/BattleReportPanel.jsx';
 import {COOP_HUMANS,COOP_SHOP,coopHumanPlayers,coopRecruitWeights,
   coopRecruitChance,COOP_MAX_FLOOR} from '../../systems/coopExpedition.js';
@@ -9,6 +9,15 @@ import {ROGUE_RELICS} from '../../systems/roguelikeEvents.js';
 export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext,onPurchase,onVoteEvent,onFinalizeEvent,onExit}){
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
+ const [clock,setClock]=useState(()=>Date.now());
+ // Il countdown avanza anche se nessun altro giocatore produce snapshot Firestore.
+ // Non affidarsi a render casuali: altrimenti il pulsante di recupero non appare.
+ useEffect(()=>{
+   if(room.status!=='coop_event')return;
+   setClock(Date.now());
+   const timer=setInterval(()=>setClock(Date.now()),1000);
+   return ()=>clearInterval(timer);
+ },[room.status,room.phaseStartedAt]);
  const run=room.coopRun||{};
  const humans=coopHumanPlayers(room),isWin=room.winner&&room.winner!==room.players?.p4&&room.winner!=='Pareggio';
  const stage=room.status,isVictory=stage==='gameover'&&isWin;
@@ -61,11 +70,11 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
      onChoice={choice=>runAction(()=>onVoteEvent(choice))}/>}
    {stage==='coop_event'&&canLead&&
      <div className="text-center text-slate-300 text-sm">
-       {Date.now()-(room.phaseStartedAt||Date.now())>=75000?
+       {clock-(room.phaseStartedAt||clock)>=75000?
          <button disabled={busy} type="button" onClick={()=>runAction(onFinalizeEvent)}
            className="rounded-xl px-5 py-3 font-black bg-fuchsia-700 hover:bg-fuchsia-600 disabled:opacity-40">
            Chiudi votazione (giocatore assente)</button>:
-         <p>Il capogruppo potrà chiudere la votazione dopo 75 secondi se qualcuno non risponde.</p>}
+         <p>Il capogruppo potrà sbloccare la votazione tra {Math.max(0,Math.ceil((75000-(clock-(room.phaseStartedAt||clock)))/1000))} secondi se qualcuno non risponde.</p>}
      </div>}
    {(stage==='coop_camp'||completed)&&run.lastEventResult&&<p className="rounded-xl bg-emerald-950/30 border border-emerald-500/30 p-4 text-emerald-200 text-sm">
      ✨ {run.lastEventResult}
