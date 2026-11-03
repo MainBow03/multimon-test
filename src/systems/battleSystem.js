@@ -338,6 +338,16 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
 
             const isCustomDraft = customDraft && typeof customDraft === 'object' && !customDraft.nativeEvent && (customDraft.p1 || customDraft.p2);
             const teams = JSON.parse(JSON.stringify(isCustomDraft ? customDraft : gameState.draft));
+            // I bot scelgono autonomamente la chiave. Gli umani usano la selezione dal draft.
+            Object.entries(teams).forEach(([p,team])=>(team||[]).forEach(char=>{
+              if(char?.id==='lucy'){
+                const options=['zodiac_aries','zodiac_taurus','zodiac_gemini','zodiac_cancer',
+                  'zodiac_leo','zodiac_virgo','zodiac_aquarius','zodiac_scorpio'];
+                char.zodiacSpiritId=gameState.isBot?.[p]?
+                  options[Math.floor(Math.random()*options.length)]:
+                  normalizeZodiacSpirit(char.zodiacSpiritId);
+              }
+            }));
             // Ogni umano usa solo gli aggiornamenti del proprio profilo,
             // fissati all'ingresso nella stanza. Le CPU non ricevono bonus.
             Object.entries(teams).forEach(([player,team])=>{
@@ -488,6 +498,7 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
               hyperUsed: { p1: false, p2: false, p3: false, p4: false, p5: false, p6: false, p7: false, p8: false }, // <--- AGGIUNTO PER FORMA IPER
               pendingSwitches: { p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0, p7: 0, p8: 0 },
               switchActions: { p1: [], p2: [], p3: [], p4: [], p5: [], p6: [], p7: [], p8: [] },
+              switchZodiacChoices: {p1:{},p2:{},p3:{},p4:{},p5:{},p6:{},p7:{},p8:{}},
               tournamentMatch: gameState.gameMode === 'torneo' ? 'semi1' : null,
               tournamentPhase: gameState.gameMode === 'torneo' ? 'semis' : 'semis',
               tournamentMatchStatus: { semi1: 'battling', semi2: 'battling', final: 'battling', bronze: 'battling' },
@@ -3112,6 +3123,16 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
               events.push({type:'text',text:`👢 Il bonus Velocità degli Stivali dello Slancio di ${char.name} svanisce.`});
             if(endPhoenixFeatherTurn(char))
               events.push({type:'text',text:`🪶 Il bonus Difesa della Piuma della Rinascita di ${char.name} svanisce.`});
+            const trap=char.statuses.find(s=>s.type===ZODIAC_TRAP);
+            if(trap){
+              // Tre turni completi dopo l'applicazione; non conta il turno di evocazione.
+              if(trap.justApplied)delete trap.justApplied;
+              else if(--trap.turns<=0){
+                char.statuses=char.statuses.filter(s=>s!==trap);
+                updateStatusUI(target.player,target.charTeamIdx);
+                events.push({type:'text',text:`🕳️ ${char.name} è libero dalla Prigione Sotterranea!`});
+              }
+            }
             const sproutAtEnd=activateHealingSprout(char);
             if(sproutAtEnd)events.push({type:'damage',targetPlayer:target.player,targetIdx:target.charTeamIdx,newHp:char.hp,
               text:`🌱 ${char.name} recupera ${sproutAtEnd} PS grazie al Germoglio Curativo!`});
