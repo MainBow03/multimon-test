@@ -66,7 +66,7 @@ test('Passiva all’ingresso evoca soltanto lo Spirito scelto, con 1 solo vivo a
  assert.equal(leo.char.zodiacOwner,'p1');
  assert.equal(leo.char.zodiacLucyIdx,0);
  assert.equal(leo.char.moves.length,3);
- assert.ok(leo.char.moves.every(m=>m.remainingUses===m.maxUses));
+ assert.ok(leo.char.moves.every(m=>m.maxUses===undefined?m.remainingUses===null:m.remainingUses===m.maxUses));
  assert.ok(events.some(e=>e.type==='summon'&&e.newChar.id==='zodiac_leo'));
  assert.equal(summonZodiacSpirit(team,field,'p1',0,CHARACTERS),null);
  assert.equal(team.p1.length,2);
@@ -225,7 +225,7 @@ test('Registro aggiornamenti: 9 nuovi personaggi, tutte le mosse e Spiriti non g
  assert.ok(section.items.length>=13);
  const joined=section.items.join(' ');
  for(const word of ['Lucy','Aries','Taurus','Gemini','Cancer','Leo','Virgo','Aquarius','Scorpio',
-   'Abito Stellare','Apertura Forzata','Colpo','Spiriti']){
+   'Abito Stellare','Apertura Forzata','Frusta Celestiale','Spiriti']){
    assert.ok(joined.includes(word),word+' absent from history');
  }
  assert.ok(GAME_UPDATES.some(x=>x.id==='nov3-second-nerf-wave'));
