@@ -1,4 +1,6 @@
 import {ZodiacSpiritPicker} from '../../components/ZodiacSpiritPicker.jsx';
+import {RoguelikeEventView} from './RoguelikeEventView.jsx';
+import {ROGUE_RELICS,applySoloRogueChoice} from '../../systems/roguelikeEvents.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderRoguelikeMapView(ctx) {
 const { CHARACTERS, ChevronRight, Coins, Heart, ITEMS_DB, LogOut, Swords, Users, appMode, initialGameState, applyOnEnterPassive, playerName, renderHealthBar, roguelikeState, setAppMode, setGameState, setPlayerRole, setRoguelikeState, setSystemAlert, updateLocalStats } = ctx;
@@ -6,6 +8,15 @@ if (appMode === 'roguelike_map') {
         const isBossFloor = roguelikeState.floor % 10 === 0;
         const isFinalBossFloor = roguelikeState.floor === roguelikeState.maxFloor;
         const isRestFloor = roguelikeState.floor % 5 === 0 && !isBossFloor && !isFinalBossFloor;
+
+        // Evento del piano: viene risolto una sola volta e rimane nel salvataggio.
+        if (roguelikeState.pendingEvent && roguelikeState.pendingEvent.floor === roguelikeState.floor) {
+            return <main className="min-h-screen bg-slate-950 p-5 sm:p-10 flex flex-col items-center justify-center gap-5">
+                <RoguelikeEventView event={roguelikeState.pendingEvent}
+                    coins={roguelikeState.coins || 0} relics={roguelikeState.relics || []}
+                    onChoice={choice => setRoguelikeState(p => applySoloRogueChoice(p,choice,CHARACTERS))}/>
+            </main>;
+        }
 
         // --- SCHERMATA MERCANTE VAGABONDO ---
         if (roguelikeState.isMerchantNext) {
@@ -153,7 +164,12 @@ if (appMode === 'roguelike_map') {
 
             const state = initialGameState();
             state.gameMode = 'classica';
-            state.isRoguelikeBattle = true; 
+            state.isRoguelikeBattle = true;
+            // Le reliquie appartengono alla run, non all'inventario globale.
+            state.rogueRelics = [...(roguelikeState.relics || [])];
+            state.rogueDawnUsed = false;
+            const powerBonus = roguelikeState.nextBattlePower || 1;
+            myTeam.forEach(c => { c.rogueRelics = state.rogueRelics; c.roguePowerBonus = powerBonus; });
             
             // --- FIX BUG ROGUELIKE: Schiera solo i personaggi VIVI in campo all'inizio! ---
             let aliveIndices = [];
@@ -184,6 +200,7 @@ if (appMode === 'roguelike_map') {
             state.events=initialEvents;
             state.status = 'pre_battle';
             setGameState(state);
+            setRoguelikeState(p => ({...p,nextBattlePower:1,lastEventResult:null}));
             setPlayerRole('p1');
             setAppMode('local_room');
         };
@@ -224,6 +241,15 @@ if (appMode === 'roguelike_map') {
                     </div>
                 </div>
                 
+                {(roguelikeState.relics || []).length > 0 && <div className="w-full max-w-3xl mb-5 rounded-2xl border border-fuchsia-500/30 bg-slate-900/70 p-4">
+                    <h3 className="text-sm font-black text-fuchsia-200 mb-2">✨ Reliquie della spedizione</h3>
+                    <div className="flex flex-wrap gap-2">{(roguelikeState.relics || []).map(id => ROGUE_RELICS[id] && (
+                        <span key={id} title={ROGUE_RELICS[id].desc} className="text-xs rounded-xl border border-indigo-500/50 px-3 py-2 bg-indigo-950/40 text-indigo-100">
+                            {ROGUE_RELICS[id].icon} {ROGUE_RELICS[id].name}
+                        </span>
+                    ))}</div>
+                </div>}
+                {roguelikeState.lastEventResult && <p className="mb-4 max-w-3xl text-sm text-center text-emerald-200 bg-emerald-950/40 border border-emerald-600/40 rounded-xl p-3">{roguelikeState.lastEventResult}</p>}
                 {roguelikeState.roster.includes('lucy')&&<div className="w-full max-w-2xl mb-5">
                   <ZodiacSpiritPicker value={roguelikeState.zodiacSpiritId}
                     onChange={spiritId=>setRoguelikeState(old=>({...old,zodiacSpiritId:spiritId}))}/>
