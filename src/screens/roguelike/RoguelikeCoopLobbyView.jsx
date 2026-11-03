@@ -1,10 +1,12 @@
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderRoguelikeCoopLobbyView(ctx) {
-const { ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Loader2, Wifi, appMode, coopRoomId, gameState, getDefaultAvatar, playerRole, setAppMode, setCoopRoomId, updateState } = ctx;
+const { ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Loader2, Wifi, appMode, coopRoomId, gameState, getDefaultAvatar, playerRole, setAppMode, setCoopRoomId, leaveRoom, updateState } = ctx;
 if (appMode === 'roguelike_coop_lobby') {
         const isHost = playerRole === 'p1';
 
         const handleStartSpedizione = () => {
+            if(gameState.status!=='lobby')return;
+            if(!gameState.players.p2)return;
             const baseRoster = gameState.settings.fusionMode ? FUSION_CHARACTERS : CHARACTERS;
             const draftable = baseRoster.filter(c => !c.isSummonOnly && !c.isSecretUnlock);
             
@@ -31,13 +33,13 @@ if (appMode === 'roguelike_coop_lobby') {
             <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-pink-900/20 via-slate-900 to-black pointer-events-none"></div>
                 
-                <button onClick={() => { setAppMode('menu'); setCoopRoomId(null); }} className="absolute top-6 left-6 flex items-center gap-2 text-slate-400 hover:text-white transition-colors bg-slate-800/50 px-4 py-2 rounded-xl backdrop-blur-sm border border-slate-700/50 z-20">
+                <button onClick={() => { leaveRoom(); setCoopRoomId(null); }} className="absolute top-6 left-6 flex items-center gap-2 text-slate-400 hover:text-white transition-colors bg-slate-800/50 px-4 py-2 rounded-xl backdrop-blur-sm border border-slate-700/50 z-20">
                      <ArrowLeft size={20} /> Torna al Menu
                 </button>
                 
                 <div className="bg-slate-800/80 backdrop-blur-xl p-8 rounded-3xl w-full max-w-3xl border border-pink-500/50 text-center shadow-[0_0_50px_rgba(236,72,153,0.3)] z-10 flex flex-col items-center">
                     <h2 className="text-4xl md:text-5xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-500 drop-shadow-md">Roguelike Co-op</h2>
-                    <p className="text-slate-300 mb-8 font-medium max-w-lg">Invita altri 2 giocatori. Ognuno guiderà un campione. Se uno di voi cade in battaglia, non rinascerà fino al prossimo accampamento!</p>
+                    <p className="text-slate-300 mb-8 font-medium max-w-lg">Spedizione online da 2 o 3 giocatori (massimo 3). Ognuno sceglie un solo Multimon iniziale e affrontate insieme lo stesso nemico. Dopo ogni piano potete reclutare nuovi compagni, con più probabilità per chi ne ha meno.</p>
                     
                     <div className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-10 flex flex-col md:flex-row items-center justify-center gap-4 bg-slate-900/80 px-6 py-4 rounded-2xl border border-slate-700/50">
                          <div className="flex items-center gap-2">
@@ -87,7 +89,7 @@ if (appMode === 'roguelike_coop_lobby') {
 
                     {isHost ? (
                         <button 
-                            disabled={!gameState.players.p2} 
+                            disabled={!gameState.players.p2 || gameState.status!=='lobby'} 
                             onClick={handleStartSpedizione}
                             className="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-black py-4 px-12 rounded-full shadow-lg transition-all hover:-translate-y-1 disabled:opacity-50 disabled:grayscale text-xl"
                         >
