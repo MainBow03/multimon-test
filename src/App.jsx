@@ -1327,8 +1327,9 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               if(appMode!=='online_room'||!gameState.isRoguelikeCoop)return updateState(patch);
               if(!roomId||!user?.uid){isCalculatingRef.current=false;return false;}
               const ref=doc(db,'artifacts',appId,'public','data','rooms',roomId);
+              let committed=false;
               try{
-                return await runTransaction(db,async tx=>{
+                committed=await runTransaction(db,async tx=>{
                   const snap=await tx.get(ref);
                   if(!snap.exists())return false;
                   const live=snap.data();
@@ -1337,14 +1338,16 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                   tx.update(ref,{...patch,turnCalculationOwner:null,turnCalculationStartedAt:null});
                   return true;
                 });
+                return committed;
               }catch(err){
                 console.error('Calcolo Co-op non registrato:',err);
                 setSystemAlert('Impossibile confermare il turno Co-op: '+(err.message||err));
                 return false;
               }finally{
-                // Se il lock è scaduto o la rete è fallita non lasciare il client
-                // in uno stato "sto calcolando" per sempre.
-                isCalculatingRef.current=false;
+                // In caso di successo aspetta il nuovo snapshot della fase,
+                // evitando di ricalcolare inutilmente lo stesso turno.
+                // Se la transazione fallisce, il dispositivo può riprovare.
+                if(!committed)isCalculatingRef.current=false;
               }
           };
 
