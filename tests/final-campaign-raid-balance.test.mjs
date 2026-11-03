@@ -25,12 +25,12 @@ test('Il raid finale della prima campagna ha 3375 PS a Trigon, 2436 PS a Gaster 
  assert.doesNotMatch(campaign,/charInst\.shieldGrantedHits\s*=\s*15\s*;/);
 });
 
-test('Statistiche base e altri boss rimangono invariati',()=>{
+test('Il raid mantiene i suoi PS fissi, anche se Trigon giocabile è stato nerfato',()=>{
  const trigon=CHARACTERS.find(c=>c.id==='trigon');
  const gaster=CHARACTERS.find(c=>c.id==='gaster');
- assert.equal(trigon.maxHp,170);
+ assert.equal(trigon.maxHp,150);
  assert.equal(gaster.maxHp,135);
- assert.equal(trigon.atk,140);
+ assert.equal(trigon.atk,125);
  assert.equal(gaster.atk,145);
  assert.equal(finalRaidBossStats('gaster').shieldHits,6);
 });

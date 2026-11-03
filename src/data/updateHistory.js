@@ -12,6 +12,19 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov3-second-nerf-wave',category:'balance',date:'03/11/2026',title:'⚖️ Seconda ondata di nerf: 9 modifiche approvate e Colpo di Coda Drago',items:[
+    'Trigon: statistiche giocabili PS 170→150 e Attacco 140→125; Inferno demoniaco mantiene potenza 100 e colpisce tutti, ma la scottatura passa dal 50% al 30%. I PS fissi del raid della prima campagna restano invariati.',
+    'Soundwave: Jammer di Frequenza riduce Attacco e Velocità di tutti i nemici del 20% anziché del 30%, con un limite di 3 utilizzi per battaglia.',
+    'Maestro Shifu: Saggezza di Oogway cura il 30% anziché il 40% dei PS e potenzia Attacco e Difesa del 30% anziché del 50%.',
+    'Roxy: soltanto La Preferita cambia: +25% Attacco e +25% Velocità anziché +50%. La passiva Nessuno è meglio di me! conserva il +20% danni quando attacca per prima.',
+    'Megamind: PRESENTAZIONE! riduce Difesa e Velocità nemiche del 15% anziché del 20% quando entra in campo.',
+    'Ban l’Immortale: Attacco base ridotto da 115 a 104. I 130 PS e la guarigione del 3–5% per turno di Fonte della Giovinezza rimangono invariati.',
+    'Shinobu: Leggerezza Piumata concede +15% danni invece di +20% se agisce per prima. Estrazione del Veleno mantiene l’80% di probabilità di avvelenare.',
+    'Sasuke Uchiha: Risveglio del Susanoo aumenta la Difesa del 70% anziché raddoppiarla; Amaterasu mantiene potenza 120 e ricarica, ma la probabilità di scottatura scende dal 100% al 75%.',
+    'Godzilla: Ruggito del Re riduce Attacco e Velocità di tutti i nemici del 20% anziché del 30%, massimo 2 utilizzi; probabilità di stordire invariata al 20%.',
+    'Godzilla: Colpo di Coda passa dal tipo Lotta al tipo Drago, mantenendo potenza 85 e la scelta di un massimo di 2 bersagli.',
+    'Nicole Watterson non viene modificata: mantiene Mamma Demoniaca e le statistiche già presenti.'
+  ]},
   {id:'nov3-ten-nerfs',category:'balance',date:'03/11/2026',title:'⚖️ Top 10 nerf approvati: Zeno, Discord, Gaster e altri sette Multimon',items:[
     'Zeno: PS 250→200, Attacco 200→170, Difesa 150→130, Velocità 150→130. Mantiene il suo status di personaggio segreto e tutte le mosse.',
     'Discord: PS 180→155, Attacco 130→120, Velocità 120→110; Difesa invariata a 100.',

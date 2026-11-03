@@ -117,7 +117,7 @@ test('Registro in gioco: tutte le categorie, 10 nerf e aggiornamenti della conve
 });
 
 test('Registro aggiornamenti: 3 novembre contiene torneo, buff e terza campagna aggiornati',()=>{
-  const sections=GAME_UPDATES.slice(8,13);
+  const sections=GAME_UPDATES.slice(9,14);
   assert.deepEqual(sections.map(s=>s.id),[
     'nov3-tournament-roster','nov3-ten-character-buffs','nov3-echomax-final-raid',
     'nov3-echo-of-souls','nov3-echomax-unlock'
@@ -135,10 +135,10 @@ test('Registro aggiornamenti: 3 novembre contiene torneo, buff e terza campagna 
   }
   assert.ok(!GAME_UPDATES.find(x=>x.id==='nov3-tournament-roster').items
     .some(item=>item.includes('tutte le modalità')));
-  assert.ok(GAME_UPDATES.length>=28);
-  assert.deepEqual(GAME_UPDATES.slice(0,2).map(s=>s.id),['nov3-ten-nerfs','nov3-zeno-omnipotent-gaze']);
-  assert.deepEqual(GAME_UPDATES.slice(2,4).map(s=>s.id),['nov3-zazan-sage-arctic-move-balance','nov3-four-new-passives-bulma']);
-  assert.deepEqual(GAME_UPDATES.slice(4,8).map(s=>s.id),[
+  assert.ok(GAME_UPDATES.length>=29);
+  assert.deepEqual(GAME_UPDATES.slice(1,3).map(s=>s.id),['nov3-ten-nerfs','nov3-zeno-omnipotent-gaze']);
+  assert.deepEqual(GAME_UPDATES.slice(3,5).map(s=>s.id),['nov3-zazan-sage-arctic-move-balance','nov3-four-new-passives-bulma']);
+  assert.deepEqual(GAME_UPDATES.slice(5,9).map(s=>s.id),[
     'nov3-hyper-immediate-moves','nov3-juvia-rainstorm','nov3-glitter-barrel-items','nov3-equipment-ui']);
   assert.equal(UPDATE_COUNT,GAME_UPDATES.reduce((n,x)=>n+x.items.length,0));
 });
