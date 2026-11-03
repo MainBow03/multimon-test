@@ -8,7 +8,6 @@ export function renderBattlingView(ctx) {
 const { ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, appMode, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
 if (gameState.status === 'battling' || gameState.status === 'executing') {
         const activeMatchPlayers = getActivePlayers();
-        const isEchoRaid = !!gameState.isEchoFinalBattle;
         const feedbackKind = battleFeedbackKind(eventPlaybackText, !!eventPlaybackPassive);
         
         let bottomPlayers = [];
@@ -319,29 +318,6 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
             if (formLevel === 'hyper') extraAnimClass = "animate-hyper-awaken";
             else if (masteryTier) extraAnimClass = "mastery-deploy-pop";
             // ---------------------------------------------------
-            // Nel raid da 24 gli alleati hanno una card compatta ma cliccabile;
-            // le loro mosse, gli HP e gli status restano consultabili.
-            if(isEchoRaid && !isEnemySide){
-                return <button type="button" key={`${teamPlayer}-${charTeamIdx}`}
-                    onClick={()=>isTargetable?handleSelectMoveTarget(teamPlayer,fieldIdx):setPassiveInfoPopup({name:char.name,passive:char.passive})}
-                    title={`${char.name}: ${char.hp}/${char.maxHp} PS`}
-                    className={`relative w-[78px] sm:w-[88px] rounded-xl border p-1.5 bg-slate-900/85 transition-all
-                      ${isDead&&!isFaintingNow?'hidden':isFaintingNow?'battle-ko-character':''}
-                      ${isBeingCommanded?'border-white ring-2 ring-cyan-300 shadow-lg scale-105':'border-slate-600'}
-                      ${isTargetable?'ring-2 ring-amber-400 cursor-pointer':''}`}>
-                    <img src={displayImg} alt="" style={{filter:char.imageFilter||'none'}}
-                      className={`w-12 h-12 mx-auto rounded-lg object-cover border-2 ${isBeingCommanded?'border-cyan-300':'border-slate-700'}`}/>
-                    <div className="text-[10px] font-bold truncate mt-1 text-white">{char.name}</div>
-                    <div className="h-1.5 w-full rounded bg-slate-700 overflow-hidden mt-1">
-                      <div className={`h-full ${char.hp/Math.max(1,char.maxHp)<.25?'bg-rose-500':'bg-emerald-400'}`}
-                        style={{width:`${Math.max(0,Math.min(100,char.hp/Math.max(1,char.maxHp)*100))}%`}}/>
-                    </div>
-                    <div className="text-[9px] text-slate-300 mt-1 tabular-nums">{char.hp}/{char.maxHp}</div>
-                    {isBeingCommanded && <span className="absolute -top-2 -right-1 bg-cyan-400 text-slate-900 text-[9px] font-black rounded px-1">TURNO</span>}
-                    {isTargetedNow && <span className="absolute inset-0 rounded-xl bg-rose-500/25 border-2 border-rose-400 flex items-center justify-center text-xl font-black">{targetIndex+1}</span>}
-                </button>;
-            }
-
             return (
                 <div key={`${teamPlayer}-${charTeamIdx}`} className={`relative flex flex-col items-center cursor-pointer ${isJuggernaut ? 'w-56' : 'w-36'} transition-all ${isDead && !isFaintingNow ? 'opacity-0 scale-0 absolute' : 'opacity-100'} ${isFaintingNow ? 'battle-ko-character' : ''} ${isHyper ? 'z-[45]' : 'z-10'}`} onClick={() => {
                     if (isTargetable) {
@@ -644,8 +620,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                             <div className="absolute inset-x-0 top-1/2 h-1 bg-gradient-to-r from-transparent via-white/10 to-transparent z-10"></div>
 
                             {/* Player Side (BOTTOM) */}
-                            <div className={isEchoRaid ? 'min-h-[48%] flex flex-col items-center justify-end pb-32 relative bg-gradient-to-t from-blue-900/60 via-cyan-900/20 to-transparent rounded-t-3xl overflow-y-auto' : 'h-1/2 flex flex-col items-center justify-end pb-24 relative bg-gradient-to-t from-blue-900/60 via-cyan-900/20 to-transparent rounded-t-3xl'}>
-                                <div className={isEchoRaid ? 'grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 xl:grid-cols-12 gap-2 justify-items-center w-full max-w-[1200px] mx-auto px-2 pb-2' : 'flex justify-center gap-6 flex-wrap relative w-full h-full items-end mb-2'}>
+                            <div className="h-1/2 flex flex-col items-center justify-end pb-24 relative bg-gradient-to-t from-blue-900/60 via-cyan-900/20 to-transparent rounded-t-3xl">
+                                <div className="flex justify-center gap-6 flex-wrap relative w-full h-full items-end mb-2">
                                         {bottomPlayers.map(p => currentField[p]?.map((charIdx, fIdx) => renderFieldCharacter(p, fIdx, charIdx, false)))}
                                 </div>
                                 {renderPlayerBanners(bottomPlayers, false)}
