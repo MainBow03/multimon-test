@@ -4,6 +4,75 @@ const { PLAYER_THEMES, gameState, getActivePlayers, getDefaultAvatar, introCharI
 if (gameState.status === 'pre_battle') {
         const activeMatchPlayers = getActivePlayers();
 
+        // Nella spedizione Co-op p1/p2/p3 sono alleati: il solo avversario è p4.
+        // La schermata generica 1vs1 mostrava erroneamente i primi due compagni come rivali.
+        if (gameState.isRoguelikeCoop) {
+            const bossPlayer = gameState.settings?.juggernautPlayer || 'p4';
+            const allyPlayers = ['p1', 'p2', 'p3'].filter(p =>
+                p !== bossPlayer && Boolean(gameState.players?.[p]) && !gameState.isBot?.[p]
+            );
+            const floor = gameState.coopRun?.floor || 1;
+            const bossName = gameState.players?.[bossPlayer] || 'Guardiano del Piano';
+            const bossAvatar = gameState.playerAvatars?.[bossPlayer] || getDefaultAvatar(bossName);
+            const bossFighter = (gameState.teams?.[bossPlayer] || []).find(c => c && !c.isSummonOnly);
+
+            return (
+                <div className="min-h-screen bg-slate-950 text-white relative flex flex-col items-center justify-center overflow-y-auto p-4 sm:p-8">
+                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-950/50 via-slate-950 to-rose-950/50 pointer-events-none" />
+                    <div className="relative z-10 w-full max-w-6xl flex flex-col items-center gap-5 sm:gap-8">
+                        <div className="text-center">
+                            <p className="text-cyan-300 font-black uppercase tracking-[0.3em] text-xs sm:text-sm mb-2">Spedizione Co-op</p>
+                            <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight">Piano {floor}</h1>
+                            <p className="mt-2 text-slate-400 text-sm sm:text-base">Combattete insieme contro il Guardiano del Piano</p>
+                        </div>
+
+                        <div className="w-full flex flex-col lg:flex-row items-stretch lg:items-center gap-4 lg:gap-5">
+                            <section className="flex-1 min-w-0 rounded-3xl border border-cyan-500/40 bg-cyan-950/20 p-4 sm:p-6 shadow-[0_0_35px_rgba(8,145,178,0.15)]">
+                                <h2 className="text-center uppercase tracking-widest text-cyan-300 font-black mb-5">La vostra squadra</h2>
+                                <div className="flex flex-wrap items-start justify-center gap-3 sm:gap-5">
+                                    {allyPlayers.map((p, i) => {
+                                        const name = gameState.players[p];
+                                        const avatar = gameState.playerAvatars?.[p] || getDefaultAvatar(name);
+                                        const fighter = (gameState.teams?.[p] || []).find(c => c && !c.isSummonOnly);
+                                        return (
+                                            <div key={p} className={introCharIdx >= 1 ? "flex flex-col items-center w-28 sm:w-36 transition-all duration-500 opacity-100 scale-100" : "flex flex-col items-center w-28 sm:w-36 transition-all duration-500 opacity-0 scale-75"}>
+                                                <img src={avatar} alt={name} onError={(e) => { e.target.onerror = null; e.target.src = getDefaultAvatar(name); }} className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-cyan-400 object-cover bg-slate-900 shadow-lg" />
+                                                <span className="mt-2 text-center text-sm sm:text-base font-bold text-white break-words w-full">{name}</span>
+                                                {fighter && (
+                                                    <div className={introCharIdx >= 2 + i ? "mt-3 flex flex-col items-center gap-1 transition-all duration-500 opacity-100 scale-100" : "mt-3 flex flex-col items-center gap-1 transition-all duration-500 opacity-0 scale-75"}>
+                                                        <img src={fighter.img} alt={fighter.name} className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl border-2 border-cyan-500/70 object-cover bg-slate-950" />
+                                                        <span className="text-center text-xs text-cyan-100 break-words">{fighter.name}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </section>
+
+                            <div className={introCharIdx >= 1 ? "self-center z-20 shrink-0 rounded-full border-4 border-amber-400 bg-black px-5 py-2 text-3xl sm:text-5xl font-black italic text-white shadow-[0_0_30px_rgba(251,191,36,0.4)] transition-all duration-500 opacity-100 scale-100" : "self-center z-20 shrink-0 rounded-full border-4 border-amber-400 bg-black px-5 py-2 text-3xl sm:text-5xl font-black italic text-white transition-all duration-500 opacity-0 scale-75"}>
+                                VS
+                            </div>
+
+                            <section className="flex-1 min-w-0 rounded-3xl border border-rose-500/40 bg-rose-950/20 p-4 sm:p-6 shadow-[0_0_35px_rgba(225,29,72,0.15)]">
+                                <h2 className="text-center uppercase tracking-widest text-rose-300 font-black mb-5">Avversario del piano</h2>
+                                <div className={introCharIdx >= 1 ? "flex flex-col items-center transition-all duration-500 opacity-100 scale-100" : "flex flex-col items-center transition-all duration-500 opacity-0 scale-75"}>
+                                    <img src={bossAvatar} alt={bossName} onError={(e) => { e.target.onerror = null; e.target.src = getDefaultAvatar(bossName); }} className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-rose-400 object-cover bg-slate-900 shadow-lg" />
+                                    <span className="mt-2 text-center text-sm sm:text-base font-bold text-white">{bossName}</span>
+                                    {bossFighter && (
+                                        <div className={introCharIdx >= 2 ? "mt-3 flex flex-col items-center gap-1 transition-all duration-500 opacity-100 scale-100" : "mt-3 flex flex-col items-center gap-1 transition-all duration-500 opacity-0 scale-75"}>
+                                            <img src={bossFighter.img} alt={bossFighter.name} className="w-20 h-20 sm:w-28 sm:h-28 rounded-xl border-2 border-rose-500/70 object-cover bg-slate-950" />
+                                            <span className="text-center text-sm font-bold text-rose-100">{bossFighter.name}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
         if (gameState.gameMode === 'torneo') {
             const phase = gameState.tournamentPhase || 'semis';
             const b = gameState.tournamentBracket || ['p1', 'p2', 'p3', 'p4'];
