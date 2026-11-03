@@ -8,6 +8,9 @@ import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { hyperPreviewMoves } from './hyperPreview.js';
+import {ZODIAC_TRAP,ZODIAC_DODGE,normalizeZodiacSpirit,activeZodiacSpirit,summonZodiacSpirit,
+  addZodiacTrap,zodiacTrapSpeedFactor,zodiacTrapMisses,addZodiacDodge,consumeZodiacDodge,
+  zodiacFlatStatBoost,cleanLucyDebuffs,zodiacSecondaryRoll} from './zodiacSpirits.js';
 import { outgoingPassiveDamageFactor } from './offensivePassives.js';
 import { isRainyWeather, RAINSTORM_TURNS, tryStartRainstorm, weatherMoveFactor, totalEvasionChance } from './rainstorm.js';
 import { resolvePoisonEndTurn } from './battleStatusTurns.js';
@@ -109,6 +112,14 @@ const { setAppMode, setPlayerRole, setRoomId, setShowOnlinePlayers } = ctx;
 export const applyOnEnterPassiveImpl = (ctx, char, p, idx, workingTeams, workingField, eventsArr, gameMode, settings, isCampaign) => {
 const { CHARACTERS } = ctx;
 
+              if (char.passive.zodiacSummon) {
+                  const summoned=summonZodiacSpirit(workingTeams,workingField,p,idx,CHARACTERS);
+                  if(summoned){
+                    eventsArr.push({type:'summon',player:p,newChar:JSON.parse(JSON.stringify(summoned.char)),
+                      fieldIdx:summoned.idx,text:`✨ ${char.name} apre il portale dello Zodiaco: ${summoned.char.name} entra in battaglia!`,
+                      isPassive:true,passiveChar:char.name,passiveName:char.passive.name});
+                  }
+              }
               if (char.passive.isSummon) {
                   const summonIds = Array.isArray(char.passive.isSummon) ? char.passive.isSummon : [char.passive.isSummon];
                   let summonedNames = [];
@@ -1522,7 +1533,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 
                 const action = currentActions[player][charTeamIdxStr];
                 
-                let effSpd = char.spd;
+                let effSpd = Math.floor(char.spd*zodiacTrapSpeedFactor(char));
                 if (!immuneToStatDrops(char) && char.statuses && char.statuses.some(s => s.type === 'Elettrizzato')) effSpd = Math.floor(effSpd / 2);
                 
                 const move = action.type === 'attack' ? char.moves[action.moveIdx] : null;
@@ -1542,7 +1553,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             let isFirstAttackOfTurn = true;
 
             for (let order of turnQueue) {
-              const { player, charTeamIdx, action, move } = order;
+              const { player, charTeamIdx, action } = order;
+              let move=order.move;
               if (action.type === 'combo_assist') continue;
               
               const attacker = workingTeams[player]?.[charTeamIdx];
@@ -1677,6 +1689,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
 
                       workingField[player][fieldPos] = action.toIdx;
                       const entering=workingTeams[player][action.toIdx];
+                      if(entering?.id==='lucy' && action.zodiacSpiritId)
+                        entering.zodiacSpiritId=normalizeZodiacSpirit(action.zodiacSpiritId);
                       entering.revealed = true;
                       markRapidTransmutationEntry(entering,true);
                       events.push({ type: 'switch', player, pos: fieldPos, newIdx: action.toIdx,
@@ -1687,6 +1701,12 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                         const dmg=stickyTrapEntryDamage(entering);
                         applyDamage(entering,dmg,player,action.toIdx,
                           `🪤 Trappola Segreta! ${entering.name} perde ${dmg} PS entrando in campo!`);
+                      }
+                      if(entering?.hp>0 && entering.passive?.type==='on_enter' &&
+                         (entering.passiveUses||0)<(entering.passive.maxUses||1)){
+                        entering.passiveUses=(entering.passiveUses||0)+1;
+                        applyOnEnterPassiveImpl({CHARACTERS},entering,player,action.toIdx,
+                          workingTeams,workingField,events,gameState.gameMode,gameState.settings,gameState.isCampaignBattle);
                       }
                       workingTrapSeen[player]=[...(workingField[player]||[])];
                   }
@@ -1800,11 +1820,27 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
               }
 
               if (!canAttack || attacker.hp <= 0) continue;
+              if(zodiacTrapMisses(attacker)){
+                events.push({type:'text',text:`🕳️ ${attacker.name} perde l'orientamento nella Prigione Sotterranea e manca la mossa!`});
+                continue;
+              }
 
               if (action.type === 'attack' && move) {
                 if (move.remainingUses !== null && move.remainingUses !== undefined) {
                     move.remainingUses -= 1;
                 }
+                if(move.zodiacCopyLastEnemy){
+                  const target=workingTeams[action.targetPlayer]?.[action.targetIdx];
+                  const remembered=target?.lastUsedMove;
+                  if(!remembered || remembered.zodiacCopyLastEnemy || remembered.isSummon || remembered.randomSummon){
+                    events.push({type:'text',text:'👥 Copia Perfetta fallisce: il bersaglio non ha una mossa copiabile già usata.'});
+                    continue;
+                  }
+                  move={...remembered,name:`Copia Perfetta: ${remembered.name}`,remainingUses:null,
+                    maxUses:undefined,isCombo:undefined,requiredStatus:undefined};
+                  events.push({type:'text',text:`👥 Gemini copia la mossa ${remembered.name} di ${target.name}!`});
+                }
+                attacker.lastUsedMove={...move,remainingUses:null};
                 
                 // Attiva il Cooldown della mossa appena usata
                 if (move.cooldown !== undefined) {
@@ -1825,6 +1861,12 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     });
                 }
 
+                if(move.zodiacDodge){
+                  addZodiacDodge(attacker);
+                  events.push({type:'text',text:`👥 ${attacker.name} usa Doppio Fantasma: il prossimo attacco verrà evitato!`});
+                  updateStatusUI(player,charTeamIdx);
+                  continue;
+                }
                 if (move.isProtect) {
                     let consec = attacker.consecutiveProtect || 0;
                     let successChance = 1 / Math.pow(2, consec); 
@@ -2151,6 +2193,13 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     let isPerfectBarrier = false;
                     let isFirstHitProtection = false; // Diamante Bianco: il primo attacco è ridotto, non annullato
 
+                    // Doppio Fantasma assorbe un intero attacco diretto, non un singolo hit.
+                    if(isEnemyTarget && consumeZodiacDodge(t.char)){
+                      events.push({type:'text',text:`👥 Doppio Fantasma! ${t.char.name} evita completamente l'attacco di ${attacker.name}!`});
+                      updateStatusUI(t.player,t.idx);
+                      attackSucceeded=true;
+                      continue;
+                    }
                     // Elusione individuale: una mossa con precisione 100% contro Bugs
                     // colpisce solo nell'80% dei casi dopo un uso di Dentro la Tana.
                     // Il controllo è per bersaglio, anche per gli attacchi ad area.
@@ -2760,6 +2809,79 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     }
                 } // FINE CICLO SUI BERSAGLI (resolvedTargets)
                 
+                if(attackSucceeded && move.zodiacTrapTurns){
+                  for(const t of resolvedTargets){
+                    if(addZodiacTrap(t.char,move.zodiacTrapTurns)){
+                      updateStatusUI(t.player,t.idx);
+                      events.push({type:'text',text:`🕳️ ${t.char.name} è intrappolato da Virgo per 3 turni: Velocità -50%, 50% di mancare!`});
+                    }
+                  }
+                }
+                if(attackSucceeded && move.zodiacCleanLucy && attacker.isZodiacSpirit){
+                  const lucy=workingTeams[player]?.[attacker.zodiacLucyIdx];
+                  if(lucy?.id==='lucy' && cleanLucyDebuffs(lucy)){
+                    updateStatusUI(player,attacker.zodiacLucyIdx);
+                    events.push({type:'text',text:'🧹 Servizio Impeccabile: Virgo libera Lucy da status negativi e malus alle statistiche!'});
+                  }
+                }
+                if(attackSucceeded && move.zodiacFlatBuff){
+                  for(const [stat,amount] of Object.entries(move.zodiacFlatBuff))
+                    zodiacFlatStatBoost(attacker,stat,amount);
+                  events.push({type:'text',text:`🦀 Difesa del Granchio! ${attacker.name} aumenta Difesa e Velocità di 20 punti!`});
+                }
+                if(attackSucceeded && move.zodiacCharmOnDress && attacker.id==='lucy'){
+                  const enemies=affectedOpponents(player,gameState.gameMode,activeMatchPlayers,getTournamentMatchOpponents,gameState.settings)
+                    .flatMap(p=>(workingField[p]||[]).map(i=>({p,i,char:workingTeams[p]?.[i]})))
+                    .filter(t=>t.char?.hp>0);
+                  if(enemies.length && Math.random()<move.zodiacCharmOnDress){
+                    const victim=enemies[Math.floor(Math.random()*enemies.length)];
+                    if(!victim.char.passive?.immuneToNegativeStatuses){
+                      victim.char.statuses ||= [];
+                      victim.char.statuses= victim.char.statuses.filter(s=>s.type!=='Infatuato');
+                      victim.char.statuses.push({type:'Infatuato',turns:4});
+                      updateStatusUI(victim.p,victim.i);
+                      events.push({type:'text',text:`💝 Abito Stellare di Lucy infatua ${victim.char.name}!`});
+                    }
+                  }
+                }
+                if(attackSucceeded && move.zodiacRainTurns){
+                  workingWeather={type:'rainstorm',turns:move.zodiacRainTurns};
+                  events.push({type:'text',text:`🌧️ Diluvio di Aquarius: Pioggia per ${move.zodiacRainTurns} turni! Acqua +25%, Fuoco -25%.`});
+                }
+                if(attackSucceeded && move.zodiacForceSecondary && attacker.id==='lucy'){
+                  const spirit=activeZodiacSpirit(workingTeams,workingField,player,charTeamIdx);
+                  if(spirit){
+                    const target=resolvedTargets.find(t=>t.char.hp>0)?.char||null;
+                    const effect=zodiacSecondaryRoll(spirit.char.id);
+                    if(effect.status && target && !target.passive?.immuneToNegativeStatuses){
+                      target.statuses ||= [];
+                      target.statuses=target.statuses.filter(s=>s.type!==effect.status);
+                      target.statuses.push({type:effect.status,turns:effect.status==='Addormentato'?3:4});
+                      const t=resolvedTargets.find(t=>t.char===target);
+                      if(t)updateStatusUI(t.player,t.idx);
+                      events.push({type:'text',text:`✨ Apertura Forzata: ${spirit.char.name} applica ${effect.status} a ${target.name}!`});
+                    }
+                    if(effect.buff){
+                      for(const [stat,m] of Object.entries(effect.buff))applyBattleStatModifier(spirit.char,stat,m);
+                      events.push({type:'text',text:`✨ Apertura Forzata: ${spirit.char.name} riceve il potenziamento stellare!`});
+                    }
+                    if(effect.flatBuff){
+                      for(const [stat,amount] of Object.entries(effect.flatBuff))zodiacFlatStatBoost(spirit.char,stat,amount);
+                      events.push({type:'text',text:`✨ Apertura Forzata: ${spirit.char.name} aumenta Difesa e Velocità!`});
+                    }
+                    if(effect.trapTurns && target && addZodiacTrap(target,effect.trapTurns)){
+                      const t=resolvedTargets.find(t=>t.char===target);
+                      if(t)updateStatusUI(t.player,t.idx);
+                      events.push({type:'text',text:`🕳️ Apertura Forzata: Virgo intrappola ${target.name} per 3 turni!`});
+                    }
+                    if(effect.rainTurns){
+                      workingWeather={type:'rainstorm',turns:effect.rainTurns};
+                      events.push({type:'text',text:'🌧️ Apertura Forzata: Aquarius scatena la Pioggia per 5 turni!'});
+                    }
+                    if(!effect.status&&!effect.buff&&!effect.flatBuff&&!effect.trapTurns&&!effect.rainTurns)
+                      events.push({type:'text',text:`✨ Apertura Forzata risveglia ${spirit.char.name}, ma l'effetto secondario non riesce questa volta.`});
+                  }
+                }
                 if (attackSucceeded && move.transformMahito && attacker.id === 'mahito' && !attacker.mahitoTransformed) {
                     attacker.mahitoTransformed = true;
                     attacker.imageFilter = 'hue-rotate(285deg) saturate(1.6) contrast(1.2) drop-shadow(0 0 17px rgba(217,70,239,0.95))';
