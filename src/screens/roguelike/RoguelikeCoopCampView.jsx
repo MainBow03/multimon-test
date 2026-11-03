@@ -3,8 +3,10 @@ import {BattleReportPanel} from '../../components/BattleReportPanel.jsx';
 import {COOP_HUMANS,COOP_SHOP,coopHumanPlayers,coopRecruitWeights,
   coopRecruitChance,COOP_MAX_FLOOR} from '../../systems/coopExpedition.js';
 import {CHARACTERS} from '../../data/characters.js';
+import {RoguelikeEventView} from './RoguelikeEventView.jsx';
+import {ROGUE_RELICS} from '../../systems/roguelikeEvents.js';
 
-export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext,onPurchase,onExit}){
+export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext,onPurchase,onVoteEvent,onFinalizeEvent,onExit}){
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
  const run=room.coopRun||{};
@@ -25,10 +27,10 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
      <div>
       <p className="text-xs font-black tracking-[.2em] text-fuchsia-300 uppercase">Roguelike Co-op · Spedizione condivisa</p>
       <h1 className="mt-2 text-3xl sm:text-5xl font-black text-white">
-       {completed?'🏆 Spedizione completata!':failed?'💔 Spedizione fallita':isVictory?'🎉 Avversario sconfitto!':'🏕️ Accampamento'}
+       {completed?'🏆 Spedizione completata!':failed?'💔 Spedizione fallita':isVictory?'🎉 Avversario sconfitto!':stage==='coop_event'?'✨ Bivio del destino':'🏕️ Accampamento'}
       </h1>
       <p className="mt-2 text-slate-300">{completed?'Avete superato tutti e 50 i piani!':failed?'Tutti i vostri Multimon sono caduti.':isVictory?
-       'Congratulazioni! Il bottino della squadra è pronto.':'Organizzate le squadre, curate i compagni e preparatevi alla prossima lotta.'}</p>
+       'Congratulazioni! Il bottino della squadra è pronto.':stage==='coop_event'?'Ogni giocatore vota la scelta della spedizione.':'Organizzate le squadre, curate i compagni e preparatevi alla prossima lotta.'}</p>
      </div>
      <div className="rounded-2xl border border-amber-400/50 bg-amber-950/20 px-5 py-3 text-center">
       <p className="text-amber-200 text-xs font-black">PIANO</p>
@@ -41,6 +43,29 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
      <span className="rounded-full border border-cyan-500/40 bg-cyan-950/30 px-4 py-2 text-cyan-200">👥 {humans.length}/3 partecipanti</span>
     </div>
    </header>
+
+   {(run.relics||[]).length>0&&<section className="rounded-2xl border border-indigo-400/35 bg-indigo-950/30 p-4">
+     <h2 className="font-black text-violet-200 mb-2">✨ Reliquie condivise</h2>
+     <div className="flex flex-wrap gap-2">{run.relics.map(id=>ROGUE_RELICS[id]&&<span key={id} title={ROGUE_RELICS[id].desc}
+       className="text-sm rounded-xl bg-slate-900 border border-indigo-500/40 px-3 py-2">{ROGUE_RELICS[id].icon} {ROGUE_RELICS[id].name}</span>)}</div>
+   </section>}
+
+   {stage==='coop_event'&&run.pendingEvent&&<RoguelikeEventView
+     event={run.pendingEvent} coins={run.coins||0} relics={run.relics||[]}
+     votes={run.eventVotes||{}} players={room.players} humanRoles={humans}
+     playerRole={playerRole} busy={busy}
+     onChoice={choice=>runAction(()=>onVoteEvent(choice))}/>}
+   {stage==='coop_event'&&canLead&&
+     <div className="text-center text-slate-300 text-sm">
+       {Date.now()-(room.phaseStartedAt||Date.now())>=75000?
+         <button disabled={busy} type="button" onClick={()=>runAction(onFinalizeEvent)}
+           className="rounded-xl px-5 py-3 font-black bg-fuchsia-700 hover:bg-fuchsia-600 disabled:opacity-40">
+           Chiudi votazione (giocatore assente)</button>:
+         <p>Il capogruppo potrà chiudere la votazione dopo 75 secondi se qualcuno non risponde.</p>}
+     </div>}
+   {(stage==='coop_camp'||completed)&&run.lastEventResult&&<p className="rounded-xl bg-emerald-950/30 border border-emerald-500/30 p-4 text-emerald-200 text-sm">
+     ✨ {run.lastEventResult}
+   </p>}
 
    {(stage==='coop_camp'||completed)&&run.lastClearFloor&&
     <section className="rounded-2xl border border-emerald-400/30 bg-emerald-950/20 px-5 py-4">
