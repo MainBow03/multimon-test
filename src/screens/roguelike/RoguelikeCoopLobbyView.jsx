@@ -1,3 +1,4 @@
+import {coopEnemyForFloor} from '../../systems/coopExpedition.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderRoguelikeCoopLobbyView(ctx) {
 const { ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Loader2, Wifi, appMode, coopRoomId, gameState, getDefaultAvatar, playerRole, setAppMode, setCoopRoomId, leaveRoom, updateState } = ctx;
@@ -22,8 +23,8 @@ if (appMode === 'roguelike_coop_lobby') {
             });
 
             // Assegna il primo mostro nemico a p4
-            const enemyBase = draftable[Math.floor(Math.random() * draftable.length)];
-            let enemy = { ...JSON.parse(JSON.stringify(enemyBase)), statuses: [], consecutiveProtect: 0, baseAtk: enemyBase.atk, baseDef: enemyBase.def, baseSpd: enemyBase.spd, moves: enemyBase.moves.filter(Boolean).map(m => ({ ...m, remainingUses: m.maxUses !== undefined ? m.maxUses : null })) };
+            const humanCount=['p1','p2','p3'].filter(p=>gameState.players[p]).length;
+            const enemy = coopEnemyForFloor(1,draftable,humanCount,[]);
             updates['draft.p4'] = [enemy];
 
             updateState(updates);
