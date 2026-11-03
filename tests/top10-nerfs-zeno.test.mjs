@@ -33,7 +33,7 @@ test('Sguardo Onnipotente: 75 potenza, fino a due bersagli, due usi e riduzioni 
  assert.equal(m.maxUses,2);
  assert.deepEqual(m.targetStatDebuff,{atk:0.5,def:0.5,spd:0.5});
  assert.match(m.desc,/due bersagli/i);
- assert.match(source('src/screens/battle/BattlingView.jsx'),/move\.targetCount > 1 && move\.targetCount < 4/);
+ assert.match(source('src/screens/battle/BattlingView.jsx'),/availableMoves\[targetingMoveIdx\]\.targetCount > 1 && availableMoves\[targetingMoveIdx\]\.targetCount < 4/);
  const battle=source('src/systems/battleSystem.js');
  assert.match(battle,/const neededTargets = Math\.min\(targetCount, aliveEnemies\)/);
  assert.match(battle,/move\.remainingUses -= 1/);
