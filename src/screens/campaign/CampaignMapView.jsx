@@ -100,7 +100,7 @@ if (appMode === 'campaign_map') {
                         {mission.echoMission && <div className="w-full rounded-2xl border border-violet-500/40 bg-violet-950/35 p-4 mb-5 text-left">
                             <div className="font-black text-violet-200 text-sm uppercase tracking-wider mb-1">{mission.echoFinal?'Raid della Resistenza Unita':`Missione ${mission.echoNumber}/36 · Percorso tattico`}</div>
                             {mission.echoFinal
-                                ? <p className="text-sm text-slate-300">Tutti i 24 alleati saranno schierati contemporaneamente contro Echomax. Gli esausti verranno recuperati per l'ultimo assalto.</p>
+                                ? <p className="text-sm text-slate-300">Potrai usare tutti i 24 alleati contro Echomax, ma soltanto 6 saranno in campo alla volta. Gli altri 18 saranno riserve selezionabili con i normali cambi e sostituzioni. Gli esausti verranno recuperati per l'ultimo assalto.</p>
                                 : <>
                                   <p className="text-xs text-slate-400 mb-3">Scegli un percorso prima del combattimento. La scelta è definitiva per questa fase.</p>
                                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
