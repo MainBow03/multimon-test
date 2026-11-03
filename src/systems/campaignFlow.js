@@ -1,6 +1,7 @@
 import { reconcileCampaignRoster } from './campaignRoster.js';
 import { completeCampaign, isCampaignUnlocked } from './campaignUnlocks.js';
 import { ECHO_ID, ECHO_STARTERS } from '../data/echoCampaign.js';
+import { isTournamentEligibleCharacter, sanitizeTournamentSave } from './tournamentEligibility.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const loadCampaignImpl = (ctx, campId) => {
 const { CHARACTERS, getCampaignStoryCharacters, setActiveCampaignId, setCampaignState } = ctx;
@@ -17,7 +18,9 @@ const { CHARACTERS, getCampaignStoryCharacters, setActiveCampaignId, setCampaign
                   defaultRoster = ['ladybug', 'chatnoir'];
               } else {
                   const storyChars = getCampaignStoryCharacters(campId);
-                  defaultRoster = CHARACTERS.filter(c => !c.isSummonOnly && !storyChars.includes(c.id)).map(c => c.id);
+                  defaultRoster = CHARACTERS.filter(c => campId === 'torneo_assoluto'
+                     ? isTournamentEligibleCharacter(c,storyChars)
+                     : !c.isSummonOnly && !storyChars.includes(c.id)).map(c => c.id);
               }
 
               const defaultStats = {};
@@ -39,6 +42,8 @@ const { CHARACTERS, getCampaignStoryCharacters, setActiveCampaignId, setCampaign
                       if (parsed.missionIdx === undefined) parsed.missionIdx = 0;
                       if (parsed.coins === undefined) parsed.coins = 50;
                       parsed = reconcileCampaignRoster(parsed, CHARACTERS);
+                      if(campId === 'torneo_assoluto')
+                        parsed = sanitizeTournamentSave(parsed,CHARACTERS,getCampaignStoryCharacters(campId));
                       setCampaignState(parsed);
                       return parsed; 
                   } catch(e){}

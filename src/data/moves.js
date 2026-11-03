@@ -86,10 +86,10 @@ export const MOVES_DB = {
           'Ruggito del re koopa': { name: 'Ruggito del re koopa', type: 'Drago', power: 0, target: 'self', maxUses: 2, statBuff: { atk: 1.5, def: 1.5 }, desc: 'Emette un boato terrificante, aumentando Attacco e Difesa del 50%.' },
 
           'Tossina': { name: 'Tossina', type: 'Veleno', power: 0, statusEffect: { type: 'Avvelenato', chance: 1.0 }, desc: 'Avvelena gravemente il bersaglio.' },
-          'Gigassorbimento': { name: 'Gigassorbimento', type: 'Erba', power: 85, drain: 0.50, desc: 'Assorbe i PS del nemico. Cura chi la usa del 50% del danno inflitto.' },
+          'Gigassorbimento': { name: 'Gigassorbimento', type: 'Erba', power: 95, drain: 0.50, desc: 'Assorbe i PS del nemico. Cura chi la usa del 50% del danno inflitto.' },
           'Protezione': { name: 'Protezione', type: 'Normale', power: 0, target: 'self', maxUses: 5, priority: 5, isProtect: true, desc: 'Si protegge dagli attacchi. Se usata di fila, la probabilità di successo si dimezza.' },
 
-          'Colpo Cartoon': { name: 'Colpo Cartoon', type: 'Normale', power: 50, priority: 1, desc: 'Un colpo imprevedibile che colpisce sempre per primo (Priorità +1).' },
+          'Colpo Cartoon': { name: 'Colpo Cartoon', type: 'Normale', power: 68, priority: 1, desc: 'Un colpo imprevedibile che colpisce sempre per primo (Priorità +1).' },
           'Fischietto amico': { name: 'Fischietto amico', type: 'Normale', power: 0, target: 'self', statBuff: { atk: 2.0 }, desc: 'Un fischio incoraggiante che raddoppia l\'Attacco (+100%).' },
           'Tappeto scivoloso': { name: 'Tappeto scivoloso', type: 'Normale', power: 75, statusEffect: { type: 'Confuso', chance: 0.25 }, desc: 'Tira via il tappeto! 25% di probabilità di confondere il nemico.' },
           'Magia Disney': { name: 'Magia Disney', type: 'Magico', power: 100, ignoreDefBuffs: true, desc: 'Un attacco magico formidabile che ignora i potenziamenti difensivi del nemico.' },
@@ -128,7 +128,7 @@ export const MOVES_DB = {
 
           // NUOVE MOSSE SPIKE
           'Sfera di Spine': { name: 'Sfera di Spine', type: 'Erba', power: 30, multiHit: { min: 2, max: 3 }, desc: 'Lancia un cactus esplosivo che colpisce da 2 a 3 volte con le sue spine.' },
-          'Campo di Cactus': { name: 'Campo di Cactus', type: 'Erba', power: 45, targetCount: 4, statusEffect: { type: 'Stordito', chance: 0.2 }, desc: 'Fa spuntare cactus su tutto il campo colpendo ogni nemico. 20% probabilità di stordire.' },
+          'Campo di Cactus': { name: 'Campo di Cactus', type: 'Erba', power: 55, targetCount: 4, statusEffect: { type: 'Stordito', chance: 0.2 }, desc: 'Fa spuntare cactus su tutto il campo colpendo ogni nemico. 20% probabilità di stordire.' },
           'Abbraccio Oscuro': { name: 'Abbraccio Oscuro', type: 'Oscuro', power: 80, drain: 0.4, desc: 'Un abbraccio maledetto che assorbe l\'energia nemica. Cura del 40% dei danni inflitti.' },
           'Fertilizzante': { name: 'Fertilizzante', type: 'Erba', power: 0, target: 'self', heal: 0.5, desc: 'Usa del fertilizzante per rigenerare rapidamente i propri tessuti curando il 50% dei PS.' },
 
@@ -144,7 +144,7 @@ export const MOVES_DB = {
           'Dittatura del Sorriso': { name: 'Dittatura del Sorriso', type: 'Oscuro', power: 90, targetCount: 4, statusEffect: { type: 'Confuso', chance: 0.5 }, desc: 'Obbliga tutti a sorridere! Colpisce tutti i nemici con energia oscura e ha il 50% di probabilità di confonderli.' },
 
           'Tempesta emotiva': { name: 'Tempesta emotiva', type: 'Aria', power: 110, targetCount: 2, maxUses: 5, desc: 'Un ciclone di emozioni e vento. Colpisce fino a due bersagli contemporaneamente.' },
-          'Colpo impetuoso': { name: 'Colpo impetuoso', type: 'Acqua', power: 80, desc: 'Un colpo d\'acqua violento e inarrestabile.' },
+          'Colpo impetuoso': { name: 'Colpo impetuoso', type: 'Acqua', power: 95, desc: 'Un colpo d\'acqua violento e inarrestabile.' },
           'Amore devoto': { name: 'Amore devoto', type: 'Magico', power: 0, maxUses: 3, targetMode: 'ally', targetStatBuff: { atk: 1.5, def: 1.5 }, desc: 'Il potere dell\'amore: potenzia grandemente l\'Attacco e la Difesa di un alleato in squadra.' },
           'Flirt': { name: 'Flirt', type: 'Normale', power: 0, maxUses: 5, statusEffect: { type: 'Infatuato', chance: 1.0 }, desc: 'Usa il fascino per far innamorare irrimediabilmente il bersaglio.' },
           'Abisso Disperato': { name: 'Abisso Disperato', type: 'Buio', power: 85, drain: 0.5, maxUses: 3, desc: 'L\'oscurità della sua gelosia avvolge il nemico. Drena il 50% del danno inflitto in PS. (3 utilizzi)' },
@@ -159,7 +159,7 @@ export const MOVES_DB = {
           'Faccino carino!': { name: 'Faccino carino!', type: 'Normale', power: 0, maxUses: 3, targetStatDebuff: { atk: 0.5 }, desc: 'Sfrutta la tenerezza per abbassare la guardia del nemico, dimezzandone permanentemente l\'Attacco. (3 utilizzi)' },
           'Tsunami dolce': { name: 'Tsunami dolce', type: 'Acqua', power: 80, desc: 'Travolge il nemico con una massiccia e inaspettata onda zuccherata.' },
 
-          'Pugno Minerale': { name: 'Pugno Minerale', type: 'Terra', power: 80, desc: 'Un colpo fisico durissimo sferrato tramutando il proprio braccio in pietra massiccia.' },
+          'Pugno Minerale': { name: 'Pugno Minerale', type: 'Terra', power: 92, desc: 'Un colpo fisico durissimo sferrato tramutando il proprio braccio in pietra massiccia.' },
           'Frana Impattante': { name: 'Frana Impattante', type: 'Roccia', power: 50, targetCount: 2, statusEffect: { type: 'Stordito', chance: 0.3 }, desc: 'Fa precipitare massi enormi dall\'alto. Colpisce fino a 2 nemici e ha il 30% di probabilità di stordirli.' },
           'Assorbimento grezzo': { name: 'Assorbimento grezzo', type: 'Terra', power: 0, maxUses: 3, targetStatDebuff: { atk: 0.7 }, selfHeal: 0.2, desc: 'Assorbe l\'essenza del nemico: ne riduce l\'Attacco del 30% e cura Kevin del 20% dei suoi PS massimi. (3 utilizzi)' },
           'Carica selvaggia': { name: 'Carica selvaggia', type: 'Normale', power: 110, statusEffect: { type: 'Confuso', chance: 0.10 }, desc: 'Si scaglia a testa bassa contro l\'avversario con una carica a tutta velocità. 10% di probabilità di confondere.' },
@@ -177,7 +177,7 @@ export const MOVES_DB = {
           
           // NUOVE MOSSE RE GHIACCIO
           'Raggio Congelante': { name: 'Raggio Congelante', type: 'Ghiaccio', power: 75, statusEffect: { type: 'Congelato', chance: 0.25 }, desc: 'Un raggio gelido scaturito dalla corona. 25% di probabilità di congelare.' },
-          'Vai Gunter!': { name: 'Vai Gunter!', type: 'Normale', power: 25, multiHit: { min: 2, max: 4 }, desc: 'Lancia Gunter e altri pinguini contro il nemico. Colpisce da 2 a 4 volte.' },
+          'Vai Gunter!': { name: 'Vai Gunter!', type: 'Normale', power: 30, multiHit: { min: 2, max: 4 }, desc: 'Lancia Gunter e altri pinguini contro il nemico. Colpisce da 2 a 4 volte.' },
           'Prigione di Ghiaccio': { name: 'Prigione di Ghiaccio', type: 'Ghiaccio', power: 50, statusEffect: { type: 'Stordito', chance: 1.0 }, maxUses: 2, desc: 'Intrappola il nemico nel ghiaccio. Stordisce al 100%, ma è utilizzabile solo 2 volte.' },
           'Follia della Corona': { name: 'Follia della Corona', type: 'Magico', power: 0, target: 'self', statBuff: { atk: 2.0 }, statusEffect: { type: 'Confuso', chance: 0.5 }, desc: 'Attinge al potere della corona raddoppiando l\'Attacco, ma col 50% di probabilità di confondersi.' },
 
@@ -291,7 +291,7 @@ export const MOVES_DB = {
           'Soffio di Fuoco': { name: 'Soffio di Fuoco', type: 'Fuoco', power: 70, statusEffect: { type: 'Scottato', chance: 0.5 }, desc: 'Una vampata fiammeggiante con il 50% di probabilità di scottare.' },
           'Carica a Cornate': { name: 'Carica a Cornate', type: 'Normale', power: 85, statusEffect: { type: 'Stordito', chance: 0.2 }, desc: 'Una testata a tutta velocità. Il 20% di probabilità di stordire il nemico.' },
           'L\'aiuto di Sparx': { name: 'L\'aiuto di Sparx', type: 'Insetto', power: 0, target: 'self', heal: 0.4, removeNegativeStatuses: true, desc: 'La libellula Sparx cura Spyro del 40% dei PS e rimuove le alterazioni di stato.' },
-          'Pioggia di Gemme': { name: 'Pioggia di Gemme', type: 'Roccia', power: 25, multiHit: { min: 2, max: 4 }, desc: 'Scaglia le gemme raccolte colpendo da 2 a 4 volte.' },
+          'Pioggia di Gemme': { name: 'Pioggia di Gemme', type: 'Roccia', power: 32, multiHit: { min: 2, max: 4 }, desc: 'Scaglia le gemme raccolte colpendo da 2 a 4 volte.' },
 
           // NUOVE MOSSE COSMO
           'Bacchetta Magica': { name: 'Bacchetta Magica', type: 'Magico', power: 80, statusEffect: { type: 'Confuso', chance: 0.4 }, desc: 'Agita la bacchetta a caso. 40% di probabilità di confondere il bersaglio.' },
@@ -308,13 +308,13 @@ export const MOVES_DB = {
           
           // NUOVE MOSSE POISON IVY
           'Bacio Tossico': { name: 'Bacio Tossico', type: 'Veleno', power: 60, statusEffect: { type: 'Avvelenato', chance: 0.8 }, desc: 'Un bacio letale con l\'80% di probabilità di avvelenare gravemente il bersaglio.' },
-          'Radici Avvolgenti': { name: 'Radici Avvolgenti', type: 'Erba', power: 70, statusEffect: { type: 'Stordito', chance: 0.3 }, desc: 'Evoca possenti radici che stritolano il nemico. 30% di probabilità di stordirlo.' },
+          'Radici Avvolgenti': { name: 'Radici Avvolgenti', type: 'Erba', power: 82, statusEffect: { type: 'Stordito', chance: 0.3 }, desc: 'Evoca possenti radici che stritolano il nemico. 30% di probabilità di stordirlo.' },
           'Spore Soporifere': { name: 'Spore Soporifere', type: 'Erba', power: 0, targetCount: 2, statusEffect: { type: 'Addormentato', chance: 0.6 }, desc: 'Soffia polveri ipnotiche. Ha il 60% di probabilità di addormentare fino a due bersagli.' },
           'Fascino Botanico': { name: 'Fascino Botanico', type: 'Normale', power: 0, statusEffect: { type: 'Infatuato', chance: 1.0 }, targetStatDebuff: { atk: 0.7 }, desc: 'Ammalia il bersaglio infatuandolo (50% prob. di non attaccare) e ne riduce l\'Attacco del 30%.' },
           'Polline scottante': { name: 'Polline scottante', type: 'Fuoco', power: 70, statusEffect: { type: 'Scottato', chance: 1.0 }, desc: 'Soffia un polline infuocato. Infligge 70 danni e scotta infallibilmente il bersaglio.' },
 
           // NUOVE MOSSE MANTIDE
-          'Colpo della Mantide': { name: 'Colpo della Mantide', type: 'Insetto', power: 70, priority: 1, desc: 'Un colpo fulmineo di arti marziali. Colpisce sempre per primo (Priorità +1).' },
+          'Colpo della Mantide': { name: 'Colpo della Mantide', type: 'Insetto', power: 82, priority: 1, desc: 'Un colpo fulmineo di arti marziali. Colpisce sempre per primo (Priorità +1).' },
           'Agopuntura': { name: 'Agopuntura', type: 'Insetto', power: 0, targetMode: 'ally', targetStatBuff: { atk: 1.5, spd: 1.5 }, desc: 'Sfrutta la conoscenza dei punti di pressione per potenziare un alleato: +50% Attacco e Velocità.' },
           'Raffica di Pugni': { name: 'Raffica di Pugni', type: 'Lotta', power: 20, multiHit: { min: 3, max: 5 }, desc: 'Una tempesta inarrestabile di pugni minuscoli. Colpisce in sequenza da 3 a 5 volte.' },
           'Schivata Acrobatica': { name: 'Schivata Acrobatica', type: 'Aria', power: 0, target: 'self', isProtect: true, priority: 5, maxUses: 3, desc: 'Sfrutta le sue dimensioni e l\'agilità per schivare ogni attacco per il turno corrente. (3 utilizzi)' },
@@ -617,7 +617,7 @@ export const MOVES_DB = {
           // NUOVE MOSSE JAKE (DC)
           'Battuta Fuori Luogo': { name: 'Battuta Fuori Luogo', type: 'Normale', power: 0, targetStatDebuff: { atk: 0.6 }, desc: 'Una battuta inopportuna che irrita il nemico, riducendone drasticamente (40%) l\'Attacco.' },
           'Sguardo Omosessuale': { name: 'Sguardo Omosessuale', type: 'Magico', power: 0, statusEffect: { type: 'Infatuato', chance: 1.0 }, desc: 'Lancia un\'occhiata profonda che infatua infallibilmente il nemico (50% probabilità di non attaccare).' },
-          'Tom difendimi!': { name: 'Tom difendimi!', type: 'Lotta', power: 85, targetCount: 2, desc: 'Chiama Tom in soccorso! Un potente attacco fisico che colpisce fino a 2 bersagli a scelta.' },
+          'Tom difendimi!': { name: 'Tom difendimi!', type: 'Lotta', power: 95, targetCount: 2, desc: 'Chiama Tom in soccorso! Un potente attacco fisico che colpisce fino a 2 bersagli a scelta.' },
           'Lanciafiamme Rubato': { name: "\'Ho preso un lanciafiamme!\'", type: 'Fuoco', power: 70, statusEffect: { type: 'Scottato', chance: 1.0 }, desc: 'Usa un lanciafiamme trovato per caso! Infligge 70 danni e scotta sicuramente il nemico.' },
 
           // NUOVE MOSSE NIGHTWING E BUIO
