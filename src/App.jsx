@@ -293,6 +293,17 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
           const safeForceSkip = async()=>{
             if(gameState.status!=='battling')return;
+            // In Co-op recupera i KO sotto transazione: mai scrivere una
+            // sostituzione da uno snapshot vecchio mentre si calcola il turno.
+            if(appMode==='online_room'&&gameState.isRoguelikeCoop &&
+               prepareEmergencySwitch(gameState,getActivePlayers())){
+              await recoverRoomPhase(true);
+              return;
+            }
+            // Se un compagno ha acquisito il turno quando l'host era offline,
+            // l'host riconnesso non deve avviare un secondo calcolo.
+            if(appMode==='online_room'&&gameState.isRoguelikeCoop&&
+               gameState.turnCalculationOwner&&gameState.turnCalculationOwner!==user?.uid)return;
             if(appMode==='online_room'&&playerRole!=='p1'){
               if(!canRecoverRoom(gameState,playerRole)){
                 setSystemAlert('L’host è ancora connesso: attendi il suo turno. In caso di KO, usa la sostituzione.');
