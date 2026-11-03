@@ -2,6 +2,7 @@ import { onlineHealingRemaining, isLimitedHealingItem } from '../../systems/onli
 import { MOVES_DB } from '../../data/moves.js';
 import { hyperPreviewMoves } from '../../systems/hyperPreview.js';
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
+import { ZodiacSwitchChoice } from '../../components/ZodiacSpiritPicker.jsx';
 import { BattleCodexLauncher } from '../../components/BattleCodex.jsx';
 import { BattleStatusBadges, battleFeedbackKind, BATTLE_FEEDBACK_LABELS } from '../../components/BattleStatusBadges.jsx';
 import { isMasteryEligible, masteryDeploymentTier } from '../../systems/masterySystem.js';
@@ -952,7 +953,11 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                             return (
                                                 <div className={gameState.isEchoFinalBattle ? 'grid grid-cols-2 gap-3 max-h-[65vh] overflow-y-auto custom-scrollbar pr-2' : 'grid grid-cols-2 gap-4'}>
                                                     {benchedChars.length === 0 ? <div className="col-span-2 text-center text-slate-400 font-bold mt-4">Nessun compagno disponibile per il cambio.</div> : null}
-                                                    {benchedChars.map(char => (
+                                                    {benchedChars.map(char => char.id==='lucy'?
+                                                        <ZodiacSwitchChoice key={char.originalIdx} hero={char}
+                                                          onChoose={spiritId=>commitAction({type:'switch',fromIdx:activeCommandCharIdx,
+                                                            toIdx:char.originalIdx,zodiacSpiritId:spiritId})}/>
+                                                        :(
                                                         <button key={char.originalIdx} onClick={() => {
                                                             commitAction({ type: 'switch', fromIdx: activeCommandCharIdx, toIdx: char.originalIdx });
                                                         }} className="bg-slate-800/80 p-3 rounded-xl border border-emerald-500/50 flex items-center gap-3 hover:bg-slate-700 hover:border-emerald-400 transition-all shadow-md group">
