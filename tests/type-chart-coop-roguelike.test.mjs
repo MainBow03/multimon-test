@@ -10,7 +10,7 @@ import {TYPE_CHART} from '../src/systems/typeSystem.js';
 import {applyOnEnterPassiveImpl} from '../src/systems/battleSystem.js';
 import {
  COOP_HUMANS,COOP_BOSS,COOP_MAX_FLOOR,COOP_MAX_TEAM,coopHumanPlayers,
- coopCount,coopRecruitChance,coopRecruitWeights,chooseCoopRecruitOwner,
+ coopCount,coopRecruitChance,coopRecruitWeights,chooseCoopRecruitOwner,prepareCoopDraft,
  freshCoopFighter,coopEnemyForFloor,finishCoopFloor,coopCampPurchase,nextCoopFloor
 } from '../src/systems/coopExpedition.js';
 
@@ -67,9 +67,24 @@ test('Tre partecipanti umani massimo, p4 è solo CPU; getActivePlayers non inclu
  assert.deepEqual(coopHumanPlayers(onlyTwo),['p1','p2']);
  assert.deepEqual(getActivePlayersImpl({gameState:onlyTwo}),['p1','p2','p4']);
  const lobby=file('src/screens/roguelike/RoguelikeCoopLobbyView.jsx');
- assert.match(lobby,/\['p1', 'p2', 'p3'\]/);
- assert.match(lobby,/coopEnemyForFloor\(1,draftable,humanCount/);
+ assert.match(lobby,/startCoopDraft/);
+ assert.match(file('src/App.jsx'),/prepareCoopDraft\(room,CHARACTERS\)/);
  assert.ok(!lobby.includes('draftChoices.p4'));
+});
+
+test('Avvio del draft atomico: scelte solo ai partecipanti e un nemico condiviso',()=>{
+ const s=room(false);
+ s.status='lobby';
+ const p=prepareCoopDraft(s,CHARACTERS,()=>0);
+ assert.equal(p.status,'drafting');
+ assert.equal(p.draftChoices.p1.length,3);
+ assert.equal(p.draftChoices.p2.length,3);
+ assert.deepEqual(p.draftChoices.p3,[]);
+ assert.equal(p.draft.p4.length,1);
+ assert.ok(p.draft.p4[0].hp>0);
+ assert.equal(s.status,'lobby','La funzione non modifica l’originale.');
+ assert.throws(()=>prepareCoopDraft({...s,status:'drafting'},CHARACTERS),/lobby/);
+ assert.throws(()=>prepareCoopDraft({...s,players:{...s.players,p2:null}},CHARACTERS),/due o tre/);
 });
 
 test('Un solo Multimon attivo per giocatore, senza potenziamenti Juggernaut',()=>{
