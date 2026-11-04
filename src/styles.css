@@ -141,6 +141,14 @@ body { background-color: #020617; color: white; }
 @media(prefers-reduced-motion:reduce){.battle-feedback-label,.battle-ko-character,.battle-impact-shake{animation:none!important}}
 
 
+/* Portale dei Spiriti Stellari di Lucy: effetto locale riprodotto dagli
+   eventi condivisi di Firestore, anche sui dispositivi degli altri giocatori. */
+.zodiac-portal-entrance{isolation:isolate;animation:zodiac-portal-arrival .95s cubic-bezier(.14,.9,.25,1) both}
+.zodiac-portal-entrance::before{content:"✦ ✧ ✦";position:absolute;inset:-12px;z-index:-1;border:3px solid rgba(196,181,253,.9);border-radius:28%;box-shadow:0 0 28px rgba(167,139,250,.8),inset 0 0 25px rgba(129,140,248,.5);display:flex;align-items:center;justify-content:center;font-size:1.9rem;color:#ddd6fe;animation:zodiac-portal-glow 1.3s ease-in-out infinite alternate;pointer-events:none}
+@keyframes zodiac-portal-arrival{0%{transform:scale(.35) rotate(-16deg);opacity:0;filter:brightness(2)}65%{transform:scale(1.13) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1;filter:brightness(1)}}
+@keyframes zodiac-portal-glow{from{opacity:.45;transform:scale(.94)}to{opacity:1;transform:scale(1.04)}}
+@media(prefers-reduced-motion:reduce){.zodiac-portal-entrance,.zodiac-portal-entrance::before{animation:none!important}}
+
 /* Scelta Multimon: le griglie con decine di personaggi NON possono
    comprimere i riquadri per far entrare tutti i record nel viewport.
    Le righe devono mantenere la loro altezza naturale; scorre il contenitore. */

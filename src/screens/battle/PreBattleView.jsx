@@ -1,4 +1,5 @@
 import {cpuStyle,CPU_STYLES} from '../../systems/strategicCpu.js';
+import {visibleOnlineZodiacSpirits} from '../../systems/battleSummonPlayback.js';
 // Schermata introduttiva: mostra subito il carattere dell'IA.
 export function renderPreBattleView(ctx) {
 const { PLAYER_THEMES, gameState, getActivePlayers, getDefaultAvatar, introCharIdx, playerRole } = ctx;
@@ -37,7 +38,12 @@ if (gameState.status === 'pre_battle') {
                                     {allyPlayers.map((p, i) => {
                                         const name = gameState.players[p];
                                         const avatar = gameState.playerAvatars?.[p] || getDefaultAvatar(name);
-                                        const fighter = (gameState.teams?.[p] || []).find(c => c && !c.isSummonOnly);
+                                        const activeIdx=(gameState.field?.[p]||[]).find(idx=>{
+                                          const c=gameState.teams?.[p]?.[idx];
+                                          return c && c.hp>0 && !c.isSummonOnly;
+                                        });
+                                        const fighter=activeIdx===undefined?null:gameState.teams[p][activeIdx];
+                                        const stellar=visibleOnlineZodiacSpirits(gameState.teams,gameState.field,p)[0];
                                         return (
                                             <div key={p} className={introCharIdx >= 1 ? "flex flex-col items-center w-28 sm:w-36 transition-all duration-500 opacity-100 scale-100" : "flex flex-col items-center w-28 sm:w-36 transition-all duration-500 opacity-0 scale-75"}>
                                                 <img src={avatar} alt={name} onError={(e) => { e.target.onerror = null; e.target.src = getDefaultAvatar(name); }} className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-cyan-400 object-cover bg-slate-900 shadow-lg" />
@@ -46,6 +52,11 @@ if (gameState.status === 'pre_battle') {
                                                     <div className={introCharIdx >= 2 + i ? "mt-3 flex flex-col items-center gap-1 transition-all duration-500 opacity-100 scale-100" : "mt-3 flex flex-col items-center gap-1 transition-all duration-500 opacity-0 scale-75"}>
                                                         <img src={fighter.img} alt={fighter.name} className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl border-2 border-cyan-500/70 object-cover bg-slate-950" />
                                                         <span className="text-center text-xs text-cyan-100 break-words">{fighter.name}</span>
+                                                        {stellar&&<div className="mt-1 rounded-xl border border-violet-300/65 bg-violet-950/70 px-2 py-1.5 flex flex-col gap-1 items-center shadow-[0_0_12px_rgba(167,139,250,.4)]">
+                                                          <p className="text-[10px] font-bold text-violet-200">✦ Spirito Stellare</p>
+                                                          <img src={stellar.img} alt={stellar.name} className="w-10 h-10 sm:w-12 sm:h-12 rounded-md object-cover border border-violet-300" />
+                                                          <span className="text-[10px] text-violet-100 text-center break-words">{stellar.name}</span>
+                                                        </div>}
                                                     </div>
                                                 )}
                                             </div>
@@ -280,6 +291,10 @@ if (gameState.status === 'pre_battle') {
                             <div key={i} className={`flex flex-col items-center transition-all duration-500 ease-out transform ${introCharIdx >= i + 3 ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-50 translate-y-10'}`}>
                                 <img src={char.img} className="w-16 h-16 md:w-24 md:h-24 rounded-full border-2 md:border-4 border-cyan-300 object-cover shadow-[0_0_20px_rgba(34,211,238,0.4)] mb-2" alt={char.name}/>
                                 <span className="text-[10px] md:text-sm font-bold text-cyan-100 truncate w-24 text-center drop-shadow-md bg-slate-900/50 px-2 py-0.5 rounded-full">{char.name}</span>
+                                {char.id==='lucy'&&visibleOnlineZodiacSpirits(gameState.teams,gameState.field,activeMatchPlayers[0]).map(spirit=>
+                                  <div key={spirit.id} className="rounded-xl border border-violet-300/50 bg-violet-950/80 px-2 py-1 text-center flex items-center gap-1 text-[10px] text-violet-100">
+                                    <img src={spirit.img} alt="" className="w-8 h-8 rounded-full object-cover" /> ✦ {spirit.name}
+                                  </div>)}
                             </div>
                         ))}
                     </div>
@@ -302,6 +317,10 @@ if (gameState.status === 'pre_battle') {
                             <div key={i} className={`flex flex-col items-center transition-all duration-500 ease-out transform ${introCharIdx >= i + 3 ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-50 translate-y-10'}`}>
                                 <img src={char.img} className="w-16 h-16 md:w-24 md:h-24 rounded-full border-2 md:border-4 border-rose-300 object-cover shadow-[0_0_20px_rgba(244,63,94,0.4)] mb-2" alt={char.name}/>
                                 <span className="text-[10px] md:text-sm font-bold text-rose-100 truncate w-24 text-center drop-shadow-md bg-slate-900/50 px-2 py-0.5 rounded-full">{char.name}</span>
+                                {char.id==='lucy'&&visibleOnlineZodiacSpirits(gameState.teams,gameState.field,activeMatchPlayers[1]).map(spirit=>
+                                  <div key={spirit.id} className="rounded-xl border border-violet-300/50 bg-violet-950/80 px-2 py-1 text-center flex items-center gap-1 text-[10px] text-violet-100">
+                                    <img src={spirit.img} alt="" className="w-8 h-8 rounded-full object-cover" /> ✦ {spirit.name}
+                                  </div>)}
                             </div>
                         ))}
                     </div>

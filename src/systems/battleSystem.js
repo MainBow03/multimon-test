@@ -8,6 +8,7 @@ import { isOnlineHealingLimited, isLimitedHealingItem, onlineHealingRemaining, O
 import { consumeRaidShieldHit, createRaidShieldUpdateEvent, applyRaidShieldUpdateEvent } from './finalRaidBalance.js';
 import { activateRoguelikeBossShield } from './roguelikeBossPower.js';
 import { createBattleReport, accumulateBattleReport } from './battleReport.js';
+import {createBattlePlaybackSnapshot,applySummonPlaybackEvent} from './battleSummonPlayback.js';
 import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
@@ -500,6 +501,8 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
               teams: teams,
               field: field,
               events: initialEvents,
+              // Nessuna vecchia istantanea deve interferire con gli ingressi di una nuova lotta.
+              startOfTurnTeams:null,startOfTurnField:null,
               battleReport: accumulateBattleReport(createBattleReport(), teams, initialEvents, {countTurn:false}),
               healingItemsUsed: {p1:0,p2:0,p3:0,p4:0,p5:0,p6:0,p7:0,p8:0},
               turnExpiresAt: null,
@@ -3639,8 +3642,9 @@ const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, set
         
         try {
             // Usa lo stato d'inizio turno per cominciare l'animazione, creando VERA suspance!
-            let currentDisplay = JSON.parse(JSON.stringify(gameState.startOfTurnTeams || gameState.teams));
-            let currentDisplayField = JSON.parse(JSON.stringify(gameState.startOfTurnField || gameState.field));
+            const playbackStart=createBattlePlaybackSnapshot(gameState);
+            let currentDisplay=playbackStart.teams;
+            let currentDisplayField=playbackStart.field;
             
             setDisplayTeams(currentDisplay);
             setDisplayField(currentDisplayField);
@@ -3667,10 +3671,11 @@ const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, set
                 }
                 
                 if (evt.type === 'summon') {
-                   if(currentDisplay[evt.player]) currentDisplay[evt.player].push(evt.newChar);
-                   if(currentDisplayField[evt.player]) currentDisplayField[evt.player].push(evt.fieldIdx);
-                   setDisplayTeams({ ...currentDisplay });
-                   setDisplayField({ ...currentDisplayField });
+                   const next=applySummonPlaybackEvent({teams:currentDisplay,field:currentDisplayField},evt);
+                   currentDisplay=next.teams;
+                   currentDisplayField=next.field;
+                   setDisplayTeams(currentDisplay);
+                   setDisplayField(currentDisplayField);
                 } else if (evt.type === 'hyper_transform') {
                    // --- ANIMAZIONE FORMA IPER LENTA E AD EFFETTO ---
                    setScreenFlash(true);

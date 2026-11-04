@@ -7,6 +7,7 @@ import { BattleCodexLauncher } from '../../components/BattleCodex.jsx';
 import {BattleTypeChartLauncher} from '../../components/BattleTypeChartLauncher.jsx';
 import { BattleStatusBadges, battleFeedbackKind, BATTLE_FEEDBACK_LABELS } from '../../components/BattleStatusBadges.jsx';
 import { isMasteryEligible, masteryDeploymentTier } from '../../systems/masterySystem.js';
+import {visibleOnlineZodiacSpirits} from '../../systems/battleSummonPlayback.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderBattlingView(ctx) {
 const { ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, appMode, actionMenuMode, combatLog, commandingIdx, commitAction, coopPendingAction, roomId, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
@@ -157,6 +158,10 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                  (teamPlayer === playerRole ? ownMasteryLevels?.[char.id] : 0) || 1)
               : 1;
             const masteryTier = masteryDeploymentTier(masteryLevel);
+            const isZodiacArrival=Boolean(char.isZodiacSpirit && isPlayingEvents &&
+              eventPlaybackText?.includes(char.name) &&
+              gameState.events?.some(evt=>evt.type==='summon' && evt.player===teamPlayer &&
+                evt.fieldIdx===charTeamIdx && evt.newChar?.id===char.id));
             
             let isTargetable = false;
             if (targetingMoveIdx !== null && !isDead && activeCommandChar) {
@@ -216,6 +221,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                 borderClass = 'border-yellow-400 animate-pulse cursor-pointer shadow-[0_0_15px_rgba(250,204,21,0.5)]';
             }
             if (isBeingCommanded) borderClass = 'border-white shadow-[0_0_20px_rgba(255,255,255,0.6)] scale-105 z-10';
+            if (char.isZodiacSpirit && !isTargetedNow && !isTargetable)
+                borderClass = 'border-violet-300 shadow-[0_0_20px_rgba(167,139,250,.65)]';
 
             let effectivenessBadge = null;
             if (isTargetable && targetingMoveIdx !== null && activeCommandChar) {
@@ -334,7 +341,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
             else if (masteryTier) extraAnimClass = "mastery-deploy-pop";
             // ---------------------------------------------------
             return (
-                <div key={`${teamPlayer}-${charTeamIdx}`} className={`relative flex flex-col items-center cursor-pointer ${isJuggernaut ? 'w-56' : 'w-36'} transition-all ${isDead && !isFaintingNow ? 'opacity-0 scale-0 absolute' : 'opacity-100'} ${isFaintingNow ? 'battle-ko-character' : ''} ${isHyper ? 'z-[45]' : 'z-10'}`} onClick={() => {
+                <div key={`${teamPlayer}-${charTeamIdx}`} className={`relative flex flex-col items-center cursor-pointer ${isJuggernaut ? 'w-56' : char.isZodiacSpirit ? 'w-28 sm:w-32' : 'w-36'} transition-all ${isDead && !isFaintingNow ? 'opacity-0 scale-0 absolute' : 'opacity-100'} ${isFaintingNow ? 'battle-ko-character' : ''} ${isHyper ? 'z-[45]' : 'z-10'}`} onClick={() => {
                     if (isTargetable) {
                         handleSelectMoveTarget(teamPlayer, fieldIdx);
                     } else {
@@ -345,6 +352,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                         <div className="font-bold text-xs truncate text-gray-400 uppercase tracking-widest">{gameState.players[teamPlayer]}</div>
                         <div className="font-bold text-sm truncate text-gray-100 mb-1">
                             {char.name} 
+                            {char.isZodiacSpirit && <span className="block text-[10px] font-bold text-violet-200">✦ Spirito Stellare di {gameState.players?.[char.zodiacOwner]||'Lucy'}</span>}
                             {(isJuggernaut || char.isRoguelikeBoss) && <span className="text-[10px] text-rose-500 ml-1">(BOSS)</span>}
                             {isHyper && <span className="text-[10px] text-yellow-400 font-black ml-1">(IPER)</span>}
                             {char.mahitoTransformed && <span className="text-[10px] text-fuchsia-300 font-black ml-1">(TRASFIGURATO)</span>} 
@@ -362,13 +370,13 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                         {renderHealthBar(char.hp, char.maxHp)}
                         <BattleStatusBadges character={char} />
                     </div>
-                    <div className={`relative ${masteryTier ? 'mastery-portrait mastery-stage-'+masteryTier.level : ''}`}>
+                    <div className={`relative ${masteryTier ? 'mastery-portrait mastery-stage-'+masteryTier.level : ''} ${isZodiacArrival ? 'zodiac-portal-entrance' : ''}`}>
                         {masteryTier && <div className={`mastery-entry-ribbon mastery-tier-${masteryTier.level}`} aria-hidden="true">
                           {masteryTier.icon} {masteryTier.name}
                         </div>}
                         {masteryTier?.level >= 10 && <div className="mastery-radiance" aria-hidden="true" />}
                         {masteryTier?.level >= 15 && <div className="mastery-sparks" aria-hidden="true"><i>✦</i><i>✧</i><i>★</i><i>✦</i></div>}
-                        <img key={`img-${char.id}-form-${formLevel}`} src={displayImg} style={{ filter: char.imageFilter || 'none' }} className={`${isJuggernaut ? 'w-48 h-48 md:w-56 md:h-56' : 'w-28 h-28'} object-cover rounded-xl border-4 ${borderClass} transition-all ${extraAnimClass} ${masteryTier ? 'mastery-portrait-image mastery-border-'+masteryTier.level : ''}`} alt="" />
+                        <img key={`img-${char.id}-form-${formLevel}`} src={displayImg} style={{ filter: char.imageFilter || 'none' }} className={`${isJuggernaut ? 'w-48 h-48 md:w-56 md:h-56' : char.isZodiacSpirit ? 'w-24 h-24 sm:w-28 sm:h-28' : 'w-28 h-28'} object-cover rounded-xl border-4 ${borderClass} transition-all ${extraAnimClass} ${masteryTier ? 'mastery-portrait-image mastery-border-'+masteryTier.level : ''}`} alt="" />
                         {ITEMS_DB[char.heldItem]?.type === 'held' && <span
                             title={ITEMS_DB[char.heldItem].name+(char.gemSpent?' · gemma scaricata':' · equipaggiato')}
                             className={'absolute -top-2 -right-2 bg-violet-700 border border-violet-300 text-base rounded-full w-8 h-8 flex items-center justify-center z-20 shadow-lg '+(char.gemSpent?'opacity-45 grayscale':'')}>
@@ -400,6 +408,9 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                 {players.map(p => {
                                         const team = isPlayingEvents ? (displayTeams[p] || []) : (gameState.teams[p] || []);
                                         const currentFieldForPlayer = isPlayingEvents ? (displayField[p] || []) : (gameState.field[p] || []);
+                                        const visibleSpirits=visibleOnlineZodiacSpirits(
+                                          isPlayingEvents ? displayTeams : gameState.teams,
+                                          isPlayingEvents ? displayField : gameState.field,p);
                                         
                                         // LOGICA SCUDO TEAM VISIVO GLOBALE
                                         const hasScudoTeam = currentFieldForPlayer.some(fIdx => {
@@ -420,6 +431,14 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                                   {gameState.playerTitles?.[p] && <span className="text-[10px] font-semibold text-amber-300 truncate max-w-[170px]">✦ {gameState.playerTitles[p]}</span>}
                                                                 </div>
                                                         </div>
+                                                        {visibleSpirits.length>0 && <div className="flex max-w-[230px] gap-1 justify-center flex-wrap relative z-10" aria-label={'Spiriti Stellari di '+gameState.players[p]}>
+                                                          {visibleSpirits.map((spirit,idx)=><span key={spirit.id+'-'+idx}
+                                                            className="flex gap-1 items-center rounded-full border border-violet-400/60 bg-violet-950/75 px-2 py-0.5 text-[9px] font-bold text-violet-100"
+                                                            title={spirit.name+' · Spirito di '+gameState.players[p]}>
+                                                            <img src={spirit.img} alt="" className="w-4 h-4 rounded-full object-cover" />
+                                                            ✦ {spirit.name.replace(/ \(Spirito Stellare\)$/, '')}
+                                                          </span>)}
+                                                        </div>}
                                                         {/* INDICATORE PERSONAGGI VIVI/MORTI / RIVELATI */}
                                                         <div className="flex items-center gap-1.5 bg-black/60 px-3 py-1.5 rounded-full border border-slate-700/50 backdrop-blur-sm relative z-10 min-h-[28px]">
                                                                 {team.filter(c => !c.isSummonOnly).map((c, i) => {
