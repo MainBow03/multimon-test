@@ -3,6 +3,7 @@ import {EmailAuthProvider,linkWithCredential,onAuthStateChanged,sendPasswordRese
  signInAnonymously,signInWithCustomToken,signInWithEmailAndPassword,signOut} from 'firebase/auth';
 import {auth,ensurePersistentAuth} from '../firebase/config.js';
 import {downloadCloudSave,uploadCloudSave} from '../firebase/cloudSaves.js';
+import {requiresAccountReauthentication,shouldPromptSaveConflict} from '../systems/authRecovery.js';
 import {ACTIVE_ACCOUNT_KEY,GUEST_BACKUP_KEY,LOCAL_ACCOUNT_BACKUP_PREFIX,
  collectProgress,clearProgress,progressFingerprint,readLocalBackup,
  restoreProgress,saveLocalBackup,createRecoverySnapshot,listRecoveryBackups} from '../systems/progressStorage.js';
@@ -73,18 +74,16 @@ export function AccountGate({children}) {
   if(auth.currentUser?.uid!==u.uid)return;
   const active=localStorage.getItem(ACTIVE_ACCOUNT_KEY);
   const local=collectProgress();
-  const localHash=progressFingerprint(local),remoteHash=progressFingerprint(remote);
-  const meaningful=Object.keys(local).some(k=>!['multiverse_rpg_saved_name','multiverse_rpg_saved_avatar'].includes(k));
   // MAI sostituire silenziosamente dati locali divergenti, anche
   // quando l'hash dell'ultima sincronizzazione non è più aggiornato.
-  if(localHash!==remoteHash&&(active===u.uid||(!active&&meaningful))){
+  if(shouldPromptSaveConflict(active,u.uid,local,remote)){
    remotePending.current=remote;setSession({type:'conflict',uid:u.uid});return;
   }
   backupBeforeSwitch(u.uid);activate(u.uid,remote);
  }
  function enterGuest(u) {
   const old=localStorage.getItem(ACTIVE_ACCOUNT_KEY);
-  if(old){
+  if(requiresAccountReauthentication(old,u)){
    // Una sessione Firebase persa non è un logout richiesto dall'utente!
    // Non caricare il vecchio ospite, non cancellare dati account e stanza.
    setSession({type:'reauth',uid:old});return;
@@ -107,7 +106,9 @@ export function AccountGate({children}) {
           // Se esiste un account precedente NON avviare un nuovo ospite.
           // La copia locale rimane visibile e recuperabile dopo il login.
           const known=localStorage.getItem(ACTIVE_ACCOUNT_KEY);
-          if(known){setMode('login');setSession({type:'reauth',uid:known});return;}
+          if(requiresAccountReauthentication(known,user)){
+            setMode('login');setSession({type:'reauth',uid:known});return;
+          }
           busy.current=true;
           try {
             if(typeof __initial_auth_token!=='undefined'&&__initial_auth_token)
@@ -117,7 +118,9 @@ export function AccountGate({children}) {
           if(!disposed)enterGuest(auth.currentUser);
         }else if(!emailUser(user)){
           const known=localStorage.getItem(ACTIVE_ACCOUNT_KEY);
-          if(known){setMode('login');setSession({type:'reauth',uid:known});}
+          if(requiresAccountReauthentication(known,user)){
+            setMode('login');setSession({type:'reauth',uid:known});
+          }
           else enterGuest(user);
         }else await loadAccount(user);
       }catch(error){
