@@ -549,7 +549,7 @@ export const generateCPUActionsForPlayerImpl = (ctx,cpuPlayer,currentActions) =>
     activePlayers:ctx.getActivePlayers(),
     getMultiplier:ctx.getMultiplier,
     matchOpponents:ctx.getTournamentMatchOpponents,
-    roguelikeState:ctx.roguelikeState
+    roguelikeState:ctx.roguelikeState,appMode:ctx.appMode
   });
 
 export const commitActionImpl = (ctx, actionDetails) => {
