@@ -130,3 +130,23 @@ test('Mosse doppio bersaglio e mosse in ricarica sono rispettate',()=>{
   assert.equal(action.selectedTargets.length,2);
   assert.notEqual(action.selectedTargets[0].idx,action.selectedTargets[1].idx);
 });
+
+
+test('Una CPU non si blocca se tutte le mosse sono in ricarica',()=>{
+  const room=game('tactical',
+    fighter('fire','Fuoco',100,[move('Unica','Fuoco',60,{currentCooldown:2})]));
+  delete room.inventory.p2;
+  const action=plan(room)[0];
+  assert.equal(action.type,'attack');
+  assert.equal(action.moveIdx,0);
+});
+
+test('Lo skip forzato non altera la scelta umana né aggiunge Iper non richiesta',()=>{
+  const room=game('aggressive',
+    fighter('barry','Fuoco',100,[move('Hit','Fuoco',80)]));
+  room.hyperUsed.p2=false;
+  const choice=Object.freeze({type:'attack',moveIdx:0,targetPlayer:'p1',targetIdx:0});
+  const planned=plan(room,{currentActions:{p2:{0:choice}}});
+  assert.deepEqual(planned[0],choice);
+  assert.equal(choice.hyperize,undefined);
+});
