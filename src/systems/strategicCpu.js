@@ -20,6 +20,24 @@ const finite=(value,fallback=0)=>Number.isFinite(Number(value))?Number(value):fa
 const bounded=(v,min,max)=>Math.max(min,Math.min(max,v));
 const hpRatio=char=>bounded(finite(char?.hp)/Math.max(1,finite(char?.maxHp,1)),0,1);
 const alive=c=>Boolean(c&&c.hp>0);
+
+// IA avanzata soltanto per i NEMICI della Roguelike: niente bonus a
+// statistiche, preveggenza delle mosse o lettura delle azioni umane.
+export function rogueEnemyTacticalTier(room, player, roguelikeState={}) {
+  const coop=room?.isRoguelikeCoop && player===(room.settings?.juggernautPlayer||'p4');
+  const solo=room?.isRoguelikeBattle && player==='p2';
+  if(!coop&&!solo)return 0;
+  const floor=Number(coop?room.coopRun?.floor:roguelikeState?.floor)||1;
+  return floor>=36?2:floor>=21?1:0;
+}
+export function rogueTargetPressureBonus(tier, enemyHpRatio, effectiveness, teammatesFocused=0) {
+  if(!tier)return 0;
+  const wounded=Math.max(0,1-bounded(enemyHpRatio,0,1));
+  return wounded*(tier===2?22:12) +
+    (effectiveness>1?(tier===2?9:5):0) +
+    (tier===2?Math.min(12,Math.max(0,teammatesFocused)*8):0);
+}
+
 const usable=m=>m && m.remainingUses!==0 && !(finite(m.currentCooldown)>0);
 const hasNegative=c=>(c?.statuses||[]).some(s=>[
   'Avvelenato','Scottato','Congelato','Elettrizzato','Addormentato',
@@ -138,7 +156,11 @@ export function generateStrategicCpuActions({
   const result={};
   const activeField=room.field?.[player]||[];
   if(!activeField.length)return result;
-  const styleId=cpuStyle(room,player);
+  const tacticalTier=rogueEnemyTacticalTier(room,player,roguelikeState);
+  // Dopo il 35° piano le CPU troppo attendiste diventano più tattiche,
+  // senza eliminare la varietà di quelle aggressive.
+  const originalStyle=cpuStyle(room,player);
+  const styleId=tacticalTier===2 && originalStyle==='defensive'?'tactical':originalStyle;
   const style=CPU_STYLES[styleId];
   const enemies=visibleEnemyPlayers(room,player,activePlayers,matchOpponents)
     .flatMap(p=>(room.field?.[p]||[]).map((idx,fieldIdx)=>({
@@ -245,7 +267,10 @@ export function generateStrategicCpuActions({
       if(move.targetCount>1 && move.targetCount<4){
         const ranked=enemies.map(e=>{
           const mult=multiplierOf(getMultiplier,move.type,e.char.types);
-          return {...e,score:strength(char,move,e.char,mult)};
+          const focused=Object.values(result).filter(a=>a?.type==='attack' &&
+            a.targetPlayer===e.player && a.targetIdx===e.idx).length;
+          return {...e,score:strength(char,move,e.char,mult)+
+            rogueTargetPressureBonus(tacticalTier,hpRatio(e.char),mult,focused)};
         }).sort((a,b)=>b.score-a.score);
         const targets=ranked.slice(0,move.targetCount);
         if(targets.length){
@@ -264,8 +289,15 @@ export function generateStrategicCpuActions({
         const debuff=move.statusEffect&&!(enemy.char.statuses||[]).some(s=>
           s.type===move.statusEffect?.type)?(life>.28?22:12)*style.support:0;
         const drain=move.drain?(1-life)*37*style.heal:0;
+        // Dai piani 21+ punta un po' meglio alle debolezze; dai 36+
+        // i nemici collaborano, concentrandosi sui bersagli già attaccati
+        // da un compagno e sui combattenti feriti che possono andare KO.
+        const focused=Object.values(result).filter(a=>a?.type==='attack' &&
+          a.targetPlayer===enemy.player && a.targetIdx===enemy.idx).length;
+        const tacticalBonus=rogueTargetPressureBonus(
+          tacticalTier,hpRatio(enemy.char),mult,focused);
         const score=(24+dmg +killChance)*style.damage+debuff+drain+
-          finite(move.priority)*7+random()*9-(mult===0?220:0);
+          finite(move.priority)*7+random()*9+tacticalBonus-(mult===0?220:0);
         consider({type:'attack',moveIdx,targetPlayer:enemy.player,
           targetIdx:enemy.idx,targetFieldIdx:enemy.fieldIdx},score);
       }
