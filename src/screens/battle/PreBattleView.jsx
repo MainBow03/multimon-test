@@ -5,7 +5,8 @@ const { PLAYER_THEMES, gameState, getActivePlayers, getDefaultAvatar, introCharI
 if (gameState.status === 'pre_battle') {
         const activeMatchPlayers = getActivePlayers();
 
-        // Nella spedizione Co-op p1/p2/p3 sono alleati: il solo avversario è p4.
+        // Nella spedizione Co-op p1/p2/p3 sono alleati: p4 controlla il gruppo
+        // avversario, da due o tre nemici oppure un unico boss.
         // La schermata generica 1vs1 mostrava erroneamente i primi due compagni come rivali.
         if (gameState.isRoguelikeCoop) {
             const bossPlayer = gameState.settings?.juggernautPlayer || 'p4';
@@ -15,7 +16,9 @@ if (gameState.status === 'pre_battle') {
             const floor = gameState.coopRun?.floor || 1;
             const bossName = gameState.players?.[bossPlayer] || 'Guardiano del Piano';
             const bossAvatar = gameState.playerAvatars?.[bossPlayer] || getDefaultAvatar(bossName);
-            const bossFighter = (gameState.teams?.[bossPlayer] || []).find(c => c && !c.isSummonOnly);
+            const enemyFighters = (gameState.field?.[bossPlayer]||[])
+                .map(i=>gameState.teams?.[bossPlayer]?.[i]).filter(c=>c&&!c.isSummonOnly);
+            const isBoss = floor%10===0;
 
             return (
                 <div className="min-h-screen bg-slate-950 text-white relative flex flex-col items-center justify-center overflow-y-auto p-4 sm:p-8">
@@ -24,7 +27,7 @@ if (gameState.status === 'pre_battle') {
                         <div className="text-center">
                             <p className="text-cyan-300 font-black uppercase tracking-[0.3em] text-xs sm:text-sm mb-2">Spedizione Co-op</p>
                             <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight">Piano {floor}</h1>
-                            <p className="mt-2 text-slate-400 text-sm sm:text-base">Combattete insieme contro il Guardiano del Piano</p>
+                            <p className="mt-2 text-slate-400 text-sm sm:text-base">{isBoss?'Sconfiggete il boss del piano!':`Sconfiggete tutti e ${enemyFighters.length} gli avversari del piano!`}</p>
                         </div>
 
                         <div className="w-full flex flex-col lg:flex-row items-stretch lg:items-center gap-4 lg:gap-5">
@@ -56,17 +59,18 @@ if (gameState.status === 'pre_battle') {
                             </div>
 
                             <section className="flex-1 min-w-0 rounded-3xl border border-rose-500/40 bg-rose-950/20 p-4 sm:p-6 shadow-[0_0_35px_rgba(225,29,72,0.15)]">
-                                <h2 className="text-center uppercase tracking-widest text-rose-300 font-black mb-5">Avversario del piano</h2>
+                                <h2 className="text-center uppercase tracking-widest text-rose-300 font-black mb-5">{isBoss?'👑 Boss del piano':`⚔️ ${enemyFighters.length} nemici in campo`}</h2>
                                 <div className={introCharIdx >= 1 ? "flex flex-col items-center transition-all duration-500 opacity-100 scale-100" : "flex flex-col items-center transition-all duration-500 opacity-0 scale-75"}>
                                     <img src={bossAvatar} alt={bossName} onError={(e) => { e.target.onerror = null; e.target.src = getDefaultAvatar(bossName); }} className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-rose-400 object-cover bg-slate-900 shadow-lg" />
                                     <span className="mt-2 text-center text-sm sm:text-base font-bold text-white">{bossName}</span>
                                     <span className="mt-1 text-xs font-bold text-amber-300">IA {CPU_STYLES[cpuStyle(gameState,bossPlayer)].name}</span>
-                                    {bossFighter && (
-                                        <div className={introCharIdx >= 2 ? "mt-3 flex flex-col items-center gap-1 transition-all duration-500 opacity-100 scale-100" : "mt-3 flex flex-col items-center gap-1 transition-all duration-500 opacity-0 scale-75"}>
-                                            <img src={bossFighter.img} alt={bossFighter.name} className="w-20 h-20 sm:w-28 sm:h-28 rounded-xl border-2 border-rose-500/70 object-cover bg-slate-950" />
-                                            <span className="text-center text-sm font-bold text-rose-100">{bossFighter.name}</span>
-                                        </div>
-                                    )}
+                                    <div className="mt-4 flex flex-wrap items-start justify-center gap-3">
+                                        {enemyFighters.map((enemy,i)=><div key={enemy.id+'-'+i}
+                                            className={`flex flex-col items-center gap-1 rounded-xl border border-rose-500/40 bg-slate-950/70 p-2 w-24 sm:w-28 transition-all duration-500 ${introCharIdx >= 2+i?'opacity-100 scale-100':'opacity-0 scale-75'}`}>
+                                            <img src={enemy.img} alt={enemy.name} className="w-full h-20 sm:h-24 object-contain" />
+                                            <span className="text-center text-xs font-bold text-rose-100 line-clamp-2 break-words">{enemy.name}</span>
+                                        </div>)}
+                                    </div>
                                 </div>
                             </section>
                         </div>
