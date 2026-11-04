@@ -269,10 +269,15 @@ export function generateStrategicCpuActions({
       reserved.add(candidate.idx);
     }
     if(!best.action){
-      const fallback=(char.moves||[]).findIndex(usable);
-      if(fallback>=0){
+      const moves=char.moves||[];
+      // Se tutto è in ricarica/esaurito, scegli comunque una mossa
+      // esistente: il motore segnala il fallimento e fa avanzare il turno,
+      // invece di lasciare una CPU senza alcuna azione per sempre.
+      const fallback=moves.findIndex(usable);
+      const fallbackIdx=fallback>=0?fallback:moves.findIndex(Boolean);
+      if(fallbackIdx>=0){
         const e=enemies[0];
-        best.action={type:'attack',moveIdx:fallback,
+        best.action={type:'attack',moveIdx:fallbackIdx,
           targetPlayer:e?.player||player,targetIdx:e?.idx??idx,
           ...(e?{targetFieldIdx:e.fieldIdx}:{})};
       }
