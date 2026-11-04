@@ -13,6 +13,15 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov4-coop-two-starters',category:'balance',date:'04/11/2026',title:'🛡️ Roguelike Co-op: due Multimon iniziali per giocatore!',items:[
+    'Nella Roguelike Co-op da 2 o 3 partecipanti, ciascuno sceglie due Multimon già prima del primo piano: in tre si parte con sei personaggi totali.',
+    'Il primo personaggio scelto entra in campo e il secondo resta come riserva; rimane una lotta di squadra contro un solo nemico, con un Multimon attivo a testa.',
+    'La riserva può entrare tramite Cambio durante la battaglia oppure sostituire un Multimon sconfitto; i suoi PS restano conservati tra i piani.',
+    'Dopo la prima scelta vengono proposti altri tre campioni per selezionare il secondo, senza duplicati o boss esclusivi delle Campagne.',
+    'Aggiornati la lobby, il contatore delle scelte e il tutorial di Natsu; le spedizioni già nel vecchio draft con un solo iniziale possono ancora proseguire.',
+    'Non cambiano la durata della spedizione, le ricompense individuali, il limite di tre giocatori né le statistiche dei boss.'
+  ]},
+
   {id:'nov4-noncollapsing-roster-cards',category:'fixes',date:'04/11/2026',title:'🛠️ Risolto roster a striscioline su tablet e PC',items:[
     'Corretto il problema che, con tanti campioni disponibili, comprimeva le schede in righe sottilissime nascondendo quasi completamente i PNG.',
     'La griglia ora conserva sempre la vera altezza dei ritratti e delle statistiche; i personaggi in più si raggiungono scorrendo normalmente.',
