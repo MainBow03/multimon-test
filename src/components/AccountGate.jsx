@@ -380,7 +380,7 @@ export function AccountGate({children}) {
           <button className={primary+' w-full'} disabled={tournamentClaiming}
             type="submit">{tournamentClaiming?'Recupero e salvataggio…':'Conferma recupero nel mio account'}</button>
           {notice&&<p className="text-emerald-200">{notice}</p>}
-        </form>
+        </form>}
         <div className="flex gap-4 items-center">
           <button className="text-cyan-300 underline font-bold" onClick={()=>saveNow(true).catch(()=>{})}>Salva ora</button>
           <button className="text-rose-300 underline font-bold" onClick={logout}>Esci dall’account</button>
