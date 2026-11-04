@@ -13,6 +13,20 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov4-five-new-original-multimon',category:'champions',date:'04/11/2026',title:'🌟 Star Butterfly, Sam, Clover, Superman e Blueberry Muffin: cinque stili unici',items:[
+    'Star Butterfly (Magico/Folletto, 260 monete) — Bacchetta Capricciosa: una volta per turno, al primo attacco che causa danni, 35% di attivare un effetto a sorpresa tra guarigione 8% PS, Velocità +10% o Velocità nemica −12%.',
+    'Star Butterfly usa Narvali Interdimensionali (2–3 colpi), Tempesta Arcobaleno (tutti gli avversari), Bacchetta a Sorpresa (25% confusione) e Dip Down (cura con potenziamento).',
+    'Sam di Totally Spies (Robot/Psico, 180 monete) — Memoria Analitica: dopo aver subito un attacco, resiste del 25% ai successivi colpi di quel tipo; cambiare tipo di mossa le fa perdere il vantaggio. Non legge scelte segrete.',
+    'Sam usa Analisi sul Campo (Attacco nemico −20%), Rete di Contenimento (possibile stordimento), Laser Compatto (ignora bonus difensivi) e Piano di Estrazione (Difesa e Velocità).',
+    'Clover di Totally Spies (Folletto/Lotta, 180 monete) — Istinto da Copertina: 12% elusione naturale; la prima schivata del turno aumenta il proprio Attacco del 12%.',
+    'Clover usa Tacco a Reazione (priorità +1), Spray Confondente, Flash da Copertina (riduce Precisione) e Cambio di Look (cura e Velocità).',
+    'Superman (Luce/Lotta, 350 monete) — Corpo Kryptoniano: resistenza del 20% ai colpi con potenza base fino a 100; subisce invece il 25% di danni in più dalle mosse Magico. I colpi più forti ignorano la riduzione.',
+    'Superman usa Visione Termica, Soffio Artico, Intervento Eroico (cura e potenzia un alleato) e Pugno della Giustizia (fortissimo ma con contraccolpo).',
+    'Blueberry Muffin (Erba/Psico, 160 monete) — Lettura Geniale: le mosse di supporto riuscite caricano fino a 2 Appunti; il successivo attacco li consuma per +20% danni ciascuno.',
+    'Blueberry Muffin usa Ricetta Annotata (cura e prepara Appunti), Muffin ai Mirtilli (drenaggio), Appunti Rivelatori (debuff doppi) e Torta di Mezzanotte (colpo speciale).',
+    'Tutti e cinque usano i PNG richiesti e dispongono ciascuno di un titolo esclusivo di Padronanza. Le abilità speciali sono state integrate nella logica reale dei turni.'
+  ]},
+
   {id:'nov4-six-new-multimon-deployment',category:'champions',date:'04/11/2026',title:'🍓 Sei nuovi Multimon: Fragolina, Altra Madre, Blaze, Shadow, Sonic e Tails',items:[
     'Fragolina Dolcecuore (Erba/Folletto): supporto e guarigione; Cuore Generoso cura a fine turno l’alleato in campo più ferito. Mosse Fragole Volanti, Marmellata Incantata, Frullato Rinvigorente e Pioggia di Bacche.',
     'Altra Madre (Spettro/Buio): controlla il campo con Sguardo di Bottoni (Velocità nemica −15% all’ingresso). Mosse Aghi di Bottoni, Fili di Ragnatela, Promessa Perfetta e Mani dell’Altro Mondo.',
