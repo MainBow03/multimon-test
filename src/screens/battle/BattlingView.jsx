@@ -9,7 +9,7 @@ import { BattleStatusBadges, battleFeedbackKind, BATTLE_FEEDBACK_LABELS } from '
 import { isMasteryEligible, masteryDeploymentTier } from '../../systems/masterySystem.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderBattlingView(ctx) {
-const { ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, appMode, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
+const { ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, appMode, actionMenuMode, combatLog, commandingIdx, commitAction, coopPendingAction, roomId, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
 if (gameState.status === 'battling' || gameState.status === 'executing') {
         const activeMatchPlayers = getActivePlayers();
         const feedbackKind = battleFeedbackKind(eventPlaybackText, !!eventPlaybackPassive);
@@ -92,7 +92,16 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
         }
 
         const isSpectator = isSpectatorState || (!bottomPlayers.includes(playerRole) && !topPlayers.includes(playerRole) && gameState.gameMode !== 'battleroyale');
-        const isMyTurn = gameState.status === 'battling' && !isSpectatorState && !gameState.isBot[playerRole] && commandingIdx >= 0 && commandingIdx < gameState.field[playerRole].length;
+        const myField=gameState.field[playerRole]||[];
+        const locallySubmitted=idx=>gameState.isRoguelikeCoop &&
+          coopPendingAction?.roomId===roomId && coopPendingAction?.role===playerRole &&
+          coopPendingAction?.phase===gameState.phaseStartedAt && coopPendingAction?.index===idx;
+        const coopActionLocked=idx=>gameState.isRoguelikeCoop &&
+          (gameState.actions?.[playerRole]?.[idx]!==undefined || locallySubmitted(idx));
+        const coopWaitingForAllies=gameState.isRoguelikeCoop && myField.some(idx=>coopActionLocked(idx));
+        const isMyTurn = gameState.status === 'battling' && !isSpectatorState &&
+          !gameState.isBot[playerRole] && commandingIdx >= 0 &&
+          commandingIdx < myField.length && !coopActionLocked(myField[commandingIdx]);
         const activeCommandCharIdx = isMyTurn ? gameState.field[playerRole][commandingIdx] : null;
         const activeCommandChar = activeCommandCharIdx !== null ? gameState.teams[playerRole][activeCommandCharIdx] : null;
         // Anteprima immediata e reversibile delle mosse Iper, senza consumare la trasformazione.
@@ -1035,8 +1044,12 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                 )}
                             </div>
                         ) : (!isPlayingEvents && !isMyTurn) && (
-                            <div className="text-2xl text-gray-500 animate-pulse font-bold flex items-center gap-3 mt-4">
-                                 <Loader2 className="animate-spin" /> In attesa degli altri giocatori...
+                            <div role="status" aria-live="polite" className="flex flex-col items-center gap-2 text-center mt-4">
+                                {coopWaitingForAllies && <span className="text-lg font-black text-emerald-300">✓ Mossa confermata!</span>}
+                                <div className="text-base sm:text-xl text-slate-300 font-bold flex items-center gap-3">
+                                    <Loader2 className="animate-spin text-cyan-300" />
+                                    {coopWaitingForAllies ? 'In attesa che gli alleati scelgano la loro mossa…' : 'In attesa degli altri giocatori…'}
+                                </div>
                             </div>
                         )}
                     </div>
