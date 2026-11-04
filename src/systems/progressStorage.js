@@ -62,6 +62,25 @@ export function assertCloudSize(entries) {
  return entries;
 }
 export const RECOVERY_BACKUP_PREFIX='multimon_recovery_backup_';
+export function describeProgress(entries={}){
+ const details=[];
+ try{
+  const profile=JSON.parse(entries.multiverse_rpg_global_profile||'null');
+  if(profile&&typeof profile==='object'){
+   if(Number.isFinite(profile.coins))details.push(profile.coins+' monete');
+   if(Number.isFinite(profile.wins))details.push(profile.wins+' vittorie');
+   if(Array.isArray(profile.unlockedChars))details.push(profile.unlockedChars.length+' Multimon sbloccati');
+  }
+ }catch{}
+ try{
+  const rogue=JSON.parse(entries.multiverse_rpg_roguelike_save||'null');
+  if(rogue?.isStarted&&Number.isFinite(rogue.floor))
+   details.push('Roguelike piano '+rogue.floor);
+ }catch{}
+ const campaigns=Object.keys(entries).filter(key=>key.startsWith('multiverse_rpg_campaign_save_')).length;
+ if(campaigns)details.push(campaigns+' salvataggi campagna');
+ return details.join(' · ')||'Salvataggio senza statistiche disponibili';
+}
 const recoveryOwned=name=>name===GUEST_BACKUP_KEY||
  name.startsWith(LOCAL_ACCOUNT_BACKUP_PREFIX)||name.startsWith(RECOVERY_BACKUP_PREFIX);
 
@@ -78,6 +97,7 @@ export function listRecoveryBackups(store=localStorage) {
    if(!valid.length)continue;
    result.push({name,createdAt:Number(backup.createdAt)||0,
      keys:valid.length,size:JSON.stringify(entries).length,
+     summary:describeProgress(entries),
      label:name===GUEST_BACKUP_KEY?'Salvataggio ospite':
        name.startsWith(LOCAL_ACCOUNT_BACKUP_PREFIX)?'Salvataggio account precedente':
        'Copia di sicurezza automatica'});
