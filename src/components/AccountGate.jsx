@@ -5,7 +5,7 @@ import {auth,ensurePersistentAuth} from '../firebase/config.js';
 import {downloadCloudSave,uploadCloudSave} from '../firebase/cloudSaves.js';
 import {requiresAccountReauthentication,shouldPromptSaveConflict} from '../systems/authRecovery.js';
 import {ACTIVE_ACCOUNT_KEY,GUEST_BACKUP_KEY,LOCAL_ACCOUNT_BACKUP_PREFIX,
- collectProgress,clearProgress,progressFingerprint,readLocalBackup,
+ collectProgress,progressFingerprint,readLocalBackup,
  restoreProgress,saveLocalBackup,createRecoverySnapshot,listRecoveryBackups} from '../systems/progressStorage.js';
 
 const HASH_KEY='multimon_cloud_last_fingerprint_';
