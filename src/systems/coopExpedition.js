@@ -5,6 +5,15 @@ export const COOP_BOSS='p4';
 export const COOP_MAX_FLOOR=50;
 export const COOP_MAX_TEAM=8;
 export const COOP_STARTERS_PER_PLAYER=2;
+// In ogni blocco di dieci piani: incontro da 2, poi da 3, poi il boss.
+// I boss occupano un solo slot, mentre la squadra CPU può schierare 2 o 3
+// Multimon contemporaneamente (NON in panchina).
+export function coopEncounterSizeForFloor(floor){
+ if(!Number.isInteger(floor)||floor<1||floor>COOP_MAX_FLOOR)return 0;
+ if(floor%10===0)return 1;
+ const stage=floor%10;
+ return stage<=4?2:3;
+}
 const real=c=>Boolean(c&&!c.isSummonOnly);
 export const coopHumanPlayers=room=>COOP_HUMANS.filter(p=>Boolean(room?.players?.[p])&&!room?.isBot?.[p]);
 export const coopCount=(room,p)=>(room.teams?.[p]||[]).filter(real).length;
@@ -29,7 +38,7 @@ export function prepareCoopDraft(room,roster,random=Math.random){
   choices[p]=shuffled.slice(0,3);
   rerolls[p]=2;draft[p]=[];
  }
- draft.p4=[coopEnemyForFloor(1,draftable,humans.length,[],random)];
+ draft.p4=coopEnemyTeamForFloor(1,draftable,humans.length,[],random);
  return {status:'drafting',phaseStartedAt:Date.now(),draftChoices:choices,
   draftRerolls:rerolls,draft,
   // Anche le vecchie lobby ancora in attesa ricevono due personaggi per umano.
@@ -82,17 +91,50 @@ export function coopEnemyForFloor(floor,roster,playerCount=3,encountered=[],rand
  if(!base)throw new Error('Nessun avversario disponibile.');
  const enemy=freshCoopFighter(base);
  const tier=Math.floor((floor-1)/10);
- const scale=1+tier*.08;
+ // Crescita morbida piano dopo piano, non scatti improvvisi ogni dieci piani.
+ const scale=1+(floor-1)*.012;
  const hpScale=(1+(Math.max(1,playerCount)-1)*.55)*(boss?1.55:1)*(end?1.6:1);
- const atkScale=(1+tier*.065)*(boss?1.12:1)*(end?1.2:1);
+ const atkScale=(1+(floor-1)*.0095)*(boss?1.12:1)*(end?1.2:1);
  enemy.maxHp=Math.max(1,Math.round(base.maxHp*scale*hpScale));
  enemy.hp=enemy.maxHp;
  enemy.atk=Math.round(base.atk*atkScale);
- enemy.def=Math.round(base.def*scale);
- enemy.spd=Math.round(base.spd*(1+tier*.04));
+ enemy.def=Math.round(base.def*(1+(floor-1)*.007));
+ enemy.spd=Math.round(base.spd*(1+(floor-1)*.006));
  enemy.baseAtk=enemy.atk;enemy.baseDef=enemy.def;enemy.baseSpd=enemy.spd;
  enemy.isCoopBoss=boss||end;
  return enemy;
+}
+// I nemici normali di gruppo hanno ciascuno meno HP e Attacco del vecchio
+// Guardiano singolo: la difficoltà cresce dal numero di bersagli, non da
+// tre boss con statistiche enormi al piano 5.
+export function coopEnemyTeamForFloor(floor,roster,playerCount=3,encountered=[],random=Math.random){
+ const count=coopEncounterSizeForFloor(floor);
+ if(!count)throw new Error('Piano Co-op inesistente.');
+ const selected=[],seen=new Set();
+ for(let i=0;i<count;i++){
+  const previous=[...encountered,...seen];
+  const enemy=coopEnemyForFloor(floor,roster,playerCount,previous,random);
+  if(seen.has(enemy.id)){
+   const alternative=roster.find(c=>!c.isSummonOnly&&!c.isSecretUnlock &&
+     !c.isCampaignMonster&&!seen.has(c.id));
+   if(alternative){
+    const replacement=coopEnemyForFloor(floor,[alternative],playerCount,[],random);
+    selected.push(replacement);seen.add(replacement.id);continue;
+   }
+  }
+  selected.push(enemy);seen.add(enemy.id);
+ }
+ if(count>1)for(const enemy of selected){
+   const baseHp=enemy.maxHp;
+   const newHp=Math.max(1,Math.round(baseHp*(count===2?.53:.34)));
+   enemy.maxHp=newHp;enemy.hp=newHp;
+   enemy.atk=Math.max(1,Math.round(enemy.atk*(count===2?.62:.45)));
+   enemy.def=Math.max(1,Math.round(enemy.def*(count===2?.90:.85)));
+   enemy.spd=Math.max(1,Math.round(enemy.spd*(count===2?.94:.90)));
+   enemy.baseAtk=enemy.atk;enemy.baseDef=enemy.def;enemy.baseSpd=enemy.spd;
+   enemy.isCoopBoss=false;enemy.isCoopGroupEnemy=true;
+ }
+ return selected;
 }
 const emptyActions=()=>Object.fromEntries(['p1','p2','p3','p4','p5','p6','p7','p8'].map(p=>[p,{}]));
 const emptyFields=()=>Object.fromEntries(['p1','p2','p3','p4','p5','p6','p7','p8'].map(p=>[p,[]]));
@@ -178,8 +220,8 @@ export function nextCoopFloor(room,roster,applyOnEnter=null,random=Math.random){
   if(idx>=0)field[p]=[idx];
  }
  if(!humans.some(p=>field[p].length))throw new Error('Tutti i Multimon sono esausti! Occorre rianimarne uno.');
- const enemy=coopEnemyForFloor(floor,roster,humans.length,room.coopRun.encounteredEnemies,random);
- teams.p4=[enemy];field.p4=[0];
+ const enemies=coopEnemyTeamForFloor(floor,roster,humans.length,room.coopRun.encounteredEnemies,random);
+ teams.p4=enemies;field.p4=enemies.map((_,idx)=>idx);
  const events=[];
  if(typeof applyOnEnter==='function')
   for(const p of [...humans,'p4'])for(const idx of [...field[p]]){
