@@ -1323,7 +1323,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const getTournamentMatchOpponents = (...__args) => getTournamentMatchOpponentsImpl({ gameState }, ...__args);
 
           // --- INTELLIGENZA ARTIFICIALE CPU (Migliorata per Tutti i Bot) ---
-          const generateCPUActionsForPlayer = (...__args) => generateCPUActionsForPlayerImpl({ gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, roguelikeState }, ...__args);
+          const generateCPUActionsForPlayer = (...__args) => generateCPUActionsForPlayerImpl({ gameState, appMode, getActivePlayers, getMultiplier, getTournamentMatchOpponents, roguelikeState }, ...__args);
 
           // Un click vecchio, arrivato dopo il cambio turno o su una sessione diversa,
           // non deve sostituire le azioni del nuovo combattimento.
