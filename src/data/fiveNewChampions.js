@@ -45,7 +45,7 @@ export const FIVE_NEW_MOVES = {
     desc:'Potenza 78, priorità +1: Clover attacca prima degli avversari più lenti nelle reazioni.'
   },
   'Spray Confondente': {
-    name:'Spray Confondente',type:'Veleno',power:65,accuracy:1,
+    name:'Spray Confondente',type:'Folletto',power:65,accuracy:1,
     statusEffect:{type:'Confuso',chance:.35,turns:3},
     desc:'Potenza 65. Il profumo confonde il nemico con una probabilità del 35%.'
   },
@@ -95,7 +95,7 @@ export const FIVE_NEW_MOVES = {
     desc:'Blueberry annota i punti deboli: Attacco e Difesa nemici −15%. Genera un appunto.'
   },
   'Torta di Mezzanotte': {
-    name:'Torta di Mezzanotte',type:'Folletto',power:108,accuracy:.85,special:true,
+    name:'Torta di Mezzanotte',type:'Psico',power:108,accuracy:.85,special:true,
     desc:'Potenza speciale 108, precisione 85%. Consuma gli appunti accumulati per aumentare il danno.'
   }
 };
