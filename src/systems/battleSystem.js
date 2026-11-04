@@ -1,4 +1,5 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
+import {newcomerDamageFactor,recordSpyExposure,cloverExtraEvasion,triggerCloverDodge,triggerStarWand,resolveBlueberryAction,resetNewcomerTurnFlags} from './newcomerEffects.js';
 import {generateStrategicCpuActions,rememberPublicCpuMoves} from './strategicCpu.js';
 import {rogueDamageFactor} from './roguelikeEvents.js';
 import { applyBattleStatModifier } from './statBalance.js';
@@ -806,7 +807,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             // quelle eseguite più tardi nello stesso turno in cui nasce la Tempesta.
             const calculateDamage=(...args)=>{
                 const base=calculateRawDamage(...args);
-                return Math.max(1,Math.floor(base*weatherMoveFactor(args[2],workingWeather)));
+                return Math.max(1,Math.floor(base*weatherMoveFactor(args[2],workingWeather)*newcomerDamageFactor(args[0],args[1],args[2])));
             };
             let workingFieldTraps = {...(gameState.fieldTraps||{})};
             let workingTrapSeen = JSON.parse(JSON.stringify(gameState.fieldTrapSeen||{}));
@@ -2007,8 +2008,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     // Elusione individuale: una mossa con precisione 100% contro Bugs
                     // colpisce solo nell'80% dei casi dopo un uso di Dentro la Tana.
                     // Il controllo è per bersaglio, anche per gli attacchi ad area.
-                    if (isEnemyTarget && Math.random() < totalEvasionChance(t.char,workingWeather,getHeldEvasion(t.char))) {
-                        events.push({type:'text',text:`💨 ${t.char.name} evita l’attacco grazie alla propria elusione, al meteo o allo strumento equipaggiato!`});
+                    if (isEnemyTarget && Math.random() < Math.min(.55,totalEvasionChance(t.char,workingWeather,getHeldEvasion(t.char))+cloverExtraEvasion(t.char))) {
+                        events.push({type:'text',text:`💨 ${t.char.name} evita l’attacco grazie alla propria elusione, al meteo, alla passiva o allo strumento equipaggiato!`});
+                        if(triggerCloverDodge(t.char))
+                            events.push({type:'text',text:`💄 ${t.char.name} attiva Istinto da Copertina: Attacco +12% dopo la schivata!`,
+                              isPassive:true,passiveChar:t.char.name,passiveName:'Istinto da Copertina'});
                         continue;
                     }
 
@@ -2401,6 +2405,20 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             if (statTexts.length > 0) {
                                 events.push({ type: 'text', text: `${statTexts.join(" e ")} di ${t.char.name} diminuisce!` });
                             }
+                        }
+                    }
+
+                    // Passiva originale di Sam: la memoria analitica registra
+                    // solo il tipo del colpo che le ha realmente tolto PS.
+                    if(isEnemyTarget && t.char.hp<victimHpBeforeHit && move.power>0){
+                        recordSpyExposure(t.char,move,victimHpBeforeHit-t.char.hp);
+                        const flux=triggerStarWand(attacker,t.char);
+                        if(flux){
+                            events.push({type:'text',text:flux.text,isPassive:true,
+                                passiveChar:attacker.name,passiveName:attacker.passive.name});
+                            if(flux.heal>0)events.push({type:'damage',targetPlayer:player,
+                                targetIdx:charTeamIdx,newHp:attacker.hp,
+                                text:attacker.name+' recupera '+flux.heal+' PS grazie alla Bacchetta!'});
                         }
                     }
 
@@ -2892,6 +2910,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     events.push({type:'text',text:`👁️ ${attacker.name} resta confuso dopo Dominatore del Multiverso!`});
                 }
 
+                const bookwormResult=resolveBlueberryAction(attacker,move,attackSucceeded);
+                if(bookwormResult)events.push({type:'text',text:bookwormResult,isPassive:true,
+                    passiveChar:attacker.name,passiveName:attacker.passive.name});
                 if(move.power>0)recordOffensiveMove(attacker,move);
                 if (move.suicide && attacker.hp > 0) {
                     applyDamage(attacker, attacker.hp, player, charTeamIdx, `${attacker.name} va in cortocircuito ed esplode sacrificandosi!`);
@@ -2902,6 +2923,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
         } // Fine ciclo coda dei turni
         // I danni e le cure automatiche a fine turno non appartengono all'ultimo attaccante.
         events.push({type:'battle_actor_end'});
+        // Reset turno anche per chi è in panchina o esausto.
+        for(const roster of Object.values(workingTeams))
+          for(const fighter of roster||[])resetNewcomerTurnFlags(fighter);
 
         let eotTargets = [];
         activeMatchPlayers.forEach(p => {
