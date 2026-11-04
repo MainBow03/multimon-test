@@ -159,7 +159,13 @@ export function generateStrategicCpuActions({
   for(const idx of activeField){
     if(result[idx])continue;
     const current=currentActions?.[player]?.[idx];
-    if(current){result[idx]=current;if(current.type==='switch')reserved.add(current.toIdx);continue;}
+    if(current){
+      // Non modificare mai lo snapshot Firestore o le azioni già registrate:
+      // i bonus Iper vengono eventualmente aggiunti alla sola copia locale.
+      result[idx]={...current};
+      if(current.type==='switch')reserved.add(current.toIdx);
+      continue;
+    }
     const char=room.teams?.[player]?.[idx];
     if(!alive(char))continue;
     const life=hpRatio(char);
