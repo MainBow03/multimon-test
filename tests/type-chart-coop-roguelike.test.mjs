@@ -11,7 +11,7 @@ import {applyOnEnterPassiveImpl} from '../src/systems/battleSystem.js';
 import {
  COOP_HUMANS,COOP_BOSS,COOP_MAX_FLOOR,COOP_MAX_TEAM,coopHumanPlayers,
  coopCount,coopRecruitChance,coopRecruitWeights,chooseCoopRecruitOwner,prepareCoopDraft,
- freshCoopFighter,coopEnemyForFloor,finishCoopFloor,coopCampPurchase,nextCoopFloor
+ freshCoopFighter,coopEnemyForFloor,coopEnemyTeamForFloor,coopEncounterSizeForFloor,finishCoopFloor,coopCampPurchase,nextCoopFloor
 } from '../src/systems/coopExpedition.js';
 
 const file=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
@@ -82,8 +82,9 @@ test('Avvio del draft atomico: scelte solo ai partecipanti e un nemico condiviso
  assert.equal(p.draftChoices.p1.length,3);
  assert.equal(p.draftChoices.p2.length,3);
  assert.deepEqual(p.draftChoices.p3,[]);
- assert.equal(p.draft.p4.length,1);
- assert.ok(p.draft.p4[0].hp>0);
+ assert.equal(p.draft.p4.length,2);
+ assert.ok(p.draft.p4.every(c=>c.hp>0));
+ assert.equal(new Set(p.draft.p4.map(c=>c.id)).size,2);
  assert.equal(s.status,'lobby','La funzione non modifica l’originale.');
  assert.throws(()=>prepareCoopDraft({...s,status:'drafting'},CHARACTERS),/lobby/);
  assert.throws(()=>prepareCoopDraft({...s,players:{...s.players,p2:null}},CHARACTERS),/due o tre/);
@@ -93,7 +94,7 @@ test('Un solo Multimon attivo per giocatore, senza potenziamenti Juggernaut',()=
  const system=file('src/systems/battleSystem.js');
  assert.match(system,/gameState\.gameMode === 'juggernaut' && !gameState\.isRoguelikeCoop/);
  assert.match(file('src/systems/roguelikeSystem.js'),/fieldSize: 1/);
- assert.match(system,/field\[p\] = teams\[p\]\.slice\(0, p === juggPlayer \? 1 : fieldSize\)/);
+ assert.match(system,/gameState\.isRoguelikeCoop\?teams\[p\]\.length:1/);
 });
 
 test('Reclutamento favorisce chi ha meno Multimon, senza andare oltre otto',()=>{
@@ -181,10 +182,10 @@ test('Nuovo piano: un combattente attivo per ciascuno, CPU in p4 e PS persistent
  assert.equal(next.field.p1.length,1);
  assert.equal(next.field.p2.length,1);
  assert.equal(next.field.p3.length,1);
- assert.equal(next.field.p4.length,1);
- assert.ok(next.teams.p4[0].hp>0);
- assert.equal(next.teams.p4[0].isSummonOnly,undefined);
- assert.equal(next.teams.p4.length,1);
+ assert.equal(next.field.p4.length,2);
+ assert.ok(next.teams.p4.every(c=>c.hp>0));
+ assert.ok(next.teams.p4.every(c=>c.isSummonOnly===undefined));
+ assert.equal(next.teams.p4.length,2);
  assert.deepEqual(next.actions.p1,{});
  assert.deepEqual(next.actions.p4,{});
  assert.equal(next.winner,null);
@@ -200,7 +201,7 @@ test('Quando un giocatore perde il suo attivo, usa solo la sua riserva',()=>{
  assert.deepEqual(next.field.p1,[1]);
  assert.deepEqual(next.field.p2,[0]);
  assert.deepEqual(next.field.p3,[0]);
- assert.deepEqual(next.field.p4,[0]);
+ assert.deepEqual(next.field.p4,[0,1]);
 });
 
 test('Boss e nemici scalano per piano e numero di partecipanti',()=>{
