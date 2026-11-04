@@ -4,6 +4,7 @@ import {EmailAuthProvider,linkWithCredential,onAuthStateChanged,sendPasswordRese
 import {auth,ensurePersistentAuth} from '../firebase/config.js';
 import {downloadCloudSave,uploadCloudSave} from '../firebase/cloudSaves.js';
 import {requiresAccountReauthentication,shouldPromptSaveConflict} from '../systems/authRecovery.js';
+import {verifyTournamentVoucher,restoreTournamentProgress} from '../systems/tournamentRecovery.js';
 import {ACTIVE_ACCOUNT_KEY,GUEST_BACKUP_KEY,LOCAL_ACCOUNT_BACKUP_PREFIX,
  collectProgress,progressFingerprint,readLocalBackup,
  restoreProgress,saveLocalBackup,createRecoverySnapshot,listRecoveryBackups} from '../systems/progressStorage.js';
@@ -33,6 +34,9 @@ export function AccountGate({children}) {
  const [storageWarning,setStorageWarning]=useState('');
  const [backupPanel,setBackupPanel]=useState(false),[backupList,setBackupList]=useState([]);
  const [selectedBackup,setSelectedBackup]=useState('');
+ const [tournamentPanel,setTournamentPanel]=useState(false);
+ const [tournamentVoucher,setTournamentVoucher]=useState('');
+ const [tournamentClaiming,setTournamentClaiming]=useState(false);
  const [restoreRevision,setRestoreRevision]=useState(0);
  const busy=useRef(false),lastUploaded=useRef(''),inFlight=useRef(null),remotePending=useRef(null);
  const fail=e=>{setError(explain(e));setCloudStatus('errore');};
@@ -312,6 +316,37 @@ export function AccountGate({children}) {
   }catch(e){fail(e);}
   finally{busy.current=false;}
  }
+ async function claimTournamentRecovery(event){
+  event.preventDefault();
+  if(session.type!=='account'||auth.currentUser?.uid!==session.uid||busy.current)return;
+  setError('');
+  let valid=false;
+  try{valid=await verifyTournamentVoucher(tournamentVoucher);}
+  catch(e){setError('Impossibile verificare il codice. Riprova con una connessione sicura.');return;}
+  if(!valid){setError('Codice di recupero non valido.');return;}
+  busy.current=true;setTournamentClaiming(true);
+  try{
+   if(inFlight.current)await inFlight.current;
+   const before=collectProgress();
+   const result=restoreTournamentProgress(before);
+   if(!result.changed){
+    setNotice('Recupero già utilizzato su questo account. I premi sono presenti nel salvataggio.');
+    setTournamentPanel(false);setTournamentVoucher('');
+    return;
+   }
+   createRecoverySnapshot(before,'prima-del-recupero-torneo-assoluto');
+   await uploadCloudSave(session.uid,result.entries,lastUploaded.current);
+   activate(session.uid,result.entries);
+   setTournamentPanel(false);setTournamentVoucher('');
+   setNotice('Seconda campagna recuperata! '+result.totalMissions+
+    ' missioni, '+result.addedChests+' bauli recuperati e '+
+    result.campaignCoins+' monete nella campagna. Il salvataggio è già sincronizzato.');
+  }catch(e){
+   fail(e);
+   if(e?.code==='multimon/cloud-conflict')
+    setNotice('Il cloud è cambiato. Ricarica il gioco e riprova senza perdere i dati locali.');
+  }finally{busy.current=false;setTournamentClaiming(false);}
+ }
  const locked=['loading','empty','conflict','error','reauth'].includes(session.type);
  return <>
   {!locked&&<React.Fragment key={session.type+':'+session.uid+':'+restoreRevision}>{children}</React.Fragment>}
@@ -328,6 +363,23 @@ export function AccountGate({children}) {
         <button className="text-amber-300 underline font-bold text-left" onClick={inspectRecoveryBackups}>
           Recupera progressi o copie precedenti
         </button>
+        <button className="text-violet-300 underline font-bold text-left"
+          onClick={()=>{setTournamentPanel(v=>!v);setError('');}}>
+          🏆 Recupero speciale · Seconda campagna
+        </button>
+        {tournamentPanel&&<form className="flex flex-col gap-2 rounded-xl border border-violet-500/40 bg-violet-950/40 p-3"
+            onSubmit={claimTournamentRecovery}>
+          <p className="text-slate-200">Inserisci il codice privato di recupero per completare il Torneo Assoluto e recuperare le casse mancanti.</p>
+          <p className="text-amber-200">I premi casuali già aperti non vengono modificati. Il recupero si può usare una sola volta per account.</p>
+          <input type="text" autoComplete="off" spellCheck={false} required
+            aria-label="Codice privato di recupero"
+            value={tournamentVoucher}
+            onChange={e=>setTournamentVoucher(e.target.value)}
+            placeholder="MULTIMON-..." className={field}/>
+          <button className={primary+' w-full'} disabled={tournamentClaiming}
+            type="submit">{tournamentClaiming?'Recupero e salvataggio…':'Conferma recupero nel mio account'}</button>
+          {notice&&<p className="text-emerald-200">{notice}</p>}
+        </form>
         <div className="flex gap-4 items-center">
           <button className="text-cyan-300 underline font-bold" onClick={()=>saveNow(true).catch(()=>{})}>Salva ora</button>
           <button className="text-rose-300 underline font-bold" onClick={logout}>Esci dall’account</button>
