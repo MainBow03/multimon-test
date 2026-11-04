@@ -1,7 +1,9 @@
 import { CHAR_PRICES } from './prices.js';
 import { MOVES_DB } from './moves.js';
+import { SIX_NEW_CHARACTERS } from './sixNewChampions.js';
 
 export const CHARACTERS = [
+  ...SIX_NEW_CHARACTERS,
   {id:'echomax',name:'Echomax',types:['Spettro','Buio'],hp:190,maxHp:190,atk:155,def:115,spd:105,
    img:'https://i.postimg.cc/zBDV4P9y/Designer-(3).png',
    passive:{name:'Legione dei Caduti',type:'soul_legion',desc:'Ogni KO nemico concede una Carica Anima. A 3 cariche evoca una Copia Perfetta del caduto che lotta per 3 turni. Una copia attiva alla volta.'},
