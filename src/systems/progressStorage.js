@@ -103,11 +103,9 @@ export function createRecoverySnapshot(entries=collectProgress(),label='auto',st
  try{
   store.setItem(key,data);
  }catch(error){
-  // Se lo spazio non basta, riusa SOLO la più vecchia copia automatica.
-  const oldest=excess().at(-1);
-  if(!oldest)throw error;
-  store.removeItem(oldest.name);
-  store.setItem(key,data);
+  // Se il browser ha esaurito la quota, NON cancellare l'ultimo
+  // backup buono per creare una copia nuova che potrebbe fallire.
+  throw new Error('Spazio del browser insufficiente per una copia di sicurezza. I backup esistenti sono intatti.');
  }
  const copies=excess();
  for(const backup of copies.slice(2))store.removeItem(backup.name);
