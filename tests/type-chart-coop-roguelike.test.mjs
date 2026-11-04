@@ -110,8 +110,10 @@ test('Reclutamento favorisce chi ha meno Multimon, senza andare oltre otto',()=>
 
 test('Fine piano: la recluta viene assegnata una sola volta e restano PS e proprietari',()=>{
  const s=room();
+ // Dopo il piano possono comparire eventi Roguelike: ciò non deve
+ // annullare reclutamento, monete né proprietà dei combattenti.
  const patch=finishCoopFloor(s,CHARACTERS,()=>0);
- assert.equal(patch.status,'coop_camp');
+ assert.ok(['coop_camp','coop_event'].includes(patch.status));
  assert.equal(patch.coopRun.floor,2);
  assert.equal(patch.coopRun.lastClearFloor,1);
  assert.equal(patch.coopRun.lastCoins,10);
