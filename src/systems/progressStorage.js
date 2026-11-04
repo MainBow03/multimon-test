@@ -5,7 +5,8 @@ export const SAVED_EXACT_KEYS = Object.freeze([
  'multimon_completed_campaigns_v1'
 ]);
 export const SAVED_PREFIXES = Object.freeze([
- 'multiverse_rpg_campaign_save_','multimon_event_reward_'
+ 'multiverse_rpg_campaign_save_','multimon_event_reward_',
+ 'multiverse_rpg_stats_' // Profili storici per nome: non farli sparire durante un login.
 ]);
 const owned = key => SAVED_EXACT_KEYS.includes(key) || SAVED_PREFIXES.some(prefix=>key.startsWith(prefix));
 export const PROFILE_STORE_VERSION = 1;
