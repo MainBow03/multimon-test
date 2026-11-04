@@ -1,4 +1,5 @@
 import { roomRoleForUid, recoverableLegacyRole, findJoinableSlot, getRequiredSwitches, ROOM_SESSION_KEY } from './roomRecovery.js';
+import { buildOnlineForfeitPatch } from './onlineForfeit.js';
 import {normalizeZodiacSpirit} from './zodiacSpirits.js';
 import { masteryVisibleLevels } from './masterySystem.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
@@ -56,7 +57,7 @@ const { initialGameState, setAppMode, setCombatLog, setGameState, setIsLogOpen, 
 };
 
 export const handleConfirmLeaveImpl = async (ctx) => {
-const { CHARACTERS, activeCampaignId, appMode, campaignState, gameState, leaveRoom, playerRole, setAppMode, setCampaignSelectedTeam, setCampaignState, setShowLeaveConfirm, updateState } = ctx;
+const { CHARACTERS, activeCampaignId, appMode, appId, db, doc, roomId, user, runTransaction, campaignState, gameState, leaveRoom, playerRole, setAppMode, setCampaignSelectedTeam, setCampaignState, setShowLeaveConfirm, setSystemAlert } = ctx;
 
               setShowLeaveConfirm(false);
               const inBattleStates = ['battling', 'executing', 'switching_phase', 'pre_battle', 'intermission'];
@@ -110,23 +111,27 @@ const { CHARACTERS, activeCampaignId, appMode, campaignState, gameState, leaveRo
               }
 
               if (inBattleStates.includes(gameState.status) && appMode === 'online_room') {
-                  // FORFAIT ONLINE: Uccide l'intero team per concedere la vittoria agli altri
-                  let newTeams = JSON.parse(JSON.stringify(gameState.teams));
-                  if (newTeams[playerRole]) {
-                      newTeams[playerRole].forEach(c => c.hp = 0);
+                  // Forfait sul documento aggiornato dal server: la transazione
+                  // non può cancellare le mosse inviate dagli altri partecipanti.
+                  if (!user?.uid || !roomId) {
+                      setSystemAlert('Impossibile lasciare la battaglia: autenticazione o stanza non disponibili.');
+                      return;
                   }
-                  
-                  // Manda un'azione fittizia per assicurarsi che il server registri il turno se bloccato
-                  let newActions = JSON.parse(JSON.stringify(gameState.actions));
-                  newActions[playerRole] = { forfeit: true };
-                  
-                  await updateState({ 
-                      teams: newTeams, 
-                      actions: newActions,
-                      [`players.${playerRole}`]: `${gameState.players[playerRole]} (Arreso)`
-                  });
+                  try {
+                      const ref = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
+                      await runTransaction(db, async tx => {
+                          const snapshot = await tx.get(ref);
+                          if (!snapshot.exists()) return;
+                          const patch = buildOnlineForfeitPatch(snapshot.data(), playerRole, user.uid);
+                          if (patch) tx.update(ref, patch);
+                      });
+                  } catch (error) {
+                      console.error('Forfait online non registrato:', error);
+                      setSystemAlert('Non riesco a registrare il ritiro: ' + (error.message || error));
+                      return;
+                  }
               }
-              
+
               leaveRoom();
           
 };
