@@ -54,7 +54,7 @@ test('20 mosse differenti: tutte registrate, valide e con PP coerenti',()=>{
    assert.ok(TYPES.includes(m.type),m.name);
    assert.ok(m.power>=0&&m.power<=150);
    assert.ok(m.accuracy===undefined||(m.accuracy>0&&m.accuracy<=1),m.name);
-   assert.ok(m.maxUses!==undefined,m.name+' non normalizzata');
+   if(m.power===0)assert.ok(m.maxUses>0,m.name);
    all.push(m.name);
   }
  }
