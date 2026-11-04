@@ -318,6 +318,11 @@ export function AccountGate({children}) {
    <div className="w-full max-w-md space-y-4 rounded-3xl border border-cyan-500/40 bg-slate-900 p-6 shadow-2xl">
     <h2 className="text-2xl font-black text-cyan-300">☁ Account Multimon</h2>
     {session.type==='loading'&&<p>Connessione e recupero dei progressi…</p>}
+    {session.type==='reauth'&&<div className="space-y-2 rounded-xl bg-amber-950/40 border border-amber-500/40 p-3 text-sm text-amber-100">
+      <p className="font-bold">L'accesso precedente non è stato ripristinato dal browser.</p>
+      <p>Per sicurezza non ho caricato un vecchio salvataggio ospite: i dati locali dell'account sono ancora conservati. Accedi con la stessa email per recuperarli.</p>
+    </div>}
+    {storageWarning&&<p role="alert" className="text-xs rounded-lg border border-amber-500/50 p-3 text-amber-200">{storageWarning}</p>}
     {session.type==='error'&&<div className="space-y-2">
      <p>Non riesco a leggere i salvataggi online. Non ho cancellato quelli locali.</p>
      <button className={secondary+' w-full'} onClick={()=>loadAccount(auth.currentUser).catch(fail)}>Riprova</button>
@@ -328,30 +333,33 @@ export function AccountGate({children}) {
      <button className={primary+' w-full'} onClick={()=>chooseEmpty(true)}>Importa i progressi di questo browser</button>
      <button className={secondary+' w-full'} onClick={()=>chooseEmpty(false)}>Inizia da zero</button>
      <button className={secondary+' w-full'} onClick={logout}>Torna come ospite</button>
+     <button className={secondary+' w-full'} onClick={inspectRecoveryBackups}>Controlla i backup salvati</button>
     </div>}
     {session.type==='conflict'&&<div className="space-y-2">
-     <p>Esistono progressi locali non ancora sincronizzati. Quale versione vuoi tenere?</p>
+     <p>Esistono progressi locali diversi dal cloud. Scegli quale versione conservare: nessuna verrà eliminata senza una copia di sicurezza.</p>
      <button className={primary+' w-full'} onClick={()=>chooseConflict(true)}>Conserva i progressi locali</button>
      <button className={secondary+' w-full'} onClick={()=>chooseConflict(false)}>Scarica dal cloud</button>
      <p className="text-xs text-slate-400">Conservo una copia locale prima di cambiare.</p>
+     <button className={secondary+' w-full'} onClick={inspectRecoveryBackups}>Visualizza i vecchi backup</button>
     </div>}
-    {session.type==='guest'&&<>
-     <div className="grid grid-cols-2 gap-2">
+    {(session.type==='guest'||session.type==='reauth')&&<>
+     {session.type==='guest'&&<div className="grid grid-cols-2 gap-2">
       <button className={mode==='login'?primary:secondary} onClick={()=>{setMode('login');setError('');}}>Accedi</button>
       <button className={mode==='signup'?primary:secondary} onClick={()=>{setMode('signup');setError('');}}>Registrati</button>
-     </div>
-     <p className="text-sm text-slate-400">{mode==='signup'?'Il salvataggio ospite sarà importato nel nuovo account.':'Recupera i progressi dal cloud; conservo una copia del salvataggio ospite.'}</p>
+     </div>}
+     <p className="text-sm text-slate-400">{session.type==='reauth'?'L’accesso con la stessa email permette di confrontare i progressi locali con il cloud prima di sostituirli.':mode==='signup'?'Il salvataggio ospite sarà importato nel nuovo account.':'Recupera i progressi dal cloud; conservo una copia del salvataggio ospite.'}</p>
      <form className="space-y-3" onSubmit={loginOrRegister}>
       <label className="block text-xs font-bold">Email
        <input type="email" required autoComplete="email" className={field+' mt-1'} value={email} onChange={e=>setEmail(e.target.value)}/>
       </label>
       <label className="block text-xs font-bold">Password
-       <input type="password" minLength={6} required autoComplete={mode==='signup'?'new-password':'current-password'} className={field+' mt-1'} value={password} onChange={e=>setPassword(e.target.value)}/>
+       <input type="password" minLength={6} required autoComplete={session.type==='guest'&&mode==='signup'?'new-password':'current-password'} className={field+' mt-1'} value={password} onChange={e=>setPassword(e.target.value)}/>
       </label>
-      <button type="submit" className={primary+' w-full'}>{mode==='signup'?'Crea account e salva progressi':'Accedi al mio account'}</button>
+      <button type="submit" className={primary+' w-full'}>{session.type==='guest'&&mode==='signup'?'Crea account e salva progressi':'Accedi al mio account'}</button>
      </form>
-     {mode==='login'&&<button className="text-xs text-cyan-300 underline" onClick={resetPassword}>Password dimenticata?</button>}
-     <button className={secondary+' w-full'} onClick={()=>{setOpen(false);setPassword('');setError('');}}>Continua come ospite</button>
+     {(session.type==='reauth'||mode==='login')&&<button className="text-xs text-cyan-300 underline" onClick={resetPassword}>Password dimenticata?</button>}
+     {session.type==='guest'&&<button className={secondary+' w-full'} onClick={()=>{setOpen(false);setPassword('');setError('');}}>Continua come ospite</button>}
+     {session.type==='reauth'&&<p className="text-xs text-amber-200">Non iniziare una nuova partita ospite prima di recuperare il tuo account.</p>}
     </>}
     {error&&<p role="alert" className="text-sm text-rose-300">{error}</p>}
     {notice&&<p className="text-sm text-emerald-300">{notice}</p>}
