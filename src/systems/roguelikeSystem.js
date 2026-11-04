@@ -1,4 +1,5 @@
 import { masteryVisibleLevels } from './masterySystem.js';
+import {COOP_STARTERS_PER_PLAYER} from './coopExpedition.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleCreateRoguelikeCoopImpl = async (ctx) => {
 const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle, setAppMode, setCoopRoomId, setDoc, setPlayerRole, setRoomId, setSystemAlert, user } = ctx;
@@ -20,7 +21,7 @@ const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, player
             state.gameMode = 'juggernaut'; // Il Juggernaut sarà il boss controllato dal Bot!
             state.settings = {
                 ...state.settings,
-                teamSize: 1,
+                teamSize: COOP_STARTERS_PER_PLAYER,
                 maxPlayers: 4,
                 fieldSize: 1,
                 juggernautPlayer: 'p4',
