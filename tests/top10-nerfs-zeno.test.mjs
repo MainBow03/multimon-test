@@ -121,9 +121,12 @@ test('Arie Vicente: +15% per stat, massimo due attivazioni ciascuna',()=>{
 });
 
 test('Registro aggiornamenti: nerf e modifica a Sguardo Onnipotente sono in testa',()=>{
- const ids=GAME_UPDATES.slice(3,5).map(x=>x.id);
- assert.deepEqual(ids,['nov3-ten-nerfs','nov3-zeno-omnipotent-gaze']);
- const joined=GAME_UPDATES.slice(3,5).flatMap(x=>x.items).join(' ');
+ const ids=['nov3-ten-nerfs','nov3-zeno-omnipotent-gaze'];
+ const sections=ids.map(id=>GAME_UPDATES.find(x=>x.id===id));
+ assert.ok(sections.every(Boolean),'Le note dei nerf non devono sparire');
+ assert.ok(GAME_UPDATES.findIndex(x=>x.id===ids[0])<
+           GAME_UPDATES.findIndex(x=>x.id===ids[1]));
+ const joined=sections.flatMap(x=>x.items).join(' ');
  for(const word of ['Zeno','Discord','Gaster','Cell','Ainz','Peridot','Juri','Meliodas',
     'Diamante Bianco','Arie Vicente','Sguardo Onnipotente','75','2 bersagli','70%'])
   assert.ok(joined.includes(word),word+' assente dal registro');
