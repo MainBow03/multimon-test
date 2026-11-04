@@ -10,7 +10,7 @@ import {
   resolveSwitchingRoom,nextPhaseAfterExecution,
   canRecoverRoom
 } from '../src/systems/roomRecovery.js';
-import {canSubmitCoopAction,canCommitCoopTurn} from '../src/systems/coopTurnGuards.js';
+import {canSubmitCoopAction,canCommitCoopTurn,coopValidatedActionDelta} from '../src/systems/coopTurnGuards.js';
 import {startBattleImpl} from '../src/systems/battleSystem.js';
 import {handlePickImpl} from '../src/systems/multiplayerSystem.js';
 import {COOP_STARTERS_PER_PLAYER} from '../src/systems/coopExpedition.js';
@@ -219,4 +219,53 @@ test('La scelta iniziale concede due pick distinti, genera altre carte e blocca 
   assert.deepEqual(state.draft.p1.map(c=>c.id),['A','B']);
   handlePickImpl(ctx,roster[2]);
   assert.deepEqual(state.draft.p1.map(c=>c.id),['A','B'],'Non deve permettere tre Multimon iniziali');
+});
+
+
+test('Co-op tre giocatori: una mossa per personaggio e poi attesa degli alleati',()=>{
+ const s=room(true);
+ s.status='battling';s.phaseStartedAt=122000;
+ s.teams.p1=[makeHero('A'),makeHero('B')];
+ s.teams.p2=[makeHero('C'),makeHero('D')];
+ s.teams.p3=[makeHero('E'),makeHero('F')];
+ s.teams.p4=[makeHero('Boss')];
+ s.field.p1=[0];s.field.p2=[0];s.field.p3=[0];s.field.p4=[0];
+ const first={0:{type:'attack',moveIdx:0,targetPlayer:'p4',targetIdx:0}};
+ assert.deepEqual(coopValidatedActionDelta(s,'p1','uid-1',122000,first),first);
+ s.actions.p1={...first};
+ // Dopo il primo click nessuna nuova scelta deve poter essere salvata,
+ // anche se il client sta ancora aspettando la risposta degli amici.
+ const second={0:{type:'attack',moveIdx:1,targetPlayer:'p4',targetIdx:0}};
+ assert.equal(coopValidatedActionDelta(s,'p1','uid-1',122000,second),null);
+ assert.equal(coopValidatedActionDelta(s,'p1','uid-1',122000,first),null);
+ assert.equal(coopValidatedActionDelta(s,'p2','uid-2',122000,{1:{type:'attack',moveIdx:0}}),null,
+   'Una riserva non può agire se non è in campo');
+ assert.deepEqual(coopValidatedActionDelta(s,'p2','uid-2',122000,first),first);
+ s.actions.p2={...first};
+ assert.equal(coopValidatedActionDelta(s,'p3','uid-1',122000,first),null,
+   'Un giocatore non può comandare un altro account');
+ assert.deepEqual(coopValidatedActionDelta(s,'p3','uid-3',122000,first),first);
+ s.actions.p3={...first};
+ assert.equal(coopValidatedActionDelta({...s,phaseStartedAt:122001},'p1','uid-1',122000,first),null);
+ assert.equal(coopValidatedActionDelta({...s,status:'executing'},'p1','uid-1',122000,first),null);
+ const next={...s,phaseStartedAt:123000,actions:{p1:{},p2:{},p3:{},p4:{}}};
+ assert.deepEqual(coopValidatedActionDelta(next,'p1','uid-1',123000,second),second,
+   'Dopo il cambio turno si può scegliere nuovamente una mossa');
+});
+
+
+test('Co-op UI mostra mossa confermata ed evita il riarmo del menu',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const load=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+ const app=load('src/App.jsx'),view=load('src/screens/battle/BattlingView.jsx');
+ assert.match(app,/setCoopPendingAction\(pending\)/,'La scelta deve bloccare il menu immediatamente');
+ assert.match(app,/coopValidatedActionDelta\(live,playerRole,user\.uid/,'La transazione valida le mosse');
+ assert.match(app,/myActions\[idx\]===undefined && !locallySubmitted\(idx\)/,
+   'Il recupero del comando non può riaprire una mossa già inviata');
+ assert.match(app,/myActions\[idx\]!==undefined \|\| locallySubmitted\(idx\)/,
+   'La UI deve chiudere il comando anche prima dello snapshot');
+ assert.match(view,/!coopActionLocked\(myField\[commandingIdx\]\)/,
+   'Il menu delle mosse non deve essere visibile dopo la conferma');
+ assert.match(view,/Mossa confermata!/);
+ assert.match(view,/In attesa che gli alleati scelgano la loro mossa/);
 });
