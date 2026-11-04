@@ -13,6 +13,16 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov4-relic-training-elite',category:'balance',date:'04/11/2026',title:'🌿 Roguelike: nuove reliquie, allenamento limitato e nemici più astuti',items:[
+    'L’Allenamento offensivo del maestro (+20% danni nella prossima battaglia) si può scegliere al massimo 3 volte per spedizione, sia da soli sia in Co-op. Dopo il terzo allenamento non viene più generato l’evento.',
+    'Nuova reliquia Bussola dei Punti Deboli (🧭): +8% ai danni delle mosse superefficaci. Non potenzia le mosse neutre, resistite o inefficaci.',
+    'Nuova reliquia Muschio del Viandante (🌿): all’inizio di ogni battaglia ogni alleato ancora vivo recupera il 4% dei PS massimi; non rianima chi è KO.',
+    'Le due reliquie entrano negli stessi forzieri ed eventi del Mercante Misterioso delle altre, senza duplicati e condivise in Co-op.',
+    'Dal piano 21 compaiono più spesso avversari di fascia medio-alta e la CPU cerca bersagli feriti o vulnerabili ai tipi; dal piano 36 le CPU coordinano meglio i propri attacchi.',
+    'Le CPU avanzate usano soltanto informazioni visibili, senza conoscere le mosse ancora segrete dei giocatori. I boss del piano 50 e i combattimenti normali fuori dalla Roguelike restano invariati.',
+    'Una vecchia scelta di allenamento già aperta dopo il terzo uso viene convertita nella cura del maestro, evitando blocchi dei vecchi salvataggi.'
+  ]},
+
   {id:'nov4-roguelike-boss-shields',category:'balance',date:'04/11/2026',title:'🛡️ Boss Roguelike più temibili: +5% statistiche e due scudi!',items:[
     'Roguelike Singola e Co-op: i boss dei piani 10, 20, 30, 40 e 50 ricevono +5% a PS, Attacco, Difesa, Velocità e alle statistiche speciali disponibili.',
     'Al primo raggiungimento del 50% dei PS il boss attiva uno scudo che assorbe 3 colpi; si riattiva una seconda e ultima volta al 25%.',
