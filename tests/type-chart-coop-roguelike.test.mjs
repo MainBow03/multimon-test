@@ -77,6 +77,8 @@ test('Avvio del draft atomico: scelte solo ai partecipanti e un nemico condiviso
  s.status='lobby';
  const p=prepareCoopDraft(s,CHARACTERS,()=>0);
  assert.equal(p.status,'drafting');
+ assert.equal(p.settings.teamSize,2,'La vecchia lobby Co-op deve scegliere due personaggi per utente');
+ assert.equal(p.settings.fieldSize,1,'Resta un solo Multimon attivo per giocatore');
  assert.equal(p.draftChoices.p1.length,3);
  assert.equal(p.draftChoices.p2.length,3);
  assert.deepEqual(p.draftChoices.p3,[]);
