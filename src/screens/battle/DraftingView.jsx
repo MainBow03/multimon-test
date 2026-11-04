@@ -230,15 +230,17 @@ if (gameState.status === 'drafting') {
                                         🔄 Reroll Scelte ({gameState.draftRerolls?.[playerRole] ?? 2} Rimasti)
                                     </button>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 w-full max-w-6xl overflow-y-auto custom-scrollbar p-2">
                                     {(gameState.draftChoices[playerRole] || []).map((char, cIdx) => (
                                         <div 
                                             key={char.id + cIdx} 
                                             onClick={() => handlePick(char)}
-                                            className="bg-slate-900/90 backdrop-blur-xl border border-cyan-500/50 hover:border-cyan-300 rounded-3xl p-6 text-center cursor-pointer transition-all duration-300 transform hover:-translate-y-2 hover:scale-105 shadow-[0_0_30px_rgba(6,182,212,0.2)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] flex flex-col items-center group"
+                                            className="min-w-0 bg-slate-900/90 backdrop-blur-xl border border-cyan-500/50 hover:border-cyan-300 rounded-3xl p-4 sm:p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 shadow-[0_0_30px_rgba(6,182,212,0.2)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] flex flex-col items-center group"
                                         >
-                                            <img src={char.img} alt={char.name} className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover mx-auto mb-4 border-4 border-slate-600 group-hover:border-cyan-400 transition-colors shadow-xl" />
-                                            <h3 className="text-2xl font-black text-white mb-2">{char.name}</h3>
+                                            <div className="w-full h-36 sm:h-40 md:h-44 rounded-xl bg-slate-950/70 border-2 border-slate-600 group-hover:border-cyan-400 mb-4 p-2 flex items-center justify-center transition-colors">
+                                                <img src={char.img} alt={char.name} className="w-full h-full object-contain drop-shadow-lg" />
+                                            </div>
+                                            <h3 className="text-lg sm:text-xl font-black text-white mb-2 leading-snug line-clamp-2 break-words">{char.name}</h3>
                                             <div className="flex flex-wrap gap-2 justify-center mb-6">
                                                 {char.types.map(t => (
                                                     <span key={t} className={`text-xs font-black px-3 py-1 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{t}</span>
