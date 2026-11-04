@@ -241,10 +241,16 @@ export function AccountGate({children}) {
   if(busy.current)return;busy.current=true;setError('');
   const previousUid=session.uid;
   try{
+   // Il pulsante "Torna come ospite" è disponibile anche se il cloud
+   // non risponde: salva prima l'ultimo profilo locale su una copia.
+   const knownUid=localStorage.getItem(ACTIVE_ACCOUNT_KEY);
+   if(knownUid){
+    createRecoverySnapshot(collectProgress(),'prima-di-uscire');
+    saveLocalBackup(LOCAL_ACCOUNT_BACKUP_PREFIX+knownUid);
+   }
    if(session.type==='account'){
     if(inFlight.current)await inFlight.current;
     await uploadCloudSave(previousUid,collectProgress(),lastUploaded.current);
-    saveLocalBackup(LOCAL_ACCOUNT_BACKUP_PREFIX+previousUid);
    }
    // Completa prima il logout Firebase, senza cancellare subito il profilo.
    await signOut(auth);await signInAnonymously(auth);
