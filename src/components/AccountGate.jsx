@@ -31,6 +31,7 @@ export function AccountGate({children}) {
  const [error,setError]=useState(''),[notice,setNotice]=useState(''),[cloudStatus,setCloudStatus]=useState('');
  const [storageWarning,setStorageWarning]=useState('');
  const [backupPanel,setBackupPanel]=useState(false),[backupList,setBackupList]=useState([]);
+ const [selectedBackup,setSelectedBackup]=useState('');
  const [restoreRevision,setRestoreRevision]=useState(0);
  const busy=useRef(false),lastUploaded=useRef(''),inFlight=useRef(null),remotePending=useRef(null);
  const fail=e=>{setError(explain(e));setCloudStatus('errore');};
@@ -244,9 +245,37 @@ export function AccountGate({children}) {
   }catch(e){fail(e);setSession({type:emailUser(auth.currentUser)?'account':'guest',uid:auth.currentUser?.uid||previousUid});}
   finally{busy.current=false;}
  }
- const locked=['loading','empty','conflict','error'].includes(session.type);
+ function inspectRecoveryBackups(){
+  setBackupList(listRecoveryBackups());setSelectedBackup('');
+  setBackupPanel(true);setError('');
+ }
+ async function recoverBackup(name){
+  if(busy.current || !['account','guest'].includes(session.type))return;
+  const backup=readLocalBackup(name);
+  if(!backup){setError('Questa copia di sicurezza non è più disponibile.');return;}
+  busy.current=true;setError('');
+  try{
+   if(inFlight.current)await inFlight.current;
+   createRecoverySnapshot(collectProgress(),'prima-del-ripristino');
+   if(session.type==='account'){
+     // Protegge anche la versione cloud che stiamo per sostituire.
+     const cloud=await downloadCloudSave(session.uid);
+     if(cloud)createRecoverySnapshot(cloud,'cloud-prima-del-ripristino');
+     await uploadCloudSave(session.uid,backup);
+     activate(session.uid,backup);
+   }else{
+     restoreProgress(backup);
+     saveLocalBackup(GUEST_BACKUP_KEY);
+     setRestoreRevision(v=>v+1);
+   }
+   setBackupPanel(false);setSelectedBackup('');
+   setNotice('Copia recuperata! I progressi sono stati ricaricati.');
+  }catch(e){fail(e);}
+  finally{busy.current=false;}
+ }
+ const locked=['loading','empty','conflict','error','reauth'].includes(session.type);
  return <>
-  {!locked&&<React.Fragment key={session.type+':'+session.uid}>{children}</React.Fragment>}
+  {!locked&&<React.Fragment key={session.type+':'+session.uid+':'+restoreRevision}>{children}</React.Fragment>}
   {/* Pulsante cloud compatto in basso: non copre "Torna al Menu" nelle stanze. */}
   {!locked&&<div className="fixed bottom-3 left-3 sm:bottom-4 sm:left-4 z-[250] flex flex-col items-start gap-2 max-w-[calc(100vw-1.5rem)]">
     {controlsExpanded&&<div id="multimon-account-controls" className="mb-1 max-w-[min(22rem,calc(100vw-1.5rem))] rounded-2xl border border-cyan-400/50 bg-slate-950/95 p-3 shadow-2xl backdrop-blur-xl text-xs text-white">
@@ -256,6 +285,9 @@ export function AccountGate({children}) {
           <button aria-label="Chiudi controlli account" className="rounded-lg border border-slate-600 px-2 py-1" onClick={()=>setControlsExpanded(false)}>✕</button>
         </div>
         <span className="text-slate-300" aria-live="polite">{cloudStatus||'Salvataggio cloud'}</span>
+        <button className="text-amber-300 underline font-bold text-left" onClick={inspectRecoveryBackups}>
+          Recupera progressi o copie precedenti
+        </button>
         <div className="flex gap-4 items-center">
           <button className="text-cyan-300 underline font-bold" onClick={()=>saveNow(true).catch(()=>{})}>Salva ora</button>
           <button className="text-rose-300 underline font-bold" onClick={logout}>Esci dall’account</button>
@@ -264,6 +296,9 @@ export function AccountGate({children}) {
       {session.type==='guest'&&<div className="flex flex-col gap-3">
         <span className="text-slate-300">Salva i progressi su tutti i tuoi dispositivi.</span>
         <button className={primary} onClick={()=>{setControlsExpanded(false);setOpen(true);setMode('login');}}>Accedi / Registrati</button>
+        <button className="text-amber-300 underline font-bold text-left" onClick={inspectRecoveryBackups}>
+          Recupera un vecchio salvataggio
+        </button>
       </div>}
     </div>}
     <button
