@@ -101,5 +101,5 @@ test('Il codice di recupero non si trova in chiaro nel codice sorgente',async()=
  assert.match(code,/createRecoverySnapshot\(before/);
  assert.match(code,/uploadCloudSave\(session.uid,result.entries,lastUploaded.current\)/);
  assert.match(code,/activate\(session.uid,result.entries\)/);
- assert.ok(!code.includes('ianigrosimone320'), 'Non pubblicare indirizzi email personali');
+ assert.doesNotMatch(code, /[a-z0-9._%+-]+@(gmail|outlook|hotmail)\.com/i, 'Non pubblicare indirizzi email personali');
 });
