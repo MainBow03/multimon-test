@@ -149,10 +149,10 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
          </div>
          {stage==='coop_camp'&&own&&<div className="flex flex-col gap-1">
            <button type="button" title={'Sposta '+char.name+' verso l’alto'} aria-label={'Sposta '+char.name+' su'}
-             disabled={busy||i===0||!!trade} onClick={()=>runAction(()=>onReorder(i,i-1))}
+             disabled={busy||i===0||!!trade} onClick={()=>runAction(()=>onReorder(i,i-1,char.id))}
              className="rounded-md border border-indigo-400/45 bg-indigo-900/65 px-2 py-1 text-xs font-black disabled:opacity-25">↑</button>
            <button type="button" title={'Sposta '+char.name+' verso il basso'} aria-label={'Sposta '+char.name+' giù'}
-             disabled={busy||i===roster.length-1||!!trade} onClick={()=>runAction(()=>onReorder(i,i+1))}
+             disabled={busy||i===roster.length-1||!!trade} onClick={()=>runAction(()=>onReorder(i,i+1,char.id))}
              className="rounded-md border border-indigo-400/45 bg-indigo-900/65 px-2 py-1 text-xs font-black disabled:opacity-25">↓</button>
           </div>}
          {stage==='coop_camp'&&<button type="button" disabled={busy||(!alive && (run.coins||0)<50)||(alive&&(hp===max||(run.coins||0)<20))}
@@ -192,13 +192,13 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
          {!tradeExpired&&<p className="text-xs text-slate-300">La proposta scade tra {tradeSeconds} secondi. Le squadre cambieranno soltanto dopo l'accettazione.</p>}
          <div className="flex flex-wrap gap-2">
            {!tradeExpired&&trade.toRole===playerRole&&<>
-             <button disabled={busy} onClick={()=>runAction(()=>onTradeReply(true))}
+             <button disabled={busy} onClick={()=>runAction(()=>onTradeReply(true,trade.id))}
                className="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-3 text-sm font-black disabled:opacity-50">✓ Accetta scambio</button>
-             <button disabled={busy} onClick={()=>runAction(()=>onTradeReply(false))}
+             <button disabled={busy} onClick={()=>runAction(()=>onTradeReply(false,trade.id))}
                className="rounded-xl bg-rose-700 hover:bg-rose-600 px-4 py-3 text-sm font-black disabled:opacity-50">✕ Rifiuta scambio</button>
            </>}
            {(tradeExpired||trade.fromRole===playerRole)&&<button disabled={busy}
-             onClick={()=>runAction(onTradeCancel)}
+             onClick={()=>runAction(()=>onTradeCancel(trade.id))}
              className="rounded-xl bg-slate-700 hover:bg-slate-600 px-4 py-3 text-sm font-bold disabled:opacity-50">
              {tradeExpired?'Elimina proposta scaduta':'Annulla la mia proposta'}
            </button>}
@@ -232,7 +232,9 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
            </select>
          </label>
          <button type="button" disabled={busy||cooldownSeconds>0||!selectedTarget||fromIndex===undefined||toIndex===undefined}
-           onClick={()=>runAction(()=>onTradeOffer(selectedTarget,fromIndex,toIndex))}
+           onClick={()=>runAction(()=>onTradeOffer(selectedTarget,fromIndex,toIndex,
+             myChoices.find(x=>x.idx===fromIndex)?.char.id,
+             partnerChoices.find(x=>x.idx===toIndex)?.char.id))}
            className="rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:brightness-110 disabled:opacity-40 px-4 py-3.5 text-sm font-black">
            📨 Chiedi lo scambio</button>
        </div>
