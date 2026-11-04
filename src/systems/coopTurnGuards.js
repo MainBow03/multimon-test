@@ -22,3 +22,27 @@ export function canCommitCoopTurn(room,role,uid,expectedPhase,now=Date.now()){
    ? (!room.turnCalculationOwner || room.turnCalculationOwner===uid || staleLease)
    : room.turnCalculationOwner===uid;
 }
+
+// Una transazione può aggiungere UNA sola nuova azione del combattente attivo.
+// Non può sostituire una mossa già confermata né inserire azioni da riserva.
+// Le azioni già lette nel vecchio snapshot devono rimanere identiche.
+export function coopValidatedActionDelta(room,role,uid,expectedPhase,submitted){
+ if(!canSubmitCoopAction(room,role,uid,expectedPhase)||
+    !submitted||typeof submitted!=='object'||Array.isArray(submitted))return null;
+ const stored=room.actions?.[role]||{};
+ const field=room.field?.[role]||[];
+ const team=room.teams?.[role]||[];
+ const delta={};
+ for(const [rawIndex,action] of Object.entries(submitted)){
+   const index=Number(rawIndex);
+   if(!Number.isInteger(index)||index<0||String(index)!==rawIndex||
+      !action||typeof action!=='object'||typeof action.type!=='string')return null;
+   if(Object.prototype.hasOwnProperty.call(stored,rawIndex)){
+     if(JSON.stringify(stored[rawIndex])!==JSON.stringify(action))return null;
+   }else{
+     if(!field.includes(index)||!team[index]||team[index].hp<=0)return null;
+     delta[rawIndex]=action;
+   }
+ }
+ return Object.keys(delta).length===1?delta:null;
+}
