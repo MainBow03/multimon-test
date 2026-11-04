@@ -83,23 +83,23 @@ test('L’importo dipende dall’ID della cassa, anche in Co-op e per casse vecc
  assert.equal(openPowerChest(legacy,()=>0).points,2);
 });
 
-test('Vittoria Roguelike: +30 PF solo al primo clear valido e di nuovo dopo 4h',()=>{
+test('Vittoria Roguelike: +50 PF solo al primo clear valido e di nuovo dopo 4h',()=>{
  assert.equal(ROGUELIKE_FULL_CLEAR_COOLDOWN_MS,14400000);
  const now=18000000;
  assert.equal(grantRoguelikeCompletion(profile(),'win',49,50,now).ok,false);
  const first=grantRoguelikeCompletion(profile(),'win-1',50,50,now);
- assert.equal(first.ok,true);assert.equal(first.rewarded,true);assert.equal(first.points,30);
- assert.equal(first.profile.strengthPoints,30);
+ assert.equal(first.ok,true);assert.equal(first.rewarded,true);assert.equal(first.points,50);
+ assert.equal(first.profile.strengthPoints,50);
  assert.equal(roguelikeBonusRemaining(first.profile,now),14400000);
  assert.equal(grantRoguelikeCompletion(first.profile,'win-1',50,50,now+14400000).ok,false);
  const early=grantRoguelikeCompletion(first.profile,'win-2',50,50,now+1000000);
  assert.equal(early.ok,true);assert.equal(early.rewarded,false);assert.equal(early.points,0);
- assert.equal(early.profile.strengthPoints,30);
+ assert.equal(early.profile.strengthPoints,50);
  assert.equal(early.profile.roguelikePower.lastFullClearRewardAt,now);
  assert.equal(grantRoguelikeCompletion(early.profile,'win-2',50,50,now+15000000).ok,false);
  const later=grantRoguelikeCompletion(early.profile,'win-3',50,50,now+14400000);
  assert.equal(later.ok,true);assert.equal(later.rewarded,true);
- assert.equal(later.profile.strengthPoints,60);
+ assert.equal(later.profile.strengthPoints,100);
  assert.equal(roguelikeBonusRemaining(later.profile,now+14400000),14400000);
 });
 
