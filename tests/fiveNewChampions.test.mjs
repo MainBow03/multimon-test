@@ -122,11 +122,11 @@ test('Superman è resistente ai colpi ordinari, ma vulnerabile alla magia',()=>{
 test('Blueberry accumula fino a 2 Appunti e li consuma sul successivo colpo riuscito',()=>{
  const blue=get('blueberrymuffin'),defender=get('superman');
  const recipe=MOVES_DB['Ricetta Annotata'],cake=MOVES_DB['Torta di Mezzanotte'];
- assert.equal(newcomerDamageFactor(blue,defender,move('Torta','Folletto',108)),1);
+ assert.equal(newcomerDamageFactor(blue,defender,move('Torta','Psico',108)),1);
  assert.match(resolveBlueberryAction(blue,recipe,true),/1\/2/);
- assert.equal(newcomerDamageFactor(blue,defender,move('Torta','Folletto',108)),1.2);
+ assert.equal(newcomerDamageFactor(blue,defender,move('Torta','Psico',108)),1.2);
  assert.match(resolveBlueberryAction(blue,MOVES_DB['Appunti Rivelatori'],true),/2\/2/);
- assert.equal(newcomerDamageFactor(blue,defender,move('Torta','Folletto',108)),1.4);
+ assert.equal(newcomerDamageFactor(blue,defender,move('Torta','Psico',108)),1.4);
  assert.equal(resolveBlueberryAction(blue,recipe,true),null,'Nessun terzo appunto');
  assert.equal(resolveBlueberryAction(blue,cake,false),null,'Mossa annullata non consuma');
  assert.equal(blue.blueberryNotes,2);
@@ -154,6 +154,21 @@ test('Le 5 passive sono tipi differenti e nessuna è decorativa',()=>{
    'resetNewcomerTurnFlags(fighter)']){
   assert.ok(battle.includes(word),'Meccanica scollegata: '+word);
  }
+});
+
+test('Clover e Blueberry: tipi delle mosse corretti e bonus STAB possibile',()=>{
+ const spray=MOVES_DB['Spray Confondente'];
+ const cake=MOVES_DB['Torta di Mezzanotte'];
+ assert.equal(spray.type,'Folletto');
+ assert.equal(cake.type,'Psico');
+ assert.ok(CHARACTERS.find(c=>c.id==='clover').types.includes(spray.type));
+ assert.ok(CHARACTERS.find(c=>c.id==='blueberrymuffin').types.includes(cake.type));
+ assert.equal(spray.power,65);
+ assert.equal(cake.power,108);
+ const note=GAME_UPDATES.find(x=>x.id==='nov4-spray-cake-type-adjustment');
+ assert.ok(note,'Tipi cambiati assenti da Aggiornamenti');
+ assert.ok(note.items.some(s=>s.includes('Torta di Mezzanotte')&&s.includes('Psico')));
+ assert.ok(note.items.some(s=>s.includes('Spray Confondente')&&s.includes('Folletto')));
 });
 
 test('Aggiornamenti include i cinque personaggi e le meccaniche originali',()=>{
