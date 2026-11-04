@@ -26,11 +26,13 @@ export const coopTradeIsExpired=(trade,now=Date.now())=>
 export const coopTradeCooldownRemaining=(room,role,now=Date.now())=>
   Math.max(0,Math.ceil(((room?.coopTradeCooldowns?.[role]||0)-now)/1000));
 
-export function reorderCoopTeam(room,role,fromIndex,toIndex) {
+export function reorderCoopTeam(room,role,fromIndex,toIndex,expectedCharId=null) {
   campPlayer(room,role);
   const team=room.teams?.[role];
-  validCharacter(room,role,fromIndex);
+  const chosenCharacter=validCharacter(room,role,fromIndex);
   validCharacter(room,role,toIndex);
+  if (expectedCharId!==null && chosenCharacter.id!==expectedCharId)
+    throw new Error('La tua squadra è cambiata: scegli di nuovo chi spostare.');
   if (fromIndex===toIndex)throw new Error('Il Multimon è già in questa posizione.');
   const reordered=team.slice();
   const [chosen]=reordered.splice(fromIndex,1);
@@ -38,7 +40,7 @@ export function reorderCoopTeam(room,role,fromIndex,toIndex) {
   return {['teams.'+role]:reordered};
 }
 
-export function requestCoopTrade(room,fromRole,toRole,offeredIndex,wantedIndex,now=Date.now()) {
+export function requestCoopTrade(room,fromRole,toRole,offeredIndex,wantedIndex,now=Date.now(),expectedOfferedId=null,expectedWantedId=null) {
   campPlayer(room,fromRole);
   if (fromRole===toRole || !coopHumanPlayers(room).includes(toRole))
     throw new Error('Scegli un altro giocatore della spedizione.');
@@ -48,6 +50,9 @@ export function requestCoopTrade(room,fromRole,toRole,offeredIndex,wantedIndex,n
     throw new Error('C’è già una proposta di scambio in attesa di risposta.');
   const offered=validCharacter(room,fromRole,offeredIndex);
   const wanted=validCharacter(room,toRole,wantedIndex);
+  if ((expectedOfferedId!==null && offered.id!==expectedOfferedId) ||
+      (expectedWantedId!==null && wanted.id!==expectedWantedId))
+    throw new Error('Le squadre sono cambiate: scegli nuovamente i Multimon da scambiare.');
   return {
     coopTrade:{
       id:String(now)+'-'+fromRole+'-'+toRole,
@@ -60,10 +65,12 @@ export function requestCoopTrade(room,fromRole,toRole,offeredIndex,wantedIndex,n
   };
 }
 
-export function respondCoopTrade(room,role,accepted,now=Date.now()) {
+export function respondCoopTrade(room,role,accepted,now=Date.now(),expectedTradeId=null) {
   campPlayer(room,role);
   const trade=room.coopTrade;
   if (!trade)throw new Error('Non ci sono richieste di scambio.');
+  if (expectedTradeId!==null && trade.id!==expectedTradeId)
+    throw new Error('La proposta è cambiata. Controlla prima il nuovo scambio.');
   if (coopTradeIsExpired(trade,now))
     throw new Error('Questa proposta è scaduta. Chiedi di inviarla nuovamente.');
   if (role!==trade.toRole || !coopHumanPlayers(room).includes(trade.fromRole))
@@ -102,10 +109,12 @@ export function respondCoopTrade(room,role,accepted,now=Date.now()) {
   };
 }
 
-export function cancelCoopTrade(room,role,now=Date.now()) {
+export function cancelCoopTrade(room,role,now=Date.now(),expectedTradeId=null) {
   campPlayer(room,role);
   const trade=room.coopTrade;
   if (!trade)throw new Error('Non ci sono richieste da annullare.');
+  if (expectedTradeId!==null && trade.id!==expectedTradeId)
+    throw new Error('La proposta è cambiata: aggiornala prima di annullare.');
   if (role!==trade.fromRole && !coopTradeIsExpired(trade,now))
     throw new Error('Solo chi ha inviato lo scambio può annullarlo.');
   return {coopTrade:null};
