@@ -72,7 +72,7 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
 
    {(run.nextBattlePower||1)>1&&<p className="rounded-xl border border-amber-500/30 bg-amber-950/30 p-3 text-amber-200 text-sm">🥋 Allenamento offensivo: +20% danni nella prossima battaglia!</p>}
    {stage==='coop_event'&&run.pendingEvent&&<RoguelikeEventView
-     event={run.pendingEvent} coins={run.coins||0} relics={run.relics||[]}
+     event={run.pendingEvent} coins={run.coins||0} relics={run.relics||[]} trainingUses={run.trainingUses||0}
      votes={run.eventVotes||{}} players={room.players} humanRoles={humans}
      playerRole={playerRole} busy={busy}
      onChoice={choice=>runAction(()=>onVoteEvent(choice))}/>}
