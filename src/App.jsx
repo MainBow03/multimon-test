@@ -19,7 +19,7 @@ import { renderRoguelikeDraftView } from './screens/roguelike/RoguelikeDraftView
 import { renderRoguelikeMapView } from './screens/roguelike/RoguelikeMapView.jsx';
 import { renderRoguelikeCoopLobbyView } from './screens/roguelike/RoguelikeCoopLobbyView.jsx';
 import { RoguelikeCoopCampView } from './screens/roguelike/RoguelikeCoopCampView.jsx';
-import {prepareCoopDraft,finishCoopFloor,nextCoopFloor,coopCampPurchase,voteCoopEvent,finalizeCoopEvent} from './systems/coopExpedition.js';
+import {COOP_STARTERS_PER_PLAYER,prepareCoopDraft,finishCoopFloor,nextCoopFloor,coopCampPurchase,voteCoopEvent,finalizeCoopEvent} from './systems/coopExpedition.js';
 import {canSubmitCoopAction,canCommitCoopTurn} from './systems/coopTurnGuards.js';
 import { renderShopView } from './screens/hub/ShopView.jsx';
 import { StrengthLabView } from './screens/hub/StrengthLabView.jsx';
@@ -1331,7 +1331,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               // di sostituire l'host quando la presenza è scaduta.
               return coopRoomAction(['drafting'],true,room=>{
                 const humans=['p1','p2','p3'].filter(p=>room.players?.[p]&&!room.isBot?.[p]);
-                if(humans.length<2||humans.some(p=>(room.draft?.[p]||[]).length!==1)||
+                if(humans.length<2||humans.length>3||
+                   humans.some(p=>(room.draft?.[p]||[]).length!==COOP_STARTERS_PER_PLAYER)||
                    (room.draft?.p4||[]).length!==1)
                   throw new Error('Il draft non è completo per tutti i partecipanti.');
                 let patch=null;
