@@ -19,7 +19,7 @@ export const MODE_GUIDES=Object.freeze({
   'Parti con tre Multimon scelti tra sei proposte. Scala 50 piani, recluta nuovi compagni e gestisci le risorse.',
   'Ogni cinque piani ottieni una Cassa Potenza, sempre più ricca fino a 10–18 PF al piano 50. Finale: bonus Punti Forza e cinque Bauli normali.']},
  rogue_coop:{character:'natsu',title:'Roguelike Co-op',lines:[
-  'Forma una squadra online di due o tre amici! Ognuno controlla il proprio Multimon contro lo stesso nemico.',
+  'Gioca online con due o tre amici! Ognuno sceglie DUE Multimon iniziali: uno combatte contro il nemico comune, l’altro resta pronto in panchina per i cambi o i KO.',
   'Le monete della spedizione sono condivise. Ognuno riceve Casse Potenza crescenti ogni cinque piani, monete personali e premi esclusivi al piano 50.']},
  survival:{character:'marceline',title:'Sopravvivenza infinita',lines:[
   'Qui gli avversari arrivano a ondate. L’obiettivo è resistere più a lungo possibile senza perdere la squadra.',
