@@ -6,6 +6,7 @@ import { applyBattleStatModifier } from './statBalance.js';
 import { applyPerfezioneBonus, firstHitProtectionFactor } from './nerfPassives.js';
 import { isOnlineHealingLimited, isLimitedHealingItem, onlineHealingRemaining, ONLINE_HEAL_ITEM_LIMIT } from './onlineHealingLimit.js';
 import { consumeRaidShieldHit, createRaidShieldUpdateEvent, applyRaidShieldUpdateEvent } from './finalRaidBalance.js';
+import { activateRoguelikeBossShield } from './roguelikeBossPower.js';
 import { createBattleReport, accumulateBattleReport } from './battleReport.js';
 import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
 import { applyStrengthToFighter } from './strengthLab.js';
@@ -958,7 +959,12 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     events.push({ type: 'text', text: `🛡️ ${target.name} stringe i denti! Resiste al colpo fatale grazie a "${target.passive.name}" e resta con 1 PS!`, isPassive: true, passiveChar: target.name, passiveName: target.passive.name });
                 }
                 
-                if (target.juggShieldHpThresholds && target.juggShieldHpThresholds.length > 0) {
+                if (target.isRoguelikeBoss) {
+                    const shield = activateRoguelikeBossShield(target, target.hp);
+                    if (shield) events.push(createRaidShieldUpdateEvent(
+                        targetPlayer, targetIdx, shield.hits,
+                        `🛡️ ${target.name} raggiunge il ${shield.thresholdPercent}% di PS e attiva uno scudo da ${shield.hits} colpi!`, true));
+                } else if (target.juggShieldHpThresholds && target.juggShieldHpThresholds.length > 0) {
                     let thresholdTriggered = false;
                     while (target.juggShieldHpThresholds.length > 0 && (target.hp / target.maxHp) <= target.juggShieldHpThresholds[0]) {
                         target.juggShieldHpThresholds.shift();
@@ -2141,8 +2147,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                              events.push(createRaidShieldUpdateEvent(t.player,t.idx,raidHit.remaining,`${attacker.name} usa ${move.name} su ${t.char.name}... ma lo Scudo ha assorbito l'attacco! (${raidHit.remaining} cariche scudo rimaste)`));
                             if(raidHit.broken) {
                                 events.push({ type: 'text', text: `🛡️ Lo Scudo di ${t.char.name} si è infranto!` });
-                                let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
+                                if (!t.char.isRoguelikeBoss) {
+let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 applyDamage(t.char, recoilDmg, t.player, t.idx, `💥 La frantumazione dello scudo infligge ${recoilDmg} danni a ${t.char.name}!`);
+                                 }
                             }
                         } else {
                             applyDamage(t.char, dmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText} Gli toglie ${dmg} PS!`);
@@ -2169,8 +2177,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                                 if (raidHit.broken) {
                                     events.push({ type: 'text', text: `🛡️ Lo Scudo di ${t.char.name} si è infranto!` });
                                     // Danno da contraccolpo per rottura scudo (5% HP Max)
-                                    let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
+                                    if (!t.char.isRoguelikeBoss) {
+let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                     applyDamage(t.char, recoilDmg, t.player, t.idx, `💥 La frantumazione dello scudo infligge ${recoilDmg} danni a ${t.char.name}!`);
+                                 }
                                 }
                                 continue;
                             }
@@ -2266,7 +2276,12 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                                 events.push({ type: 'text', text: `Il colpo riduce ${statTexts.join(" e ")} di ${t.char.name}!` });
                             }
 
-                            if (t.char.juggShieldHpThresholds && t.char.juggShieldHpThresholds.length > 0) {
+                            if (t.char.isRoguelikeBoss) {
+                                const shield = activateRoguelikeBossShield(t.char, t.char.hp - totalDmg);
+                                if (shield) events.push(createRaidShieldUpdateEvent(
+                                    t.player, t.idx, shield.hits,
+                                    `🛡️ ${t.char.name} raggiunge il ${shield.thresholdPercent}% di PS e attiva uno scudo da ${shield.hits} colpi!`, true));
+                            } else if (t.char.juggShieldHpThresholds && t.char.juggShieldHpThresholds.length > 0) {
                                 let thresholdTriggered = false;
                                 while (t.char.juggShieldHpThresholds.length > 0 && ((t.char.hp - totalDmg) / t.char.maxHp) <= t.char.juggShieldHpThresholds[0]) {
                                     t.char.juggShieldHpThresholds.shift();

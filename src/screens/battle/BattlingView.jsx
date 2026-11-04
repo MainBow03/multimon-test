@@ -345,7 +345,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                         <div className="font-bold text-xs truncate text-gray-400 uppercase tracking-widest">{gameState.players[teamPlayer]}</div>
                         <div className="font-bold text-sm truncate text-gray-100 mb-1">
                             {char.name} 
-                            {isJuggernaut && <span className="text-[10px] text-rose-500 ml-1">(BOSS)</span>}
+                            {(isJuggernaut || char.isRoguelikeBoss) && <span className="text-[10px] text-rose-500 ml-1">(BOSS)</span>}
                             {isHyper && <span className="text-[10px] text-yellow-400 font-black ml-1">(IPER)</span>}
                             {char.mahitoTransformed && <span className="text-[10px] text-fuchsia-300 font-black ml-1">(TRASFIGURATO)</span>} 
                         </div>

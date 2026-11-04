@@ -1,4 +1,5 @@
 import {maybeRogueEvent,canChooseRogueEvent,applyCoopRogueChoice,getRogueEvent} from './roguelikeEvents.js';
+import {empowerRoguelikeBoss} from './roguelikeBossPower.js';
 // Funzioni pure per la spedizione co-op. La stanza Firestore è la sola fonte di verità.
 export const COOP_HUMANS=['p1','p2','p3'];
 export const COOP_BOSS='p4';
@@ -113,6 +114,7 @@ export function coopEnemyForFloor(floor,roster,playerCount=3,encountered=[],rand
  enemy.spd=Math.round(base.spd*(1+(floor-1)*.006));
  enemy.baseAtk=enemy.atk;enemy.baseDef=enemy.def;enemy.baseSpd=enemy.spd;
  enemy.isCoopBoss=boss||end;
+ if(boss||end)empowerRoguelikeBoss(enemy);
  return enemy;
 }
 // I nemici normali di gruppo hanno ciascuno meno HP e Attacco del vecchio
