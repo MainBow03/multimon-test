@@ -45,7 +45,7 @@ for(const n of [2,3]){
     assert.equal(d.settings.teamSize,2);
     assert.equal(d.settings.fieldSize,1);
     assert.equal(COOP_STARTERS_PER_PLAYER,2);
-    assert.equal(d.draft.p4.length,1);
+    assert.equal(d.draft.p4.length,2,'La squadra nemica deve schierare due bersagli dal primo piano');
     assert.equal(d.draftChoices.p1.length,3);
     assert.equal(d.draftChoices.p2.length,3);
     if(n===3)assert.equal(d.draftChoices.p3.length,3);
@@ -65,7 +65,7 @@ for(const n of [2,3]){
       updateState:patch=>{started=patch;}
     });
     assert.equal(started.status,'pre_battle');
-    for(const p of players(s))assert.deepEqual(started.field[p],[0]);
+    for(const p of players(s))assert.deepEqual(started.field[p],p==='p4'?[0,1]:[0]);
     for(const p of ['p1','p2','p3'].filter(x=>s.players[x])){
       assert.equal(started.teams[p].length,2,p+' deve poter usare il secondo Multimon');
       assert.ok(started.teams[p][1].hp>0,p+' riserva con PS pieni');
@@ -83,6 +83,8 @@ for(const n of [2,3]){
     s={...s,...switching.patch,status:'battling'};
     assert.equal(resolveMultiplayerWinner(s,players(s)),null);
     s.teams.p4[0].hp=0;
+    assert.equal(resolveMultiplayerWinner(s,players(s)),null,'Non basta abbattere solo uno dei due nemici');
+    s.teams.p4[1].hp=0;
     const recovered=nextPhaseAfterExecution({...s,status:'executing',postExecStatus:'battling'},players(s));
     assert.equal(recovered.status,'gameover');
     assert.equal(recovered.winner,['Host','Amico',...(n===3?['Terzo']:[])].join(' & '));
@@ -92,7 +94,7 @@ for(const n of [2,3]){
     assert.throws(()=>finishCoopFloor({...s,status:reward.status,winner:null},roster));
     const next=nextCoopFloor({...s,...reward},roster,null,()=>.99);
     assert.equal(next.status,'pre_battle');
-    assert.equal(next.field.p4.length,1);
+    assert.equal(next.field.p4.length,2);
     assert.equal(next.teams.p1.length,2,'Le due scelte iniziali restano nel roster al secondo piano');
     assert.deepEqual(next.field.p1,[1],'Il personaggio superstite entra in campo al prossimo piano');
   });
