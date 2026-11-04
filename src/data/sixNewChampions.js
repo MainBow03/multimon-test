@@ -1,0 +1,131 @@
+// Sei nuovi Multimon: mosse e personaggi sono definiti una sola volta.
+// MOVES_DB importa le stesse istanze e applica la normalizzazione dei PP.
+export const SIX_NEW_MOVES = {
+  // Fragolina Dolcecuore: sostegno e recupero.
+  'Fragole Volanti': {name:'Fragole Volanti',type:'Erba',power:78,accuracy:1,drain:.25,
+    desc:'Potenza 78. Fragolina recupera il 25% dei danni che infligge.'},
+  'Marmellata Incantata': {name:'Marmellata Incantata',type:'Folletto',power:82,accuracy:1,
+    hitStatDebuff:{spd:.85,chance:.3},
+    desc:'Potenza 82. Il 30% delle volte rallenta il bersaglio del 15%.'},
+  'Frullato Rinvigorente': {name:'Frullato Rinvigorente',type:'Folletto',power:0,
+    target:'self',heal:.35,maxUses:4,strictUses:true,
+    desc:'Recupera il 35% dei propri PS massimi. Quattro utilizzi per battaglia.'},
+  'Pioggia di Bacche': {name:'Pioggia di Bacche',type:'Erba',power:65,accuracy:1,
+    targetCount:4,desc:'Pioggia di bacche di potenza 65 contro tutti gli avversari in campo.'},
+
+  // Altra Madre: indebolimenti, inganni e potenza spettrale.
+  'Aghi di Bottoni': {name:'Aghi di Bottoni',type:'Buio',power:82,accuracy:1,
+    statusEffect:{type:'Confuso',chance:.3,turns:3},
+    desc:'Potenza 82. Ha il 30% di probabilità di confondere per tre turni.'},
+  'Fili di Ragnatela': {name:'Fili di Ragnatela',type:'Spettro',power:0,accuracy:1,
+    targetStatDebuff:{spd:.75},desc:'Rallenta il bersaglio del 25%.'},
+  'Promessa Perfetta': {name:'Promessa Perfetta',type:'Folletto',power:78,accuracy:1,
+    statusEffect:{type:'Incantato',chance:.35,turns:3},
+    desc:'Potenza 78. Ha il 35% di probabilità di incantare il nemico.'},
+  'Mani dell Altro Mondo': {name:"Mani dell'Altro Mondo",type:'Spettro',power:108,
+    accuracy:.9,desc:'Potenza 108, precisione 90%. Attacco spettrale devastante.'},
+
+  // Blaze the Cat: piromanzia e attacco speciale.
+  'Artigli Ardenti': {name:'Artigli Ardenti',type:'Fuoco',power:86,accuracy:1,
+    contact:true,statusEffect:{type:'Scottato',chance:.2},
+    desc:'Potenza 86, contatto. Ha il 20% di probabilità di scottare.'},
+  'Fiamma delle Sol Emerald': {name:'Fiamma delle Sol Emerald',type:'Fuoco',
+    power:105,accuracy:.9,desc:'Potenza 105, precisione 90%.'},
+  'Telecinesi Reale': {name:'Telecinesi Reale',type:'Psico',power:78,accuracy:1,
+    hitStatDebuff:{atk:.85,chance:.3},
+    desc:'Potenza 78. Il 30% delle volte abbassa l’Attacco del bersaglio del 15%.'},
+  'Aura Ardente': {name:'Aura Ardente',type:'Fuoco',power:0,target:'self',
+    statBuff:{atk:1.2,def:1.2},maxUses:2,strictUses:true,
+    desc:'Aumenta del 20% Attacco e Difesa. Due utilizzi per battaglia.'},
+
+  // Shadow the Hedgehog: velocità, caos e colpi di precisione.
+  'Chaos Spear': {name:'Chaos Spear',type:'Elettro',power:90,accuracy:1,
+    statusEffect:{type:'Elettrizzato',chance:.3},
+    desc:'Potenza 90. Ha il 30% di probabilità di elettrizzare.'},
+  'Chaos Control': {name:'Chaos Control',type:'Psico',power:0,target:'self',
+    statBuff:{spd:1.3},maxUses:2,strictUses:true,
+    desc:'Aumenta la propria Velocità del 30%. Due utilizzi per battaglia.'},
+  'Chaos Blast': {name:'Chaos Blast',type:'Oscuro',power:120,accuracy:.85,
+    recharge:true,desc:'Potenza 120, precisione 85%. Richiede un turno di ricarica.'},
+  'Colpo Inibitore': {name:'Colpo Inibitore',type:'Buio',power:78,accuracy:1,
+    priority:1,contact:true,desc:'Potenza 78, priorità +1. Attacco rapidissimo di contatto.'},
+
+  // Sonic the Hedgehog: rapidità e attacchi in movimento.
+  'Spin Dash': {name:'Spin Dash',type:'Normale',power:84,accuracy:1,
+    speedScaling:true,contact:true,
+    desc:'Potenza 84 più un bonus legato alla Velocità di Sonic.'},
+  'Attacco Homing': {name:'Attacco Homing',type:'Aria',power:80,accuracy:1,
+    priority:1,contact:true,desc:'Potenza 80, priorità +1.'},
+  'Ciclone Blu': {name:'Ciclone Blu',type:'Aria',power:67,accuracy:1,
+    targetCount:4,desc:'Potenza 67 contro tutti i nemici in campo.'},
+  'Velocità della Luce': {name:'Velocità della Luce',type:'Luce',power:0,
+    target:'self',statBuff:{atk:1.3,spd:1.3},maxUses:2,strictUses:true,
+    desc:'Aumenta Attacco e Velocità del 30%. Due utilizzi per battaglia.'},
+
+  // Tails: invenzioni, riparazioni e supporto tattico.
+  'Doppia Elica': {name:'Doppia Elica',type:'Aria',power:34,accuracy:1,
+    multiHit:{min:2,max:3},
+    desc:'Colpisce due o tre volte con potenza 34 per colpo.'},
+  'Cannone Tornado': {name:'Cannone Tornado',type:'Robot',power:93,accuracy:1,
+    desc:'Cannone del biplano Tornado, potenza 93.'},
+  'Kit di Riparazione': {name:'Kit di Riparazione',type:'Robot',power:0,
+    targetMode:'ally',heal:.35,maxUses:4,strictUses:true,
+    desc:'Ripara e cura un alleato in campo del 35% dei suoi PS massimi (anche Tails).'},
+  'Super Gadget': {name:'Super Gadget',type:'Elettro',power:78,accuracy:1,
+    statusEffect:{type:'Elettrizzato',chance:.25},
+    desc:'Potenza 78. Il 25% delle volte elettrizza il bersaglio.'}
+};
+
+export const SIX_NEW_CHARACTERS = [
+  {id:'fragolina',name:'Fragolina Dolcecuore',types:['Erba','Folletto'],
+    hp:105,maxHp:105,atk:94,def:95,spd:99,
+    img:'https://i.pinimg.com/736x/c0/a8/d4/c0a8d4f623bf2e8a9f2ae1bba908576d.jpg',
+    passive:{name:'Cuore Generoso',type:'on_turn_end',healLowestAllyPercent:.05,
+      desc:'Alla fine di ogni turno cura del 5% dei PS massimi l’alleato in campo più ferito (sé stessa inclusa).'},
+    moves:[SIX_NEW_MOVES['Fragole Volanti'],SIX_NEW_MOVES['Marmellata Incantata'],
+      SIX_NEW_MOVES['Frullato Rinvigorente'],SIX_NEW_MOVES['Pioggia di Bacche']]},
+
+  {id:'altramadre',name:'Altra Madre',types:['Spettro','Buio'],
+    hp:112,maxHp:112,atk:116,def:91,spd:99,
+    img:'https://i.pinimg.com/736x/30/b4/5f/30b45f1fb792ca8e949838e29126e81c.jpg',
+    passive:{name:'Sguardo di Bottoni',type:'on_enter',maxUses:1,
+      enemyStatDebuff:{spd:.85},
+      desc:'All’ingresso in campo riduce del 15% la Velocità di tutti i nemici presenti.'},
+    moves:[SIX_NEW_MOVES['Aghi di Bottoni'],SIX_NEW_MOVES['Fili di Ragnatela'],
+      SIX_NEW_MOVES['Promessa Perfetta'],SIX_NEW_MOVES['Mani dell Altro Mondo']]},
+
+  {id:'blaze',name:'Blaze the Cat',types:['Fuoco','Psico'],
+    hp:101,maxHp:101,atk:119,spAtk:124,def:87,spd:119,
+    img:'https://i.pinimg.com/736x/2c/c1/e0/2cc1e0b9912fd15aa14bd46925cfc2f2.jpg',
+    passive:{name:'Fiamma Imperiale',type:'on_hp_threshold',threshold:.4,
+      statBuff:{atk:1.3,spd:1.25},maxUses:1,
+      desc:'La prima volta che scende al 40% dei PS o meno aumenta Attacco del 30% e Velocità del 25%.'},
+    moves:[SIX_NEW_MOVES['Artigli Ardenti'],SIX_NEW_MOVES['Fiamma delle Sol Emerald'],
+      SIX_NEW_MOVES['Telecinesi Reale'],SIX_NEW_MOVES['Aura Ardente']]},
+
+  {id:'shadow',name:'Shadow the Hedgehog',types:['Oscuro','Elettro'],
+    hp:101,maxHp:101,atk:124,def:91,spd:130,
+    img:'https://i.pinimg.com/736x/3c/76/ff/3c76fff9ff85b800716e8c88e9f9f1ab.jpg',
+    passive:{name:'Forma di Vita Suprema',type:'first_strike_bonus',damageBonus:1.2,
+      desc:'Se esegue il primo attacco offensivo del turno, la potenza della mossa aumenta del 20%.'},
+    moves:[SIX_NEW_MOVES['Chaos Spear'],SIX_NEW_MOVES['Chaos Control'],
+      SIX_NEW_MOVES['Chaos Blast'],SIX_NEW_MOVES['Colpo Inibitore']]},
+
+  {id:'sonic',name:'Sonic the Hedgehog',types:['Aria','Normale'],
+    hp:93,maxHp:93,atk:111,def:83,spd:155,
+    img:'https://i.pinimg.com/1200x/60/f7/41/60f7417f934e111a7032f741407d4182.jpg',
+    passive:{name:'Troppo Veloce!',type:'on_enter',maxUses:1,
+      selfStatBuff:{spd:1.15},
+      desc:'Al primo ingresso in campo aumenta immediatamente la propria Velocità del 15%.'},
+    moves:[SIX_NEW_MOVES['Spin Dash'],SIX_NEW_MOVES['Attacco Homing'],
+      SIX_NEW_MOVES['Ciclone Blu'],SIX_NEW_MOVES['Velocità della Luce']]},
+
+  {id:'tails',name:'Tails',types:['Aria','Robot'],
+    hp:105,maxHp:105,atk:94,def:94,spd:116,
+    img:'https://i.pinimg.com/736x/09/69/91/096991190742105592803317c9802366.jpg',
+    passive:{name:'Ingegnere Geniale',type:'on_enter',maxUses:1,
+      teamStatBuff:{def:1.15},
+      desc:'Al primo ingresso in campo aumenta del 15% la Difesa degli alleati presenti (sé stesso incluso).'},
+    moves:[SIX_NEW_MOVES['Doppia Elica'],SIX_NEW_MOVES['Cannone Tornado'],
+      SIX_NEW_MOVES['Kit di Riparazione'],SIX_NEW_MOVES['Super Gadget']]}
+];
