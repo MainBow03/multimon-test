@@ -1331,8 +1331,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               // di sostituire l'host quando la presenza è scaduta.
               return coopRoomAction(['drafting'],true,room=>{
                 const humans=['p1','p2','p3'].filter(p=>room.players?.[p]&&!room.isBot?.[p]);
+                // Le spedizioni già avviate prima dell'aggiornamento con 1 solo
+                // starter non devono restare bloccate in una vecchia lobby di draft.
+                const startersRequired=room.settings?.teamSize===1?1:COOP_STARTERS_PER_PLAYER;
                 if(humans.length<2||humans.length>3||
-                   humans.some(p=>(room.draft?.[p]||[]).length!==COOP_STARTERS_PER_PLAYER)||
+                   humans.some(p=>(room.draft?.[p]||[]).length!==startersRequired)||
                    (room.draft?.p4||[]).length!==1)
                   throw new Error('Il draft non è completo per tutti i partecipanti.');
                 let patch=null;
