@@ -22,7 +22,7 @@ export const SIX_NEW_MOVES = {
   'Promessa Perfetta': {name:'Promessa Perfetta',type:'Folletto',power:78,accuracy:1,
     statusEffect:{type:'Incantato',chance:.35,turns:3},
     desc:'Potenza 78. Ha il 35% di probabilità di incantare il nemico.'},
-  'Mani dell Altro Mondo': {name:"Mani dell'Altro Mondo",type:'Spettro',power:108,
+  "Mani dell'Altro Mondo": {name:"Mani dell'Altro Mondo",type:'Spettro',power:108,
     accuracy:.9,desc:'Potenza 108, precisione 90%. Attacco spettrale devastante.'},
 
   // Blaze the Cat: piromanzia e attacco speciale.
@@ -92,7 +92,7 @@ export const SIX_NEW_CHARACTERS = [
       enemyStatDebuff:{spd:.85},
       desc:'All’ingresso in campo riduce del 15% la Velocità di tutti i nemici presenti.'},
     moves:[SIX_NEW_MOVES['Aghi di Bottoni'],SIX_NEW_MOVES['Fili di Ragnatela'],
-      SIX_NEW_MOVES['Promessa Perfetta'],SIX_NEW_MOVES['Mani dell Altro Mondo']]},
+      SIX_NEW_MOVES['Promessa Perfetta'],SIX_NEW_MOVES["Mani dell'Altro Mondo"]]},
 
   {id:'blaze',name:'Blaze the Cat',types:['Fuoco','Psico'],
     hp:101,maxHp:101,atk:119,spAtk:124,def:87,spd:119,
