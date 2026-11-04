@@ -13,6 +13,14 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov4-online-zodiac-entrances',category:'fixes',date:'04/11/2026',title:'✨ Spiriti Stellari visibili a tutti nelle battaglie online',items:[
+    'Gli Spiriti Stellari evocati da Lucy ora hanno un ingresso visivo con portale viola e particelle dorate, mostrato anche ai compagni, agli avversari e agli spettatori online.',
+    'Sistemata la riproduzione delle evocazioni: la vista del turno non crea più un doppione se lo Spirito era già stato salvato nello stato condiviso della battaglia.',
+    'Il campo e i ritratti distinguono chiaramente lo Spirito Stellare dal Multimon principale e mostrano a quale giocatore appartiene.',
+    'Nelle anteprime delle sfide, sia Co-op sia PvP, sono visibili gli Spiriti di Lucy attivi dei vari partecipanti.',
+    'La sincronizzazione funziona anche se più giocatori usano Lucy, senza modificare abilità o statistiche degli Spiriti e senza toccare le altre modalità.'
+  ]},
+
   {id:'nov4-coop-swaps-and-fifty-points',category:'features',date:'04/11/2026',title:'🤝 Scambi tra amici, ordine della squadra e 50 PF a vittoria Roguelike!',items:[
     'Roguelike Co-op: all’accampamento puoi selezionare un tuo Multimon e un Multimon di un compagno per proporre uno scambio uno contro uno.',
     'Lo scambio avviene solo quando il destinatario preme Accetta. Può invece rifiutare: in quel caso il richiedente deve attendere 90 secondi prima di proporre un altro scambio. Il timer si aggiorna in diretta per tutti.',
