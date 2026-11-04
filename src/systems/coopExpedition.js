@@ -4,6 +4,7 @@ export const COOP_HUMANS=['p1','p2','p3'];
 export const COOP_BOSS='p4';
 export const COOP_MAX_FLOOR=50;
 export const COOP_MAX_TEAM=8;
+export const COOP_STARTERS_PER_PLAYER=2;
 const real=c=>Boolean(c&&!c.isSummonOnly);
 export const coopHumanPlayers=room=>COOP_HUMANS.filter(p=>Boolean(room?.players?.[p])&&!room?.isBot?.[p]);
 export const coopCount=(room,p)=>(room.teams?.[p]||[]).filter(real).length;
@@ -30,7 +31,10 @@ export function prepareCoopDraft(room,roster,random=Math.random){
  }
  draft.p4=[coopEnemyForFloor(1,draftable,humans.length,[],random)];
  return {status:'drafting',phaseStartedAt:Date.now(),draftChoices:choices,
-  draftRerolls:rerolls,draft,coopRun:{...room.coopRun,floor:1}};
+  draftRerolls:rerolls,draft,
+  // Anche le vecchie lobby ancora in attesa ricevono due personaggi per umano.
+  settings:{...room.settings,teamSize:COOP_STARTERS_PER_PLAYER,fieldSize:1},
+  coopRun:{...room.coopRun,floor:1}};
 }
 export const COOP_SHOP={
  heal:{price:20,desc:'Recupera il 50% dei PS massimi a un Multimon vivo'},
