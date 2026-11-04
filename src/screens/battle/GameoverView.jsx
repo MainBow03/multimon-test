@@ -226,6 +226,13 @@ if (gameState.status === 'gameover') {
                                 : 'Il tuo team è caduto. Dovrai ricominciare la scalata da zero.'}
                         </p>
                         <BattleReportPanel report={gameState.battleReport} players={gameState.players} />
+                        {isWin && roguelikeState.floor === roguelikeState.maxFloor && (
+                          <div className="mx-auto mb-8 max-w-xl space-y-2 rounded-2xl border border-amber-400/50 bg-amber-950/30 p-5 text-amber-100">
+                            <p className="text-xl font-black">🎁 +5 Bauli normali!</p>
+                            <p className="text-sm">Li troverai nella sezione Bauli Campagna del menu, con due ricompense ciascuno.</p>
+                            <p className="text-sm text-cyan-200">🏆 Bonus finale: 30 Punti Forza, se sono trascorse almeno 4 ore dall'ultimo bonus ricevuto.</p>
+                          </div>
+                        )}
                         
                         {isWin && roguelikeState.floor !== roguelikeState.maxFloor && (
                              <div className="flex items-center justify-center gap-2 mb-8 text-2xl font-black text-yellow-400 bg-yellow-500/10 py-3 rounded-full border border-yellow-500/30">
