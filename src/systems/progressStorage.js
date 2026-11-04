@@ -2,7 +2,8 @@
 export const SAVED_EXACT_KEYS = Object.freeze([
  'multiverse_rpg_global_profile','multiverse_rpg_saved_name',
  'multiverse_rpg_saved_avatar','multiverse_rpg_roguelike_save',
- 'multimon_completed_campaigns_v1'
+ 'multimon_completed_campaigns_v1',
+ 'multimon_torneo_assoluto_recuperato_20261104'
 ]);
 export const SAVED_PREFIXES = Object.freeze([
  'multiverse_rpg_campaign_save_','multimon_event_reward_',
