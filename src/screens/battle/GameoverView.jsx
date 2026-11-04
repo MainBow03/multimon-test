@@ -230,7 +230,7 @@ if (gameState.status === 'gameover') {
                           <div className="mx-auto mb-8 max-w-xl space-y-2 rounded-2xl border border-amber-400/50 bg-amber-950/30 p-5 text-amber-100">
                             <p className="text-xl font-black">🎁 +5 Bauli normali!</p>
                             <p className="text-sm">Li troverai nella sezione Bauli Campagna del menu, con due ricompense ciascuno.</p>
-                            <p className="text-sm text-cyan-200">🏆 Bonus finale: 30 Punti Forza, se sono trascorse almeno 4 ore dall'ultimo bonus ricevuto.</p>
+                            <p className="text-sm text-cyan-200">🏆 Bonus finale: 50 Punti Forza, se sono trascorse almeno 4 ore dall'ultimo bonus ricevuto.</p>
                           </div>
                         )}
                         
