@@ -1,6 +1,7 @@
 import {ZodiacSpiritPicker} from '../../components/ZodiacSpiritPicker.jsx';
 import {RoguelikeEventView} from './RoguelikeEventView.jsx';
 import {ROGUE_RELICS,applySoloRogueChoice} from '../../systems/roguelikeEvents.js';
+import {empowerRoguelikeBoss} from '../../systems/roguelikeBossPower.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderRoguelikeMapView(ctx) {
 const { CHARACTERS, ChevronRight, Coins, Heart, ITEMS_DB, LogOut, Swords, Users, appMode, initialGameState, applyOnEnterPassive, playerName, renderHealthBar, roguelikeState, setAppMode, setGameState, setPlayerRole, setRoguelikeState, setSystemAlert, updateLocalStats } = ctx;
@@ -159,6 +160,7 @@ if (appMode === 'roguelike_map') {
                     e.atk = Math.floor(e.atk * 1.2); e.hp = Math.floor(e.hp * 1.5); e.maxHp = Math.floor(e.maxHp * 1.5);
                     e.imageFilter = 'drop-shadow(0 0 15px rgba(234,179,8,1))';
                 }
+                if (isBossFloor) empowerRoguelikeBoss(e);
                 return e;
             });
 
