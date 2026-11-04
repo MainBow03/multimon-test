@@ -18,6 +18,9 @@ const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, player
             state.inventory.p1 = { pozione: 2, resurrezione: 1 };
             state.isRoguelikeCoop = true;
             state.coopRun = {runId:'coop-'+newRoomId+'-'+Date.now().toString(36),floor:1,maxFloor:50,coins:0,lastCoins:0,recruitBonus:0,encounteredEnemies:[],lastRecruit:null,finished:false,relics:[],trainingUses:0,nextBattlePower:1,pendingEvent:null,eventVotes:{},lastEventResult:null};
+            state.coopTrade = null;
+            state.coopTradeCooldowns = {};
+            state.coopTradeLastResult = null;
             state.gameMode = 'juggernaut'; // Il Juggernaut sarà il boss controllato dal Bot!
             state.settings = {
                 ...state.settings,
