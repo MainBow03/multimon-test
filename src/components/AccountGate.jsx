@@ -413,6 +413,7 @@ export function AccountGate({children}) {
         className={'w-full text-left p-3 rounded-xl border '+(selectedBackup===entry.name?'border-cyan-400 bg-cyan-950/50':'border-slate-600 bg-slate-800/80 hover:border-slate-400')}>
         <span className="block text-sm font-bold">{entry.label}</span>
         <span className="block text-xs text-slate-300 mt-1">{entry.createdAt?new Date(entry.createdAt).toLocaleString('it-IT'):'Data sconosciuta'} · {entry.keys} elementi salvati</span>
+        <span className="block text-xs text-emerald-300 mt-1">{entry.summary}</span>
       </button>)}
       {selectedBackup&&<div className="rounded-xl bg-amber-950/30 border border-amber-600/40 p-3 space-y-2">
         <p className="text-sm text-amber-100">Vuoi sostituire i progressi attuali con questa copia? Conservo una copia della versione attuale e, se sei connesso, anche del cloud prima di aggiornare.</p>
