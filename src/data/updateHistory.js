@@ -13,6 +13,13 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov4-tablet-roster-png-layout',category:'interface',date:'04/11/2026',title:'🖼️ Roster più ordinati e PNG finalmente visibili su tablet',items:[
+    'Sistemata la griglia di selezione dei Multimon: due colonne su smartphone, tre su tablet, quattro o più solo sugli schermi grandi, con spazi regolari tra le carte.',
+    'Le immagini dei personaggi ora sono più grandi e usano riquadri con adattamento completo, senza essere tagliate in minuscoli cerchi.',
+    'Migliorati il draft normale e condiviso, la scelta della squadra nelle Campagne, la scelta del protagonista nel Torneo Assoluto e il draft iniziale della Roguelike.',
+    'Nomi lunghi leggibili su due righe, margini più ampi e stato di selezione visibile senza ingrandire o coprire le immagini.',
+    'Nessuna variazione alle regole di gioco, ai personaggi posseduti o ai progressi salvati.'
+  ]},
   {id:'nov4-progressive-power-chests',category:'balance',date:'04/11/2026',title:'📈 Casse Potenza a ricompense crescenti',items:[
     'In Roguelike Solo e Co-op le casse del piano 5, 10 e 15 danno 3–8 Punti Forza.',
     'Le casse dei piani 20, 25 e 30 danno 5–11 Punti Forza.',
