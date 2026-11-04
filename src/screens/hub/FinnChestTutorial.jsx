@@ -5,7 +5,7 @@ import { FINN_CHEST_IMAGE } from '../../systems/roguelikePowerRewards.js';
 // il mini-dialogo spiega esclusivamente le Casse Potenza Roguelike.
 export const FINN_CAMPAIGN_CHEST_DIALOGUES=[
   'Whoa, aspetta un secondo! Hai visto quel baule? Non è un baule qualunque, è un vero tesoro del Multiverso! Sono una figata, fidati!',
-  'Ogni volta che superi una missione della Campagna ne ottieni uno. E se avevi già superato qualche missione, niente paura: i tuoi bauli ti aspettano qui. Nessuno perde i premi!',
+  'Ogni missione della Campagna ti dà un baule. E ora, se superi tutti i 50 piani della Roguelike Solo o Co-op, ricevi altri CINQUE Bauli normali! Quelli che hai già ottenuto restano sempre qui.',
   'Dentro ogni baule ci sono DUE ricompense a sorpresa. Puoi trovare monete, Punti Forza per allenare i tuoi Multimon, pozioni e altre cure utilissime.',
   'E non finisce qui! Se hai davvero fortuna, puoi scoprire uno strumento da battaglia oppure addirittura un Multimon tutto nuovo. Figo da matti, eh?',
   'La parte più divertente? Ogni premio viene estratto per conto suo. Può capitare anche la stessa ricompensa due volte di fila. È tutto questione di fortuna, fratello!',
@@ -14,7 +14,7 @@ export const FINN_CAMPAIGN_CHEST_DIALOGUES=[
 export const FINN_POWER_CHEST_DIALOGUES=[
   'Ehi, aspetta! Questa è una Cassa Potenza, non il solito Baule Campagna. Si conquista durante la Roguelike: una ogni 5 piani superati!',
   'Qui niente monete né oggetti: trovi SOLO Punti Forza, da 2 a 8 per cassa. Usali nel Laboratorio per dare una piccola spinta ai tuoi Multimon!',
-  'E se sconfiggi il boss finale della Roguelike? BOOM, 30 Punti Forza bonus! Puoi ottenerli di nuovo dopo 4 ore dall’ultima ricompensa. Dai, apriamo una cassa: sarà una figata!'
+  'Anche in Co-op ognuno riceve le proprie casse e i Punti Forza! Se completi tutti i 50 piani: BOOM, 30 Punti Forza bonus (una volta ogni 4 ore) e CINQUE Bauli normali. Dai, apriamo una cassa: sarà una figata!'
 ];
 export function FinnChestTutorial({kind='campaign',onComplete,onClose}){
   const lines=kind==='power'?FINN_POWER_CHEST_DIALOGUES:FINN_CAMPAIGN_CHEST_DIALOGUES;
