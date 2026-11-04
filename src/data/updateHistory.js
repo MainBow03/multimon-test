@@ -13,6 +13,14 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov4-roguelike-boss-shields',category:'balance',date:'04/11/2026',title:'🛡️ Boss Roguelike più temibili: +5% statistiche e due scudi!',items:[
+    'Roguelike Singola e Co-op: i boss dei piani 10, 20, 30, 40 e 50 ricevono +5% a PS, Attacco, Difesa, Velocità e alle statistiche speciali disponibili.',
+    'Al primo raggiungimento del 50% dei PS il boss attiva uno scudo che assorbe 3 colpi; si riattiva una seconda e ultima volta al 25%.',
+    'Gli attacchi multicolpo consumano una carica per ogni colpo. Se un colpo supera entrambe le soglie, la seconda attivazione non va persa.',
+    'Il contatore delle cariche è visibile sul boss e si aggiorna durante le animazioni; gli scudi della campagna e i nemici comuni restano invariati.',
+    'Rompere uno scudo Roguelike non danneggia automaticamente il boss.'
+  ]},
+
   {id:'nov4-coop-enemy-groups',category:'balance',date:'04/11/2026',title:'⚔️ Roguelike Co-op: tornano i gruppi di 2 o 3 nemici e i boss!',items:[
     'Ripristinata la progressione degli scontri della Roguelike Co-op: piani 1–4 contro 2 nemici, piani 5–9 contro 3 nemici, piano 10 contro il boss; il ciclo si ripete fino al piano 50.',
     'I nemici normali combattono davvero contemporaneamente e la CPU assegna una mossa distinta a ciascun avversario. Ogni giocatore può scegliere quale bersaglio colpire.',
