@@ -168,7 +168,7 @@ if (appMode === 'menu') {
                           <span aria-hidden="true" className="h-9 w-10 rounded-lg bg-gradient-to-br from-cyan-300 via-blue-700 to-indigo-950 border-2 border-cyan-200/60 shadow-inner relative">
                             <span className="absolute left-1/2 -translate-x-1/2 top-2 w-3 h-4 rotate-45 bg-cyan-200 border border-white/70 shadow-[0_0_8px_rgba(103,232,249,.7)]"/>
                           </span>
-                          <span>Casse Potenza <span className="block text-xs text-cyan-100/85 font-semibold">{playerData.roguelikePower?.pending?.length||0} disponibili · 2–8 Punti Forza</span></span>
+                          <span>Casse Potenza <span className="block text-xs text-cyan-100/85 font-semibold">{playerData.roguelikePower?.pending?.length||0} disponibili · 3–18 Punti Forza in base al piano</span></span>
                         </button>
                         <button onClick={()=>startWithModeGuide('strength_lab',()=>{ if(!playerName.trim()) setSystemAlert("Inserisci il tuo nome per accedere al Laboratorio!"); else setAppMode('strength_lab'); })}
                             className="w-full mt-3 bg-gradient-to-r from-cyan-700 via-indigo-700 to-violet-800 hover:from-cyan-600 hover:to-violet-700 text-white font-black py-4 rounded-xl border border-cyan-400/60 shadow-[0_0_24px_rgba(34,211,238,.20)] flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5">
