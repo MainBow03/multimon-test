@@ -174,14 +174,23 @@ export function AccountGate({children}) {
     activate(linked.user.uid,local);
     setNotice('Registrazione riuscita. I progressi ospite sono sul cloud.');
    }else{
-    saveLocalBackup(GUEST_BACKUP_KEY);
+    // Non confondere i progressi di un account con quelli dell'ospite:
+    // una sessione scaduta conserva la propria copia sotto il vecchio UID.
+    const old=localStorage.getItem(ACTIVE_ACCOUNT_KEY);
+    if(old){
+      createRecoverySnapshot(collectProgress(),'prima-del-nuovo-login');
+      saveLocalBackup(LOCAL_ACCOUNT_BACKUP_PREFIX+old);
+    }else saveLocalBackup(GUEST_BACKUP_KEY);
     const result=await signInWithEmailAndPassword(auth,email.trim(),password);
     await loadAccount(result.user);
    }
    setOpen(false);setPassword('');
   }catch(e){
    fail(e);
-   if(emailUser(auth.currentUser))setSession({type:'empty',uid:auth.currentUser.uid});
+   // ERRORE CRITICO PRECEDENTE: un download fallito veniva trattato come
+   // "account vuoto", permettendo di sovrascrivere il cloud con dati vuoti!
+   if(emailUser(auth.currentUser))
+     setSession({type:'error',uid:auth.currentUser.uid});
    else enterGuest(auth.currentUser);
   }finally{busy.current=false;}
  }
@@ -194,20 +203,24 @@ export function AccountGate({children}) {
  async function chooseEmpty(importLocal){
   if(busy.current)return;busy.current=true;setError('');
   try{
-   if(!importLocal){
-    backupBeforeSwitch(session.uid);clearProgress();
-    localStorage.removeItem('multiverse_rpg_session');
-   }
-   const entries=collectProgress();
-   await uploadCloudSave(session.uid,entries);activate(session.uid,entries);
+   const local=collectProgress();
+   backupBeforeSwitch(session.uid);
+   // Prima si conferma l'upload, poi si cambia il salvataggio nel browser.
+   // Se la rete fallisce, non cancellare neanche un byte locale.
+   const entries=importLocal?local:{};
+   await uploadCloudSave(session.uid,entries);
+   if(!importLocal)localStorage.removeItem('multiverse_rpg_session');
+   activate(session.uid,entries);
   }catch(e){fail(e);}finally{busy.current=false;}
  }
  async function chooseConflict(useLocal){
   if(busy.current)return;busy.current=true;setError('');
   try{
-   saveLocalBackup(LOCAL_ACCOUNT_BACKUP_PREFIX+session.uid);
+   const entries=collectProgress();
+   backupBeforeSwitch(session.uid);
    if(useLocal){
-    const entries=collectProgress();await uploadCloudSave(session.uid,entries);
+    if(remotePending.current)createRecoverySnapshot(remotePending.current,'cloud-prima-di-importare');
+    await uploadCloudSave(session.uid,entries);
     activate(session.uid,entries);
    }else activate(session.uid,remotePending.current);
   }catch(e){fail(e);}finally{busy.current=false;}
@@ -221,12 +234,12 @@ export function AccountGate({children}) {
     await uploadCloudSave(previousUid,collectProgress());
     saveLocalBackup(LOCAL_ACCOUNT_BACKUP_PREFIX+previousUid);
    }
-   // Smonta App prima di sostituire i progressi del browser.
+   // Completa prima il logout Firebase, senza cancellare subito il profilo.
+   await signOut(auth);await signInAnonymously(auth);
    setSession({type:'loading',uid:''});
    restoreProgress(readLocalBackup(GUEST_BACKUP_KEY)||{});
    localStorage.removeItem(ACTIVE_ACCOUNT_KEY);
    localStorage.removeItem('multiverse_rpg_session');
-   await signOut(auth);await signInAnonymously(auth);
    lastUploaded.current='';setCloudStatus('');enterGuest(auth.currentUser);
   }catch(e){fail(e);setSession({type:emailUser(auth.currentUser)?'account':'guest',uid:auth.currentUser?.uid||previousUid});}
   finally{busy.current=false;}
