@@ -45,6 +45,18 @@ export function prepareCoopDraft(room,roster,random=Math.random){
   settings:{...room.settings,teamSize:COOP_STARTERS_PER_PLAYER,fieldSize:1},
   coopRun:{...room.coopRun,floor:1}};
 }
+// Un solo criterio di prontezza per UI e motore: evita che il draft
+// continui a richiedere un solo Guardiano dopo l'arrivo dei gruppi da 2/3.
+export function isCoopDraftReady(room){
+ if(!room?.isRoguelikeCoop || room.status!=='drafting')return false;
+ const humans=coopHumanPlayers(room);
+ if(humans.length<2 || humans.length>3)return false;
+ const needed=room.settings?.teamSize===1?1:COOP_STARTERS_PER_PLAYER;
+ return humans.every(p=>Array.isArray(room.draft?.[p]) && room.draft[p].length===needed) &&
+   Array.isArray(room.draft?.p4) &&
+   room.draft.p4.length===coopEncounterSizeForFloor(room.coopRun?.floor||1);
+}
+
 export const COOP_SHOP={
  heal:{price:20,desc:'Recupera il 50% dei PS massimi a un Multimon vivo'},
  revive:{price:50,desc:'Rianima un Multimon sconfitto con il 50% dei PS'},
