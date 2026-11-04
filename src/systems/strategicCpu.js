@@ -311,6 +311,8 @@ export function generateStrategicCpuActions({
       'ladybug','bowser','rainbowdash','elsa','sheldon','charizard','maxcaulfield',
       'chloeprice','dolli','zatchbell','yoshi','poisonivy','carlos','leon','sage']);
     for(const [idx,action] of Object.entries(result)){
+      // Nel force-skip le scelte umane già registrate sono intoccabili.
+      if(currentActions?.[player]?.[idx])continue;
       const char=room.teams?.[player]?.[idx];
       if(action.type==='attack'&&hyperIds.has(char?.id)&&!char.isHyper){
         action.hyperize=true;break;
