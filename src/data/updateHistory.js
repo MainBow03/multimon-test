@@ -3,6 +3,7 @@
 // presenti nel gioco, distinguendo bilanciamento, funzionalità e correzioni.
 export const UPDATE_CATEGORIES = [
   {id:'all',name:'Tutto',icon:'📜'},
+  {id:'features',name:'Modalità e funzioni',icon:'🕹️'},
   {id:'campaigns',name:'Campagne e storia',icon:'📖'},
   {id:'balance',name:'Bilanciamento',icon:'⚖️'},
   {id:'champions',name:'Personaggi e abilità',icon:'⭐'},
@@ -12,6 +13,31 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov4-six-new-multimon-deployment',category:'champions',date:'04/11/2026',title:'🍓 Sei nuovi Multimon: Fragolina, Altra Madre, Blaze, Shadow, Sonic e Tails',items:[
+    'Fragolina Dolcecuore (Erba/Folletto): supporto e guarigione; Cuore Generoso cura a fine turno l’alleato in campo più ferito. Mosse Fragole Volanti, Marmellata Incantata, Frullato Rinvigorente e Pioggia di Bacche.',
+    'Altra Madre (Spettro/Buio): controlla il campo con Sguardo di Bottoni (Velocità nemica −15% all’ingresso). Mosse Aghi di Bottoni, Fili di Ragnatela, Promessa Perfetta e Mani dell’Altro Mondo.',
+    'Blaze the Cat (Fuoco/Psico): Fiamma Imperiale sotto il 40% PS aumenta Attacco +30% e Velocità +25%, una volta per battaglia. Mosse Artigli Ardenti, Fiamma delle Sol Emerald, Telecinesi Reale e Aura Ardente.',
+    'Shadow the Hedgehog (Oscuro/Elettro): Forma di Vita Suprema potenzia del 20% il primo attacco del turno. Mosse Chaos Spear, Chaos Control, Chaos Blast e Colpo Inibitore.',
+    'Sonic the Hedgehog (Aria/Normale): Troppo Veloce! aumenta la Velocità del 15% al primo ingresso. Mosse Spin Dash, Attacco Homing, Ciclone Blu e Velocità della Luce.',
+    'Tails (Aria/Robot): Ingegnere Geniale aumenta del 15% la Difesa degli alleati in campo all’ingresso. Mosse Doppia Elica, Cannone Tornado, Kit di Riparazione e Super Gadget.',
+    'Tutti e sei hanno le immagini fornite, un prezzo di sblocco nel Negozio, 24 mosse totali e un titolo di Padronanza esclusivo raggiungibile al livello 20.',
+    'Corretto il blocco della pubblicazione automatica: sono stati aggiornati i test che impedivano a GitHub Pages di compilare la versione contenente i nuovi personaggi.'
+  ]},
+  {id:'nov4-account-progress-protection',category:'fixes',date:'04/11/2026',title:'☁️ Account persistente e recupero dei progressi',items:[
+    'Firebase Auth ora richiede esplicitamente di conservare l’accesso tra le aperture del browser.',
+    'Se una sessione precedente non viene ripristinata, il gioco non sostituisce automaticamente i progressi dell’account con quelli di un ospite: chiede di accedere di nuovo.',
+    'I dati locali divergenti dal cloud vengono protetti e mostrati in una scelta esplicita prima di sostituire un salvataggio.',
+    'Controllo di sincronizzazione cloud ogni due secondi quando il profilo cambia e protezione delle modifiche effettuate da altre sessioni.',
+    'Aggiunto un pannello per controllare e ripristinare i backup precedenti con conferma, oltre a copie di sicurezza locali periodiche.',
+    'I salvataggi locali e i profili storici per nome vengono conservati durante i cambi account; non è possibile garantire il recupero dei dati già cancellati.'
+  ]},
+  {id:'nov4-strategic-cpu',category:'balance',date:'04/11/2026',title:'🧠 IA migliorata: CPU aggressive, difensive e strategiche',items:[
+    'Le CPU ora distinguono tre stili: aggressivo (ricerca KO), difensivo (cure e protezioni ragionate), strategico (sostituzioni per vantaggi di tipo e sopravvivenza).',
+    'Le CPU ricordano solo le mosse realmente eseguite in battaglia: non possono leggere le azioni non ancora mostrate né il moveset segreto dei nemici.',
+    'Le mosse a più bersagli vengono valutate per efficacia, mentre strumenti condivisi e limiti d’uso online vengono rispettati.',
+    'La schermata di presentazione dello scontro mostra lo stile della CPU e il gioco evita che i bot restino senza azione per mosse in ricarica.'
+  ]},
+
   {id:'nov3-coop-roguelike-chart-battle',category:'features',date:'03/11/2026',title:'🧬 Chart dei tipi in battaglia e Roguelike Co-op finalmente condivisa',items:[
     'La tabella completa dei 23 tipi è consultabile in qualsiasi battaglia dal nuovo pulsante 🧬 Chart tipi. Si apre e chiude senza perdere il turno o uscire dallo scontro; riusa i rapporti di efficacia reali del gioco.',
     'Roguelike Co-op: la lobby online ora riceve gli aggiornamenti Firestore prima dell’inizio. Puoi condividere il codice e far entrare fino a tre giocatori umani, con uno slot CPU separato.',
