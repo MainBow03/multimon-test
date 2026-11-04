@@ -12,6 +12,8 @@ import {
 } from '../src/systems/roomRecovery.js';
 import {canSubmitCoopAction,canCommitCoopTurn} from '../src/systems/coopTurnGuards.js';
 import {startBattleImpl} from '../src/systems/battleSystem.js';
+import {handlePickImpl} from '../src/systems/multiplayerSystem.js';
+import {COOP_STARTERS_PER_PLAYER} from '../src/systems/coopExpedition.js';
 
 const clone = x => structuredClone(x);
 const makeHero=(id,hp=100)=>({
@@ -40,6 +42,9 @@ for(const n of [2,3]){
     let s=room(n===3);
     const d=prepareCoopDraft(s,roster,()=>0);
     assert.equal(d.status,'drafting');
+    assert.equal(d.settings.teamSize,2);
+    assert.equal(d.settings.fieldSize,1);
+    assert.equal(COOP_STARTERS_PER_PLAYER,2);
     assert.equal(d.draft.p4.length,1);
     assert.equal(d.draftChoices.p1.length,3);
     assert.equal(d.draftChoices.p2.length,3);
@@ -47,7 +52,8 @@ for(const n of [2,3]){
     s={...s,...d};
     for(const p of players(s)){
       if(p==='p4')continue;
-      s.draft[p]=[clone(roster[p==='p1'?0:p==='p2'?2:3])];
+      const ids=p==='p1'?[0,1]:p==='p2'?[2,3]:[4,5];
+      s.draft[p]=ids.map(i=>clone(roster[i]));
     }
     let started;
     startBattleImpl({
@@ -60,8 +66,11 @@ for(const n of [2,3]){
     });
     assert.equal(started.status,'pre_battle');
     for(const p of players(s))assert.deepEqual(started.field[p],[0]);
+    for(const p of ['p1','p2','p3'].filter(x=>s.players[x])){
+      assert.equal(started.teams[p].length,2,p+' deve poter usare il secondo Multimon');
+      assert.ok(started.teams[p][1].hp>0,p+' riserva con PS pieni');
+    }
     s={...s,...started,status:'battling',phaseStartedAt:Date.now()};
-    s.teams.p1.push(clone(roster[1]));
     s.teams.p1[0].hp=0;
     s.field.p1=[];
     const emergency=prepareEmergencySwitch(s,players(s));
@@ -84,6 +93,8 @@ for(const n of [2,3]){
     const next=nextCoopFloor({...s,...reward},roster,null,()=>.99);
     assert.equal(next.status,'pre_battle');
     assert.equal(next.field.p4.length,1);
+    assert.equal(next.teams.p1.length,2,'Le due scelte iniziali restano nel roster al secondo piano');
+    assert.deepEqual(next.field.p1,[1],'Il personaggio superstite entra in campo al prossimo piano');
   });
 }
 
@@ -182,4 +193,30 @@ test('Il piano 50 chiude la spedizione senza generare un piano 51',()=>{
  assert.equal(finished.status,'coop_complete');
  assert.equal(finished.coopRun.floor,50);
  assert.equal(finished.coopRun.finished,true);
+});
+
+test('La scelta iniziale concede due pick distinti, genera altre carte e blocca un terzo pick',()=>{
+  let state=room(true);
+  state={...state,...prepareCoopDraft(state,roster,()=>0)};
+  assert.equal(state.settings.teamSize,2);
+  let lastPatch=null;
+  const ctx={
+    CHARACTERS:roster,FUSION_CHARACTERS:[],
+    get gameState(){return state},playerRole:'p1',setDraftTimeLeft:()=>{},
+    updateState:patch=>{
+      lastPatch=patch;
+      for(const [key,value] of Object.entries(patch)){
+        const [container,role]=key.split('.');
+        state[container][role]=value;
+      }
+    }
+  };
+  handlePickImpl(ctx,roster[0]);
+  assert.deepEqual(state.draft.p1.map(c=>c.id),['A']);
+  assert.equal(lastPatch['draftChoices.p1'].length,3,'Nuove tre carte per la seconda scelta');
+  assert.ok(lastPatch['draftChoices.p1'].every(c=>c.id!=='A'),'Niente duplicato del primo scelto');
+  handlePickImpl(ctx,roster[1]);
+  assert.deepEqual(state.draft.p1.map(c=>c.id),['A','B']);
+  handlePickImpl(ctx,roster[2]);
+  assert.deepEqual(state.draft.p1.map(c=>c.id),['A','B'],'Non deve permettere tre Multimon iniziali');
 });
