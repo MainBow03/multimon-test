@@ -90,7 +90,6 @@ export function coopEnemyForFloor(floor,roster,playerCount=3,encountered=[],rand
  const base=pool[Math.floor(random()*pool.length)]||roster.find(c=>!c.isSummonOnly);
  if(!base)throw new Error('Nessun avversario disponibile.');
  const enemy=freshCoopFighter(base);
- const tier=Math.floor((floor-1)/10);
  // Crescita morbida piano dopo piano, non scatti improvvisi ogni dieci piani.
  const scale=1+(floor-1)*.012;
  const hpScale=(1+(Math.max(1,playerCount)-1)*.55)*(boss?1.55:1)*(end?1.6:1);
