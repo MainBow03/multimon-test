@@ -13,6 +13,15 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov4-progressive-power-chests',category:'balance',date:'04/11/2026',title:'📈 Casse Potenza a ricompense crescenti',items:[
+    'In Roguelike Solo e Co-op le casse del piano 5, 10 e 15 danno 3–8 Punti Forza.',
+    'Le casse dei piani 20, 25 e 30 danno 5–11 Punti Forza.',
+    'Le casse dei piani 35, 40 e 45 danno 7–14 Punti Forza.',
+    'La cassa del piano 50 dà 10–18 Punti Forza.',
+    'Le fasce si applicano anche a casse non ancora aperte; quelle già riscosse non cambiano.',
+    'Aggiornate le spiegazioni nel menu, nella schermata Casse Potenza e nei dialoghi di Finn. Il bonus finale di 30 PF e i 5 Bauli normali restano invariati.'
+  ]},
+
   {id:'nov4-coop-personal-rewards-guided-menu',category:'features',date:'04/11/2026',title:'🎁 Premi Roguelike Co-op per tutti + 16 guide dei personaggi',items:[
     'Roguelike Co-op: ogni giocatore umano riceve sul proprio profilo una Cassa Potenza ogni 5 piani superati, identica alla Roguelike Solo (2–8 Punti Forza quando viene aperta).',
     'Ogni piano Co-op vinto assegna anche 10–15 monete personali a ciascun partecipante, oltre alle monete condivise della spedizione. Non vengono sottratte agli alleati.',
