@@ -4,6 +4,7 @@ import { grantMasteryXP, isMasteryUnlocked, isMasteryEligible } from './masteryS
 import { trainStrength, grantTutorialStrengthUpgrade } from './strengthLab.js';
 import { awardCampaignChest, openCampaignChest, acknowledgeChestReveal } from './campaignChests.js';
 import { grantRoguelikeMilestone, grantRoguelikeCompletion, openPowerChest, acknowledgePowerChest, completeFinnTutorial } from './roguelikePowerRewards.js';
+import {claimCoopPersonalRewards} from './coopPersonalRewards.js';
 
 const masteryEligibleIds = new Set(CHARACTERS.filter(isMasteryEligible).map(char => char.id));
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
@@ -35,6 +36,15 @@ const { getPlayerData } = ctx;
               // Roguelike: una cassa per traguardo di 5 piani della stessa run.
               // La registrazione e il saldo sono nello stesso salvataggio, per
               // impedire doppie ricompense al refresh o al doppio click.
+              if(updates.coopPersonalRewards){
+                  const {runId,lastClearFloor,finished,maxFloor}=updates.coopPersonalRewards;
+                  const result=claimCoopPersonalRewards(current,runId,lastClearFloor,finished,maxFloor);
+                  if(!result.ok)return {ok:false,reason:'Nessun nuovo premio Co-op.',milestones:[],points:0,normalChests:0};
+                  current=result.profile;
+                  localStorage.setItem(key,JSON.stringify(current));
+                  return {ok:true,milestones:result.milestones,points:result.points,
+                    normalChests:result.normalChests,finalPrize:result.finalPrize};
+              }
               if(updates.roguelikeMilestone){
                   const {runId,floor}=updates.roguelikeMilestone;
                   const result=grantRoguelikeMilestone(current,runId,floor);
