@@ -246,6 +246,7 @@ export function nextCoopFloor(room,roster,applyOnEnter=null,random=Math.random){
    }
   }
  return {status:'pre_battle',phaseStartedAt:Date.now(),turnExpiresAt:null,
+  coopTrade:null,coopTradeLastResult:null,
   teams,field,events,postExecStatus:'battling',battleWeather:null,
   fieldTraps:{},fieldTrapSeen:{},actions:emptyActions(),
   healingItemsUsed:{p1:0,p2:0,p3:0,p4:0,p5:0,p6:0,p7:0,p8:0},

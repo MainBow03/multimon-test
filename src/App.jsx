@@ -21,6 +21,7 @@ import { renderRoguelikeMapView } from './screens/roguelike/RoguelikeMapView.jsx
 import { renderRoguelikeCoopLobbyView } from './screens/roguelike/RoguelikeCoopLobbyView.jsx';
 import { RoguelikeCoopCampView } from './screens/roguelike/RoguelikeCoopCampView.jsx';
 import {COOP_STARTERS_PER_PLAYER,prepareCoopDraft,isCoopDraftReady,finishCoopFloor,nextCoopFloor,coopCampPurchase,voteCoopEvent,finalizeCoopEvent} from './systems/coopExpedition.js';
+import {reorderCoopTeam,requestCoopTrade,respondCoopTrade,cancelCoopTrade} from './systems/coopTeamTrades.js';
 import {canSubmitCoopAction,canCommitCoopTurn,coopValidatedActionDelta} from './systems/coopTurnGuards.js';
 import { renderShopView } from './screens/hub/ShopView.jsx';
 import { StrengthLabView } from './screens/hub/StrengthLabView.jsx';
@@ -1585,14 +1586,23 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
     const claimCoopFloor=()=>coopRoomAction(['gameover'],true,
       room=>finishCoopFloor(room,CHARACTERS));
     const startCoopNextFloor=()=>coopRoomAction(['coop_camp'],true,
-      room=>nextCoopFloor(room,CHARACTERS,(char,p,idx,teams,field,events,ctx)=>
-        applyOnEnterPassive(char,p,idx,teams,field,events,ctx.gameMode,ctx.settings,false)));
+      room=>({...nextCoopFloor(room,CHARACTERS,(char,p,idx,teams,field,events,ctx)=>
+        applyOnEnterPassive(char,p,idx,teams,field,events,ctx.gameMode,ctx.settings,false)),
+        coopTrade:null}));
     const buyCoopCampCare=(kind,targetPlayer,targetIdx)=>coopRoomAction(['coop_camp'],false,
       room=>coopCampPurchase(room,CHARACTERS,kind,targetPlayer,targetIdx));
     const castCoopEventVote=choice=>coopRoomAction(['coop_event'],false,
       room=>voteCoopEvent(room,playerRole,choice));
     const closeCoopEventVote=()=>coopRoomAction(['coop_event'],true,
       room=>finalizeCoopEvent(room));
+    const reorderOwnCoopTeam=(from,to,expectedId)=>coopRoomAction(['coop_camp'],false,
+      room=>reorderCoopTeam(room,playerRole,from,to,expectedId));
+    const offerCoopTrade=(target,ownIdx,otherIdx,offeredId,wantedId)=>coopRoomAction(['coop_camp'],false,
+      room=>requestCoopTrade(room,playerRole,target,ownIdx,otherIdx,Date.now(),offeredId,wantedId));
+    const answerCoopTrade=(accepted,tradeId)=>coopRoomAction(['coop_camp'],false,
+      room=>respondCoopTrade(room,playerRole,accepted,Date.now(),tradeId));
+    const withdrawCoopTrade=tradeId=>coopRoomAction(['coop_camp'],false,
+      room=>cancelCoopTrade(room,playerRole,Date.now(),tradeId));
 
     // --- RENDERERS ---
 
@@ -1748,6 +1758,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
         canLead={playerRole==='p1'||!isHostFresh(gameState)}
         onClaimWin={claimCoopFloor} onNext={startCoopNextFloor}
         onPurchase={buyCoopCampCare} onVoteEvent={castCoopEventVote}
+        onReorder={reorderOwnCoopTeam} onTradeOffer={offerCoopTrade}
+        onTradeReply={answerCoopTrade} onTradeCancel={withdrawCoopTrade}
         onFinalizeEvent={closeCoopEventVote} onExit={leaveRoom} personalProfile={getPlayerData()}/>;
     }
 

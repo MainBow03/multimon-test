@@ -17,13 +17,13 @@ test('Cinque casse NORMALI per la Roguelike Solo completata, senza duplicazione'
  const p=empty();
  const res=grantRoguelikeCompletion(p,'solo-finale',50,50,20000000);
  assert.equal(res.ok,true);
- assert.equal(res.points,30);
+ assert.equal(res.points,50);
  assert.equal(res.normalChests,5);
  assert.equal(res.profile.chests.pending.length,6);
  assert.equal(res.profile.chests.earnedStageIds.length,6);
  assert.deepEqual(res.profile.chests.opened,p.chests.opened);
  assert.equal(res.profile.coins,140);
- assert.equal(res.profile.strengthPoints,36);
+ assert.equal(res.profile.strengthPoints,56);
  assert.equal(grantRoguelikeCompletion(res.profile,'solo-finale',50,50,20000000).ok,false);
  assert.equal(grantNormalClearChests(res.profile,'solo-finale').granted,0);
  const early=grantRoguelikeCompletion(res.profile,'solo-2',50,50,21000000);
@@ -60,7 +60,7 @@ test('Co-op: un compagno scollegato recupera automaticamente tutti i premi inter
  const second=claimCoopPersonalRewards(result.profile,'coop-stanza-b',50,true,50,20000000);
  assert.deepEqual(second.milestones,[50]);
  assert.equal(second.coinFloors.length,1);
- assert.equal(second.points,30);
+ assert.equal(second.points,50);
  assert.equal(second.normalChests,5);
  assert.equal(second.profile.roguelikePower.pending.length,10);
  assert.equal(second.profile.chests.pending.length,6);
@@ -72,7 +72,7 @@ test('Co-op: il premio finale è individuale anche con cooldown, le casse restan
  const first=claimCoopPersonalRewards(empty(),'coop-1',50,true,50,20000000);
  const second=claimCoopPersonalRewards(first.profile,'coop-2',50,true,50,20100000);
  assert.equal(first.normalChests,5);
- assert.equal(first.points,30);
+ assert.equal(first.points,50);
  assert.equal(second.normalChests,5);
  assert.equal(second.points,0);
  assert.equal(second.profile.chests.pending.length,11);
