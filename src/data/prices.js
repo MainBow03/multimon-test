@@ -1,4 +1,6 @@
 export const CHAR_PRICES = {
+            'fragolina': 150, 'altramadre': 200, 'blaze': 250,
+            'shadow': 250, 'sonic': 200, 'tails': 200,
             'embermclain': 250, 'kitty': 250,
             'superboy': 250,
             'orsobianco': 250, 'bugsbunny': 250, 'daffyduck': 200, 'diamante': 350,
