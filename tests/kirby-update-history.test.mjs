@@ -117,11 +117,14 @@ test('Registro in gioco: tutte le categorie, 10 nerf e aggiornamenti della conve
 });
 
 test('Registro aggiornamenti: 3 novembre contiene torneo, buff e terza campagna aggiornati',()=>{
-  const sections=GAME_UPDATES.slice(11,16);
-  assert.deepEqual(sections.map(s=>s.id),[
-    'nov3-tournament-roster','nov3-ten-character-buffs','nov3-echomax-final-raid',
-    'nov3-echo-of-souls','nov3-echomax-unlock'
-  ]);
+  // Le nuove pubblicazioni vanno in testa; le note del 3 novembre
+  // devono rimanere presenti e ordinate fra loro, non a indici fissi.
+  const historyIds=['nov3-tournament-roster','nov3-ten-character-buffs',
+    'nov3-echomax-final-raid','nov3-echo-of-souls','nov3-echomax-unlock'];
+  const sections=historyIds.map(id=>GAME_UPDATES.find(s=>s.id===id));
+  assert.ok(sections.every(Boolean));
+  const positions=historyIds.map(id=>GAME_UPDATES.findIndex(s=>s.id===id));
+  assert.deepEqual([...positions].sort((a,b)=>a-b),positions);
   assert.ok(UPDATE_CATEGORIES.some(c=>c.id==='campaigns'));
   for(const section of sections){
     assert.equal(section.date,'03/11/2026');
@@ -136,10 +139,13 @@ test('Registro aggiornamenti: 3 novembre contiene torneo, buff e terza campagna 
   assert.ok(!GAME_UPDATES.find(x=>x.id==='nov3-tournament-roster').items
     .some(item=>item.includes('tutte le modalità')));
   assert.ok(GAME_UPDATES.length>=31);
-  assert.deepEqual(GAME_UPDATES.slice(3,5).map(s=>s.id),['nov3-ten-nerfs','nov3-zeno-omnipotent-gaze']);
-  assert.deepEqual(GAME_UPDATES.slice(5,7).map(s=>s.id),['nov3-zazan-sage-arctic-move-balance','nov3-four-new-passives-bulma']);
-  assert.deepEqual(GAME_UPDATES.slice(7,11).map(s=>s.id),[
-    'nov3-hyper-immediate-moves','nov3-juvia-rainstorm','nov3-glitter-barrel-items','nov3-equipment-ui']);
+  const stableOrder=['nov3-ten-nerfs','nov3-zeno-omnipotent-gaze',
+    'nov3-zazan-sage-arctic-move-balance','nov3-four-new-passives-bulma',
+    'nov3-hyper-immediate-moves','nov3-juvia-rainstorm',
+    'nov3-glitter-barrel-items','nov3-equipment-ui'];
+  const stablePositions=stableOrder.map(id=>GAME_UPDATES.findIndex(x=>x.id===id));
+  assert.ok(stablePositions.every(i=>i>=0));
+  assert.deepEqual(stablePositions,[...stablePositions].sort((a,b)=>a-b));
   assert.equal(UPDATE_COUNT,GAME_UPDATES.reduce((n,x)=>n+x.items.length,0));
 });
 
