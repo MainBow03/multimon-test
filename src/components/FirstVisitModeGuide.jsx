@@ -43,7 +43,7 @@ export const MODE_GUIDES=Object.freeze({
  power_chests:{character:'neon',title:'Casse Potenza',lines:[
   'Queste casse non danno oggetti: ciascuna contiene da 2 a 8 Punti Forza.',
   'Le conquisti ogni cinque piani di Roguelike, anche in Co-op. Spendi i punti nel Laboratorio.']},
- strength_lab:{character:'cyborg',title:'Laboratorio di Potenziamento',lines:[
+ strength_lab:{character:'spyro',title:'Laboratorio di Potenziamento',lines:[
   'Usa i Punti Forza per aumentare permanentemente Attacco, Difesa o Velocità dei Multimon posseduti.',
   'Il laboratorio offre anche una guida pratica e un primo potenziamento gratuito.']},
  shop:{character:'plankton',title:'Negozio di Multimon',lines:[
