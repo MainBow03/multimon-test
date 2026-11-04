@@ -1,4 +1,7 @@
+import { SIX_NEW_MOVES } from './sixNewChampions.js';
+
 export const MOVES_DB = {
+  ...SIX_NEW_MOVES,
   'Raggio dei Caduti': {name:'Raggio dei Caduti',type:'Spettro',power:100,accuracy:0.8,desc:'Raggio spettrale potentissimo su un singolo bersaglio. Precisione 80%.'},
   'Le Tenebre vi Avvolgono': {name:'Le Tenebre vi Avvolgono',type:'Buio',power:70,targetCount:24,desc:'Le tenebre travolgono tutti i bersagli avversari in campo.'},
   'Vieni a Me, Anima': {name:'Vieni a Me, Anima',type:'Spettro',power:0,targetStatDebuff:{def:0.7,spd:0.7},desc:'Indebolisce Difesa e Velocità del bersaglio del 30%.'},
