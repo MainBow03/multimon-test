@@ -1,11 +1,11 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {EmailAuthProvider,linkWithCredential,onAuthStateChanged,sendPasswordResetEmail,
  signInAnonymously,signInWithCustomToken,signInWithEmailAndPassword,signOut} from 'firebase/auth';
-import {auth} from '../firebase/config.js';
+import {auth,ensurePersistentAuth} from '../firebase/config.js';
 import {downloadCloudSave,uploadCloudSave} from '../firebase/cloudSaves.js';
 import {ACTIVE_ACCOUNT_KEY,GUEST_BACKUP_KEY,LOCAL_ACCOUNT_BACKUP_PREFIX,
  collectProgress,clearProgress,progressFingerprint,readLocalBackup,
- restoreProgress,saveLocalBackup} from '../systems/progressStorage.js';
+ restoreProgress,saveLocalBackup,createRecoverySnapshot,listRecoveryBackups} from '../systems/progressStorage.js';
 
 const HASH_KEY='multimon_cloud_last_fingerprint_';
 const field='w-full bg-slate-950 border border-slate-600 rounded-xl px-3 py-3 text-white focus:outline-none focus:border-cyan-400';
@@ -29,11 +29,17 @@ export function AccountGate({children}) {
  const [controlsExpanded,setControlsExpanded]=useState(false);
  const [email,setEmail]=useState(''),[password,setPassword]=useState('');
  const [error,setError]=useState(''),[notice,setNotice]=useState(''),[cloudStatus,setCloudStatus]=useState('');
+ const [storageWarning,setStorageWarning]=useState('');
+ const [backupPanel,setBackupPanel]=useState(false),[backupList,setBackupList]=useState([]);
+ const [restoreRevision,setRestoreRevision]=useState(0);
  const busy=useRef(false),lastUploaded=useRef(''),inFlight=useRef(null),remotePending=useRef(null);
  const fail=e=>{setError(explain(e));setCloudStatus('errore');};
  const emailUser=u=>!!u?.email&&!u?.isAnonymous;
  const backupBeforeSwitch=uid=>{
   const old=localStorage.getItem(ACTIVE_ACCOUNT_KEY);
+  // Prima di applicare qualsiasi salvataggio remoto preserva lo stato
+  // attuale: potrebbe contenere ore di gioco non ancora sincronizzate.
+  createRecoverySnapshot(collectProgress(),'prima-di-cambiare-account');
   if(old&&old!==uid)saveLocalBackup(LOCAL_ACCOUNT_BACKUP_PREFIX+old);
   else if(!old)saveLocalBackup(GUEST_BACKUP_KEY);
  };
@@ -56,16 +62,21 @@ export function AccountGate({children}) {
   const hash=progressFingerprint(collectProgress());
   localStorage.setItem(HASH_KEY+uid,hash);lastUploaded.current=hash;
   remotePending.current=null;setCloudStatus('sincronizzato');setError('');
+  setRestoreRevision(x=>x+1);
   setSession({type:'account',uid});
  }
  async function loadAccount(u) {
   setSession({type:'loading',uid:''});
   const remote=await downloadCloudSave(u.uid);
   if(!remote){setSession({type:'empty',uid:u.uid});return;}
+  if(auth.currentUser?.uid!==u.uid)return;
   const active=localStorage.getItem(ACTIVE_ACCOUNT_KEY);
   const local=collectProgress();
   const localHash=progressFingerprint(local),remoteHash=progressFingerprint(remote);
-  if(active===u.uid&&localHash!==remoteHash&&localHash!==localStorage.getItem(HASH_KEY+u.uid)){
+  const meaningful=Object.keys(local).some(k=>!['multiverse_rpg_saved_name','multiverse_rpg_saved_avatar'].includes(k));
+  // MAI sostituire silenziosamente dati locali divergenti, anche
+  // quando l'hash dell'ultima sincronizzazione non è più aggiornato.
+  if(localHash!==remoteHash&&(active===u.uid||(!active&&meaningful))){
    remotePending.current=remote;setSession({type:'conflict',uid:u.uid});return;
   }
   backupBeforeSwitch(u.uid);activate(u.uid,remote);
@@ -73,10 +84,9 @@ export function AccountGate({children}) {
  function enterGuest(u) {
   const old=localStorage.getItem(ACTIVE_ACCOUNT_KEY);
   if(old){
-   saveLocalBackup(LOCAL_ACCOUNT_BACKUP_PREFIX+old);
-   restoreProgress(readLocalBackup(GUEST_BACKUP_KEY)||{});
-   localStorage.removeItem(ACTIVE_ACCOUNT_KEY);
-   localStorage.removeItem('multiverse_rpg_session');
+   // Una sessione Firebase persa non è un logout richiesto dall'utente!
+   // Non caricare il vecchio ospite, non cancellare dati account e stanza.
+   setSession({type:'reauth',uid:old});return;
   }
   setSession({type:'guest',uid:u?.uid||''});
  }
