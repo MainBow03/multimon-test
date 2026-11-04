@@ -134,13 +134,24 @@ export function AccountGate({children}) {
   if(inFlight.current)await inFlight.current;
   const entries=collectProgress(),hash=progressFingerprint(entries);
   if(!force&&hash===lastUploaded.current)return;
-  const uid=session.uid,job=uploadCloudSave(uid,entries);
+  const uid=session.uid,job=uploadCloudSave(uid,entries,lastUploaded.current);
   inFlight.current=job;setCloudStatus('salvataggio…');
   try {
    await job;lastUploaded.current=hash;localStorage.setItem(HASH_KEY+uid,hash);
    setCloudStatus('sincronizzato');setError('');
-  } catch(e){fail(e);throw e;}
-  finally{if(inFlight.current===job)inFlight.current=null;}
+  } catch(e){
+   if(e?.code==='multimon/cloud-conflict'){
+    try{
+     const remote=await downloadCloudSave(uid);
+     if(remote){
+      remotePending.current=remote;
+      setSession({type:'conflict',uid});
+      setNotice('Il cloud è cambiato da un’altra sessione. Nessun dato è stato sovrascritto.');
+     }else fail(e);
+    }catch(fetchError){fail(fetchError);}
+   }else fail(e);
+   throw e;
+  }finally{if(inFlight.current===job)inFlight.current=null;}
  }
  useEffect(()=>{
   if(session.type!=='account')return;
@@ -232,7 +243,7 @@ export function AccountGate({children}) {
   try{
    if(session.type==='account'){
     if(inFlight.current)await inFlight.current;
-    await uploadCloudSave(previousUid,collectProgress());
+    await uploadCloudSave(previousUid,collectProgress(),lastUploaded.current);
     saveLocalBackup(LOCAL_ACCOUNT_BACKUP_PREFIX+previousUid);
    }
    // Completa prima il logout Firebase, senza cancellare subito il profilo.
