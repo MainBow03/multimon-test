@@ -43,7 +43,7 @@ const { getPlayerData } = ctx;
                   current=result.profile;
                   localStorage.setItem(key,JSON.stringify(current));
                   return {ok:true,milestones:result.milestones,points:result.points,
-                    normalChests:result.normalChests,finalPrize:result.finalPrize};
+                    coins:result.coins,normalChests:result.normalChests,finalPrize:result.finalPrize};
               }
               if(updates.roguelikeMilestone){
                   const {runId,floor}=updates.roguelikeMilestone;
@@ -111,7 +111,12 @@ const { getPlayerData } = ctx;
               }
               if (updates.addStrengthPoints && Number.isFinite(updates.addStrengthPoints) && updates.addStrengthPoints>0)
                   current.strengthPoints=(current.strengthPoints||0)+Math.floor(updates.addStrengthPoints);
-                            if (updates.addCoins) current.coins += updates.addCoins;
+                            if (typeof updates.markModeGuideSeen==='string' &&
+                  /^[a-z_]{2,32}$/.test(updates.markModeGuideSeen)) {
+                  current.modeGuideSeen={...(current.modeGuideSeen||{}),
+                    [updates.markModeGuideSeen]:true};
+              }
+              if (updates.addCoins) current.coins += updates.addCoins;
               if (updates.spendCoins) current.coins -= updates.spendCoins;
               if (updates.buyItem) {
                   // Uno strumento da lotta viene sbloccato una volta per sempre,
