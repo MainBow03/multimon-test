@@ -789,6 +789,7 @@ export const calculateTurnImpl = (ctx, currentActions) => {
 const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDamage: calculateRawDamage, gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, playerName, updateLocalStats, updateState } = ctx;
 
             let events = [];
+            const publicMovesForAi=[];
             // Salvataggio stato d'inizio turno per garantire la suspense visiva
             const startOfTurnTeams = JSON.parse(JSON.stringify(gameState.teams));
             const startOfTurnField = JSON.parse(JSON.stringify(gameState.field));
@@ -1642,7 +1643,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 attacker.lastUsedMove={...move,remainingUses:null};
                 // Si registra solo ciò che il nemico ha DAVVERO mostrato;
                 // mai leggere comandi pendenti di giocatori avversari.
-                events.push({type:'ai_public_move',player,charTeamIdx,
+                publicMovesForAi.push({type:'ai_public_move',player,charTeamIdx,
                   charId:attacker.id,moveName:move.name,moveType:move.type});
                 
                 // Attiva il Cooldown della mossa appena usata
@@ -3568,7 +3569,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
           startOfTurnTeams: startOfTurnTeams, 
           startOfTurnField: startOfTurnField,
           events: events,
-          aiMemory: rememberPublicCpuMoves(gameState.aiMemory,events),
+          aiMemory: rememberPublicCpuMoves(gameState.aiMemory,publicMovesForAi),
           battleReport: accumulateBattleReport(gameState.battleReport, startOfTurnTeams, events,
             {gameMode:gameState.gameMode,settings:gameState.settings}),
           actions: { p1: {}, p2: {}, p3: {}, p4: {}, p5: {}, p6: {}, p7: {}, p8: {} },
