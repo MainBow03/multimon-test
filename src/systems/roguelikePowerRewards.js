@@ -1,5 +1,6 @@
 // Due tipi di casse distinti: queste sono solo per la Roguelike e contengono
 // esclusivamente Punti Forza. I bauli campagna rimangono separati.
+import {grantNormalClearChests} from './modeCompletionRewards.js';
 export const POWER_CHEST_MIN=2;
 export const POWER_CHEST_MAX=8;
 export const POWER_CHEST_EVERY_FLOORS=5;
@@ -37,11 +38,14 @@ export function grantRoguelikeCompletion(profile,runId,completedFloor,maxFloor,n
   if(power.rewardedCompletions.includes(runId))return {ok:false,reason:'Vittoria già registrata.',profile};
   const cooldown=roguelikeBonusRemaining(profile,now);
   const eligible=cooldown===0;
+  const rewardedProfile={...profile,strengthPoints:(profile.strengthPoints||0)+(eligible?ROGUELIKE_FULL_CLEAR_REWARD:0),
+    roguelikePower:{...power,rewardedCompletions:[...power.rewardedCompletions,runId],
+      lastFullClearRewardAt:eligible?now:power.lastFullClearRewardAt}};
+  const chestReward=grantNormalClearChests(rewardedProfile,runId);
   return {ok:true,rewarded:eligible,points:eligible?ROGUELIKE_FULL_CLEAR_REWARD:0,
+    normalChests:chestReward.granted,
     remainingMs:eligible?ROGUELIKE_FULL_CLEAR_COOLDOWN_MS:cooldown,
-    profile:{...profile,strengthPoints:(profile.strengthPoints||0)+(eligible?ROGUELIKE_FULL_CLEAR_REWARD:0),
-      roguelikePower:{...power,rewardedCompletions:[...power.rewardedCompletions,runId],
-        lastFullClearRewardAt:eligible?now:power.lastFullClearRewardAt}}};
+    profile:chestReward.profile};
 }
 export function openPowerChest(profile,random=Math.random,now=Date.now()){
   const power=getPower(profile);
