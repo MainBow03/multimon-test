@@ -26,7 +26,7 @@ export function RoguelikeEventView({event,coins=0,relics=[],trainingUses=0,onCho
       {(event.type==='trainer'||event.altType==='trainer') && <p className="mt-3 text-xs font-bold text-amber-200">
         Allenamenti offensivi usati: {Math.min(3,Math.max(0,Number(trainingUses)||0))}/3 {trainingUsesLeft(trainingUses)===0?'· bonus offensivo esaurito':''}
       </p>}
-      {isCoop && <p className="mt-3 font-bold text-cyan-200">Votazione di squadra: {count}/{humanRoles.length} voti</p>
+      {isCoop && <p className="mt-3 font-bold text-cyan-200">Votazione di squadra: {count}/{humanRoles.length} voti</p>}
     </div>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-7">
       {choices.map(choice=>{
