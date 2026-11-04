@@ -1,6 +1,6 @@
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderMenuView(ctx) {
-const { BarChart, BookOpen, CHARACTERS, GridIcon, IS_PREVIEW, ImageIcon, Shield, ShoppingCart, Swords, Target, Trophy, Upload, Users, Wifi, appMode, getDefaultAvatar, getPlayerData, handleAvatarUpload, handleCreateRoguelikeCoop, handleCreateRoom, handleJoinRoom, handleLocalStart, handleSurvivalStart, handleVsCpuStart, onlineUsers, playerAvatarUrl, playerName, playerTitle, roguelikeState, roomIdInput, sessionId, setAppMode, setPlayerAvatarUrl, setPlayerName, setRoguelikeDraftChoices, setRoguelikeState, setRoomIdInput, setShowOnlinePlayers, setSystemAlert } = ctx;
+const { BarChart, BookOpen, CHARACTERS, GridIcon, IS_PREVIEW, ImageIcon, Shield, ShoppingCart, Swords, Target, Trophy, Upload, Users, Wifi, appMode, getDefaultAvatar, getPlayerData, handleAvatarUpload, handleCreateRoguelikeCoop, handleCreateRoom, handleJoinRoom, handleLocalStart, handleSurvivalStart, handleVsCpuStart, onlineUsers, playerAvatarUrl, playerName, playerTitle, roguelikeState, roomIdInput, sessionId, setAppMode, setPlayerAvatarUrl, setPlayerName, setRoguelikeDraftChoices, setRoguelikeState, setRoomIdInput, setShowOnlinePlayers, setSystemAlert, startWithModeGuide } = ctx;
 if (appMode === 'menu') {
             const playerData = getPlayerData();
             
@@ -19,7 +19,7 @@ if (appMode === 'menu') {
 
             return (
                 <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
-                <button onClick={() => { if(!playerName.trim()) setSystemAlert("Inserisci prima il tuo nome per vedere gli altri!"); else setShowOnlinePlayers(true); }} className="absolute top-4 right-4 bg-slate-900/80 hover:bg-slate-800 border border-cyan-500/50 text-cyan-400 font-bold py-2 px-4 rounded-xl flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] backdrop-blur-sm z-20 hover:-translate-y-0.5">
+                <button onClick={()=>startWithModeGuide('online_players',()=>{ if(!playerName.trim()) setSystemAlert("Inserisci prima il tuo nome per vedere gli altri!"); else setShowOnlinePlayers(true); })} className="absolute top-4 right-4 bg-slate-900/80 hover:bg-slate-800 border border-cyan-500/50 text-cyan-400 font-bold py-2 px-4 rounded-xl flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] backdrop-blur-sm z-20 hover:-translate-y-0.5">
                     <Users size={18}/> Giocatori Online
                 </button>
                 
@@ -87,30 +87,28 @@ if (appMode === 'menu') {
                     </div>
 
                     <div className="pt-4 border-t border-slate-800 space-y-4">
-                        <button onClick={handleCreateRoom} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5">
+                        <button onClick={()=>startWithModeGuide('create_room',handleCreateRoom)} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5">
                              <Wifi size={20}/> Crea Stanza Online (Host)
                         </button>
                         <div className="flex gap-2">
                             <input type="text" value={roomIdInput} onChange={e => setRoomIdInput(e.target.value)} placeholder="Codice Stanza" className="w-1/2 bg-slate-950/50 border border-slate-700 rounded-xl px-4 py-2 text-white text-center font-mono uppercase focus:border-purple-500 outline-none transition-all" />
-                            <button onClick={handleJoinRoom} className="w-1/2 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white font-bold py-2 rounded-xl transition-all shadow-lg hover:-translate-y-0.5">
+                            <button onClick={()=>startWithModeGuide('join_room',handleJoinRoom)} className="w-1/2 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white font-bold py-2 rounded-xl transition-all shadow-lg hover:-translate-y-0.5">
                                 Unisciti
                             </button>
                         </div>
                     </div>
 
                     <div className="pt-4 border-t border-slate-800">
-                         <button onClick={() => {
-                             setAppMode('campaign_select');
-                         }} className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5 mb-3">
+                         <button onClick={()=>startWithModeGuide('campaign',()=>setAppMode('campaign_select'))} className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5 mb-3">
                              <BookOpen size={20}/> Modalità Campagne
                          </button>
-                         <button onClick={handleVsCpuStart} className="w-full mb-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5">
+                         <button onClick={()=>startWithModeGuide('vs_cpu',handleVsCpuStart)} className="w-full mb-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5">
                              <Target size={20}/> Gioca vs CPU (Bot IA)
                         </button>
                         
                         {/* --- PULSANTI ROGUELIKE --- */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                            <button onClick={() => {
+                            <button onClick={() => startWithModeGuide('rogue_solo',()=>{
                                 if (roguelikeState.isStarted && roguelikeState.roster.length > 0) {
                                     setAppMode('roguelike_map');
                                 } else {
@@ -120,7 +118,7 @@ if (appMode === 'menu') {
                                     setRoguelikeState({ isStarted: true, runId: 'run-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2), floor: 1, roster: [], rosterStats: {}, maxFloor: 50, coins: 0, inventory: { pozione: 1 }, isMerchantNext: false, recruitBonus: 0.02, relics: [], encounteredEnemies: [] });
                                     setAppMode('roguelike_draft');
                                 }
-                            }} className="relative w-full bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5">
+                            })} className="relative w-full bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5">
                                  <Trophy size={20}/> Roguelike (Solo)
                                  {roguelikeState.isStarted && roguelikeState.roster.length > 0 && (
                                      <div className="absolute top-0 right-0 -mt-2 -mr-2 text-[10px] font-black bg-black/80 border border-fuchsia-400 px-2 py-1 rounded-lg text-fuchsia-200">
@@ -129,14 +127,14 @@ if (appMode === 'menu') {
                                  )}
                             </button>
 
-                            <button onClick={handleCreateRoguelikeCoop} className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5">
+                            <button onClick={()=>startWithModeGuide('rogue_coop',handleCreateRoguelikeCoop)} className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5">
                                  <Users size={20}/> Roguelike (Co-op)
                             </button>
                         </div>
                         {/* ------------------------------- */}
 
                         {/* --- AGGIUNTO IL PULSANTE SOPRAVVIVENZA --- */}
-                         <button onClick={handleSurvivalStart} className="relative w-full mb-3 bg-gradient-to-r from-violet-700 to-purple-700 hover:from-violet-600 hover:to-purple-600 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5">
+                         <button onClick={()=>startWithModeGuide('survival',handleSurvivalStart)} className="relative w-full mb-3 bg-gradient-to-r from-violet-700 to-purple-700 hover:from-violet-600 hover:to-purple-600 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5">
                              <Shield size={20}/> Modalità Sopravvivenza (Infinita)
                              {playerData.maxSurvivalRound > 0 && (
                                  <div className="absolute right-4 text-xs font-black bg-black/40 border border-violet-400/50 px-2 py-1 rounded-lg text-violet-200 shadow-inner">
@@ -146,18 +144,18 @@ if (appMode === 'menu') {
                         </button>
                         {/* ------------------------------------------ */}
 
-                         <button onClick={handleLocalStart} className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5">
+                         <button onClick={()=>startWithModeGuide('local',handleLocalStart)} className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5">
                              <Users size={20}/> Gioca in Locale (Stesso PC)
                         </button>
                         <div className="grid grid-cols-2 gap-3 mt-4">
-                            <button onClick={() => setAppMode('catalog')} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:-translate-y-0.5 text-sm shadow-md">
+                            <button onClick={()=>startWithModeGuide('catalog',()=>setAppMode('catalog'))} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:-translate-y-0.5 text-sm shadow-md">
                                  <BookOpen size={20}/> Catalogo
                             </button>
-                            <button onClick={() => setAppMode('type_chart')} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:-translate-y-0.5 text-sm shadow-md">
+                            <button onClick={()=>startWithModeGuide('type_chart',()=>setAppMode('type_chart'))} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:-translate-y-0.5 text-sm shadow-md">
                                  <GridIcon size={20}/> Tabella Tipi
                             </button>
                         </div>
-                        <button type="button" onClick={()=>{if(!playerName.trim())setSystemAlert('Inserisci il tuo nome per aprire i bauli!');else setAppMode('chests');}}
+                        <button type="button" onClick={()=>startWithModeGuide('chests',()=>{if(!playerName.trim())setSystemAlert('Inserisci il tuo nome per aprire i bauli!');else setAppMode('chests');})}
                           className="w-full mt-3 bg-gradient-to-r from-amber-800 via-yellow-700 to-amber-900 border border-amber-400/70 hover:brightness-110 rounded-xl py-4 text-white font-black shadow-[0_0_24px_rgba(251,191,36,.16)] flex justify-center items-center gap-3 transition-all">
                           <span className="h-8 w-9 rounded-md bg-gradient-to-br from-yellow-300 via-amber-700 to-slate-900 border-2 border-yellow-200/60 shadow-inner relative">
                             <span className="absolute left-1/2 -translate-x-1/2 top-2 w-2.5 h-3 rounded-sm bg-cyan-300 border border-yellow-200"/>
@@ -165,23 +163,23 @@ if (appMode === 'menu') {
                           </span>
                           <span>Bauli Campagna <span className="block text-xs text-amber-100/85 font-semibold">{playerData.chests?.pending?.length||0} bauli da aprire · 2 premi ciascuno</span></span>
                         </button>
-                        <button type="button" onClick={()=>{if(!playerName.trim())setSystemAlert('Inserisci il tuo nome per aprire le Casse Potenza!');else setAppMode('power_chests');}}
+                        <button type="button" onClick={()=>startWithModeGuide('power_chests',()=>{if(!playerName.trim())setSystemAlert('Inserisci il tuo nome per aprire le Casse Potenza!');else setAppMode('power_chests');})}
                           className="w-full mt-3 bg-gradient-to-r from-cyan-800 via-blue-800 to-indigo-900 border border-cyan-400/65 hover:brightness-110 rounded-xl py-4 text-white font-black shadow-[0_0_24px_rgba(34,211,238,.15)] flex justify-center items-center gap-3 transition-all">
                           <span aria-hidden="true" className="h-9 w-10 rounded-lg bg-gradient-to-br from-cyan-300 via-blue-700 to-indigo-950 border-2 border-cyan-200/60 shadow-inner relative">
                             <span className="absolute left-1/2 -translate-x-1/2 top-2 w-3 h-4 rotate-45 bg-cyan-200 border border-white/70 shadow-[0_0_8px_rgba(103,232,249,.7)]"/>
                           </span>
                           <span>Casse Potenza <span className="block text-xs text-cyan-100/85 font-semibold">{playerData.roguelikePower?.pending?.length||0} disponibili · 2–8 Punti Forza</span></span>
                         </button>
-                        <button onClick={() => { if(!playerName.trim()) setSystemAlert("Inserisci il tuo nome per accedere al Laboratorio!"); else setAppMode('strength_lab'); }}
+                        <button onClick={()=>startWithModeGuide('strength_lab',()=>{ if(!playerName.trim()) setSystemAlert("Inserisci il tuo nome per accedere al Laboratorio!"); else setAppMode('strength_lab'); })}
                             className="w-full mt-3 bg-gradient-to-r from-cyan-700 via-indigo-700 to-violet-800 hover:from-cyan-600 hover:to-violet-700 text-white font-black py-4 rounded-xl border border-cyan-400/60 shadow-[0_0_24px_rgba(34,211,238,.20)] flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5">
                             <span className="text-2xl">⚡</span>
                             <span>Laboratorio di Potenziamento <span className="block text-xs font-semibold text-cyan-100/85">Punti Forza: {playerData.strengthPoints||0} · ATK / DEF / VEL</span></span>
                         </button>
                         <div className="grid grid-cols-2 gap-3 mt-3">
-                            <button onClick={() => { if(!playerName.trim()) setSystemAlert("Inserisci il tuo nome per usare lo Shop!"); else setAppMode('shop'); }} className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 text-sm shadow-md">
+                            <button onClick={()=>startWithModeGuide('shop',()=>{ if(!playerName.trim()) setSystemAlert("Inserisci il tuo nome per usare lo Shop!"); else setAppMode('shop'); })} className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 text-sm shadow-md">
                                  <ShoppingCart size={20}/> Negozio
                             </button>
-                            <button onClick={() => { if(!playerName.trim()) setSystemAlert("Inserisci il tuo nome per vedere le tue statistiche!"); else setAppMode('stats'); }} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 text-sm shadow-md">
+                            <button onClick={()=>startWithModeGuide('stats',()=>{ if(!playerName.trim()) setSystemAlert("Inserisci il tuo nome per vedere le tue statistiche!"); else setAppMode('stats'); })} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 text-sm shadow-md">
                                  <BarChart size={20}/> Statistiche
                             </button>
                         </div>
