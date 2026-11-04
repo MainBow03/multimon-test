@@ -14,7 +14,7 @@ if (appMode === 'campaign_select_protagonist') {
                     </h2>
                     <p className="text-center text-slate-300 mb-10 text-lg">Guiderai l'alleanza prendendo il posto di Topolino.<br/><span className="text-sm text-amber-400">Nota: I personaggi che fanno già parte della storia del Torneo non possono essere scelti.</span></p>
                     
-                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 overflow-y-auto custom-scrollbar max-h-[60vh] p-2">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 overflow-y-auto custom-scrollbar max-h-[65dvh] p-2 sm:p-3">
                         {draftableChars.map(char => (
                             <div key={char.id} onClick={() => {
                                 let newRoster = [...campaignState.roster];
@@ -26,9 +26,11 @@ if (appMode === 'campaign_select_protagonist') {
                                 
                                 setCampaignState(p => ({...p, protagonist: char.id, roster: newRoster, isStarted: true}));
                                 setAppMode('campaign_map');
-                            }} className="bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-slate-700/50 hover:border-amber-400 hover:bg-slate-800 cursor-pointer text-center hover:scale-105 hover:-translate-y-2 hover:shadow-[0_15px_30px_rgba(245,158,11,0.2)] transition-all group">
-                                <img src={char.img} className="w-20 h-20 rounded-full mx-auto mb-3 object-cover border-2 border-slate-600 group-hover:border-amber-400 shadow-md"/>
-                                <div className="font-bold text-xs truncate text-slate-100">{char.name}</div>
+                            }} className="min-w-0 bg-slate-900/80 backdrop-blur-md p-3 sm:p-4 rounded-2xl border border-slate-700/50 hover:border-amber-400 hover:bg-slate-800 cursor-pointer text-center hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(245,158,11,0.2)] transition-all group">
+                                <div className="w-full h-28 sm:h-32 md:h-36 mb-3 rounded-xl flex items-center justify-center border-2 border-slate-600 group-hover:border-amber-400 bg-slate-950/55 p-2">
+                                     <img src={char.img} alt={char.name} loading="lazy" className="w-full h-full object-contain drop-shadow-lg"/>
+                                 </div>
+                                <div className="font-bold text-sm sm:text-base text-slate-100 leading-snug line-clamp-2 min-h-[2.25em] break-words">{char.name}</div>
                             </div>
                         ))}
                     </div>
