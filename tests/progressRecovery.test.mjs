@@ -98,3 +98,14 @@ test('In caso di quota esaurita non viene distrutto un backup esistente',()=>{
  assert.ok(store.getItem(older));
  assert.equal(readLocalBackup(older,store).multiverse_rpg_global_profile,'{"wins":40}');
 });
+
+test('Anche il vecchio profilo legato al nome resta recuperabile prima del login',()=>{
+ const store=memoryStore({
+  multiverse_rpg_stats_vecchio:'{"coins":3500,"wins":40}',
+  multiverse_rpg_saved_name:'Vecchio'
+ });
+ const snapshot=createRecoverySnapshot(collectProgress(store),'migration',store);
+ assert.ok(snapshot);
+ assert.equal(readLocalBackup(snapshot,store).multiverse_rpg_stats_vecchio,
+  '{"coins":3500,"wins":40}');
+});
