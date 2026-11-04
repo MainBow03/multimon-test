@@ -92,7 +92,7 @@ export function PowerChestsView({profile,onOpen,onAcknowledge,onTutorialComplete
     </div>
    </section>
    <section className="border border-violet-400/35 bg-slate-900/75 rounded-2xl p-4 sm:p-6 flex flex-wrap gap-4 justify-between items-center">
-    <div className="space-y-2"><h3 className="text-xl font-black text-white">Premio per vittoria completa: +30 PF</h3>
+    <div className="space-y-2"><h3 className="text-xl font-black text-white">Premio per vittoria completa: +50 PF</h3>
      <p className="text-sm text-slate-300">Una volta ogni 4 ore dall'ultima vittoria premiata, anche se giochi altre run durante l'attesa.</p></div>
     <div className="text-center rounded-xl border border-violet-400/45 bg-slate-950/80 p-4 min-w-[165px]">
      <p className="text-xs font-bold text-violet-300">PROSSIMO BONUS</p>
