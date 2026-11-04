@@ -24,7 +24,7 @@ export function powerChestRangeForStage(stageId){
     return LEGACY_CHEST_RANGE;
   return powerChestRangeForFloor(floor);
 }
-export const ROGUELIKE_FULL_CLEAR_REWARD=30;
+export const ROGUELIKE_FULL_CLEAR_REWARD=50;
 export const ROGUELIKE_FULL_CLEAR_COOLDOWN_MS=4*60*60*1000;
 export const FINN_CHEST_IMAGE='https://i.pinimg.com/736x/af/d3/97/afd3975c34007f3d6a888de9e6b416e0.jpg';
 export const emptyRoguelikePower=()=>({
