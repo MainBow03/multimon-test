@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {grantRoguelikeMilestone,grantRoguelikeCompletion,roguelikeBonusRemaining,
   openPowerChest,acknowledgePowerChest,completeFinnTutorial,FINN_CHEST_IMAGE,
-  ROGUELIKE_FULL_CLEAR_COOLDOWN_MS,POWER_CHEST_MIN,POWER_CHEST_MAX} from '../src/systems/roguelikePowerRewards.js';
+  ROGUELIKE_FULL_CLEAR_COOLDOWN_MS,POWER_CHEST_MIN,POWER_CHEST_MAX,POWER_CHEST_TIERS,
+  powerChestRangeForFloor,powerChestRangeForStage} from '../src/systems/roguelikePowerRewards.js';
 import {updateLocalStatsImpl} from '../src/systems/profileSystem.js';
 const profile=()=>({coins:200,strengthPoints:0,strengthUpgrades:{},inventory:{},unlockedChars:[],chars:{},moves:{},matches:0,wins:0,playtime:0});
 const read=(path)=>readFileSync(new URL(path,import.meta.url),'utf8');
@@ -25,22 +26,61 @@ test('Cassa Potenza ogni 5 piani completati, mai in altri piani',()=>{
  assert.equal(grantRoguelikeMilestone(p,'',5).ok,false);
 });
 
-test('Cassa Potenza: solo 2–8 PF, probabilità uniforme, premio accreditato prima della rivelazione',()=>{
- let p=grantRoguelikeMilestone(profile(),'run-a',5).profile;
- for(const [random,expected] of [[0,2],[.14,2],[.143,3],[.5,5],[.999,8]]){
-   const chest=openPowerChest(p,()=>random,12345);
-   assert.equal(chest.ok,true);
-   assert.equal(chest.points,expected);
-   assert.equal(chest.profile.strengthPoints,expected);
-   assert.equal(chest.profile.roguelikePower.pending.length,0);
-   assert.equal(chest.profile.roguelikePower.activeReveal.points,expected);
-   assert.equal(openPowerChest(chest.profile,()=>1).ok,false);
-   const receipt=acknowledgePowerChest(chest.profile);
-   assert.equal(receipt.ok,true);
-   assert.equal(receipt.profile.strengthPoints,expected);
+test('Casse Potenza: quattro fasce progressive in base al piano raggiunto',()=>{
+ const table=[
+  {floor:5,min:3,max:8},{floor:10,min:3,max:8},{floor:15,min:3,max:8},
+  {floor:20,min:5,max:11},{floor:25,min:5,max:11},{floor:30,min:5,max:11},
+  {floor:35,min:7,max:14},{floor:40,min:7,max:14},{floor:45,min:7,max:14},
+  {floor:50,min:10,max:18}
+ ];
+ assert.deepEqual(POWER_CHEST_TIERS,[
+  {from:5,to:15,min:3,max:8},
+  {from:20,to:30,min:5,max:11},
+  {from:35,to:45,min:7,max:14},
+  {from:50,to:50,min:10,max:18}
+ ]);
+ assert.equal(POWER_CHEST_MIN,3);
+ assert.equal(POWER_CHEST_MAX,18);
+ for(const tier of table){
+  assert.equal(powerChestRangeForFloor(tier.floor).min,tier.min);
+  assert.equal(powerChestRangeForFloor(tier.floor).max,tier.max);
+  for(const [roll,expected] of [[0,tier.min],[.999999,tier.max]]){
+   const p=grantRoguelikeMilestone(profile(),'solo-'+tier.floor,tier.floor).profile;
+   const result=openPowerChest(p,()=>roll,12345);
+   assert.equal(result.ok,true,'Piano '+tier.floor);
+   assert.equal(result.points,expected,'Piano '+tier.floor+', roll '+roll);
+   assert.equal(result.profile.strengthPoints,expected);
+   assert.equal(result.profile.roguelikePower.activeReveal.points,expected);
+   assert.equal(result.profile.roguelikePower.pending.length,0);
+   assert.equal(openPowerChest(result.profile,()=>roll).ok,false);
+   const acknowledged=acknowledgePowerChest(result.profile);
+   assert.equal(acknowledged.ok,true);
+   assert.equal(acknowledged.profile.strengthPoints,expected);
+  }
  }
- assert.equal(POWER_CHEST_MIN,2);assert.equal(POWER_CHEST_MAX,8);
  assert.equal(openPowerChest(profile(),()=>0).ok,false);
+});
+
+test('L’importo dipende dall’ID della cassa, anche in Co-op e per casse vecchie non aperte',()=>{
+ let p=profile();
+ for(const floor of [5,20,35,50]){
+  p=grantRoguelikeMilestone(p,'coop-example',floor).profile;
+ }
+ const expected=[[5,3,8],[20,5,11],[35,7,14],[50,10,18]];
+ for(const [floor,min,max] of expected){
+  const stage=p.roguelikePower.pending[0];
+  assert.equal(stage,'coop-example:'+floor);
+  assert.equal(powerChestRangeForStage(stage).min,min);
+  assert.equal(powerChestRangeForStage(stage).max,max);
+  const opened=openPowerChest(p,()=>.999,12345);
+  assert.equal(opened.points,max);
+  p=acknowledgePowerChest(opened.profile).profile;
+ }
+ assert.equal(p.roguelikePower.pending.length,0);
+ // Legacy: se un vecchio salvataggio non registra il piano, nessun crash.
+ const legacy={...profile(),roguelikePower:{pending:['vecchia-cassa'],opened:[],earnedMilestones:[]}};
+ assert.equal(powerChestRangeForStage('vecchia-cassa').min,2);
+ assert.equal(openPowerChest(legacy,()=>0).points,2);
 });
 
 test('Vittoria Roguelike: +30 PF solo al primo clear valido e di nuovo dopo 4h',()=>{
@@ -92,7 +132,7 @@ test('Il profilo salva casse, ricompense, mini-dialoghi e cooldown con operazion
    assert.equal(updateLocalStatsImpl({getPlayerData},{roguelikeMilestone:{runId:'run-a',floor:5}}).ok,false);
    assert.equal(updateLocalStatsImpl({getPlayerData},{openPowerChest:true}).ok,true);
    const p=getPlayerData();
-   assert.ok(p.strengthPoints>=2&&p.strengthPoints<=8);
+   assert.ok(p.strengthPoints>=3&&p.strengthPoints<=8);
    assert.equal(updateLocalStatsImpl({getPlayerData},{openPowerChest:true}).ok,false);
    assert.equal(updateLocalStatsImpl({getPlayerData},{acknowledgePowerChest:true}).ok,true);
    assert.equal(updateLocalStatsImpl({getPlayerData},{completeFinnTutorial:'campaign'}).ok,true);
