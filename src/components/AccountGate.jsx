@@ -91,21 +91,41 @@ export function AccountGate({children}) {
   setSession({type:'guest',uid:u?.uid||''});
  }
  useEffect(()=>{
-  let disposed=false;
-  const off=onAuthStateChanged(auth,async user=>{
-   if(disposed||busy.current)return;
-   try {
-    if(!user){
-     busy.current=true;
-     try {
-      if(typeof __initial_auth_token!=='undefined'&&__initial_auth_token)await signInWithCustomToken(auth,__initial_auth_token);
-      else await signInAnonymously(auth);
-     } finally {busy.current=false;}
-     if(!disposed)enterGuest(auth.currentUser);
-    } else if(!emailUser(user))enterGuest(user);
-    else await loadAccount(user);
-   } catch(e){if(!disposed){fail(e);setSession({type:'error',uid:user?.uid||''});}}
-  });
+  let disposed=false,off=()=>{};
+  (async()=>{
+    try{
+      await ensurePersistentAuth();
+    }catch(error){
+      if(!disposed)setStorageWarning('Il browser sta bloccando il salvataggio dell’accesso. Consenti i dati del sito ed evita la navigazione in incognito; altrimenti potrebbe richiedere di accedere di nuovo.');
+    }
+    if(disposed)return;
+    off=onAuthStateChanged(auth,async user=>{
+      if(disposed||busy.current)return;
+      try {
+        if(!user){
+          // Se esiste un account precedente NON avviare un nuovo ospite.
+          // La copia locale rimane visibile e recuperabile dopo il login.
+          const known=localStorage.getItem(ACTIVE_ACCOUNT_KEY);
+          if(known){setMode('login');setSession({type:'reauth',uid:known});return;}
+          busy.current=true;
+          try {
+            if(typeof __initial_auth_token!=='undefined'&&__initial_auth_token)
+              await signInWithCustomToken(auth,__initial_auth_token);
+            else await signInAnonymously(auth);
+          }finally{busy.current=false;}
+          if(!disposed)enterGuest(auth.currentUser);
+        }else if(!emailUser(user)){
+          const known=localStorage.getItem(ACTIVE_ACCOUNT_KEY);
+          if(known){setMode('login');setSession({type:'reauth',uid:known});}
+          else enterGuest(user);
+        }else await loadAccount(user);
+      }catch(error){
+        if(!disposed){fail(error);setSession({type:'error',uid:user?.uid||''});}
+      }
+    },error=>{
+      if(!disposed){fail(error);setSession({type:'error',uid:auth.currentUser?.uid||''});}
+    });
+  })();
   return()=>{disposed=true;off();};
  },[]);
  async function saveNow(force=false) {
@@ -124,10 +144,21 @@ export function AccountGate({children}) {
  useEffect(()=>{
   if(session.type!=='account')return;
   const tick=()=>{saveNow().catch(()=>{});};
-  const timer=setInterval(tick,7000);
+  // Due secondi limitano i progressi non sincronizzati in caso di chiusura.
+  // Non parte alcuna scrittura se l'impronta dei dati è invariata.
+  const timer=setInterval(tick,2000);
   const hide=()=>{if(document.visibilityState==='hidden')tick();};
+  const leave=()=>tick();
+  const backOnline=()=>tick();
   document.addEventListener('visibilitychange',hide);
-  return()=>{clearInterval(timer);document.removeEventListener('visibilitychange',hide);};
+  window.addEventListener('pagehide',leave);
+  window.addEventListener('online',backOnline);
+  return()=>{
+    clearInterval(timer);
+    document.removeEventListener('visibilitychange',hide);
+    window.removeEventListener('pagehide',leave);
+    window.removeEventListener('online',backOnline);
+  };
  },[session.type,session.uid]);
  async function loginOrRegister(event) {
   event.preventDefault();if(busy.current)return;
