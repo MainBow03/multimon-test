@@ -1,4 +1,4 @@
-import {maybeRogueEvent,canChooseRogueEvent,applyCoopRogueChoice,getRogueEvent} from './roguelikeEvents.js';
+import {maybeRogueEvent,canChooseRogueEvent,applyCoopRogueChoice,getRogueEvent,applyRogueEntryMoss,rogueAdvancedEnemyPool} from './roguelikeEvents.js';
 import {empowerRoguelikeBoss} from './roguelikeBossPower.js';
 // Funzioni pure per la spedizione co-op. La stanza Firestore è la sola fonte di verità.
 export const COOP_HUMANS=['p1','p2','p3'];
@@ -98,6 +98,7 @@ export function coopEnemyForFloor(floor,roster,playerCount=3,encountered=[],rand
  let eligible=roster.filter(c=>!c.isSummonOnly&&!c.isCampaignMonster && (
   end?(c.isSecretUnlock||c.price>=300||['trigon','gaster','cell'].includes(c.id)):!c.isSecretUnlock));
  if(!eligible.length)eligible=roster.filter(c=>!c.isSummonOnly);
+ eligible=rogueAdvancedEnemyPool(eligible,floor);
  const unseen=eligible.filter(c=>!encountered.includes(c.id));
  const pool=unseen.length?unseen:eligible;
  const base=pool[Math.floor(random()*pool.length)]||roster.find(c=>!c.isSummonOnly);
@@ -181,7 +182,7 @@ export function finishCoopFloor(room,roster,random=Math.random){
    if(c.hp>0)c.hp=Math.min(c.maxHp,c.hp+Math.floor(c.maxHp*.4));
  const lastEnemies=[...new Set([...(run.encounteredEnemies||[]),...(room.teams?.p4||[]).filter(real).map(c=>c.id)])];
  const complete=floor>=COOP_MAX_FLOOR;
- const nextEvent=complete?null:maybeRogueEvent(floor+1,COOP_MAX_FLOOR,run.relics||[],random,true);
+ const nextEvent=complete?null:maybeRogueEvent(floor+1,COOP_MAX_FLOOR,run.relics||[],random,true,run.trainingUses||0);
  return {status:complete?'coop_complete':nextEvent?'coop_event':'coop_camp',teams,
   coopRun:{...run,floor:complete?floor:floor+1,lastClearFloor:floor,
    coins:(run.coins||0)+coins,lastCoins:coins,lastRecruit:recruited,
@@ -228,7 +229,7 @@ export function nextCoopFloor(room,roster,applyOnEnter=null,random=Math.random){
  const relics=room.coopRun?.relics||[], nextBattlePower=room.coopRun?.nextBattlePower||1;
  for(const p of humans){
   teams[p]=(room.teams[p]||[]).filter(real).map(c=>freshCoopFighter(roster.find(b=>b.id===c.id)||c,c));
-  for(const c of teams[p]){c.rogueRelics=[...relics];c.roguePowerBonus=nextBattlePower;c.rogueShiftUsed=false;}
+  for(const c of teams[p]){c.rogueRelics=[...relics];c.roguePowerBonus=nextBattlePower;c.rogueShiftUsed=false;applyRogueEntryMoss(c,relics);}
   const idx=teams[p].findIndex(c=>c.hp>0);
   if(idx>=0)field[p]=[idx];
  }
@@ -267,18 +268,18 @@ export function voteCoopEvent(room,player,choiceId){
  const humans=coopHumanPlayers(room);
  if(!humans.includes(player))throw new Error('Non partecipi alla spedizione.');
  const run=room.coopRun;
- if(!canChooseRogueEvent(run.pendingEvent,choiceId,run.coins,run.relics))
+ if(!canChooseRogueEvent(run.pendingEvent,choiceId,run.coins,run.relics,run.trainingUses))
    throw new Error('Questa scelta non è disponibile.');
  const votes={...(run.eventVotes||{}),[player]:choiceId};
  if(humans.every(p=>votes[p])){
-   const chosen=chooseCoopEventWinner(run.pendingEvent,votes,humans);
+   const chosen=chooseCoopEventWinner(run.pendingEvent,votes,humans,run.trainingUses);
    return applyCoopRogueChoice({...room,coopRun:{...run,eventVotes:votes}},chosen);
  }
  return {coopRun:{...run,eventVotes:votes}};
 }
 
-export function chooseCoopEventWinner(event,votes,humans){
- const choices=event?.altType?['pathA','pathB']:(getRogueEvent(event)?.choices.map(c=>c.id)||[]);
+export function chooseCoopEventWinner(event,votes,humans,trainingUses=0){
+ const choices=event?.altType?['pathA','pathB']:(getRogueEvent(event)?.choices.map(c=>c.id).filter(id=>canChooseRogueEvent(event,id,Infinity,[],trainingUses))||[]);
  if(!choices.length)throw new Error('Evento sconosciuto.');
  const ranked=choices.map(id=>({id,count:humans.filter(p=>votes[p]===id).length}));
  ranked.sort((a,b)=>b.count-a.count);
@@ -302,8 +303,8 @@ export function finalizeCoopEvent(room,now=Date.now()){
  if(now-(room.phaseStartedAt||now)<75000)
    throw new Error('Attendi il termine del tempo per i voti.');
  const humans=coopHumanPlayers(room);
- const chosen=chooseCoopEventWinner(room.coopRun.pendingEvent,room.coopRun.eventVotes||{},humans);
- if(!canChooseRogueEvent(room.coopRun.pendingEvent,chosen,room.coopRun.coins,room.coopRun.relics))
+ const chosen=chooseCoopEventWinner(room.coopRun.pendingEvent,room.coopRun.eventVotes||{},humans,room.coopRun.trainingUses);
+ if(!canChooseRogueEvent(room.coopRun.pendingEvent,chosen,room.coopRun.coins,room.coopRun.relics,room.coopRun.trainingUses))
    throw new Error('La scelta non è disponibile.');
  return applyCoopRogueChoice(room,chosen);
 }
