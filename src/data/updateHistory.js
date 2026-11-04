@@ -13,6 +13,18 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov4-coop-personal-rewards-guided-menu',category:'features',date:'04/11/2026',title:'🎁 Premi Roguelike Co-op per tutti + 16 guide dei personaggi',items:[
+    'Roguelike Co-op: ogni giocatore umano riceve sul proprio profilo una Cassa Potenza ogni 5 piani superati, identica alla Roguelike Solo (2–8 Punti Forza quando viene aperta).',
+    'Ogni piano Co-op vinto assegna anche 10–15 monete personali a ciascun partecipante, oltre alle monete condivise della spedizione. Non vengono sottratte agli alleati.',
+    'Al piano 50 completato, ogni partecipante riceve individualmente il premio finale di 30 Punti Forza, se sono trascorse 4 ore dall’ultimo bonus, e 5 Bauli normali con due ricompense ciascuno.',
+    'Anche la Roguelike Solo ora assegna 5 Bauli normali quando completi tutti i 50 piani. Sono riscattabili dal menu Bauli Campagna.',
+    'Premi protetti contro doppi click e ricaricamenti con ID unici della spedizione. Il recupero automatico permette a chi era scollegato di riscattare i traguardi della sua stessa squadra al rientro.',
+    'Le casse e i punti vengono registrati nel profilo personale e sincronizzati con il cloud del relativo account, mai nel portafoglio comune della stanza.',
+    'La prima volta che clicchi ogni pulsante principale, un personaggio dedicato appare con una guida illustrata e due brevi spiegazioni; dopo la conferma la lezione non si ripete e la preferenza viene salvata.',
+    'Goku presenta Gioca vs CPU, Plankton il Negozio, Finn la Roguelike Solo e Natsu la Co-op; anche Campagne, PvP, Locale, Sopravvivenza, Catalogo, Tipi, Bauli, Casse Potenza, Laboratorio e Statistiche hanno ciascuno una guida diversa.',
+    'Le vecchie guide di Finn e del Professore nel Laboratorio e nelle Casse continuano a funzionare, con le spiegazioni aggiornate sui nuovi premi.'
+  ]},
+
   {id:'nov4-torneo-assoluto-recovery',category:'fixes',date:'04/11/2026',title:'🏆 Recupero speciale dei progressi della seconda campagna',items:[
     'Aggiunto un recupero una tantum tramite codice privato nella sezione Account e Salvataggi Cloud, disponibile solo dopo l’accesso con email.',
     'Ripristina il completamento delle 10 missioni del Torneo Assoluto, sblocca la campagna successiva e recupera solo le casse delle missioni non ancora premiate.',
