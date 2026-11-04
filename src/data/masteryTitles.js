@@ -3,6 +3,11 @@
 // la loro eleggibilità è definita in masterySystem.js.
 // Ogni titolo è esclusivo di un singolo Multimon; nessun effetto sulle statistiche.
 export const MASTERY_CHARACTER_TITLES = Object.freeze({
+  "starbutterfly": "Principessa delle Dimensioni",
+  "samtotallyspies": "Mente Geniale del WOOHP",
+  "clover": "Regina delle Missioni Segrete",
+  "superman": "L’Uomo d’Acciaio",
+  "blueberrymuffin": "Custode delle Mille Ricette",
   "fragolina": "Regina dei Dolci Frutti",
   "altramadre": "Tessitrice dell’Altro Mondo",
   "blaze": "Guardiana delle Sol Emerald",
