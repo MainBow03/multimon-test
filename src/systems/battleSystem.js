@@ -1,4 +1,5 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
+import {generateStrategicCpuActions,rememberPublicCpuMoves} from './strategicCpu.js';
 import {rogueDamageFactor} from './roguelikeEvents.js';
 import { applyBattleStatModifier } from './statBalance.js';
 import { applyPerfezioneBonus, firstHitProtectionFactor } from './nerfPassives.js';
@@ -486,6 +487,7 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
             let nextState = {
               status: 'pre_battle',
               phaseStartedAt: Date.now(),
+              aiMemory: {},
               battleWeather: null,
               fieldTraps: {},
               fieldTrapSeen: {}, 
@@ -541,253 +543,14 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
           
 };
 
-export const generateCPUActionsForPlayerImpl = (ctx, cpuPlayer, currentActions) => {
-const { gameState, getActivePlayers, getMultiplier, getTournamentMatchOpponents, roguelikeState } = ctx;
-
-                let cpuActions = {};
-                // FIX: Previene crash se il field del giocatore è assente
-                if (!gameState.field[cpuPlayer]) return cpuActions;
-
-                const activeMatchPlayers = getActivePlayers(); // FIX: Spostato fuori per evitare ReferenceError
-                
-                let enemyTeams = [];
-                if (gameState.gameMode === 'multipla') {
-                    enemyTeams = ['p1', 'p2'].includes(cpuPlayer) ? ['p3', 'p4'] : ['p1', 'p2'];
-                } else if (gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') {
-                    const juggPlayer = gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1');
-                    enemyTeams = cpuPlayer === juggPlayer ? activeMatchPlayers.filter(p => p !== juggPlayer) : [juggPlayer];
-                } else if (gameState.gameMode === 'torneo') {
-                    enemyTeams = getTournamentMatchOpponents(cpuPlayer);
-                } else if (gameState.gameMode === 'torneo_punti') {
-                    enemyTeams = [activeMatchPlayers.find(p => p !== cpuPlayer)];
-                } else if (gameState.gameMode === 'battleroyale') {
-                    enemyTeams = activeMatchPlayers.filter(p => p !== cpuPlayer);
-                } else {
-                    enemyTeams = [cpuPlayer === 'p1' ? 'p2' : 'p1'];
-                }
-
-                let possibleEnemies = [];
-                enemyTeams.forEach(ePlayer => {
-                    if(ePlayer && gameState.field[ePlayer]) {
-                        gameState.field[ePlayer].forEach((fIdx, arrIdx) => {
-                            let eChar = gameState.teams[ePlayer]?.[fIdx];
-                            if (eChar && eChar.hp > 0) {
-                                possibleEnemies.push({ player: ePlayer, idx: fIdx, fieldIdx: arrIdx, char: eChar });
-                            }
-                        });
-                    }
-                });
-
-                // --- FIX: MESCOLIAMO I NEMICI PER EVITARE IL BIAS POSIZIONALE (ATTACCO SEMPRE A SINISTRA) ---
-                possibleEnemies.sort(() => 0.5 - Math.random());
-
-                gameState.field[cpuPlayer].forEach((charTeamIdx, fieldIdx) => {
-                    if (cpuActions[charTeamIdx]) return; // FIX: Se ha già un'azione (es. combo_assist del compagno), salta la valutazione
-                    
-                    // FIX CRITICO: Se il giocatore ha già scelto una mossa (e stiamo completando i buchi), la conserviamo!
-                    if (currentActions[cpuPlayer] && currentActions[cpuPlayer][charTeamIdx]) {
-                        cpuActions[charTeamIdx] = currentActions[cpuPlayer][charTeamIdx];
-                        return;
-                    }
-                    
-                    const cpuChar = gameState.teams[cpuPlayer]?.[charTeamIdx];
-                    if (!cpuChar || cpuChar.hp <= 0) return; // FIX: Sicurezza aggiuntiva contro morti in tempo reale
-
-                    let bestAction = null;
-                    let bestScore = -1;
-
-                    // 1. Priorità Cure se in fin di vita
-                    if (gameState.inventory[cpuPlayer].cura_totale > 0 && cpuChar.hp < (cpuChar.maxHp * 0.30)) {
-                        bestAction = { type: 'use_item', itemId: 'cura_totale', targetIdx: charTeamIdx };
-                        bestScore = 10000;
-                    } else if (gameState.inventory[cpuPlayer].pozione > 0 && cpuChar.hp < (cpuChar.maxHp * 0.50)) {
-                        bestAction = { type: 'use_item', itemId: 'pozione', targetIdx: charTeamIdx };
-                        bestScore = 8000;
-                    } else if (gameState.inventory[cpuPlayer].pozione_rigenerante > 0 && !cpuChar.statuses.some(s => s.type === 'Rigenerazione') && cpuChar.hp < (cpuChar.maxHp * 0.70)) {
-                        bestAction = { type: 'use_item', itemId: 'pozione_rigenerante', targetIdx: charTeamIdx };
-                        bestScore = 7500;
-                    }
-
-                    // 2. Valutazione Mosse Strategiche
-                    if (!bestAction) {
-                        cpuChar.moves.forEach((move, moveIdx) => {
-                            if (move.remainingUses === 0) return;
-                            if (move.currentCooldown && move.currentCooldown > 0) return; // IA ignora le mosse in cooldown
-                            // FIX: Controlla che 'c' esista prima di leggerne l'ID per evitare crash
-                            if (move.requireSummonsDead && gameState.teams[cpuPlayer].some(c => c && move.requireSummonsDead.includes(c.id) && c.hp > 0)) return;
-                            if (move.requiredStatus && !cpuChar.statuses.some(s => s.type === move.requiredStatus)) return; // IA ignora se manca status
-
-                            if (move.isCombo) {
-                                // FIX: Ignora i null/undefined prima di leggere c.hp
-                                const myFieldChars = gameState.field[cpuPlayer].map(idx => gameState.teams[cpuPlayer][idx]).filter(c => c && c.hp > 0);
-                                const myFieldIds = myFieldChars.map(c => c.id);
-                                if (!move.isCombo.every(id => myFieldIds.includes(id))) return;
-                            }
-
-                            if (move.target === 'self' || move.targetMode === 'team_smart_heal' || move.targetMode === 'team' || move.isProtect || move.isSummon || move.randomSummon) {
-                                // Mosse di Supporto
-                                let score = 0; 
-                                if (move.heal || move.healAlone || move.healLastTurnDamage) {
-                                    if (cpuChar.hp < cpuChar.maxHp * 0.5) score += 150;
-                                } else if (move.isProtect) {
-                                    if ((cpuChar.consecutiveProtect || 0) > 0) score += 0;
-                                    else score += 50;
-                                } else if (move.statBuff || move.targetStatBuff) {
-                                    score += 40;
-                                } else if (move.isSummon || move.randomSummon) {
-                                    score += 80;
-                                } else {
-                                    score += 30;
-                                }
-
-                                if (score > 0) score += Math.random() * 30; 
-                                
-                                if (score > bestScore) {
-                                    bestScore = score;
-                                    bestAction = { type: 'attack', moveIdx, targetPlayer: cpuPlayer, targetIdx: charTeamIdx };
-                                }
-                            } else if (move.targetMode === 'revive') {
-                                let myTeamPlayers = [cpuPlayer];
-                                if (gameState.gameMode === 'multipla') {
-                                    myTeamPlayers = ['p1', 'p2'].includes(cpuPlayer) ? ['p1', 'p2'] : ['p3', 'p4'];
-                                } else if (gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') {
-                                    const juggPlayer = gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1');
-                                    if (cpuPlayer !== juggPlayer) {
-                                        myTeamPlayers = activeMatchPlayers.filter(p => p !== juggPlayer);
-                                    }
-                                }
-                                // Le mosse revive nel Torneo agiscono solo su se stessi (il proprio alleato)
-                                
-                                let bestDeadAlly = null;
-                                myTeamPlayers.forEach(p => {
-                                    gameState.teams[p]?.forEach((c, idx) => {
-                                        if (c.hp <= 0 && !c.isSummonOnly) {
-                                            bestDeadAlly = { player: p, idx: idx };
-                                        }
-                                    });
-                                });
-
-                                if (bestDeadAlly) {
-                                    let score = 200 + Math.random() * 50;
-                                    if (score > bestScore) {
-                                        bestScore = score;
-                                        bestAction = { type: 'attack', moveIdx, targetPlayer: bestDeadAlly.player, targetIdx: bestDeadAlly.idx };
-                                    }
-                                }
-                            } else if (move.targetMode === 'ally') {
-                                let allyScore = 0;
-                                let bestAlly = null;
-                                let myTeamPlayers = [cpuPlayer];
-                                if (gameState.gameMode === 'multipla') {
-                                    myTeamPlayers = ['p1', 'p2'].includes(cpuPlayer) ? ['p1', 'p2'] : ['p3', 'p4'];
-                                } else if (gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') {
-                                    const juggPlayer = gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1');
-                                    if (cpuPlayer !== juggPlayer) {
-                                        myTeamPlayers = activeMatchPlayers.filter(p => p !== juggPlayer);
-                                    }
-                                }
-                                
-                                myTeamPlayers.forEach(allyPlayer => {
-                                     gameState.field[allyPlayer]?.forEach((aIdx, aFieldIdx) => {
-                                          const aChar = gameState.teams[allyPlayer][aIdx];
-                                          if (aChar && aChar.hp > 0 && aChar.hp < aChar.maxHp * 0.5) {
-                                              allyScore = 150 + Math.random() * 20;
-                                              bestAlly = { p: allyPlayer, i: aIdx, fi: aFieldIdx };
-                                          }
-                                     });
-                                });
-                                
-                                if (bestAlly && allyScore > bestScore) {
-                                    bestScore = allyScore;
-                                    bestAction = { type: 'attack', moveIdx, targetPlayer: bestAlly.p, targetIdx: bestAlly.i, targetFieldIdx: bestAlly.fi };
-                                }
-                            } else if (move.targetCount && move.targetCount > 1 && move.targetCount < 4) {
-                                // Mosse di Attacco a bersagli multipli (es. 2 bersagli)
-                                let targets = [...possibleEnemies].sort(() => 0.5 - Math.random()).slice(0, move.targetCount);
-                                if (targets.length > 0) {
-                                    let score = 50 + (targets.length * 20) + Math.random() * 20; 
-                                    if (score > bestScore) {
-                                        bestScore = score;
-                                        bestAction = { 
-                                            type: 'attack', 
-                                            moveIdx, 
-                                            selectedTargets: targets.map(t => ({ player: t.player, idx: t.idx, fieldIdx: t.fieldIdx }))
-                                        };
-                                    }
-                                }
-                            } else {
-                                // Mosse di Attacco contro Nemici
-                                possibleEnemies.forEach(target => {
-                                    let score = 30;
-                                    if (move.power > 0) {
-                                        const mult = getMultiplier(move.type, target.char.types);
-                                        const dmgEst = (move.power * mult * (cpuChar.atk / Math.max(1, target.char.def))) / 2;
-                                        score += dmgEst;
-                                        if (dmgEst >= target.char.hp) score += 5000; 
-                                        if (mult > 1) score += 100;
-                                    }
-                                    if (move.statusEffect) score += 60; 
-                                    if (move.drain && cpuChar.hp < cpuChar.maxHp) score += 80;
-
-                                    // Aumentato il fattore random per rendere le scelte della CPU meno robotiche a parità di efficacia
-                                    score += Math.random() * 40; 
-
-                                    if (score > bestScore) {
-                                        bestScore = score;
-                                        bestAction = { type: 'attack', moveIdx, targetPlayer: target.player, targetIdx: target.idx, targetFieldIdx: target.fieldIdx };
-                                    }
-                                });
-                            }
-                        });
-                    }
-
-                    if (!bestAction && possibleEnemies.length > 0) {
-                        bestAction = { type: 'attack', moveIdx: 0, targetPlayer: possibleEnemies[0].player, targetIdx: possibleEnemies[0].idx, targetFieldIdx: possibleEnemies[0].fieldIdx };
-                    } else if (!bestAction) {
-                        bestAction = { type: 'attack', moveIdx: 0, targetPlayer: cpuPlayer, targetIdx: charTeamIdx };
-                    }
-
-                    if (bestAction) {
-                        cpuActions[charTeamIdx] = bestAction;
-                        if (bestAction.type === 'attack' && bestAction.moveIdx !== undefined) {
-                             const selectedMove = cpuChar.moves[bestAction.moveIdx];
-                             if (selectedMove && selectedMove.isCombo) {
-                                 const partnerIds = selectedMove.isCombo.filter(id => id !== cpuChar.id);
-                                 partnerIds.forEach(pId => {
-                                     // FIX: Previene crash se l'alleato in campo non esiste più
-                                     const pIdx = gameState.field[cpuPlayer].find(idx => gameState.teams[cpuPlayer][idx] && gameState.teams[cpuPlayer][idx].id === pId && gameState.teams[cpuPlayer][idx].hp > 0);
-                                     if (pIdx !== undefined) {
-                                         cpuActions[pIdx] = { type: 'combo_assist' };
-                                     }
-                                 });
-                             }
-                        }
-                    }
-                });
-
-                // --- CPU USA FORMA IPER ---
-                // Limitazione Roguelike Solo: i nemici sbloccano le forme Iper solo dal piano 30 in poi!
-                let isHyperAllowed = true;
-                if (gameState.isRoguelikeBattle && roguelikeState.floor < 30) {
-                    isHyperAllowed = false;
-                }
-
-                if (!gameState.hyperUsed[cpuPlayer] && isHyperAllowed) {
-                    const firstAttackerIdxStr = Object.keys(cpuActions).find(idxStr => {
-                        if (cpuActions[idxStr].type !== 'attack') return false;
-                        const char = gameState.teams[cpuPlayer][parseInt(idxStr)];
-                        // Verifica che il personaggio che sta per attaccare sia specifico per la Forma Iper
-                        return char && (char.id === 'barry' || char.id === 'gardevoir' || char.id === 'astral' || char.id === 'polterpup' || char.id === 'spongebob' || char.id === 'patrick' || char.id === 'alphonse' || char.id === 'ariana' || char.id === 'bloom' || char.id === 'gaston' || char.id === 'jake' || char.id === 'marceline' || char.id === 'finn' || char.id === 'natsu' || char.id === 'juvia' || char.id === 'laxus' || char.id === 'bumblebee' || char.id === 'corvina' || char.id === 'entoma' || char.id === 'garnet' || char.id === 'darwin' || char.id === 'brago' || char.id === 'iris' || char.id === 'sdentato' || char.id === 'ladybug' || char.id === 'bowser' || char.id === 'rainbowdash' || char.id === 'elsa' || char.id === 'sheldon' || char.id === 'charizard' || char.id === 'maxcaulfield' || char.id === 'chloeprice' || char.id === 'dolli' || char.id === 'zatchbell' || char.id === 'yoshi' || char.id === 'poisonivy' || char.id === 'carlos' || char.id === 'leon' || char.id === 'sage') && !char.isHyper;
-                    });
-                    
-                    if (firstAttackerIdxStr) {
-                        cpuActions[firstAttackerIdxStr].hyperize = true;
-                    }
-                }
-
-                return cpuActions;
-          
-};
+export const generateCPUActionsForPlayerImpl = (ctx,cpuPlayer,currentActions) =>
+  generateStrategicCpuActions({
+    room:ctx.gameState,player:cpuPlayer,currentActions,
+    activePlayers:ctx.getActivePlayers(),
+    getMultiplier:ctx.getMultiplier,
+    matchOpponents:ctx.getTournamentMatchOpponents,
+    roguelikeState:ctx.roguelikeState
+  });
 
 export const commitActionImpl = (ctx, actionDetails) => {
 const { appMode, commandingIdx, ITEMS_DB, MOVES_DB, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState } = ctx;
@@ -1877,6 +1640,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                   events.push({type:'text',text:`👥 Gemini copia la mossa ${remembered.name} di ${target.name}!`});
                 }
                 attacker.lastUsedMove={...move,remainingUses:null};
+                // Si registra solo ciò che il nemico ha DAVVERO mostrato;
+                // mai leggere comandi pendenti di giocatori avversari.
+                events.push({type:'ai_public_move',player,charTeamIdx,
+                  charId:attacker.id,moveName:move.name,moveType:move.type});
                 
                 // Attiva il Cooldown della mossa appena usata
                 if (move.cooldown !== undefined) {
@@ -3801,6 +3568,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
           startOfTurnTeams: startOfTurnTeams, 
           startOfTurnField: startOfTurnField,
           events: events,
+          aiMemory: rememberPublicCpuMoves(gameState.aiMemory,events),
           battleReport: accumulateBattleReport(gameState.battleReport, startOfTurnTeams, events,
             {gameMode:gameState.gameMode,settings:gameState.settings}),
           actions: { p1: {}, p2: {}, p3: {}, p4: {}, p5: {}, p6: {}, p7: {}, p8: {} },
