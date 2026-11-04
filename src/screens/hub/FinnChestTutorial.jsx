@@ -14,7 +14,7 @@ export const FINN_CAMPAIGN_CHEST_DIALOGUES=[
 export const FINN_POWER_CHEST_DIALOGUES=[
   'Ehi, aspetta! Questa è una Cassa Potenza, non il solito Baule Campagna. Si conquista durante la Roguelike: una ogni 5 piani superati!',
   'Qui trovi SOLO Punti Forza, ma adesso le casse diventano sempre più ricche! Piani 5–15: 3–8 PF; 20–30: 5–11; 35–45: 7–14; piano 50: 10–18. Usali nel Laboratorio!',
-  'Anche in Co-op ognuno riceve le proprie casse e i Punti Forza! Se completi tutti i 50 piani: BOOM, 30 Punti Forza bonus (una volta ogni 4 ore) e CINQUE Bauli normali. Dai, apriamo una cassa: sarà una figata!'
+  'Anche in Co-op ognuno riceve le proprie casse e i Punti Forza! Se completi tutti i 50 piani: BOOM, 50 Punti Forza bonus (una volta ogni 4 ore) e CINQUE Bauli normali. Dai, apriamo una cassa: sarà una figata!'
 ];
 export function FinnChestTutorial({kind='campaign',onComplete,onClose}){
   const lines=kind==='power'?FINN_POWER_CHEST_DIALOGUES:FINN_CAMPAIGN_CHEST_DIALOGUES;
