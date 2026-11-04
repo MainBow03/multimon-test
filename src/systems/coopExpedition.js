@@ -98,7 +98,7 @@ export function coopEnemyForFloor(floor,roster,playerCount=3,encountered=[],rand
  let eligible=roster.filter(c=>!c.isSummonOnly&&!c.isCampaignMonster && (
   end?(c.isSecretUnlock||c.price>=300||['trigon','gaster','cell'].includes(c.id)):!c.isSecretUnlock));
  if(!eligible.length)eligible=roster.filter(c=>!c.isSummonOnly);
- eligible=rogueAdvancedEnemyPool(eligible,floor);
+ if(!end)eligible=rogueAdvancedEnemyPool(eligible,floor);
  const unseen=eligible.filter(c=>!encountered.includes(c.id));
  const pool=unseen.length?unseen:eligible;
  const base=pool[Math.floor(random()*pool.length)]||roster.find(c=>!c.isSummonOnly);
