@@ -52,3 +52,24 @@ test('La scelta dei personaggi resta interattiva senza modificare il game logic'
  assert.match(mainDraft,/aria-label="Già selezionato"/);
  assert.doesNotMatch(mainDraft,/opacity-50 grayscale' : 'border-slate-700/);
 });
+
+test('Regressione: con oltre 80 Multimon le righe hanno altezza naturale e non diventano strisce',()=>{
+ const css=text('src/styles.css');
+ assert.match(css,/\.multimon-roster-grid\s*\{[^}]*grid-auto-rows:\s*max-content\s*;/s);
+ assert.match(css,/\.multimon-roster-grid\s*\{[^}]*align-content:\s*start\s*;/s);
+ assert.match(css,/\.multimon-roster-grid\s*>\s*\.multimon-roster-card\s*\{[^}]*min-height:\s*260px\s*;/s);
+ assert.match(css,/\.multimon-roster-portrait\s*\{[^}]*flex-shrink:\s*0\s*;/s);
+ for (const [name,source,expected] of [
+  ['draft e draft condiviso',mainDraft,2],
+  ['squadra della Campagna',campaign,1],
+  ['protagonista del Torneo',protagonist,1],
+  ['Roguelike',roguelike,1]
+ ]) {
+  assert.equal((source.match(/multimon-roster-grid grid/g)||[]).length,expected,name+' senza griglia a righe fisse');
+  assert.equal((source.match(/multimon-roster-card/g)||[]).length,expected,name+' senza altezza carta protetta');
+  assert.equal((source.match(/multimon-roster-portrait/g)||[]).length,expected,name+' senza ritratto protetto');
+ }
+ assert.match(mainDraft,/overflow-y-auto content-start custom-scrollbar/);
+ assert.match(mainDraft,/filteredDraftableChars\.map\(char/);
+ assert.doesNotMatch(css,/grid-auto-rows:\s*1fr/);
+});
