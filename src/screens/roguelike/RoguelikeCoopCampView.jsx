@@ -1,7 +1,7 @@
 import React,{useState,useEffect} from 'react';
 import {BattleReportPanel} from '../../components/BattleReportPanel.jsx';
 import {COOP_HUMANS,COOP_SHOP,coopHumanPlayers,coopRecruitWeights,
-  coopRecruitChance,COOP_MAX_FLOOR} from '../../systems/coopExpedition.js';
+  coopRecruitChance,COOP_MAX_FLOOR,coopEncounterSizeForFloor} from '../../systems/coopExpedition.js';
 import {CHARACTERS} from '../../data/characters.js';
 import {RoguelikeEventView} from './RoguelikeEventView.jsx';
 import {ROGUE_RELICS} from '../../systems/roguelikeEvents.js';
@@ -141,7 +141,16 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
     })}
    </section>
 
-   {stage==='coop_camp'&&<section className="rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-5">
+   {stage==='coop_camp'&&<section className="rounded-2xl border border-rose-500/35 bg-rose-950/20 p-4">
+      <h2 className="text-lg font-black text-rose-200">⚔️ Prossima sfida: piano {run.floor||1}</h2>
+      <p className="mt-1 text-sm text-slate-200">
+       {coopEncounterSizeForFloor(run.floor||1)===1
+        ?'👑 Un boss speciale vi aspetta! Coordinare mosse e cambi sarà fondamentale.'
+        :`Incontrerete ${coopEncounterSizeForFloor(run.floor||1)} avversari contemporaneamente. Potrete scegliere chi colpire e dovrete sconfiggerli tutti per salire di piano.`}
+      </p>
+      <p className="mt-1 text-xs text-rose-100/70">La difficoltà cresce gradualmente con i piani, e un nuovo boss compare ogni 10 livelli.</p>
+    </section>}
+    {stage==='coop_camp'&&<section className="rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-5">
     <h2 className="text-xl font-black text-cyan-200">🏕️ Servizi dell'accampamento</h2>
     <p className="mt-1 text-sm text-slate-300">Le monete sono condivise. Puoi curare un Multimon di qualsiasi compagno; ogni acquisto è sincronizzato per tutti.</p>
     <button type="button" disabled={busy||(run.coins||0)<90}
