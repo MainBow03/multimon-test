@@ -1,4 +1,5 @@
 import { renderMenuView } from './screens/hub/MenuView.jsx';
+import {FirstVisitModeGuide} from './components/FirstVisitModeGuide.jsx';
 import { MultiverseEventHub } from './screens/events/MultiverseEventHub.jsx';
 import { AccountGate } from './components/AccountGate.jsx';
 import { UpdateHistoryPanel } from './components/UpdateHistoryPanel.jsx';
@@ -116,6 +117,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const [playerAvatarUrl, setPlayerAvatarUrl] = useState(() => localStorage.getItem('multiverse_rpg_saved_avatar') || ''); 
           const [roomIdInput, setRoomIdInput] = useState('');
           const [profileRevision, setProfileRevision] = useState(0);
+          const [pendingModeGuide,setPendingModeGuide] = useState(null);
           const [masterySearch, setMasterySearch] = useState('');
           const [masteryFilter, setMasteryFilter] = useState('all');
           const [coopRoomId, setCoopRoomId] = useState(null);
@@ -1052,6 +1054,38 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               return result;
           };
           const getPlayerTitle = () => equippedMasteryTitle(getPlayerData(), [...CHARACTERS, ...FUSION_CHARACTERS]);
+          // La guida viene mostrata solo al primo click, PRIMA di avviare
+          // l'azione. Dopo la conferma si conserva la scelta sul cloud.
+          const startWithModeGuide=(key,action)=>{
+            if(getPlayerData().modeGuideSeen?.[key])return action();
+            setPendingModeGuide({key,action});
+          };
+          const finishModeGuide=()=>{
+            const pending=pendingModeGuide;
+            if(!pending)return;
+            updateLocalStats({markModeGuideSeen:pending.key});
+            setPendingModeGuide(null);
+            pending.action();
+          };
+
+          // La stanza certifica i piani già vinti; ogni giocatore reclama
+          // i SUOI premi nel profilo personale, anche dopo un rientro.
+          useEffect(()=>{
+            if(!gameState.isRoguelikeCoop || !roomId || !user?.uid || !playerRole ||
+                gameState.playerUids?.[playerRole]!==user.uid || gameState.isBot?.[playerRole])
+              return;
+            const floor=Number(gameState.coopRun?.lastClearFloor)||0;
+            if(!Number.isInteger(floor)||floor<1)return;
+            updateLocalStats({coopPersonalRewards:{
+              runId:gameState.coopRun?.runId||'coop-legacy-'+roomId,
+              lastClearFloor:floor,
+              finished:gameState.coopRun?.finished===true,
+              maxFloor:50
+            }});
+          },[roomId,user?.uid,playerRole,gameState.isRoguelikeCoop,
+             gameState.coopRun?.runId,gameState.coopRun?.lastClearFloor,
+             gameState.coopRun?.finished,gameState.playerUids?.[playerRole]]);
+
 
           const leaveRoom = (...__args) => leaveRoomImpl({ initialGameState, setAppMode, setCombatLog, setGameState, setIsLogOpen, setPlayerRole, setRoomId }, ...__args);
 
@@ -1551,7 +1585,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
     const renderView = () => {
         if (appMode === 'menu') {
-  const __screen = renderMenuView({ BarChart, BookOpen, CHARACTERS, GridIcon, IS_PREVIEW, ImageIcon, Shield, ShoppingCart, Swords, Target, Trophy, Upload, Users, Wifi, appMode, getDefaultAvatar, getPlayerData, handleAvatarUpload, handleCreateRoguelikeCoop, handleCreateRoom, handleJoinRoom, handleLocalStart, handleSurvivalStart, handleVsCpuStart, onlineUsers, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), roguelikeState, roomIdInput, sessionId, setAppMode, setPlayerAvatarUrl, setPlayerName, setRoguelikeDraftChoices, setRoguelikeState, setRoomIdInput, setShowOnlinePlayers, setSystemAlert });
+  const __screen = renderMenuView({ BarChart, BookOpen, CHARACTERS, GridIcon, IS_PREVIEW, ImageIcon, Shield, ShoppingCart, Swords, Target, Trophy, Upload, Users, Wifi, appMode, getDefaultAvatar, getPlayerData, handleAvatarUpload, handleCreateRoguelikeCoop, handleCreateRoom, handleJoinRoom, handleLocalStart, handleSurvivalStart, handleVsCpuStart, onlineUsers, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), roguelikeState, roomIdInput, sessionId, setAppMode, setPlayerAvatarUrl, setPlayerName, setRoguelikeDraftChoices, setRoguelikeState, setRoomIdInput, setShowOnlinePlayers, setSystemAlert, startWithModeGuide });
   if (__screen !== undefined) return __screen;
 }
     
@@ -1701,7 +1735,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
         canLead={playerRole==='p1'||!isHostFresh(gameState)}
         onClaimWin={claimCoopFloor} onNext={startCoopNextFloor}
         onPurchase={buyCoopCampCare} onVoteEvent={castCoopEventVote}
-        onFinalizeEvent={closeCoopEventVote} onExit={leaveRoom}/>;
+        onFinalizeEvent={closeCoopEventVote} onExit={leaveRoom} personalProfile={getPlayerData()}/>;
     }
 
     if (gameState.status === 'gameover') {
@@ -1726,6 +1760,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
         <>
             <MultiverseEventHub appMode={appMode} user={user} playerName={playerName} playerAvatarUrl={playerAvatarUrl} playerTitle={getPlayerTitle()} getPlayerData={getPlayerData} updateLocalStats={updateLocalStats} />
             <UpdateHistoryPanel appMode={appMode} />
+            {pendingModeGuide&&<FirstVisitModeGuide key={pendingModeGuide.key}
+              guideKey={pendingModeGuide.key}
+              onCancel={()=>setPendingModeGuide(null)}
+              onContinue={finishModeGuide}/>}
+
             {showLeaveConfirm && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
                     <div className="bg-slate-900 border border-rose-500/50 p-6 rounded-3xl max-w-sm w-full text-center shadow-[0_0_50px_rgba(244,63,94,0.2)] relative overflow-hidden">
