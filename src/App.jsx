@@ -20,7 +20,7 @@ import { renderRoguelikeMapView } from './screens/roguelike/RoguelikeMapView.jsx
 import { renderRoguelikeCoopLobbyView } from './screens/roguelike/RoguelikeCoopLobbyView.jsx';
 import { RoguelikeCoopCampView } from './screens/roguelike/RoguelikeCoopCampView.jsx';
 import {COOP_STARTERS_PER_PLAYER,prepareCoopDraft,finishCoopFloor,nextCoopFloor,coopCampPurchase,voteCoopEvent,finalizeCoopEvent} from './systems/coopExpedition.js';
-import {canSubmitCoopAction,canCommitCoopTurn} from './systems/coopTurnGuards.js';
+import {canSubmitCoopAction,canCommitCoopTurn,coopValidatedActionDelta} from './systems/coopTurnGuards.js';
 import { renderShopView } from './screens/hub/ShopView.jsx';
 import { StrengthLabView } from './screens/hub/StrengthLabView.jsx';
 import { migrateCampaignChests } from './systems/campaignChests.js';
@@ -136,6 +136,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const [eventPlaybackPassive, setEventPlaybackPassive] = useState(null);
 
           const [commandingIdx, setCommandingIdx] = useState(-1);
+          // Blocco immediato del proprio comando finché Firestore conferma la mossa.
+          const [coopPendingAction,setCoopPendingAction] = useState(null);
           const [targetingMoveIdx, setTargetingMoveIdx] = useState(null);
           const [selectedMultiTargets, setSelectedMultiTargets] = useState([]);
           
@@ -1243,31 +1245,32 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               }
           }, [gameState.status, appMode, playerRole, gameState.events]);
 
-          // --- FIX CRITICO: Sblocco turno iniziale e ricollegamenti per i client Online ---
+          // Per ogni client online, comanda SOLO i Multimon ancora privi
+          // di una mossa in questo turno. La Co-op blocca immediatamente anche
+          // il comando appena inviato, prima che arrivi lo snapshot Firebase.
           useEffect(() => {
-              if (gameState.status === 'battling' && !isPlayingEvents && appMode === 'online_room' && !gameState.isBot[playerRole]) {
-                  const myField = gameState.field[playerRole] || [];
-                  const myActions = gameState.actions[playerRole] || {};
-                  
-                  // Se non abbiamo un bersaglio attivo (-1) e abbiamo personaggi in campo senza un'azione assegnata
-                  if (commandingIdx === -1 && myField.length > 0 && Object.keys(myActions).length < myField.length) {
-                      // Cerca il primo personaggio in campo che non ha ancora agito e che non è andato KO
-                      let nextIdx = -1;
-                      for (let i = 0; i < myField.length; i++) {
-                          const cIdx = myField[i];
-                          if (!myActions[cIdx] && gameState.teams[playerRole][cIdx]?.hp > 0) {
-                              nextIdx = i;
-                              break;
-                          }
-                      }
-                      
-                      if (nextIdx !== -1) {
-                          setCommandingIdx(nextIdx);
-                          setActionMenuMode('moves');
-                      }
-                  }
+              if(gameState.status!=='battling' || isPlayingEvents || appMode!=='online_room' ||
+                  gameState.isBot[playerRole])return;
+              const myField=gameState.field[playerRole]||[];
+              const myActions=gameState.actions[playerRole]||{};
+              const locallySubmitted=idx=>gameState.isRoguelikeCoop &&
+                coopPendingAction?.roomId===roomId &&
+                coopPendingAction?.role===playerRole &&
+                coopPendingAction?.phase===gameState.phaseStartedAt &&
+                coopPendingAction?.index===idx;
+              const available=myField.findIndex(idx=>
+                gameState.teams[playerRole]?.[idx]?.hp>0 &&
+                myActions[idx]===undefined && !locallySubmitted(idx));
+              if(commandingIdx===-1 && available!==-1){
+                setCommandingIdx(available);setActionMenuMode('moves');
+              }else if(commandingIdx>=0){
+                const idx=myField[commandingIdx];
+                if(idx===undefined || myActions[idx]!==undefined || locallySubmitted(idx))
+                  setCommandingIdx(-1);
               }
-          }, [gameState.status, isPlayingEvents, appMode, playerRole, gameState.field, gameState.actions, commandingIdx, gameState.isBot, gameState.teams]);
+          },[gameState.status,isPlayingEvents,appMode,roomId,playerRole,
+             gameState.phaseStartedAt,gameState.isRoguelikeCoop,gameState.field,
+             gameState.actions,commandingIdx,coopPendingAction,gameState.isBot,gameState.teams]);
 
           // La campagna e' locale: al rematch non esiste un altro giocatore
           // da aspettare. Se il comando resta su -1 o su un personaggio non
@@ -1370,21 +1373,30 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               if(!roomId||!user?.uid)throw new Error('Non sei collegato alla stanza.');
               const key='actions.'+playerRole;
               if(!Object.prototype.hasOwnProperty.call(patch,key))
-                  throw new Error('Azione Co-op non valida.');
+                throw new Error('Azione Co-op non valida.');
+              const submitted=patch[key]||{};
+              const active=gameState.field[playerRole]||[];
+              const newIndex=active.find(idx=>submitted[idx]!==undefined &&
+                gameState.actions?.[playerRole]?.[idx]===undefined);
+              if(newIndex===undefined)throw new Error('Questo Multimon ha già confermato la mossa.');
+              const pending={roomId,role:playerRole,phase:gameState.phaseStartedAt,index:newIndex};
+              setCoopPendingAction(pending); // Mostra subito "mossa confermata".
               const ref=doc(db,'artifacts',appId,'public','data','rooms',roomId);
               try{
                 return await runTransaction(db,async tx=>{
                   const snap=await tx.get(ref);
                   if(!snap.exists())throw new Error('La stanza non esiste più.');
                   const live=snap.data();
-                  if(!canSubmitCoopAction(live,playerRole,user.uid,gameState.phaseStartedAt))
-                    throw new Error('Il turno è già cambiato o il posto non è valido.');
-                  const current=live.actions?.[playerRole]||{};
-                  const submitted=patch[key]||{};
-                  tx.update(ref,{[key]:{...current,...submitted}});
+                  const delta=coopValidatedActionDelta(live,playerRole,user.uid,
+                    gameState.phaseStartedAt,submitted);
+                  if(!delta)throw new Error('Mossa già confermata oppure turno non più disponibile.');
+                  tx.update(ref,{[key]:{...(live.actions?.[playerRole]||{}),...delta}});
                   return true;
                 });
               }catch(err){
+                setCoopPendingAction(prev=>prev?.roomId===pending.roomId &&
+                  prev?.role===pending.role && prev?.phase===pending.phase &&
+                  prev?.index===pending.index?null:prev);
                 setSystemAlert('Non sono riuscito a registrare la mossa: '+(err.message||err));
                 throw err;
               }
@@ -1729,7 +1741,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (gameState.status === 'battling' || gameState.status === 'executing') {
-  const __screen = renderBattlingView({ ownMasteryLevels: masteryVisibleLevels(getPlayerData()), ChevronRight, ITEMS_DB, appMode, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip: safeForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });
+  const __screen = renderBattlingView({ coopPendingAction, ownMasteryLevels: masteryVisibleLevels(getPlayerData()), ChevronRight, ITEMS_DB, appMode, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip: safeForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });
   if (__screen !== undefined) return __screen;
 }
 
