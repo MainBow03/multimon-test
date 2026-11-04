@@ -173,7 +173,7 @@ if (gameState.status === 'drafting') {
                                 </div>
 
                                 {/* Griglia dei Personaggi Disponibili */}
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 overflow-y-auto custom-scrollbar p-2 sm:p-3 w-full flex-1 min-h-0 content-start pb-8">
+                                <div className="multimon-roster-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 overflow-y-auto custom-scrollbar p-2 sm:p-3 w-full flex-1 min-h-0 content-start pb-8">
                                     {gameState.sharedDraftPool.map((item, pIdx) => {
                                         const isPicked = item.pickedBy !== null;
                                         // FIX LOCALE: Controlliamo se è il turno dell'utente attivo senza curarci di playerRole in Locale!
@@ -190,9 +190,9 @@ if (gameState.status === 'drafting') {
                                                         setSystemAlert("Non è il tuo turno!");
                                                     }
                                                 }}
-                                                className={`relative min-w-0 min-h-[184px] sm:min-h-[205px] overflow-hidden bg-slate-900/80 backdrop-blur-md border rounded-2xl p-3 sm:p-4 text-center transition-all duration-300 flex flex-col items-center justify-start ${isPicked ? 'border-slate-700 opacity-60 grayscale' : (isMyTurn ? 'border-indigo-400/50 hover:border-indigo-300 cursor-pointer shadow-[0_0_15px_rgba(99,102,241,0.2)] hover:shadow-[0_0_20px_rgba(99,102,241,0.5)] hover:-translate-y-1' : 'border-slate-700/50 shadow-md')}`}
+                                                className={`multimon-roster-card relative min-w-0 min-h-[240px] sm:min-h-[260px] overflow-hidden bg-slate-900/80 backdrop-blur-md border rounded-2xl p-3 sm:p-4 text-center transition-all duration-300 flex flex-col items-center justify-start ${isPicked ? 'border-slate-700 opacity-60 grayscale' : (isMyTurn ? 'border-indigo-400/50 hover:border-indigo-300 cursor-pointer shadow-[0_0_15px_rgba(99,102,241,0.2)] hover:shadow-[0_0_20px_rgba(99,102,241,0.5)] hover:-translate-y-1' : 'border-slate-700/50 shadow-md')}`}
                                             >
-                                                <div className={`w-full h-24 sm:h-28 md:h-32 flex items-center justify-center rounded-xl bg-slate-950/60 border mb-3 p-2 ${isPicked ? 'border-slate-600' : 'border-indigo-500/50'}`}>
+                                                <div className={`multimon-roster-portrait w-full h-24 sm:h-28 md:h-32 flex items-center justify-center rounded-xl bg-slate-950/60 border mb-3 p-2 ${isPicked ? 'border-slate-600' : 'border-indigo-500/50'}`}>
                                                     <img src={item.char.img} alt={item.char.name} loading="lazy" className="w-full h-full object-contain drop-shadow-lg" />
                                                 </div>
                                                 <h4 className="font-bold text-xs sm:text-sm mb-2 leading-snug text-slate-100 w-full line-clamp-2 min-h-[2.1em] break-words">{item.char.name}</h4>
@@ -327,7 +327,7 @@ if (gameState.status === 'drafting') {
                                     </button>
                                     <span className="text-xs font-semibold text-slate-400" aria-live="polite">{filteredDraftableChars.length} Multimon trovati</span>
                                 </div>
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 w-full flex-1 min-h-0 overflow-y-auto content-start custom-scrollbar p-2 sm:p-3">
+                                <div className="multimon-roster-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 w-full flex-1 min-h-0 overflow-y-auto content-start custom-scrollbar p-2 sm:p-3">
                                     {filteredDraftableChars.length === 0 && <div className="col-span-full rounded-xl bg-slate-900 border border-slate-700 p-8 text-center text-slate-400">Nessun Multimon corrisponde ai filtri. Modifica ricerca, tipo, ruolo o prezzo.</div>}
                                     {filteredDraftableChars.map(char => {
                                         const isSelected = myDraft.some(c => c.id === char.id);
@@ -363,7 +363,7 @@ if (gameState.status === 'drafting') {
                                                     }
                                                     if (!isSelected) handlePick(char);
                                                 }}
-                                                className={`relative min-w-0 overflow-hidden bg-slate-900/80 backdrop-blur-md border rounded-2xl p-3 sm:p-4 text-center transition-all duration-300 ${isSelected ? 'border-emerald-400 bg-emerald-900/30 ring-2 ring-emerald-400/40 shadow-[0_0_15px_rgba(16,185,129,0.25)]' : 'border-slate-700/50 hover:border-cyan-500/50 hover:-translate-y-1 cursor-pointer shadow-lg'}`}
+                                                className={`multimon-roster-card relative min-w-0 min-h-[290px] overflow-hidden bg-slate-900/80 backdrop-blur-md border rounded-2xl p-3 sm:p-4 text-center transition-all duration-300 ${isSelected ? 'border-emerald-400 bg-emerald-900/30 ring-2 ring-emerald-400/40 shadow-[0_0_15px_rgba(16,185,129,0.25)]' : 'border-slate-700/50 hover:border-cyan-500/50 hover:-translate-y-1 cursor-pointer shadow-lg'}`}
                                             >
                                                 <button type="button" title={isFavorite?'Togli dai preferiti':'Aggiungi ai preferiti'}
                                                     aria-label={(isFavorite?'Togli ':'Aggiungi ')+char.name+(isFavorite?' dai preferiti':' ai preferiti')}
@@ -373,7 +373,7 @@ if (gameState.status === 'drafting') {
                                                     className={`absolute z-30 right-1.5 top-1.5 rounded-full border px-2 py-1 text-lg shadow-lg ${isFavorite?'border-amber-300 bg-amber-600 text-white':'border-slate-600 bg-slate-950/85 text-slate-400 hover:text-amber-300'}`}>
                                                     {isFavorite?'★':'☆'}
                                                 </button>
-                                                <div className={`w-full h-28 sm:h-32 md:h-36 flex items-center justify-center rounded-xl bg-slate-950/65 border-2 mb-3 p-2 ${isSelected ? 'border-emerald-400' : 'border-slate-600/50'}`}>
+                                                <div className={`multimon-roster-portrait w-full h-28 sm:h-32 md:h-36 flex items-center justify-center rounded-xl bg-slate-950/65 border-2 mb-3 p-2 ${isSelected ? 'border-emerald-400' : 'border-slate-600/50'}`}>
                                                     <img src={char.img} alt={char.name} loading="lazy" className="w-full h-full object-contain drop-shadow-lg" />
                                                 </div>
                                                 <h4 className="font-bold text-sm sm:text-base mb-1 leading-snug line-clamp-2 min-h-[2.25em] break-words text-slate-100">{char.name}</h4>
