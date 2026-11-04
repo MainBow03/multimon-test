@@ -80,11 +80,11 @@ test('Co-op: il premio finale è individuale anche con cooldown, le casse restan
  assert.equal(claimCoopPersonalRewards(second.profile,'coop-2',51,true,50,20100000).ok,false);
 });
 
-test('I bauli normalizzati continuano a dare due ricompense e le casse potenza 2-8 PF',()=>{
+test('I bauli normali danno due premi e le Casse Potenza Co-op seguono le nuove fasce',()=>{
  const after=claimCoopPersonalRewards(empty(),'coop-k',5,false,50);
  const chest=openPowerChest(after.profile,()=>0);
  assert.equal(chest.ok,true);
- assert.equal(chest.points,2);
+ assert.equal(chest.points,3);
  const source=read('../src/systems/campaignChests.js');
  assert.match(source,/for\(let slot=0;slot<2;slot\+\+\)/);
  assert.equal(POWER_CHEST_EVERY_FLOORS,5);
