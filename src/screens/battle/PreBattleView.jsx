@@ -1,4 +1,5 @@
-// Schermata estratta senza alterare la struttura JSX originale.
+import {cpuStyle,CPU_STYLES} from '../../systems/strategicCpu.js';
+// Schermata introduttiva: mostra subito il carattere dell'IA.
 export function renderPreBattleView(ctx) {
 const { PLAYER_THEMES, gameState, getActivePlayers, getDefaultAvatar, introCharIdx, playerRole } = ctx;
 if (gameState.status === 'pre_battle') {
@@ -59,6 +60,7 @@ if (gameState.status === 'pre_battle') {
                                 <div className={introCharIdx >= 1 ? "flex flex-col items-center transition-all duration-500 opacity-100 scale-100" : "flex flex-col items-center transition-all duration-500 opacity-0 scale-75"}>
                                     <img src={bossAvatar} alt={bossName} onError={(e) => { e.target.onerror = null; e.target.src = getDefaultAvatar(bossName); }} className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-rose-400 object-cover bg-slate-900 shadow-lg" />
                                     <span className="mt-2 text-center text-sm sm:text-base font-bold text-white">{bossName}</span>
+                                    <span className="mt-1 text-xs font-bold text-amber-300">IA {CPU_STYLES[cpuStyle(gameState,bossPlayer)].name}</span>
                                     {bossFighter && (
                                         <div className={introCharIdx >= 2 ? "mt-3 flex flex-col items-center gap-1 transition-all duration-500 opacity-100 scale-100" : "mt-3 flex flex-col items-center gap-1 transition-all duration-500 opacity-0 scale-75"}>
                                             <img src={bossFighter.img} alt={bossFighter.name} className="w-20 h-20 sm:w-28 sm:h-28 rounded-xl border-2 border-rose-500/70 object-cover bg-slate-950" />
@@ -149,7 +151,8 @@ if (gameState.status === 'pre_battle') {
                             return (
                                 <div key={p} className={`flex flex-col items-center justify-center p-4 rounded-3xl ${theme.bg} border border-slate-700/50 backdrop-blur-md transition-all duration-700 transform ${introCharIdx >= 1 ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`} style={{ width: `calc(${100 / Math.ceil(activeMatchPlayers.length / 2)}% - 1rem)`, minWidth: '250px' }}>
                                     <img src={pAvatar} onError={(e) => { e.target.onerror = null; e.target.src = getDefaultAvatar(pName); }} className={`w-16 h-16 md:w-24 md:h-24 rounded-full border-4 ${theme.border} object-cover ${theme.shadow} mb-4 bg-slate-900`} alt={pName} />
-                                    <h2 className={`text-xl font-black ${theme.text} text-center drop-shadow-md mb-4 uppercase tracking-widest`}>{pName}</h2>
+                                    <h2 className={`text-xl font-black ${theme.text} text-center drop-shadow-md mb-1 uppercase tracking-widest`}>{pName}</h2>
+                                    {gameState.isBot?.[p] && <span className="mb-3 text-xs font-bold text-amber-300">IA {CPU_STYLES[cpuStyle(gameState,p)].name}</span>}
                                     
                                     <div className="flex justify-center flex-wrap gap-2">
                                         {pTeam.filter(c => !c.isSummonOnly).map((char, i) => (
@@ -264,6 +267,7 @@ if (gameState.status === 'pre_battle') {
                             <div className="absolute inset-0 rounded-full border-4 border-cyan-400 blur-md opacity-50"></div>
                         </div>
                         <h2 className="text-3xl md:text-5xl font-black text-white text-center drop-shadow-xl">{p1Name}</h2>
+                        {gameState.isBot?.[activeMatchPlayers[0]] && <span className="mt-2 text-xs md:text-sm font-bold text-amber-300">IA {CPU_STYLES[cpuStyle(gameState,activeMatchPlayers[0])].name}</span>}
                     </div>
 
                     {/* Squadra Sinistra */}
@@ -285,6 +289,7 @@ if (gameState.status === 'pre_battle') {
                             <div className="absolute inset-0 rounded-full border-4 border-rose-400 blur-md opacity-50"></div>
                         </div>
                         <h2 className="text-3xl md:text-5xl font-black text-white text-center drop-shadow-xl">{p2Name}</h2>
+                        {gameState.isBot?.[activeMatchPlayers[1]] && <span className="mt-2 text-xs md:text-sm font-bold text-amber-300">IA {CPU_STYLES[cpuStyle(gameState,activeMatchPlayers[1])].name}</span>}
                     </div>
 
                     {/* Squadra Destra */}
