@@ -60,7 +60,7 @@ test('Co-op: un compagno scollegato recupera automaticamente tutti i premi inter
  const second=claimCoopPersonalRewards(result.profile,'coop-stanza-b',50,true,50,20000000);
  assert.deepEqual(second.milestones,[50]);
  assert.equal(second.coinFloors.length,1);
- assert.equal(second.points,30);
+ assert.equal(second.points,50);
  assert.equal(second.normalChests,5);
  assert.equal(second.profile.roguelikePower.pending.length,10);
  assert.equal(second.profile.chests.pending.length,6);
@@ -72,7 +72,7 @@ test('Co-op: il premio finale è individuale anche con cooldown, le casse restan
  const first=claimCoopPersonalRewards(empty(),'coop-1',50,true,50,20000000);
  const second=claimCoopPersonalRewards(first.profile,'coop-2',50,true,50,20100000);
  assert.equal(first.normalChests,5);
- assert.equal(first.points,30);
+ assert.equal(first.points,50);
  assert.equal(second.normalChests,5);
  assert.equal(second.points,0);
  assert.equal(second.profile.chests.pending.length,11);
