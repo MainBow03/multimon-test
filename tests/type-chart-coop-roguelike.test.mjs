@@ -248,5 +248,6 @@ test('La Co-op non sovrascrive il salvataggio solitario',()=>{
  assert.match(roomView,/coopRecruitWeights/);
  assert.match(roomView,/onPurchase/);
  assert.match(roomView,/Raccogli le ricompense/);
- assert.equal(GAME_UPDATES[0].id,'nov3-coop-roguelike-chart-battle');
+ assert.ok(GAME_UPDATES.some(x=>x.id==='nov3-coop-roguelike-chart-battle'));
+ assert.equal(GAME_UPDATES.find(x=>x.id==='nov3-coop-roguelike-chart-battle').date,'03/11/2026');
 });
