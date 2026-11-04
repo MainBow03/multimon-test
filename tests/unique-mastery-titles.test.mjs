@@ -8,7 +8,9 @@ import { MASTERY_ELIGIBLE_IDS, MASTERY_MAX_XP, masteryTitle,
 
 test('Ogni Multimon eleggibile ha esattamente un titolo autoriale non generico',()=>{
   const eligible=CHARACTERS.filter(isMasteryEligible);
-  assert.equal(eligible.length,138,'Se cambia il roster, aggiungere i titoli dei nuovi Multimon');
+  assert.ok(eligible.length>=138,'Non devono scomparire personaggi eleggibili');
+  // Non fissare una dimensione del roster: i titoli obbligatori sono verificati
+  // subito dopo confrontando esattamente gli ID dei personaggi eleggibili.
   assert.equal(Object.keys(MASTERY_CHARACTER_TITLES).length,eligible.length);
   assert.deepEqual(new Set(Object.keys(MASTERY_CHARACTER_TITLES)),new Set(eligible.map(x=>x.id)));
   for(const char of eligible){
