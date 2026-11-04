@@ -150,3 +150,16 @@ test('Lo skip forzato non altera la scelta umana né aggiunge Iper non richiesta
   assert.deepEqual(planned[0],choice);
   assert.equal(choice.hyperize,undefined);
 });
+
+
+test('Due Multimon CPU non prenotano la stessa unica pozione',()=>{
+  const room=game('defensive',
+    fighter('one','Fuoco',35,[move('Hit','Fuoco',65)]));
+  room.teams.p2.push(fighter('two','Fuoco',33,[move('Hit','Fuoco',65)]));
+  room.field.p2=[0,1];
+  room.inventory.p2.pozione=1;
+  const actions=plan(room);
+  const items=Object.values(actions).filter(a=>a.type==='use_item'&&a.itemId==='pozione');
+  assert.equal(items.length,1);
+  assert.equal(Object.keys(actions).length,2);
+});
