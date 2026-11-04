@@ -1,8 +1,8 @@
 import React from 'react';
-import {ROGUE_RELICS,ROGUE_EVENTS,getRogueEvent,canChooseRogueEvent,coopEventPath} from '../../systems/roguelikeEvents.js';
+import {ROGUE_RELICS,ROGUE_EVENTS,getRogueEvent,canChooseRogueEvent,coopEventPath,trainingUsesLeft} from '../../systems/roguelikeEvents.js';
 
 // Pannello condiviso: in solitaria conferma una scelta, in co-op registra un voto.
-export function RoguelikeEventView({event,coins=0,relics=[],onChoice,votes=null,players={},humanRoles=[],playerRole=null,busy=false}) {
+export function RoguelikeEventView({event,coins=0,relics=[],trainingUses=0,onChoice,votes=null,players={},humanRoles=[],playerRole=null,busy=false}) {
   const data=getRogueEvent(event);
   if (!data) return null;
   const isCoop=Boolean(votes);
@@ -10,10 +10,10 @@ export function RoguelikeEventView({event,coins=0,relics=[],onChoice,votes=null,
   const choices=branched?['pathA','pathB'].map((id,i)=>{
     const type=i===0?event.type:event.altType;
     const scene=ROGUE_EVENTS[type];
-    const chosen=coopEventPath(event,id,coins,relics);
+    const chosen=coopEventPath(event,id,coins,relics,trainingUses);
     const action=scene.choices.find(x=>x.id===chosen.choiceId);
     return {id,name:scene.name,desc:scene.story+' '+action.desc,icon:scene.icon,grantsRelic:chosen.choiceId==='relic'};
-  }):data.choices;
+  }):data.choices.filter(choice=>!(event.type==='trainer'&&choice.id==='power'&&!trainingUsesLeft(trainingUses)));
   const ownVote=isCoop ? votes[playerRole] : undefined;
   const count=humanRoles.filter(p => votes && votes[p]).length;
   const acquired=event.relicId ? ROGUE_RELICS[event.relicId] : null;
@@ -23,12 +23,15 @@ export function RoguelikeEventView({event,coins=0,relics=[],onChoice,votes=null,
       <p className="text-5xl mt-3" aria-hidden="true">{branched?'🌌':data.icon}</p>
       <h2 className="text-3xl sm:text-4xl font-black mt-2">{branched?'Due sentieri, una decisione':data.name}</h2>
       <p className="mt-4 text-slate-300">{branched?'Scegliete insieme quale incontro affrontare. Ogni sentiero ha una ricompensa e un rischio differenti.':data.story}</p>
+      {(event.type==='trainer'||event.altType==='trainer') && <p className="mt-3 text-xs font-bold text-amber-200">
+        Allenamenti offensivi usati: {Math.min(3,Math.max(0,Number(trainingUses)||0))}/3 {trainingUsesLeft(trainingUses)===0?'· bonus offensivo esaurito':''}
+      </p>}
       {isCoop && <p className="mt-3 font-bold text-cyan-200">Votazione di squadra: {count}/{humanRoles.length} voti</p>}
     </div>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-7">
       {choices.map(choice=>{
         const selected=isCoop && ownVote===choice.id;
-        const enabled=canChooseRogueEvent(event,choice.id,coins,relics);
+        const enabled=canChooseRogueEvent(event,choice.id,coins,relics,trainingUses);
         const voted=isCoop ? humanRoles.filter(p=>votes[p]===choice.id) : [];
         return <button key={choice.id} type="button" disabled={busy||!enabled}
           onClick={()=>onChoice(choice.id)}

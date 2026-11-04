@@ -15,8 +15,46 @@ export const ROGUE_RELICS = {
     name: 'Piuma della Seconda Alba',
     icon: '🪶',
     desc: 'Una volta per battaglia un alleato sopravvive a un colpo fatale con il 20% dei PS massimi. Effetto condiviso in Co-op.'
+  },
+  compass: {
+    name: 'Bussola dei Punti Deboli',
+    icon: '🧭',
+    desc: 'Le mosse superefficaci infliggono l’8% di danni in più. Non aumenta i danni neutri o contro immunità.'
+  },
+  moss: {
+    name: 'Muschio del Viandante',
+    icon: '🌿',
+    desc: 'All’inizio di ogni battaglia, ciascun alleato ancora vivo recupera il 4% dei propri PS massimi. Non rianima i KO.'
   }
 };
+
+export const ROGUE_TRAINING_MAX_USES = 3;
+export const trainingUsesLeft = used => Math.max(0,ROGUE_TRAINING_MAX_USES-Math.max(0,Math.trunc(Number(used)||0)));
+export const rogueEventTypesAvailable = (trainingUses=0) =>
+  Object.keys(ROGUE_EVENTS).filter(id=>id!=='trainer'||trainingUsesLeft(trainingUses)>0);
+
+// La selezione degli avversari più forti ai piani alti usa il valore
+// dei personaggi, non bonus alle loro statistiche o mosse esclusive.
+// Se una rosa limitata non offre scelta, mantiene i vecchi candidati.
+export function rogueAdvancedEnemyPool(eligible, floor) {
+  if(!Array.isArray(eligible)||floor<21)return eligible;
+  const minPrice=floor>=36?200:150;
+  const advanced=eligible.filter(c=>Number(c?.price)>=minPrice &&
+    (c.moves||[]).some(m=>m && Number(m.power)>0));
+  return advanced.length>=Math.min(3,eligible.length)?advanced:eligible;
+}
+
+// Piccola cura all’ingresso, applicata UNA volta quando si costruisce il
+// combattimento. I PS sono poi conservati normalmente dalla run.
+export function applyRogueEntryMoss(char,relics=[]) {
+  if(!char||!(char.hp>0)||!Number.isFinite(char.maxHp)||
+     !allRogueRelics(relics).includes('moss'))return 0;
+  const healed=Math.max(1,Math.floor(char.maxHp*.04));
+  const nextHp=Math.min(char.maxHp,char.hp+healed);
+  const amount=nextHp-char.hp;
+  char.hp=nextHp;
+  return amount;
+}
 
 export const ROGUE_EVENTS = {
   merchant: {
@@ -60,11 +98,12 @@ export const ROGUE_EVENTS = {
 export const allRogueRelics = relics => Array.isArray(relics) ? relics.filter(id => ROGUE_RELICS[id]) : [];
 export const rogueDamageFactor = (attacker, effectiveness) =>
   (allRogueRelics(attacker?.rogueRelics).includes('prism') && effectiveness > 0 && effectiveness < 1 ? 1.4 : 1) *
+  (allRogueRelics(attacker?.rogueRelics).includes('compass') && effectiveness > 1 ? 1.08 : 1) *
   (Number.isFinite(attacker?.roguePowerBonus) ? Math.max(1,Math.min(1.5,attacker.roguePowerBonus)) : 1);
 
-export function maybeRogueEvent(floor, maxFloor = 50, relics = [], random = Math.random, withPaths = false) {
+export function maybeRogueEvent(floor, maxFloor = 50, relics = [], random = Math.random, withPaths = false, trainingUses = 0) {
   if (!Number.isInteger(floor) || floor < 2 || floor >= maxFloor || floor % 5 === 0 || random() >= 0.42) return null;
-  const keys = Object.keys(ROGUE_EVENTS);
+  const keys = rogueEventTypesAvailable(trainingUses);
   const type = keys[Math.floor(random() * keys.length)];
   const secondPool=keys.filter(key=>key!==type);
   const altType=withPaths?secondPool[Math.floor(random()*secondPool.length)]:null;
@@ -77,8 +116,10 @@ export function getRogueEvent(event) {
   return event && ROGUE_EVENTS[event.type] ? ROGUE_EVENTS[event.type] : null;
 }
 
-export function canChooseRogueEvent(event, choiceId, coins, relics = []) {
+export function canChooseRogueEvent(event, choiceId, coins, relics = [], trainingUses = 0) {
   if(event?.altType)return choiceId==='pathA'||choiceId==='pathB';
+  if(event?.type==='trainer' && choiceId==='power' && !trainingUsesLeft(trainingUses))
+    return false;
   const definition = getRogueEvent(event);
   if (!definition?.choices.some(c => c.id === choiceId)) return false;
   if (event.type === 'merchant' && choiceId === 'relic') {
@@ -90,14 +131,14 @@ export function canChooseRogueEvent(event, choiceId, coins, relics = []) {
 
 // Per la Co-op si vota tra DUE eventi differenti, non tra due pulsanti dello
 // stesso evento. La decisione del sentiero determina un esito chiaro e noto.
-export function coopEventPath(event,choiceId,coins,relics=[]) {
+export function coopEventPath(event,choiceId,coins,relics=[],trainingUses=0) {
   if(!event?.altType)return {event,choiceId};
   if(choiceId!=='pathA'&&choiceId!=='pathB')
     throw new Error('Il sentiero votato non esiste.');
   const type=choiceId==='pathA'?event.type:event.altType;
   const actualChoice=type==='merchant'
     ? (canChooseRogueEvent({type},'relic',coins,relics)?'relic':'coins')
-    : type==='chest'?'relic':type==='trainer'?'power':'risk';
+    : type==='chest'?'relic':type==='trainer'?(trainingUsesLeft(trainingUses)?'power':'heal'):'risk';
   return {event:{...event,type,altType:null},choiceId:actualChoice};
 }
 
@@ -124,8 +165,8 @@ function adjustCoopHp(teams, players, fraction, damage) {
   return copy;
 }
 
-function resolveEffect(event, choiceId, coins, relics, nextBattlePower) {
-  if (!canChooseRogueEvent(event, choiceId, coins, relics))
+function resolveEffect(event, choiceId, coins, relics, nextBattlePower, trainingUses = 0) {
+  if (!canChooseRogueEvent(event, choiceId, coins, relics, trainingUses))
     throw new Error('Questa scelta non è disponibile.');
   const current = allRogueRelics(relics);
   const rewardRelic = event.relicId && ROGUE_RELICS[event.relicId] && !current.includes(event.relicId)
@@ -149,39 +190,39 @@ function resolveEffect(event, choiceId, coins, relics, nextBattlePower) {
       } else { nextCoins += 30; result = 'Il forziere contiene 30 monete, ma la maledizione colpisce comunque.'; }
     } else { nextCoins += 18; result = 'Ottenute 18 monete senza infrangere il sigillo.'; }
   } else if (event.type === 'trainer') {
-    if (choiceId === 'power') { power = 1.2; result = 'Allenamento completato: +20% danni nella prossima battaglia.'; }
+    if (choiceId === 'power') { power = 1.2; trainingUses += 1; result = 'Allenamento completato: +20% danni nella prossima battaglia ('+trainingUses+'/'+ROGUE_TRAINING_MAX_USES+').'; }
     else { heal = .25; result = 'Il maestro ha curato tutti i combattenti ancora vivi del 25%.'; }
   } else if (event.type === 'bargain') {
     if (choiceId === 'risk') { nextCoins += 40; damage = .20; result = 'Il patto dà 40 monete, ma consuma parte della vostra energia.'; }
     else { nextCoins += 12; result = 'Il patto è rifiutato: 12 monete recuperate.'; }
   }
-  return {coins:nextCoins,relics:current,nextBattlePower:power,heal,damage,result};
+  return {coins:nextCoins,relics:current,nextBattlePower:power,trainingUses,heal,damage,result};
 }
 
 export function applySoloRogueChoice(run, choiceId, rosterDb) {
   // Un doppio clic durante il rendering non deve applicare l'evento due volte
   // né generare un errore React: la seconda scelta non cambia lo stato.
   if (!run?.pendingEvent || run.pendingEvent.floor !== run.floor) return run;
-  const out = resolveEffect(run.pendingEvent,choiceId,run.coins,run.relics,run.nextBattlePower);
+  const out = resolveEffect(run.pendingEvent,choiceId,run.coins,run.relics,run.nextBattlePower,run.trainingUses);
   const rosterStats = out.heal ? adjustSoloHp(run.rosterStats,run.roster,rosterDb,out.heal,false)
     : out.damage ? adjustSoloHp(run.rosterStats,run.roster,rosterDb,out.damage,true)
     : run.rosterStats;
   return {...run,coins:out.coins,relics:out.relics,nextBattlePower:out.nextBattlePower,
-    rosterStats,pendingEvent:null,lastEventResult:out.result};
+    trainingUses:out.trainingUses,rosterStats,pendingEvent:null,lastEventResult:out.result};
 }
 
 export function applyCoopRogueChoice(room, choiceId) {
   const event=room.coopRun?.pendingEvent;
   if (!event || room.status !== 'coop_event' || event.floor !== room.coopRun.floor)
     throw new Error('L’evento non è più disponibile.');
-  const path=coopEventPath(event,choiceId,room.coopRun.coins,room.coopRun.relics);
-  const out=resolveEffect(path.event,path.choiceId,room.coopRun.coins,room.coopRun.relics,room.coopRun.nextBattlePower);
+  const path=coopEventPath(event,choiceId,room.coopRun.coins,room.coopRun.relics,room.coopRun.trainingUses);
+  const out=resolveEffect(path.event,path.choiceId,room.coopRun.coins,room.coopRun.relics,room.coopRun.nextBattlePower,room.coopRun.trainingUses);
   const humans=['p1','p2','p3'].filter(p => room.players?.[p] && !room.isBot?.[p]);
   const teams=out.heal ? adjustCoopHp(room.teams,humans,out.heal,false)
     : out.damage ? adjustCoopHp(room.teams,humans,out.damage,true)
     : room.teams;
   return {status:'coop_camp',phaseStartedAt:Date.now(),teams,
     coopRun:{...room.coopRun,coins:out.coins,relics:out.relics,
-      nextBattlePower:out.nextBattlePower,pendingEvent:null,eventVotes:{},
+      nextBattlePower:out.nextBattlePower,trainingUses:out.trainingUses,pendingEvent:null,eventVotes:{},
       lastEventResult:out.result}};
 }

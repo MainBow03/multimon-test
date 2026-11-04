@@ -305,7 +305,7 @@ if (gameState.status === 'gameover') {
                                         }
                                         
                                         return { ...p, rosterStats: nextStats, roster: nextRoster, floor: p.floor + 1, coins: (p.coins || 0) + earnedCoins, inventory: leftoverInventory, isMerchantNext: chanceMerchant, recruitBonus: nextBonus, encounteredEnemies: nextEnemies,
-                                            pendingEvent: maybeRogueEvent(p.floor + 1, p.maxFloor || 50, p.relics || []), lastEventResult:null };
+                                            pendingEvent: maybeRogueEvent(p.floor + 1, p.maxFloor || 50, p.relics || [], Math.random, false, p.trainingUses || 0), lastEventResult:null };
                                     });
                                     setAppMode('roguelike_map');
                                     

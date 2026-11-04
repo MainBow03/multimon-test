@@ -1,6 +1,6 @@
 import {ZodiacSpiritPicker} from '../../components/ZodiacSpiritPicker.jsx';
 import {RoguelikeEventView} from './RoguelikeEventView.jsx';
-import {ROGUE_RELICS,applySoloRogueChoice} from '../../systems/roguelikeEvents.js';
+import {ROGUE_RELICS,applySoloRogueChoice,applyRogueEntryMoss,rogueAdvancedEnemyPool} from '../../systems/roguelikeEvents.js';
 import {empowerRoguelikeBoss} from '../../systems/roguelikeBossPower.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderRoguelikeMapView(ctx) {
@@ -14,7 +14,7 @@ if (appMode === 'roguelike_map') {
         if (roguelikeState.pendingEvent && roguelikeState.pendingEvent.floor === roguelikeState.floor) {
             return <main className="min-h-screen bg-slate-950 p-5 sm:p-10 flex flex-col items-center justify-center gap-5">
                 <RoguelikeEventView event={roguelikeState.pendingEvent}
-                    coins={roguelikeState.coins || 0} relics={roguelikeState.relics || []}
+                    coins={roguelikeState.coins || 0} relics={roguelikeState.relics || []} trainingUses={roguelikeState.trainingUses || 0}
                     onChoice={choice => setRoguelikeState(p => applySoloRogueChoice(p,choice,CHARACTERS))}/>
             </main>;
         }
@@ -129,6 +129,9 @@ if (appMode === 'roguelike_map') {
                 return { ...JSON.parse(JSON.stringify(base)), ...(id==='lucy'?{zodiacSpiritId:roguelikeState.zodiacSpiritId||'zodiac_aries'}:{}), hp: roguelikeState.rosterStats[id], statuses: [], consecutiveProtect: 0, baseAtk: base.atk, baseDef: base.def, baseSpd: base.spd, moves: base.moves.filter(Boolean).map(m => ({ ...m, remainingUses: m.maxUses !== undefined ? m.maxUses : null })) };
             });
 
+            // Reliquia difensiva: cura minima all'ingresso, non risuscita i KO.
+            for (const char of myTeam) applyRogueEntryMoss(char, roguelikeState.relics || []);
+
             // Generazione Nemici (Scala in base al piano)
             let enemyCount = 1;
             if (roguelikeState.floor >= 15) enemyCount = 2;
@@ -138,6 +141,7 @@ if (appMode === 'roguelike_map') {
             let availableEnemies = CHARACTERS.filter(c => !c.isSummonOnly && (isFinalBossFloor ? c.price === 350 || c.isSecretUnlock || c.id === 'cell' || c.id === 'trigon' || c.id === 'gaster' : !c.isSecretUnlock));
             
             // --- EVITA NEMICI GIÀ INCONTRATI ---
+            if (!isFinalBossFloor) availableEnemies = rogueAdvancedEnemyPool(availableEnemies, roguelikeState.floor);
             const unencountered = availableEnemies.filter(c => !(roguelikeState.encounteredEnemies || []).includes(c.id));
             if (unencountered.length >= enemyCount) {
                 availableEnemies = unencountered;

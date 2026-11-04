@@ -481,7 +481,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                       return run;
                   } catch(e){}
               }
-              return { isStarted: false, floor: 1, roster: [], rosterStats: {}, maxFloor: 50, coins: 0, inventory: {}, isMerchantNext: false, recruitBonus: 0.02, relics: [], encounteredEnemies: [] };
+              return { isStarted: false, floor: 1, roster: [], rosterStats: {}, maxFloor: 50, coins: 0, inventory: {}, isMerchantNext: false, recruitBonus: 0.02, relics: [], trainingUses: 0, encounteredEnemies: [] };
           });
 
           // Autosave Roguelike
