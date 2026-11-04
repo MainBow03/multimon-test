@@ -174,16 +174,20 @@ export function generateStrategicCpuActions({
       if(action && Number.isFinite(score) && score>best.score)best={action,score};
     };
     // L'uso delle cure tiene conto sia dell'urgenza sia della personalità.
+    // Riserva davvero le scorte già assegnate agli altri Multimon
+    // dello stesso team, senza spendere due volte l'unica pozione.
+    const queued=Object.values({...currentActions?.[player],...result})
+      .filter(a=>a?.type==='use_item');
+    const itemAvailable=id=>finite(inv[id])>queued.filter(a=>a.itemId===id).length;
     const healingAllowed=appMode!=='online_room' ||
-      itemsUsed+Object.values(currentActions?.[player]||{}).filter(a=>a?.type==='use_item').length+
-      Object.values(result).filter(a=>a?.type==='use_item').length<healLimit;
+      itemsUsed+queued.length<healLimit;
     if(healingAllowed){
       const urgency=(1-life)*style.heal;
-      if(inv.cura_totale>0 && life<(styleId==='aggressive'?.23:styleId==='defensive'?.58:.43))
+      if(itemAvailable('cura_totale') && life<(styleId==='aggressive'?.23:styleId==='defensive'?.58:.43))
         consider({type:'use_item',itemId:'cura_totale',targetIdx:idx},63+urgency*100);
-      if(inv.pozione>0 && life<(styleId==='aggressive'?.31:styleId==='defensive'?.67:.47))
+      if(itemAvailable('pozione') && life<(styleId==='aggressive'?.31:styleId==='defensive'?.67:.47))
         consider({type:'use_item',itemId:'pozione',targetIdx:idx},48+urgency*80);
-      if(inv.pozione_rigenerante>0 && life<.68 &&
+      if(itemAvailable('pozione_rigenerante') && life<.68 &&
          !(char.statuses||[]).some(s=>s.type==='Rigenerazione'))
         consider({type:'use_item',itemId:'pozione_rigenerante',targetIdx:idx},
           29+urgency*60);
