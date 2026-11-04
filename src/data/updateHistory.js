@@ -13,6 +13,15 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov4-coop-swaps-and-fifty-points',category:'features',date:'04/11/2026',title:'🤝 Scambi tra amici, ordine della squadra e 50 PF a vittoria Roguelike!',items:[
+    'Roguelike Co-op: all’accampamento puoi selezionare un tuo Multimon e un Multimon di un compagno per proporre uno scambio uno contro uno.',
+    'Lo scambio avviene solo quando il destinatario preme Accetta. Può invece rifiutare: in quel caso il richiedente deve attendere 90 secondi prima di proporre un altro scambio. Il timer si aggiorna in diretta per tutti.',
+    'Ogni proposta scade dopo 2 minuti senza risposta; il richiedente può annullarla. Transazioni Firestore e controllo dei personaggi coinvolti impediscono di perdere PS, strumenti, mosse o scambiare un Multimon sbagliato.',
+    'Nella tua squadra puoi usare le frecce su e giù per cambiare l’ordine dei Multimon. Al piano successivo entra in campo il primo personaggio vivo nella lista.',
+    'Al completamento dei 50 piani, sia in Roguelike singola sia in Co-op, il bonus finale passa da 30 a 50 Punti Forza per ciascun giocatore che ne ha diritto. Il cooldown di 4 ore e i 5 Bauli normali restano invariati.',
+    'Aggiornate anche le indicazioni in-game, la schermata Casse Potenza e il tutorial di Finn.'
+  ]},
+
   {id:'nov4-relic-training-elite',category:'balance',date:'04/11/2026',title:'🌿 Roguelike: nuove reliquie, allenamento limitato e nemici più astuti',items:[
     'L’Allenamento offensivo del maestro (+20% danni nella prossima battaglia) si può scegliere al massimo 3 volte per spedizione, sia da soli sia in Co-op. Dopo il terzo allenamento non viene più generato l’evento.',
     'Nuova reliquia Bussola dei Punti Deboli (🧭): +8% ai danni delle mosse superefficaci. Non potenzia le mosse neutre, resistite o inefficaci.',
