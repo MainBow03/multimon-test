@@ -13,6 +13,14 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov4-coop-single-move-per-turn',category:'fixes',date:'04/11/2026',title:'✅ Roguelike Co-op: la mossa si sceglie una sola volta per turno',items:[
+    'Risolto il problema che riproponeva la selezione delle mosse mentre gli altri giocatori Co-op non avevano ancora agito.',
+    'Dopo la scelta, il comando si blocca subito e viene mostrato "Mossa confermata! In attesa che gli alleati scelgano la loro mossa".',
+    'Le transazioni Firestore impediscono di sovrascrivere una mossa già registrata, di comandare una riserva fuori campo o di rispondere a un turno ormai concluso.',
+    'La scelta torna disponibile automaticamente quando inizia un vero turno nuovo; il gioco non perde sostituzioni o azioni degli altri partecipanti.',
+    'Aggiunti test anti-duplicazione e contro la riapertura del menu durante il ritardo di sincronizzazione tra tre giocatori.'
+  ]},
+
   {id:'nov4-coop-two-starters',category:'balance',date:'04/11/2026',title:'🛡️ Roguelike Co-op: due Multimon iniziali per giocatore!',items:[
     'Nella Roguelike Co-op da 2 o 3 partecipanti, ciascuno sceglie due Multimon già prima del primo piano: in tre si parte con sei personaggi totali.',
     'Il primo personaggio scelto entra in campo e il secondo resta come riserva; rimane una lotta di squadra contro un solo nemico, con un Multimon attivo a testa.',
