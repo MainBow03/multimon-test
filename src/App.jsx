@@ -1595,14 +1595,14 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
       room=>voteCoopEvent(room,playerRole,choice));
     const closeCoopEventVote=()=>coopRoomAction(['coop_event'],true,
       room=>finalizeCoopEvent(room));
-    const reorderOwnCoopTeam=(from,to)=>coopRoomAction(['coop_camp'],false,
-      room=>reorderCoopTeam(room,playerRole,from,to));
-    const offerCoopTrade=(target,ownIdx,otherIdx)=>coopRoomAction(['coop_camp'],false,
-      room=>requestCoopTrade(room,playerRole,target,ownIdx,otherIdx));
-    const answerCoopTrade=accepted=>coopRoomAction(['coop_camp'],false,
-      room=>respondCoopTrade(room,playerRole,accepted));
-    const withdrawCoopTrade=()=>coopRoomAction(['coop_camp'],false,
-      room=>cancelCoopTrade(room,playerRole));
+    const reorderOwnCoopTeam=(from,to,expectedId)=>coopRoomAction(['coop_camp'],false,
+      room=>reorderCoopTeam(room,playerRole,from,to,expectedId));
+    const offerCoopTrade=(target,ownIdx,otherIdx,offeredId,wantedId)=>coopRoomAction(['coop_camp'],false,
+      room=>requestCoopTrade(room,playerRole,target,ownIdx,otherIdx,Date.now(),offeredId,wantedId));
+    const answerCoopTrade=(accepted,tradeId)=>coopRoomAction(['coop_camp'],false,
+      room=>respondCoopTrade(room,playerRole,accepted,Date.now(),tradeId));
+    const withdrawCoopTrade=tradeId=>coopRoomAction(['coop_camp'],false,
+      room=>cancelCoopTrade(room,playerRole,Date.now(),tradeId));
 
     // --- RENDERERS ---
 
