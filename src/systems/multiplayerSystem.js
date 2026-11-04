@@ -434,6 +434,8 @@ const { CHARACTERS, FUSION_CHARACTERS, gameState, playerRole, setDraftTimeLeft, 
             const currentDraft = gameState.draft[playerRole] || [];
             const myTeamSize = ((gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') && playerRole === (gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1'))) ? 1 : gameState.settings.teamSize;
             if (currentDraft.length >= myTeamSize) return;
+            // Non permettere due volte lo stesso Multimon fra le riserve iniziali Co-op.
+            if(gameState.isRoguelikeCoop && currentDraft.some(c=>c.id===char.id))return;
             
             const charInstance = { 
                 ...char, 
@@ -450,7 +452,8 @@ const { CHARACTERS, FUSION_CHARACTERS, gameState, playerRole, setDraftTimeLeft, 
             // Se è Draft Battle e dobbiamo ancora scegliere, generiamo altre 3 carte
             if (gameState.settings.draftBattle && currentDraft.length + 1 < myTeamSize) {
                 const baseRoster = gameState.settings.fusionMode ? FUSION_CHARACTERS : CHARACTERS;
-                const draftable = baseRoster.filter(c => !c.isSummonOnly && !c.isSecretUnlock);
+                const draftable = baseRoster.filter(c => !c.isSummonOnly && !c.isSecretUnlock &&
+                   (!gameState.isRoguelikeCoop || !c.isCampaignMonster));
                 
                 // Esclude chi hai già scelto dalle future scelte
                 const pickedIds = [...currentDraft.map(c => c.id), char.id];
@@ -473,7 +476,8 @@ const { CHARACTERS, FUSION_CHARACTERS, gameState, playerRole, setDraftTimeLeft, 
 
               const currentDraft = gameState.draft[playerRole] || [];
               const baseRoster = gameState.settings.fusionMode ? FUSION_CHARACTERS : CHARACTERS;
-              const draftable = baseRoster.filter(c => !c.isSummonOnly && !c.isSecretUnlock);
+              const draftable = baseRoster.filter(c => !c.isSummonOnly && !c.isSecretUnlock &&
+                   (!gameState.isRoguelikeCoop || !c.isCampaignMonster));
               
               const pickedIds = currentDraft.map(c => c.id);
               const currentChoicesIds = (gameState.draftChoices[playerRole] || []).map(c => c.id);
