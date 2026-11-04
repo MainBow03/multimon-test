@@ -13,6 +13,17 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov4-coop-enemy-groups',category:'balance',date:'04/11/2026',title:'⚔️ Roguelike Co-op: tornano i gruppi di 2 o 3 nemici e i boss!',items:[
+    'Ripristinata la progressione degli scontri della Roguelike Co-op: piani 1–4 contro 2 nemici, piani 5–9 contro 3 nemici, piano 10 contro il boss; il ciclo si ripete fino al piano 50.',
+    'I nemici normali combattono davvero contemporaneamente e la CPU assegna una mossa distinta a ciascun avversario. Ogni giocatore può scegliere quale bersaglio colpire.',
+    'La vittoria arriva solo dopo aver sconfitto tutti i nemici di un piano, senza completamenti prematuri quando ne resta ancora qualcuno vivo.',
+    'Ogni nemico normale ha PS e Attacco individuali più contenuti rispetto al precedente Guardiano solitario, mentre le statistiche crescono dolcemente a ogni piano.',
+    'Boss singoli ai piani 10, 20, 30, 40 e 50, con difficoltà crescente e boss finale speciale al piano 50.',
+    'La schermata introduttiva mostra i PNG di tutti i bersagli e l’accampamento anticipa il numero di nemici del prossimo piano. Aggiornati la lobby e il tutorial di Natsu.',
+    'Restano invariati i due Multimon iniziali per giocatore, il limite di tre persone, il salvataggio degli alleati e le ricompense individuali.',
+    'Nuovi test simulano tutti i 50 piani, le azioni di due o tre CPU nemiche, i bersagli e la fine corretta del combattimento.'
+  ]},
+
   {id:'nov4-coop-single-move-per-turn',category:'fixes',date:'04/11/2026',title:'✅ Roguelike Co-op: la mossa si sceglie una sola volta per turno',items:[
     'Risolto il problema che riproponeva la selezione delle mosse mentre gli altri giocatori Co-op non avevano ancora agito.',
     'Dopo la scelta, il comando si blocca subito e viene mostrato "Mossa confermata! In attesa che gli alleati scelgano la loro mossa".',
