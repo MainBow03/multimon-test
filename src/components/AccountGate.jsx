@@ -360,6 +360,7 @@ export function AccountGate({children}) {
           <button aria-label="Chiudi controlli account" className="rounded-lg border border-slate-600 px-2 py-1" onClick={()=>setControlsExpanded(false)}>✕</button>
         </div>
         <span className="text-slate-300" aria-live="polite">{cloudStatus||'Salvataggio cloud'}</span>
+        {notice&&<p role="status" className="rounded-lg border border-emerald-700/50 bg-emerald-950/40 p-2 text-emerald-200">{notice}</p>}
         <button className="text-amber-300 underline font-bold text-left" onClick={inspectRecoveryBackups}>
           Recupera progressi o copie precedenti
         </button>
