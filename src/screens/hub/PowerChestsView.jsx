@@ -1,6 +1,6 @@
 import React,{useEffect,useState} from 'react';
 import { FinnChestTutorial } from './FinnChestTutorial.jsx';
-import { roguelikeBonusRemaining,ROGUELIKE_FULL_CLEAR_COOLDOWN_MS } from '../../systems/roguelikePowerRewards.js';
+import { roguelikeBonusRemaining,ROGUELIKE_FULL_CLEAR_COOLDOWN_MS,POWER_CHEST_TIERS,powerChestRangeForStage } from '../../systems/roguelikePowerRewards.js';
 import {ArrowLeft,ChevronRight,CheckCircle} from '../../components/ChestIcons.jsx';
 
 function PowerChestArtwork({opened=false}){
@@ -35,6 +35,7 @@ const countdown=ms=>{
 };
 export function PowerChestsView({profile,onOpen,onAcknowledge,onTutorialComplete,onBack}){
  const power=profile?.roguelikePower||{},pending=power.pending||[],receipt=power.activeReveal;
+ const nextRange=pending.length?powerChestRangeForStage(pending[0]):null;
  const seen=!!power.powerTutorialSeen;
  const [tutorial,setTutorial]=useState(false),[revealed,setRevealed]=useState(!!receipt),[error,setError]=useState('');
  const [now,setNow]=useState(Date.now());
@@ -50,7 +51,7 @@ export function PowerChestsView({profile,onOpen,onAcknowledge,onTutorialComplete
     <div><button type="button" onClick={onBack} className="font-bold text-cyan-200 hover:text-white flex items-center gap-2 text-sm"><ArrowLeft size={18}/> Torna al menu</button>
      <p className="text-xs text-cyan-300 font-black tracking-[.28em] mt-6">ENERGIA ROGUELIKE</p>
      <h1 className="text-3xl sm:text-5xl font-black mt-1">Casse Potenza</h1>
-     <p className="text-slate-300 text-sm mt-2">Ogni 5 piani superati nella Roguelike, una cassa da 2 a 8 Punti Forza.</p>
+     <p className="text-slate-300 text-sm mt-2">Ogni 5 piani superati, una Cassa Potenza: le ricompense aumentano con il piano raggiunto, anche in Co-op.</p>
     </div>
     <div className="rounded-2xl border border-cyan-400/60 bg-slate-950/70 px-6 py-4 text-center shadow-[0_0_28px_rgba(34,211,238,.13)]">
      <p className="text-xs font-black text-cyan-200 tracking-wider">CASSE DISPONIBILI</p>
@@ -73,11 +74,22 @@ export function PowerChestsView({profile,onOpen,onAcknowledge,onTutorialComplete
       </button>
     </div>:<div className="space-y-4">
       <h2 className="text-2xl font-black text-cyan-200">{pending.length?'La prossima cassa è pronta!':'Nessuna Cassa Potenza da aprire'}</h2>
-      <p className="text-slate-300 text-sm">{pending.length?'Ogni cassa dà esclusivamente Punti Forza, da 2 a 8.':'Raggiungi e supera i piani 5, 10, 15 e così via nella Roguelike per ottenere casse.'}</p>
+      <p className="text-slate-300 text-sm">{pending.length?`La prossima cassa contiene da ${nextRange.min} a ${nextRange.max} Punti Forza, in base al piano in cui l'hai conquistata.`:'Raggiungi e supera i piani 5, 10, 15 e così via nella Roguelike per ottenere casse.'}</p>
       <button type="button" disabled={!pending.length} onClick={open}
        className="px-10 py-4 font-black rounded-xl text-white bg-gradient-to-r from-cyan-500 to-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_24px_rgba(56,189,248,.2)]">Apri Cassa Potenza</button>
     </div>}
     {error&&<p role="alert" className="text-rose-300 font-bold text-sm">{error}</p>}
+   </section>
+   <section className="border border-cyan-400/35 bg-slate-900/75 rounded-2xl p-4 sm:p-6">
+    <h3 className="font-black text-lg text-cyan-200 mb-1">📈 Ricompense crescenti</h3>
+    <p className="text-slate-300 text-sm mb-4">La fascia dipende dal piano della cassa, sia nella Roguelike Solo sia nella Co-op.</p>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+     {POWER_CHEST_TIERS.map(tier=><div key={tier.from}
+       className={'rounded-xl border px-3 py-3 text-center '+(nextRange?.from===tier.from?'border-cyan-300 bg-cyan-950/50':'border-slate-600 bg-slate-950/60')}>
+      <p className="text-slate-300 text-xs font-bold">Piani {tier.from}{tier.to===tier.from?'':'–'+tier.to}</p>
+      <p className="text-cyan-200 font-black text-lg">{tier.min}–{tier.max} PF</p>
+     </div>)}
+    </div>
    </section>
    <section className="border border-violet-400/35 bg-slate-900/75 rounded-2xl p-4 sm:p-6 flex flex-wrap gap-4 justify-between items-center">
     <div className="space-y-2"><h3 className="text-xl font-black text-white">Premio per vittoria completa: +30 PF</h3>
