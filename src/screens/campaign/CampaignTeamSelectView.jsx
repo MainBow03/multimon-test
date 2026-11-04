@@ -697,7 +697,7 @@ if (appMode === 'campaign_team_select') {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 2xl:grid-cols-11 gap-3 mb-4 w-full max-h-[55dvh] overflow-y-auto content-start custom-scrollbar p-2">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 mb-4 w-full max-h-[60dvh] overflow-y-auto content-start custom-scrollbar p-2 sm:p-3">
                     {(() => {
                         let rosterChars = campaignState.roster.map(id => CHARACTERS.find(c => c.id === id)).filter(Boolean);
                         
@@ -731,10 +731,12 @@ if (appMode === 'campaign_team_select') {
                                         }
                                         toggleChar(id);
                                     }}
-                                    className={`relative overflow-hidden bg-slate-900/80 backdrop-blur-md border rounded-2xl p-4 text-center transition-all duration-300 ${isDead ? 'opacity-50 grayscale border-rose-900 cursor-not-allowed' : isAnomalyTarget ? 'border-fuchsia-500 opacity-50 cursor-not-allowed' : isEchoFinalRaid ? (isStarting ? 'border-amber-300 bg-amber-900/25 shadow-[0_0_18px_rgba(251,191,36,0.3)] cursor-pointer':'border-slate-600/80 hover:border-cyan-400 cursor-pointer') : isSelected ? 'border-emerald-400 bg-emerald-900/30 scale-105 shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'border-slate-700/50 hover:border-cyan-500/50 hover:-translate-y-1 cursor-pointer shadow-lg'}`}
+                                    className={`relative min-w-0 overflow-hidden bg-slate-900/80 backdrop-blur-md border rounded-2xl p-3 sm:p-4 text-center transition-all duration-300 ${isDead ? 'opacity-50 grayscale border-rose-900 cursor-not-allowed' : isAnomalyTarget ? 'border-fuchsia-500 opacity-50 cursor-not-allowed' : isEchoFinalRaid ? (isStarting ? 'border-amber-300 bg-amber-900/25 shadow-[0_0_18px_rgba(251,191,36,0.3)] cursor-pointer':'border-slate-600/80 hover:border-cyan-400 cursor-pointer') : isSelected ? 'border-emerald-400 bg-emerald-900/30 ring-2 ring-emerald-400/35 shadow-[0_0_15px_rgba(16,185,129,0.25)]' : 'border-slate-700/50 hover:border-cyan-500/50 hover:-translate-y-1 cursor-pointer shadow-lg'}`}
                                 >
-                                    <img src={char.img} alt={char.name} className={`w-16 h-16 rounded-full object-cover mx-auto mb-3 border-2 ${isEchoFinalRaid ? (isStarting?'border-amber-300':'border-slate-600') : isSelected ? 'border-emerald-400' : 'border-slate-600/50'}`} />
-                                    <h4 className="font-bold text-sm mb-2 truncate text-slate-100">{char.name}</h4>
+                                    <div className={`w-full h-28 sm:h-32 md:h-36 flex items-center justify-center rounded-xl bg-slate-950/60 border-2 mb-3 p-2 ${isEchoFinalRaid ? (isStarting?'border-amber-300':'border-slate-600') : isSelected ? 'border-emerald-400' : 'border-slate-600/50'}`}>
+                                        <img src={char.img} alt={char.name} loading="lazy" className="w-full h-full object-contain drop-shadow-lg" />
+                                    </div>
+                                    <h4 className="font-bold text-sm sm:text-base mb-2 leading-snug line-clamp-2 min-h-[2.25em] break-words text-slate-100">{char.name}</h4>
                                     <div className="flex flex-wrap gap-1 justify-center mb-3">
                                         {char.types.map(t => (
                                             <span key={t} className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{t}</span>
