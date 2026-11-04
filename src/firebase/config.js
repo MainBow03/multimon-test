@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 // --- FIREBASE CONFIGURATION ---
@@ -16,6 +16,18 @@ import { getFirestore } from 'firebase/firestore';
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        // Richiedi esplicitamente la persistenza tra le chiusure del browser.
+        // Firebase in genere la usa già, ma non ignoriamo più eventuali errori
+        // di storage (modalità privata/cookie bloccati/iframe).
+        let persistencePromise;
+        const ensurePersistentAuth = () => {
+          if(!persistencePromise){
+            persistencePromise=setPersistence(auth,browserLocalPersistence).catch(error=>{
+              persistencePromise=null;throw error;
+            });
+          }
+          return persistencePromise;
+        };
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'multiverse-rpg-1';
 
@@ -28,4 +40,4 @@ import { getFirestore } from 'firebase/firestore';
                            window.location.hostname === '';
         // --------------------------------------------------
 
-export { auth, db, appId, IS_PREVIEW };
+export { auth, db, appId, IS_PREVIEW, ensurePersistentAuth };
