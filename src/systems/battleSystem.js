@@ -421,7 +421,11 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
                 const activeJugg = ['p1', 'p2', 'p3', 'p4', 'p5'].slice(0, gameState.settings.maxPlayers).filter(p => gameState.players[p]);
                 activeJugg.forEach(p => {
                     if (teams[p] && teams[p].length > 0) {
-                        field[p] = teams[p].slice(0, p === juggPlayer ? 1 : fieldSize).map((_, i) => i);
+                        // In Co-op i due/tre nemici sono contemporaneamente in campo.
+                        // Gli umani mantengono un Multimon attivo e la riserva fuori campo.
+                        const activeSlots=p===juggPlayer
+                            ? (gameState.isRoguelikeCoop?teams[p].length:1):fieldSize;
+                        field[p] = teams[p].slice(0,activeSlots).map((_, i) => i);
                     }
                 });
 
