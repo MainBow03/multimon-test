@@ -192,7 +192,7 @@ export function nextCoopFloor(room,roster,applyOnEnter=null,random=Math.random){
   hyperUsed:{p1:false,p2:false,p3:false,p4:false},
   pendingSwitches:{p1:0,p2:0,p3:0,p4:0},
   switchActions:{p1:[],p2:[],p3:[],p4:[]},switchZodiacChoices:{p1:{},p2:{},p3:{},p4:{}},
-  winner:null,rogueRelics:[...relics],rogueDawnUsed:false,
+  winner:null,rogueRelics:[...relics],rogueDawnUsed:false,aiMemory:{},
   coopRun:{...room.coopRun,nextBattlePower:1,lastRecruit:null,lastCoins:0},
   // Start fresh combat reports on each floor.
   battleReport:{version:1,turns:0,entries:{}}};
