@@ -93,7 +93,7 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
         {completed&&<span className="rounded-xl bg-slate-950 px-3 py-2 border border-emerald-500/30">🎁 {normalChests}/5 Bauli normali</span>}
       </div>
       {completed&&<p className="mt-3 text-sm font-bold text-emerald-200">
-        {clearedRewards?'🏆 Premio finale registrato! Hai ricevuto 5 Bauli normali e fino a 30 Punti Forza bonus (soggetti al cooldown di 4 ore).':
+        {clearedRewards?'🏆 Premio finale registrato! Hai ricevuto 5 Bauli normali e fino a 50 Punti Forza bonus (soggetti al cooldown di 4 ore).':
           '⏳ Premi finali in sincronizzazione sul tuo profilo. Prima di uscire controlla il salvataggio cloud.'}
       </p>}
       <p className="mt-2 text-xs text-cyan-100">Le casse sono apribili dal menu principale: Casse Potenza e Bauli Campagna.</p>
