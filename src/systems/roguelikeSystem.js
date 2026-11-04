@@ -16,7 +16,7 @@ const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, player
             state.playerMastery.p1 = masteryVisibleLevels(getPlayerData());
             state.inventory.p1 = { pozione: 2, resurrezione: 1 };
             state.isRoguelikeCoop = true;
-            state.coopRun = {floor:1,maxFloor:50,coins:0,lastCoins:0,recruitBonus:0,encounteredEnemies:[],lastRecruit:null,finished:false,relics:[],nextBattlePower:1,pendingEvent:null,eventVotes:{},lastEventResult:null};
+            state.coopRun = {runId:'coop-'+newRoomId+'-'+Date.now().toString(36),floor:1,maxFloor:50,coins:0,lastCoins:0,recruitBonus:0,encounteredEnemies:[],lastRecruit:null,finished:false,relics:[],nextBattlePower:1,pendingEvent:null,eventVotes:{},lastEventResult:null};
             state.gameMode = 'juggernaut'; // Il Juggernaut sarà il boss controllato dal Bot!
             state.settings = {
                 ...state.settings,
