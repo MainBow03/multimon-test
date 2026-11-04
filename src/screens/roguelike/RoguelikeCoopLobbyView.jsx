@@ -22,7 +22,7 @@ if (appMode === 'roguelike_coop_lobby') {
                 
                 <div className="bg-slate-800/80 backdrop-blur-xl p-8 rounded-3xl w-full max-w-3xl border border-pink-500/50 text-center shadow-[0_0_50px_rgba(236,72,153,0.3)] z-10 flex flex-col items-center">
                     <h2 className="text-4xl md:text-5xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-500 drop-shadow-md">Roguelike Co-op</h2>
-                    <p className="text-slate-300 mb-8 font-medium max-w-lg">Spedizione online da 2 o 3 giocatori (massimo 3). Ognuno sceglie un solo Multimon iniziale e affrontate insieme lo stesso nemico. Dopo ogni piano potete reclutare nuovi compagni, con più probabilità per chi ne ha meno.</p>
+                    <p className="text-slate-300 mb-8 font-medium max-w-lg">Spedizione online da 2 o 3 giocatori (massimo 3). Ognuno sceglie 2 Multimon iniziali: il primo combatte, il secondo resta come riserva per le sostituzioni e i KO. In 3 partirete con 6 Multimon! Sfidate insieme lo stesso nemico e reclutate nuovi compagni dopo i piani, con più probabilità per chi ne ha meno.</p>
                     
                     <div className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-10 flex flex-col md:flex-row items-center justify-center gap-4 bg-slate-900/80 px-6 py-4 rounded-2xl border border-slate-700/50">
                          <div className="flex items-center gap-2">
