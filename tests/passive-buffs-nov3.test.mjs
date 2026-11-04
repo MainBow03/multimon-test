@@ -134,10 +134,11 @@ test('Nuove passive di danno ignorano mosse non offensive e rispettano statistic
 });
 
 test('Registro aggiornamenti: nuove note per ogni buff senza dimenticare le precedenti',()=>{
- const recent=GAME_UPDATES.slice(5,7);
- assert.deepEqual(recent.map(s=>s.id),[
-   'nov3-zazan-sage-arctic-move-balance','nov3-four-new-passives-bulma'
- ]);
+ const expected=['nov3-zazan-sage-arctic-move-balance','nov3-four-new-passives-bulma'];
+ const recent=expected.map(id=>GAME_UPDATES.find(s=>s.id===id));
+ assert.ok(recent.every(Boolean),'Le note dei buff devono rimanere nel registro');
+ assert.ok(GAME_UPDATES.findIndex(x=>x.id===expected[0])<
+           GAME_UPDATES.findIndex(x=>x.id===expected[1]));
  assert.ok(recent.every(x=>x.date==='03/11/2026'));
  const text=recent.flatMap(s=>s.items).join(' ');
  for(const word of ['Zazan','Sage','Vandal','Cristallo','Orso Bianco','Crash Bandicoot','30%',
