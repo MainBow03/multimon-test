@@ -139,3 +139,29 @@ body { background-color: #020617; color: white; }
 @keyframes battle-knockout{0%{transform:translateY(0) scale(1);opacity:1}35%{transform:translateY(-7px) rotate(-5deg) scale(1.08)}100%{transform:translateY(27px) rotate(10deg) scale(.68);opacity:.22;filter:grayscale(1)}}
 @keyframes battle-arena-impact{0%,100%{transform:translateX(0)}15%{transform:translateX(-3px)}35%{transform:translateX(4px)}55%{transform:translateX(-2px)}80%{transform:translateX(1px)}}
 @media(prefers-reduced-motion:reduce){.battle-feedback-label,.battle-ko-character,.battle-impact-shake{animation:none!important}}
+
+
+/* Scelta Multimon: le griglie con decine di personaggi NON possono
+   comprimere i riquadri per far entrare tutti i record nel viewport.
+   Le righe devono mantenere la loro altezza naturale; scorre il contenitore. */
+.multimon-roster-grid {
+  grid-auto-rows: max-content;
+  align-content: start;
+  align-items: start;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.multimon-roster-grid > .multimon-roster-card {
+  box-sizing: border-box;
+  height: auto;
+  min-height: 260px;
+  align-self: stretch;
+}
+.multimon-roster-portrait {
+  flex-shrink: 0;
+  min-height: 112px;
+}
+@media (min-width: 768px) {
+  .multimon-roster-grid > .multimon-roster-card { min-height: 282px; }
+  .multimon-roster-portrait { min-height: 128px; }
+}
