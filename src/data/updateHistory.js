@@ -13,6 +13,11 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov4-spray-cake-type-adjustment',category:'balance',date:'04/11/2026',title:'🧁 Nuovi tipi per le mosse di Clover e Blueberry Muffin',items:[
+    'Torta di Mezzanotte di Blueberry Muffin cambia da Folletto a Psico.',
+    'Spray Confondente di Clover cambia da Veleno a Folletto.',
+    'Entrambe le mosse ora ricevono il bonus STAB del 50% perché appartengono a uno dei tipi del proprio Multimon. Potenza, precisione e probabilità degli effetti secondari restano invariate.'
+  ]},
   {id:'nov4-five-new-original-multimon',category:'champions',date:'04/11/2026',title:'🌟 Star Butterfly, Sam, Clover, Superman e Blueberry Muffin: cinque stili unici',items:[
     'Star Butterfly (Magico/Folletto, 260 monete) — Bacchetta Capricciosa: una volta per turno, al primo attacco che causa danni, 35% di attivare un effetto a sorpresa tra guarigione 8% PS, Velocità +10% o Velocità nemica −12%.',
     'Star Butterfly usa Narvali Interdimensionali (2–3 colpi), Tempesta Arcobaleno (tutti gli avversari), Bacchetta a Sorpresa (25% confusione) e Dip Down (cura con potenziamento).',
