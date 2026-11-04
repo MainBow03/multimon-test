@@ -250,14 +250,15 @@ export function AccountGate({children}) {
   setBackupPanel(true);setError('');
  }
  async function recoverBackup(name){
-  if(busy.current || !['account','guest'].includes(session.type))return;
+  const accountLike=['account','conflict','empty'].includes(session.type)&&auth.currentUser?.uid===session.uid;
+  if(busy.current || (!accountLike && session.type!=='guest'))return;
   const backup=readLocalBackup(name);
   if(!backup){setError('Questa copia di sicurezza non è più disponibile.');return;}
   busy.current=true;setError('');
   try{
    if(inFlight.current)await inFlight.current;
    createRecoverySnapshot(collectProgress(),'prima-del-ripristino');
-   if(session.type==='account'){
+   if(accountLike){
      // Protegge anche la versione cloud che stiamo per sostituire.
      const cloud=await downloadCloudSave(session.uid);
      if(cloud)createRecoverySnapshot(cloud,'cloud-prima-del-ripristino');
@@ -279,6 +280,7 @@ export function AccountGate({children}) {
   {/* Pulsante cloud compatto in basso: non copre "Torna al Menu" nelle stanze. */}
   {!locked&&<div className="fixed bottom-3 left-3 sm:bottom-4 sm:left-4 z-[250] flex flex-col items-start gap-2 max-w-[calc(100vw-1.5rem)]">
     {controlsExpanded&&<div id="multimon-account-controls" className="mb-1 max-w-[min(22rem,calc(100vw-1.5rem))] rounded-2xl border border-cyan-400/50 bg-slate-950/95 p-3 shadow-2xl backdrop-blur-xl text-xs text-white">
+      {storageWarning&&<p role="alert" className="mb-2 border border-amber-600/60 rounded-xl p-2 text-amber-200">{storageWarning}</p>}
       {session.type==='account'&&<div className="flex flex-col gap-3">
         <div className="flex justify-between items-center gap-3">
           <span className="font-black text-emerald-300 truncate" title={auth.currentUser?.email||''}>☁ {auth.currentUser?.email}</span>
@@ -365,6 +367,27 @@ export function AccountGate({children}) {
     {notice&&<p className="text-sm text-emerald-300">{notice}</p>}
     <p className="text-xs text-slate-400">La password viene gestita da Firebase Authentication e non viene inclusa nei salvataggi.</p>
    </div>
+  </div>}
+  {backupPanel&&<div className="fixed inset-0 z-[330] flex items-center justify-center bg-slate-950/95 p-4 text-white overflow-y-auto">
+    <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto space-y-3 rounded-3xl border border-amber-400/50 bg-slate-900 p-5 shadow-2xl">
+      <h2 className="text-xl font-black text-amber-300">🗂️ Recupera i progressi</h2>
+      <p className="text-sm text-slate-300">Queste copie sono salvate nel browser attuale. Nessun backup viene applicato senza conferma.</p>
+      {backupList.length===0&&<p className="text-sm text-rose-300">Non ho trovato copie locali in questo browser. Prova a riaccedere allo stesso account per controllare il cloud.</p>}
+      {backupList.map(entry=><button key={entry.name} type="button"
+        onClick={()=>setSelectedBackup(entry.name)}
+        className={'w-full text-left p-3 rounded-xl border '+(selectedBackup===entry.name?'border-cyan-400 bg-cyan-950/50':'border-slate-600 bg-slate-800/80 hover:border-slate-400')}>
+        <span className="block text-sm font-bold">{entry.label}</span>
+        <span className="block text-xs text-slate-300 mt-1">{entry.createdAt?new Date(entry.createdAt).toLocaleString('it-IT'):'Data sconosciuta'} · {entry.keys} elementi salvati</span>
+      </button>)}
+      {selectedBackup&&<div className="rounded-xl bg-amber-950/30 border border-amber-600/40 p-3 space-y-2">
+        <p className="text-sm text-amber-100">Vuoi sostituire i progressi attuali con questa copia? Conservo una copia della versione attuale e, se sei connesso, anche del cloud prima di aggiornare.</p>
+        {(['account','conflict','empty'].includes(session.type)||session.type==='guest')
+          ?<button className={primary+' w-full'} onClick={()=>recoverBackup(selectedBackup)}>Conferma il ripristino {session.type==='guest'?'nel browser':'nell’account'}</button>
+          :<p className="text-xs text-amber-200">Per recuperare un backup nell'account, accedi prima con la tua email.</p>}
+      </div>}
+      {error&&<p role="alert" className="text-xs text-rose-300">{error}</p>}
+      <button className={secondary+' w-full'} onClick={()=>{setBackupPanel(false);setSelectedBackup('');}}>Annulla e torna al gioco</button>
+    </div>
   </div>}
  </>;
 }
