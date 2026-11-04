@@ -1,9 +1,29 @@
 // Due tipi di casse distinti: queste sono solo per la Roguelike e contengono
 // esclusivamente Punti Forza. I bauli campagna rimangono separati.
 import {grantNormalClearChests} from './modeCompletionRewards.js';
-export const POWER_CHEST_MIN=2;
-export const POWER_CHEST_MAX=8;
+export const POWER_CHEST_MIN=3;
+export const POWER_CHEST_MAX=18;
 export const POWER_CHEST_EVERY_FLOORS=5;
+// Più piani si superano, più sono generose le casse: vale per Solo e Co-op.
+// Gli scrigni già conquistati e non ancora aperti usano il nuovo bilanciamento.
+export const POWER_CHEST_TIERS=Object.freeze([
+  Object.freeze({from:5,to:15,min:3,max:8}),
+  Object.freeze({from:20,to:30,min:5,max:11}),
+  Object.freeze({from:35,to:45,min:7,max:14}),
+  Object.freeze({from:50,to:50,min:10,max:18})
+]);
+const LEGACY_CHEST_RANGE=Object.freeze({min:2,max:8});
+export function powerChestRangeForFloor(floor){
+  return POWER_CHEST_TIERS.find(t=>Number.isInteger(floor)&&floor>=t.from&&floor<=t.to)
+    || LEGACY_CHEST_RANGE;
+}
+export function powerChestRangeForStage(stageId){
+  const matched=typeof stageId==='string'?stageId.match(/:([0-9]+)$/):null;
+  const floor=matched?Number(matched[1]):null;
+  if(!Number.isInteger(floor)||floor<5||floor>50||floor%POWER_CHEST_EVERY_FLOORS!==0)
+    return LEGACY_CHEST_RANGE;
+  return powerChestRangeForFloor(floor);
+}
 export const ROGUELIKE_FULL_CLEAR_REWARD=30;
 export const ROGUELIKE_FULL_CLEAR_COOLDOWN_MS=4*60*60*1000;
 export const FINN_CHEST_IMAGE='https://i.pinimg.com/736x/af/d3/97/afd3975c34007f3d6a888de9e6b416e0.jpg';
@@ -52,8 +72,9 @@ export function openPowerChest(profile,random=Math.random,now=Date.now()){
   if(power.activeReveal)return {ok:false,reason:'Conferma prima la ricompensa precedente.',profile};
   if(!power.pending.length)return {ok:false,reason:'Non hai Casse Potenza da aprire.',profile};
   const r=Math.min(.999999999,Math.max(0,Number(random())||0));
-  const amount=POWER_CHEST_MIN+Math.floor(r*(POWER_CHEST_MAX-POWER_CHEST_MIN+1));
-  const receipt={id:power.pending[0],points:amount,openedAt:now};
+  const chestId=power.pending[0],tier=powerChestRangeForStage(chestId);
+  const amount=tier.min+Math.floor(r*(tier.max-tier.min+1));
+  const receipt={id:chestId,points:amount,openedAt:now};
   return {ok:true,receipt,points:amount,profile:{
     ...profile,strengthPoints:(profile.strengthPoints||0)+amount,
     roguelikePower:{...power,pending:power.pending.slice(1),
