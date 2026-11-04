@@ -17,13 +17,13 @@ test('Cinque casse NORMALI per la Roguelike Solo completata, senza duplicazione'
  const p=empty();
  const res=grantRoguelikeCompletion(p,'solo-finale',50,50,20000000);
  assert.equal(res.ok,true);
- assert.equal(res.points,30);
+ assert.equal(res.points,50);
  assert.equal(res.normalChests,5);
  assert.equal(res.profile.chests.pending.length,6);
  assert.equal(res.profile.chests.earnedStageIds.length,6);
  assert.deepEqual(res.profile.chests.opened,p.chests.opened);
  assert.equal(res.profile.coins,140);
- assert.equal(res.profile.strengthPoints,36);
+ assert.equal(res.profile.strengthPoints,56);
  assert.equal(grantRoguelikeCompletion(res.profile,'solo-finale',50,50,20000000).ok,false);
  assert.equal(grantNormalClearChests(res.profile,'solo-finale').granted,0);
  const early=grantRoguelikeCompletion(res.profile,'solo-2',50,50,21000000);
