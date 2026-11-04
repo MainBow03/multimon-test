@@ -13,6 +13,14 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov4-torneo-assoluto-recovery',category:'fixes',date:'04/11/2026',title:'🏆 Recupero speciale dei progressi della seconda campagna',items:[
+    'Aggiunto un recupero una tantum tramite codice privato nella sezione Account e Salvataggi Cloud, disponibile solo dopo l’accesso con email.',
+    'Ripristina il completamento delle 10 missioni del Torneo Assoluto, sblocca la campagna successiva e recupera solo le casse delle missioni non ancora premiate.',
+    'Mantiene le monete della campagna a un valore almeno pari alle 1.550 previste (50 iniziali + 150 per missione), senza ridurre un saldo già maggiore.',
+    'Preserva casse già aperte, relative ricompense, statistiche, personaggi, strumenti e progressi delle altre modalità.',
+    'Prima dell’operazione crea una copia di sicurezza e salva sul cloud con verifica dei conflitti. Il vecchio contenuto casuale di casse perse non può essere ricostruito esattamente.'
+  ]},
+
   {id:'nov4-spray-cake-type-adjustment',category:'balance',date:'04/11/2026',title:'🧁 Nuovi tipi per le mosse di Clover e Blueberry Muffin',items:[
     'Torta di Mezzanotte di Blueberry Muffin cambia da Folletto a Psico.',
     'Spray Confondente di Clover cambia da Veleno a Folletto.',
