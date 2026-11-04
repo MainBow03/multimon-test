@@ -96,7 +96,9 @@ export function createRecoverySnapshot(entries=collectProgress(),label='auto',st
   const previous=readLocalBackup(newest.name,store);
   if(previous && progressFingerprint(previous)===hash)return newest.name;
  }
- const now=Date.now();
+ // Un nuovo backup deve avere un timestamp distinto anche se più salvataggi
+ // avvengono nello stesso millisecondo (e dopo un refresh rapido).
+ const now=Math.max(Date.now(),(newest?.createdAt||0)+1);
  const key=RECOVERY_BACKUP_PREFIX+now+'_'+Math.random().toString(36).slice(2,7);
  const data=JSON.stringify({version:PROFILE_STORE_VERSION,entries,createdAt:now,source:label});
  const excess=()=>listRecoveryBackups(store).filter(x=>x.name.startsWith(RECOVERY_BACKUP_PREFIX));
