@@ -172,6 +172,24 @@ export function AccountGate({children}) {
     window.removeEventListener('online',backOnline);
   };
  },[session.type,session.uid]);
+ // Copie periodiche anche per chi gioca come ospite: non dipendono
+ // dal buon esito del cloud e restano sul dispositivo corrente.
+ useEffect(()=>{
+  if(!['account','guest'].includes(session.type))return;
+  const snapshot=()=>{
+   try{createRecoverySnapshot(collectProgress(),'automatico');}
+   catch(error){console.warn('Backup locale non creato:',error);}
+  };
+  const timer=setInterval(snapshot,60000);
+  const hide=()=>{if(document.visibilityState==='hidden')snapshot();};
+  document.addEventListener('visibilitychange',hide);
+  window.addEventListener('pagehide',snapshot);
+  return()=>{
+   clearInterval(timer);
+   document.removeEventListener('visibilitychange',hide);
+   window.removeEventListener('pagehide',snapshot);
+  };
+ },[session.type,session.uid]);
  async function loginOrRegister(event) {
   event.preventDefault();if(busy.current)return;
   busy.current=true;setSession({type:'loading',uid:''});setError('');setNotice('');
