@@ -2,6 +2,7 @@ import { renderMenuView } from './screens/hub/MenuView.jsx';
 import {FirstVisitModeGuide} from './components/FirstVisitModeGuide.jsx';
 import { MultiverseEventHub } from './screens/events/MultiverseEventHub.jsx';
 import { AccountGate } from './components/AccountGate.jsx';
+import { AppErrorBoundary } from './components/AppErrorBoundary.jsx';
 import { UpdateHistoryPanel } from './components/UpdateHistoryPanel.jsx';
 import { renderCampaignSelectView } from './screens/campaign/CampaignSelectView.jsx';
 import { renderCampaignIntroView } from './screens/campaign/CampaignIntroView.jsx';
@@ -19,7 +20,7 @@ import { renderRoguelikeDraftView } from './screens/roguelike/RoguelikeDraftView
 import { renderRoguelikeMapView } from './screens/roguelike/RoguelikeMapView.jsx';
 import { renderRoguelikeCoopLobbyView } from './screens/roguelike/RoguelikeCoopLobbyView.jsx';
 import { RoguelikeCoopCampView } from './screens/roguelike/RoguelikeCoopCampView.jsx';
-import {COOP_STARTERS_PER_PLAYER,prepareCoopDraft,finishCoopFloor,nextCoopFloor,coopCampPurchase,voteCoopEvent,finalizeCoopEvent} from './systems/coopExpedition.js';
+import {COOP_STARTERS_PER_PLAYER,prepareCoopDraft,isCoopDraftReady,finishCoopFloor,nextCoopFloor,coopCampPurchase,voteCoopEvent,finalizeCoopEvent} from './systems/coopExpedition.js';
 import {canSubmitCoopAction,canCommitCoopTurn,coopValidatedActionDelta} from './systems/coopTurnGuards.js';
 import { renderShopView } from './screens/hub/ShopView.jsx';
 import { StrengthLabView } from './screens/hub/StrengthLabView.jsx';
@@ -1091,7 +1092,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
           const leaveRoom = (...__args) => leaveRoomImpl({ initialGameState, setAppMode, setCombatLog, setGameState, setIsLogOpen, setPlayerRole, setRoomId }, ...__args);
 
-          const handleConfirmLeave = (...__args) => handleConfirmLeaveImpl({ CHARACTERS, activeCampaignId, appMode, campaignState, gameState, leaveRoom, playerRole, setAppMode, setCampaignSelectedTeam, setCampaignState, setShowLeaveConfirm, updateState }, ...__args);
+          const handleConfirmLeave = (...__args) => handleConfirmLeaveImpl({ CHARACTERS, activeCampaignId, appMode, appId, db, doc, roomId, user, runTransaction, campaignState, gameState, leaveRoom, playerRole, setAppMode, setCampaignSelectedTeam, setCampaignState, setShowLeaveConfirm, setSystemAlert }, ...__args);
 
           const renderHealthBar = (...__args) => renderHealthBarImpl({  }, ...__args);
 
@@ -1333,13 +1334,9 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               // Una transazione impedisce avvii doppi e permette a un compagno
               // di sostituire l'host quando la presenza è scaduta.
               return coopRoomAction(['drafting'],true,room=>{
-                const humans=['p1','p2','p3'].filter(p=>room.players?.[p]&&!room.isBot?.[p]);
-                // Le spedizioni già avviate prima dell'aggiornamento con 1 solo
-                // starter non devono restare bloccate in una vecchia lobby di draft.
-                const startersRequired=room.settings?.teamSize===1?1:COOP_STARTERS_PER_PLAYER;
-                if(humans.length<2||humans.length>3||
-                   humans.some(p=>(room.draft?.[p]||[]).length!==startersRequired)||
-                   (room.draft?.p4||[]).length!==1)
+                // Il numero dei nemici è quello generato dal piano (2, 3 o boss).
+                // Le vecchie spedizioni con un solo starter umano restano compatibili.
+                if(!isCoopDraftReady(room))
                   throw new Error('Il draft non è completo per tutti i partecipanti.');
                 let patch=null;
                 startBattleImpl({
@@ -1915,4 +1912,4 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
         const root = createRoot(document.getElementById('root'));
-root.render(<AccountGate><App /></AccountGate>);
+root.render(<AppErrorBoundary><AccountGate><App /></AccountGate></AppErrorBoundary>);
