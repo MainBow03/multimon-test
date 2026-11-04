@@ -143,5 +143,18 @@ test('UI e collegamenti: entrambe le funzioni passano da transazioni Firestore',
  assert.match(view,/Accetta scambio/);
  assert.match(view,/Rifiuta scambio/);
  assert.match(view,/cooldownSeconds/);
- assert.match(view,/onReorder\(i,i-1\)/);
+ assert.match(view,/onReorder\(i,i-1,char.id\)/);
+});
+
+test('La conferma, il ritiro e la richiesta rispettano esattamente gli ID mostrati',()=>{
+ const r=room(),now=500000;
+ assert.throws(()=>requestCoopTrade(r,'p1','p2',0,0,now,'kirby','luigi'),/squadre sono cambiate/i);
+ assert.throws(()=>reorderCoopTeam(r,'p1',0,1,'luigi'),/squadra è cambiata/i);
+ const offer=requestCoopTrade(r,'p1','p2',0,0,now,'mario','luigi');
+ const pending={...r,...offer};
+ assert.throws(()=>respondCoopTrade(pending,'p2',true,now+100,'id-vecchio'),/proposta è cambiata/i);
+ assert.throws(()=>cancelCoopTrade(pending,'p1',now+100,'id-vecchio'),/proposta è cambiata/i);
+ const ok=respondCoopTrade(pending,'p2',true,now+100,offer.coopTrade.id);
+ assert.equal(ok['teams.p1'][0].id,'luigi');
+ assert.equal(cancelCoopTrade(pending,'p1',now+100,offer.coopTrade.id).coopTrade,null);
 });
