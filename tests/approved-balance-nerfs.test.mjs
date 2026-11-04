@@ -108,7 +108,11 @@ test('10) Piano Z: +50% ATK, +30% VEL con 2 usi',()=>{
 
 test('Il motore gestisce selezione di due bersagli, due status e utilizzi delle mosse',()=>{
   const battle=readFileSync(new URL('../src/systems/battleSystem.js',import.meta.url),'utf8');
-  assert.match(battle,/move\.targetCount && move\.targetCount > 1 && move\.targetCount < 4/);
+  const planner=readFileSync(new URL('../src/systems/strategicCpu.js',import.meta.url),'utf8');
+  // La selezione IA dei bersagli è stata estratta in strategicCpu:
+  // continua a rispettare il limite 2–3 bersagli, il motore esegue i colpi.
+  assert.match(planner,/move\.targetCount>1 && move\.targetCount<4/);
+  assert.match(planner,/selectedTargets:targets\.map/);
   assert.match(battle,/Math\.min\(targetCount, aliveEnemies\)/);
   assert.match(battle,/let effects = move\.statusEffects \|\| \(move\.statusEffect \? \[move\.statusEffect\] : \[\]\)/);
   assert.match(battle,/move\.remainingUses -= 1/);
