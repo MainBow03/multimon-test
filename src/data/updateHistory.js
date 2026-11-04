@@ -13,6 +13,14 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov4-noncollapsing-roster-cards',category:'fixes',date:'04/11/2026',title:'🛠️ Risolto roster a striscioline su tablet e PC',items:[
+    'Corretto il problema che, con tanti campioni disponibili, comprimeva le schede in righe sottilissime nascondendo quasi completamente i PNG.',
+    'La griglia ora conserva sempre la vera altezza dei ritratti e delle statistiche; i personaggi in più si raggiungono scorrendo normalmente.',
+    'Altezza minima protetta per ogni scheda, immagini non comprimibili, 2 colonne sui telefoni e 3 sui tablet.',
+    'Correzione applicata a Scegli la tua Squadra, draft condiviso, squadre Campagna, scelta del protagonista e Roguelike.',
+    'Aggiunto test di regressione per impedire che gli oltre 80 personaggi facciano collassare le schede in futuro.'
+  ]},
+
   {id:'nov4-tablet-roster-png-layout',category:'interface',date:'04/11/2026',title:'🖼️ Roster più ordinati e PNG finalmente visibili su tablet',items:[
     'Sistemata la griglia di selezione dei Multimon: due colonne su smartphone, tre su tablet, quattro o più solo sugli schermi grandi, con spazi regolari tra le carte.',
     'Le immagini dei personaggi ora sono più grandi e usano riquadri con adattamento completo, senza essere tagliate in minuscoli cerchi.',
