@@ -7,7 +7,7 @@ import {RoguelikeEventView} from './RoguelikeEventView.jsx';
 import {ROGUE_RELICS} from '../../systems/roguelikeEvents.js';
 import {isHostFresh} from '../../systems/roomRecovery.js';
 
-export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext,onPurchase,onVoteEvent,onFinalizeEvent,onExit}){
+export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext,onPurchase,onVoteEvent,onFinalizeEvent,onExit,personalProfile}){
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
  const [clock,setClock]=useState(()=>Date.now());
@@ -20,6 +20,11 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
    return ()=>clearInterval(timer);
  },[room.status,room.phaseStartedAt]);
  const run=room.coopRun||{};
+ const runId=run.runId||'';
+ const power=personalProfile?.roguelikePower||{};
+ const earnedPower=(power.earnedMilestones||[]).filter(k=>runId&&k.startsWith(runId+':')).length;
+ const clearedRewards=(power.rewardedCompletions||[]).includes(runId);
+ const normalChests=(personalProfile?.chests?.earnedStageIds||[]).filter(k=>runId&&k.startsWith('roguelike-full-clear:'+runId+':')).length;
  const humans=coopHumanPlayers(room),isWin=room.winner&&room.winner!==room.players?.p4&&room.winner!=='Pareggio';
  // Aggiorna l'abilitazione del capogruppo anche se Firestore non emette snapshot.
  const canLeadNow=humans.includes(playerRole) && (playerRole==='p1'||!isHostFresh(room,clock));
@@ -79,6 +84,20 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
            Chiudi votazione (giocatore assente)</button>:
          <p>Il capogruppo potrà sbloccare la votazione tra {Math.max(0,Math.ceil((75000-(clock-(room.phaseStartedAt||clock)))/1000))} secondi se qualcuno non risponde.</p>}
      </div>}
+   {(stage==='coop_camp'||stage==='coop_event'||completed)&&<section className="rounded-2xl border border-cyan-400/35 bg-cyan-950/20 p-5">
+      <h2 className="font-black text-lg text-cyan-200">🎁 Le TUE ricompense personali</h2>
+      <p className="mt-1 text-sm text-slate-300">Ognuno riceve i propri premi sul proprio account. Le monete dell'accampamento e le reclute restano condivise.</p>
+      <div className="mt-3 flex flex-wrap gap-2 text-xs font-black">
+        <span className="rounded-xl bg-slate-950 px-3 py-2 border border-cyan-500/30">📦 {earnedPower} Casse Potenza</span>
+        <span className="rounded-xl bg-slate-950 px-3 py-2 border border-amber-500/30">🪙 10–15 monete personali per piano</span>
+        {completed&&<span className="rounded-xl bg-slate-950 px-3 py-2 border border-emerald-500/30">🎁 {normalChests}/5 Bauli normali</span>}
+      </div>
+      {completed&&<p className="mt-3 text-sm font-bold text-emerald-200">
+        {clearedRewards?'🏆 Premio finale registrato! Hai ricevuto 5 Bauli normali e fino a 30 Punti Forza bonus (soggetti al cooldown di 4 ore).':
+          '⏳ Premi finali in sincronizzazione sul tuo profilo. Prima di uscire controlla il salvataggio cloud.'}
+      </p>}
+      <p className="mt-2 text-xs text-cyan-100">Le casse sono apribili dal menu principale: Casse Potenza e Bauli Campagna.</p>
+   </section>}
    {(stage==='coop_camp'||completed)&&run.lastEventResult&&<p className="rounded-xl bg-emerald-950/30 border border-emerald-500/30 p-4 text-emerald-200 text-sm">
      ✨ {run.lastEventResult}
    </p>}
