@@ -6,10 +6,14 @@ import {CHARACTERS} from '../../data/characters.js';
 import {RoguelikeEventView} from './RoguelikeEventView.jsx';
 import {ROGUE_RELICS} from '../../systems/roguelikeEvents.js';
 import {isHostFresh} from '../../systems/roomRecovery.js';
+import {coopTradeIsExpired,coopTradeCooldownRemaining,COOP_TRADE_EXPIRY_MS} from '../../systems/coopTeamTrades.js';
 
-export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext,onPurchase,onVoteEvent,onFinalizeEvent,onExit,personalProfile}){
+export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext,onPurchase,onVoteEvent,onFinalizeEvent,onReorder,onTradeOffer,onTradeReply,onTradeCancel,onExit,personalProfile}){
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
+ const [tradeTarget,setTradeTarget]=useState('');
+ const [offeredIndex,setOfferedIndex]=useState(0);
+ const [wantedIndex,setWantedIndex]=useState(0);
  const [clock,setClock]=useState(()=>Date.now());
  // Il countdown avanza anche se nessun altro giocatore produce snapshot Firestore.
  // Non affidarsi a render casuali: altrimenti il pulsante di recupero non appare.
@@ -26,6 +30,16 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
  const clearedRewards=(power.rewardedCompletions||[]).includes(runId);
  const normalChests=(personalProfile?.chests?.earnedStageIds||[]).filter(k=>runId&&k.startsWith('roguelike-full-clear:'+runId+':')).length;
  const humans=coopHumanPlayers(room),isWin=room.winner&&room.winner!==room.players?.p4&&room.winner!=='Pareggio';
+ const otherPlayers=humans.filter(p=>p!==playerRole);
+ const selectedTarget=otherPlayers.includes(tradeTarget)?tradeTarget:(otherPlayers[0]||'');
+ const trade=room.coopTrade||null,tradeExpired=coopTradeIsExpired(trade,clock);
+ const cooldownSeconds=coopTradeCooldownRemaining(room,playerRole,clock);
+ const tradeSeconds=trade?Math.max(0,Math.ceil((COOP_TRADE_EXPIRY_MS-(clock-(trade.createdAt||clock)))/1000)):0;
+ const choicesFor=role=>(room.teams?.[role]||[]).map((char,idx)=>({char,idx}))
+   .filter(({char})=>char&&!char.isSummonOnly);
+ const myChoices=choicesFor(playerRole),partnerChoices=choicesFor(selectedTarget);
+ const fromIndex=myChoices.some(x=>x.idx===offeredIndex)?offeredIndex:myChoices[0]?.idx;
+ const toIndex=partnerChoices.some(x=>x.idx===wantedIndex)?wantedIndex:partnerChoices[0]?.idx;
  // Aggiorna l'abilitazione del capogruppo anche se Firestore non emette snapshot.
  const canLeadNow=humans.includes(playerRole) && (playerRole==='p1'||!isHostFresh(room,clock));
  const stage=room.status,isVictory=stage==='gameover'&&isWin;
@@ -114,6 +128,7 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
    <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     {humans.map(p=>{
      const own=p===playerRole;const roster=(room.teams?.[p]||[]).filter(c=>!c.isSummonOnly);
+     const firstAlive=roster.findIndex(c=>c?.hp>0);
      return <article key={p} className={'rounded-2xl border bg-slate-900/80 p-4 '+(own?'border-amber-400/70':'border-slate-700')}>
       <div className="mb-3 flex items-center justify-between">
        <h2 className="font-black text-lg text-white">{room.players[p]} {own&&<span className="text-xs text-amber-200">(Tu)</span>}</h2>
@@ -122,14 +137,24 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
       <div className="space-y-2">
        {roster.map((char,i)=>{
         const hp=Math.max(0,char.hp),max=Math.max(1,char.maxHp),alive=hp>0;
-        return <div key={char.id+'-'+i} className="flex gap-3 items-center rounded-xl border border-slate-700/70 bg-slate-950/80 p-2">
+        return <div key={char.id+'-'+i} className={'flex gap-3 items-center rounded-xl border bg-slate-950/80 p-2 '+(i===firstAlive?'border-emerald-400/65':'border-slate-700/70')}>
+         <span className="w-4 shrink-0 text-xs font-black text-slate-400 text-center">{i+1}</span>
          <img src={char.img} alt="" className={'h-12 w-12 shrink-0 rounded-full object-cover border '+(alive?'border-fuchsia-400':'border-rose-700 grayscale')}/>
          <div className="min-w-0 flex-1">
           <p className="truncate text-xs font-black">{char.name}</p>
+          {i===firstAlive&&<p className="text-[10px] font-bold text-emerald-300">★ Inizia il prossimo combattimento</p>}
           <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-700"><div className={'h-full '+(alive?'bg-emerald-400':'bg-rose-700')}
             style={{width:Math.max(0,Math.min(100,hp/max*100))+'%'}}/></div>
           <p className="mt-0.5 text-[11px] text-slate-300">{hp}/{max} PS</p>
          </div>
+         {stage==='coop_camp'&&own&&<div className="flex flex-col gap-1">
+           <button type="button" title={'Sposta '+char.name+' verso l’alto'} aria-label={'Sposta '+char.name+' su'}
+             disabled={busy||i===0||!!trade} onClick={()=>runAction(()=>onReorder(i,i-1))}
+             className="rounded-md border border-indigo-400/45 bg-indigo-900/65 px-2 py-1 text-xs font-black disabled:opacity-25">↑</button>
+           <button type="button" title={'Sposta '+char.name+' verso il basso'} aria-label={'Sposta '+char.name+' giù'}
+             disabled={busy||i===roster.length-1||!!trade} onClick={()=>runAction(()=>onReorder(i,i+1))}
+             className="rounded-md border border-indigo-400/45 bg-indigo-900/65 px-2 py-1 text-xs font-black disabled:opacity-25">↓</button>
+          </div>}
          {stage==='coop_camp'&&<button type="button" disabled={busy||(!alive && (run.coins||0)<50)||(alive&&(hp===max||(run.coins||0)<20))}
           onClick={()=>runAction(()=>onPurchase(alive?'heal':'revive',p,i))}
           className="shrink-0 rounded-lg bg-fuchsia-700 px-2 py-2 text-[10px] font-black text-white hover:bg-fuchsia-600 disabled:opacity-30">
