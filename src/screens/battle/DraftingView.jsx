@@ -73,6 +73,9 @@ if (gameState.status === 'drafting') {
                     </div>
                 </div>
 
+                {gameState.isRoguelikeCoop && <div className="z-10 mb-3 rounded-xl border border-pink-400/40 bg-pink-950/35 px-4 py-2 text-sm font-bold text-pink-100">
+                  🛡️ Scegli 2 Multimon: il primo combatterà, il secondo sarà la tua riserva. Potrai cambiarli in lotta o sostituire chi va KO.
+                </div>}
                 <div className="flex gap-4 mb-6 z-10 min-h-[80px] overflow-x-auto pb-2 custom-scrollbar">
                      {myDraft.map((char, i) => {
                          // IMPEDISCE DI RIMUOVERE I PERSONAGGI NELLE MODALITÀ DRAFT
@@ -80,6 +83,7 @@ if (gameState.status === 'drafting') {
                          return (
                              <div key={i} className={`relative flex-shrink-0 animate-fade-in ${canRemoveFromDraft ? 'group cursor-pointer' : ''}`} onClick={() => { if(canRemoveFromDraft) updateState({ [`draft.${playerRole}`]: myDraft.filter((_, idx) => idx !== i) }) }}>
                                  <img src={char.img} alt={char.name} className="w-20 h-20 rounded-full object-cover border-4 border-emerald-400" />
+                                 {gameState.isRoguelikeCoop && <span className="absolute -bottom-1 left-0 right-0 rounded-md bg-slate-950/90 px-1 py-0.5 text-center text-[10px] font-black text-pink-200">{i===0?'IN CAMPO':'RISERVA'}</span>}
                                  {canRemoveFromDraft && (
                                      <div className="absolute inset-0 bg-red-600/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm"><span className="font-black text-xl">X</span></div>
                                  )}
@@ -218,6 +222,7 @@ if (gameState.status === 'drafting') {
                         ) : gameState.settings.draftBattle ? (
                             // --- INTERFACCIA DRAFT BATTLE ---
                             <div className="flex flex-col items-center justify-center w-full h-full">
+                                {gameState.isRoguelikeCoop && <p className="mb-3 text-center text-sm font-black text-pink-200">Scelta {myDraft.length + 1} di {myTeamSize} · {myDraft.length===0?'Scegli chi combatterà per primo':'Scegli il Multimon di riserva'}</p>}
                                 <div className={`text-4xl md:text-5xl font-black mb-4 animate-pulse ${draftTimeLeft <= 10 ? 'text-rose-500' : 'text-amber-400'}`}>
                                     ⏳ {draftTimeLeft}s
                                 </div>
