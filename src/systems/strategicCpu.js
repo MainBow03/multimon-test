@@ -133,7 +133,7 @@ function switchCandidate({room,player,char,charIdx,activeField,enemies,style,get
 
 export function generateStrategicCpuActions({
   room,player,currentActions={},activePlayers=[],getMultiplier=()=>1,
-  matchOpponents=()=>[],roguelikeState={},random=Math.random
+  matchOpponents=()=>[],roguelikeState={},appMode='local_room',random=Math.random
 }){
   const result={};
   const activeField=room.field?.[player]||[];
@@ -149,7 +149,7 @@ export function generateStrategicCpuActions({
   const reserved=new Set();
   const inv=room.inventory?.[player]||{};
   const itemsUsed=room.healingItemsUsed?.[player]||0;
-  const healLimit=2; // il motore applica il limite effettivo, se previsto
+  const healLimit=3; // Come ONLINE_HEAL_ITEM_LIMIT; in locale non si applica.
   const legalRevive=ownAllies.flatMap(p=>(room.teams?.[p]||[])
     .map((char,idx)=>({player:p,idx,char}))
     .filter(v=>v.char&&!v.char.isSummonOnly&&v.char.hp<=0));
@@ -168,7 +168,9 @@ export function generateStrategicCpuActions({
       if(action && Number.isFinite(score) && score>best.score)best={action,score};
     };
     // L'uso delle cure tiene conto sia dell'urgenza sia della personalità.
-    const healingAllowed=itemsUsed<healLimit && room.gameMode!=='battleroyale';
+    const healingAllowed=appMode!=='online_room' ||
+      itemsUsed+Object.values(currentActions?.[player]||{}).filter(a=>a?.type==='use_item').length+
+      Object.values(result).filter(a=>a?.type==='use_item').length<healLimit;
     if(healingAllowed){
       const urgency=(1-life)*style.heal;
       if(inv.cura_totale>0 && life<(styleId==='aggressive'?.23:styleId==='defensive'?.58:.43))
@@ -202,7 +204,7 @@ export function generateStrategicCpuActions({
           if(!(char.statuses||[]).some(s=>['Protetto','Scudo'].includes(s.type)) &&
              finite(char.consecutiveProtect)<1){
             const observed=enemies.some(e=>observedMovePattern(room,e));
-            const threat=life<.48?1:observed?.6:0;
+            const threat=life<.48?1:(observed?.6:0);
             self((15+threat*80)*style.support+random()*7);
           }
         }else if(move.statBuff||move.targetStatBuff){
