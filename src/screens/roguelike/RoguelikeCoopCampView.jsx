@@ -166,6 +166,79 @@ export function RoguelikeCoopCampView({room,playerRole,canLead,onClaimWin,onNext
     })}
    </section>
 
+   {stage==='coop_camp'&&<section className="rounded-2xl border border-indigo-400/45 bg-slate-900/85 p-4 sm:p-5 space-y-4">
+     <div>
+       <h2 className="text-lg sm:text-xl font-black text-indigo-200">🔄 Scambi tra allenatori</h2>
+       <p className="text-sm text-slate-300 mt-1">Scegli un tuo Multimon e quello di un compagno. Lo scambio avviene soltanto se l'altro accetta: PS, strumenti e abilità restano con il personaggio. Puoi riordinare la tua squadra con ↑ e ↓ qui sopra.</p>
+     </div>
+     {cooldownSeconds>0&&<p className="rounded-xl border border-amber-400/50 bg-amber-950/35 p-3 text-amber-200 text-sm font-bold">
+       ⏱️ Dopo il rifiuto, puoi richiedere un nuovo scambio tra {cooldownSeconds} secondi.
+     </p>}
+     {room.coopTradeLastResult&&<p className={'rounded-xl p-3 text-sm border '+(room.coopTradeLastResult.status==='accepted'
+       ?'border-emerald-400/45 bg-emerald-950/40 text-emerald-200'
+       :'border-rose-400/45 bg-rose-950/35 text-rose-200')}>
+       {room.coopTradeLastResult.status==='accepted'
+         ?`✅ Scambio riuscito: ${room.coopTradeLastResult.offeredName} per ${room.coopTradeLastResult.wantedName}!`
+         :`❌ Scambio rifiutato: ${room.coopTradeLastResult.offeredName} per ${room.coopTradeLastResult.wantedName}.`}
+     </p>}
+     {trade?(
+       <div className="rounded-2xl border border-violet-400/50 bg-violet-950/25 p-4 space-y-3">
+         <p className="font-black text-violet-100">{tradeExpired?'⏳ Proposta scaduta':'📨 Scambio in attesa'}</p>
+         <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+           <span className="rounded-lg bg-slate-950 px-3 py-2 text-cyan-200">{room.players?.[trade.fromRole]} offre <strong>{trade.offeredName}</strong></span>
+           <span className="text-violet-300">⇄</span>
+           <span className="rounded-lg bg-slate-950 px-3 py-2 text-amber-200">{room.players?.[trade.toRole]} offre <strong>{trade.wantedName}</strong></span>
+         </div>
+         {!tradeExpired&&<p className="text-xs text-slate-300">La proposta scade tra {tradeSeconds} secondi. Le squadre cambieranno soltanto dopo l'accettazione.</p>}
+         <div className="flex flex-wrap gap-2">
+           {!tradeExpired&&trade.toRole===playerRole&&<>
+             <button disabled={busy} onClick={()=>runAction(()=>onTradeReply(true))}
+               className="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-3 text-sm font-black disabled:opacity-50">✓ Accetta scambio</button>
+             <button disabled={busy} onClick={()=>runAction(()=>onTradeReply(false))}
+               className="rounded-xl bg-rose-700 hover:bg-rose-600 px-4 py-3 text-sm font-black disabled:opacity-50">✕ Rifiuta scambio</button>
+           </>}
+           {(tradeExpired||trade.fromRole===playerRole)&&<button disabled={busy}
+             onClick={()=>runAction(onTradeCancel)}
+             className="rounded-xl bg-slate-700 hover:bg-slate-600 px-4 py-3 text-sm font-bold disabled:opacity-50">
+             {tradeExpired?'Elimina proposta scaduta':'Annulla la mia proposta'}
+           </button>}
+           {!tradeExpired&&trade.fromRole!==playerRole&&trade.toRole!==playerRole&&
+             <p className="text-sm text-slate-300">Gli altri due giocatori stanno decidendo.</p>}
+           {!tradeExpired&&trade.fromRole===playerRole&&
+             <p className="text-sm text-amber-200 self-center">In attesa della risposta di {room.players?.[trade.toRole]}…</p>}
+         </div>
+       </div>
+     ):(
+       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 items-end gap-3">
+         <label className="text-xs font-bold text-slate-300">Il Multimon che offri
+           <select value={fromIndex??''} disabled={busy||!myChoices.length}
+             onChange={e=>setOfferedIndex(Number(e.target.value))}
+             className="mt-1.5 w-full rounded-xl bg-slate-950 border border-slate-600 text-white p-3">
+             {myChoices.map(({char,idx})=><option key={idx} value={idx}>{char.name} · {char.hp>0?char.hp+' PS':'KO'}</option>)}
+           </select>
+         </label>
+         <label className="text-xs font-bold text-slate-300">A quale giocatore?
+           <select value={selectedTarget} disabled={busy||!otherPlayers.length}
+             onChange={e=>{setTradeTarget(e.target.value);setWantedIndex(0);}}
+             className="mt-1.5 w-full rounded-xl bg-slate-950 border border-slate-600 text-white p-3">
+             {otherPlayers.map(p=><option key={p} value={p}>{room.players[p]}</option>)}
+           </select>
+         </label>
+         <label className="text-xs font-bold text-slate-300">Il Multimon che chiedi
+           <select value={toIndex??''} disabled={busy||!partnerChoices.length}
+             onChange={e=>setWantedIndex(Number(e.target.value))}
+             className="mt-1.5 w-full rounded-xl bg-slate-950 border border-slate-600 text-white p-3">
+             {partnerChoices.map(({char,idx})=><option key={idx} value={idx}>{char.name} · {char.hp>0?char.hp+' PS':'KO'}</option>)}
+           </select>
+         </label>
+         <button type="button" disabled={busy||cooldownSeconds>0||!selectedTarget||fromIndex===undefined||toIndex===undefined}
+           onClick={()=>runAction(()=>onTradeOffer(selectedTarget,fromIndex,toIndex))}
+           className="rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:brightness-110 disabled:opacity-40 px-4 py-3.5 text-sm font-black">
+           📨 Chiedi lo scambio</button>
+       </div>
+     )}
+   </section>}
+
    {stage==='coop_camp'&&<section className="rounded-2xl border border-rose-500/35 bg-rose-950/20 p-4">
       <h2 className="text-lg font-black text-rose-200">⚔️ Prossima sfida: piano {run.floor||1}</h2>
       <p className="mt-1 text-sm text-slate-200">
