@@ -173,3 +173,19 @@ body { background-color: #020617; color: white; }
   .multimon-roster-grid > .multimon-roster-card { min-height: 282px; }
   .multimon-roster-portrait { min-height: 128px; }
 }
+
+
+/* Erba Rigogliosa: terreno curativo condiviso, visibile anche in multiplayer. */
+.battlefield-lush-grass {
+  background:linear-gradient(180deg,#052e16 0%,#064e3b 40%,#123b20 80%,#0f2415 100%);
+}
+.battlefield-lush-grass::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 15% 70%,rgba(190,242,100,.18),transparent 30%),
+    radial-gradient(circle at 70% 45%,rgba(74,222,128,.16),transparent 35%),
+    repeating-linear-gradient(110deg,transparent 0 35px,rgba(134,239,172,.03) 36px 38px);
+}
