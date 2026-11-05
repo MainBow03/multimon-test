@@ -60,7 +60,7 @@ test('Haki dell’Armatura applica esattamente i tre buff e attenua i malus futu
  assert.equal(beginHakiGuard(l),3);
  const freshAtk=l.atk;
  assert.equal(applyBattleStatModifier(l,'atk',0.70),true);
- assert.equal(l.atk,freshAtk-Math.floor(l.baseAtk*0.15+0.0001));
+ assert.equal(l.atk,Math.floor(freshAtk-l.baseAtk*0.15));
  assert.equal(tickHakiGuard(l),3,'il turno di lancio non consuma la protezione');
  assert.equal(tickHakiGuard(l),2);
  assert.equal(tickHakiGuard(l),1);
