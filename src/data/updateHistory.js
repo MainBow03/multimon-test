@@ -13,6 +13,17 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov5-weather-tailwind-lush-grass',category:'balance',date:'05/11/2026',title:'🌦️ Meteo migliorato, Tailwind ed Erba Rigogliosa!',items:[
+    'Juvia: Colpo impetuoso ha ora il 35% di probabilità di evocare Tempesta di Acqua, invece del 25%.',
+    'Lapis Lazuli: Torre d’Acqua ha il 60% di probabilità di evocare Tempesta. Rimane una mossa da potenza 120 con ricarica.',
+    'Katara: Gabbia di Ghiaccio ora colpisce fino a 2 bersagli con potenza 80 e 25% di probabilità di congelare ciascun bersaglio.',
+    'Jack Frost: Aura Glaciale ora attiva Tailwind per 5 turni. Tutti gli alleati, anche quelli che entrano successivamente, hanno +30% Velocità effettiva, senza un buff permanente alle statistiche. Vento Invernale colpisce fino a 2 bersagli.',
+    'Elsa: Gelo Eterno mantiene il 15% di probabilità di congelare e ora ha il 10% di generare una Tempesta di Neve per 5 turni.',
+    'Nuovo campo Erba Rigogliosa: per 5 turni tutti i Multimon di tipo Erba, alleati e avversari, recuperano il 5% dei PS massimi a fine turno; mosse Erba +20% di danni.',
+    'Sugino: Juruku ora evoca Erba Rigogliosa. Poison Ivy: Fascino Botanico è sostituito da Splendete, mie piante!, che evoca lo stesso ambiente.',
+    'Pioggia, Neve ed Erba Rigogliosa si sostituiscono tra loro; Tailwind è un effetto indipendente per squadra. Aggiunta nell’Enciclopedia una sezione con tutte le mosse che modificano meteo o campo.'
+  ]},
+
   {id:'nov5-straw-hat-crew',category:'champions',date:'05/11/2026',title:'🏴‍☠️ Arrivano Luffy, Zoro, Nami e Chopper!',items:[
     'Luffy (Lotta/Magico, 250 monete): Pistola Gom Gom (80, 25% calo Difesa), Haki dell’Armatura (+25% Attacco, +15% Difesa, +5% Velocità e protezione dai malus per tre turni), Jet Gatling (3 colpi) e Red Hawk Supremo (120, un solo uso). Passiva Spirito del Capitano: sotto il 50% PS ottiene +15% Attacco e Velocità, una sola volta.',
     'Zoro (Lotta/Terra, 250 monete): Oni Giri, Tatsumaki delle Tre Spade, Concentrazione da Spadaccino e Asura. Passiva Stile delle Tre Spade: +10 punti percentuali di critico e ignora il 10% della Difesa sulle mosse fisiche.',
