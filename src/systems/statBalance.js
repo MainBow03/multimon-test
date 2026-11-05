@@ -1,3 +1,5 @@
+import {hakiStatDebuffMultiplier} from './strawHatEffects.js';
+
 // I potenziamenti e i malus si applicano come percentuali della statistica
 // di base, non del valore già potenziato. Questo evita l'effetto valanga:
 // 100 -> 130 -> 160 con due bonus da +30%, invece di 100 -> 130 -> 169.
@@ -16,7 +18,8 @@ export function applyBattleStatModifier(character, stat, multiplier) {
   if (!Number.isFinite(current)) return false;
   const original = character[BASE_KEYS[stat]];
   const base = Number.isFinite(original) && original > 0 ? original : Math.max(1,current);
-  const change = base * (multiplier - 1);
+  const effectiveMultiplier=hakiStatDebuffMultiplier(character,multiplier);
+  const change = base * (effectiveMultiplier - 1);
   if (Math.abs(change) < 1e-9) return false;
   const upper = Math.max(1, Math.round(base * MAX_BATTLE_STAT_MULTIPLIER));
   const lower = Math.max(1, Math.round(base * MIN_BATTLE_STAT_MULTIPLIER));
