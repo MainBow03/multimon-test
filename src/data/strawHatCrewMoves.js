@@ -83,7 +83,7 @@ export const STRAW_HAT_MOVES = {
   },
   'Monster Point': {
     name:'Monster Point',type:'Lotta',power:115,accuracy:0.9,contact:true,
-    strawHatMaxHpRecoil:0.10,maxUses:1,strictUses:true,
+    costHpPercent:0.10,maxUses:1,strictUses:true,
     desc:'Potenza 115 · Precisione 90. Un uso per battaglia. Dopo il colpo perde il 10% dei propri PS massimi.'
   }
 };
