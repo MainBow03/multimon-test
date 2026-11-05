@@ -52,7 +52,7 @@ export const STRAW_HAT_MOVES = {
   },
   'Miraggio Ladresco': {
     name:'Miraggio Ladresco',type:'Magico',power:0,target:'self',
-    strawHatEvasionGain:0.15,maxUses:2,strictUses:true,
+    strawHatEvasionGain:0.15,maxUses:1,strictUses:true,
     desc:'Aumenta l’elusione personale del 15%, una sola volta per combattimento (non accumulabile).'
   },
   'Tempesta di Zeus': {
