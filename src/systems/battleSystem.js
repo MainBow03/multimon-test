@@ -21,7 +21,7 @@ import {ZODIAC_TRAP,ZODIAC_DODGE,normalizeZodiacSpirit,activeZodiacSpirit,summon
   zodiacFlatStatBoost,cleanLucyDebuffs,zodiacSecondaryRoll} from './zodiacSpirits.js';
 import { outgoingPassiveDamageFactor } from './offensivePassives.js';
 import { isRainyWeather, RAINSTORM_TURNS, tryStartRainstorm, weatherMoveFactor, totalEvasionChance } from './rainstorm.js';
-import {TAILWIND_TURNS,tailwindSpeedFactor,startTailwind,advanceTailwind,
+import {TAILWIND_TURNS,tailwindAllies,tailwindSpeedFactor,startTailwind,advanceTailwind,
   LUSH_GRASS_TURNS,isLushGrass,lushGrassHeal} from './battleFieldEffects.js';
 import { resolvePoisonEndTurn } from './battleStatusTurns.js';
 import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense, endRefractionTurn, snowstormOutcome, randomBuff, randomDebuff, daffyCelebration } from './championEffects.js';
@@ -2839,7 +2839,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                       .map(([role])=>role);
                     workingTailwind=startTailwind(workingTailwind,player,gameState.gameMode,
                       gameState.settings,potentialAllies);
-                    for(const role of potentialAllies)if(workingTailwind[role]>0)
+                    for(const role of tailwindAllies(player,gameState.gameMode,gameState.settings,potentialAllies))
                       tailwindJustActivated.add(role);
                     events.push({type:'text',text:'💨 '+attacker.name+' attiva TAILWIND! Per '+
                       move.tailwindTurns+' turni tutti gli alleati (+ chi entra dopo) hanno Velocità effettiva +30%.'});
