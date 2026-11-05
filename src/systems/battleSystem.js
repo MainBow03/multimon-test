@@ -21,6 +21,8 @@ import {ZODIAC_TRAP,ZODIAC_DODGE,normalizeZodiacSpirit,activeZodiacSpirit,summon
   zodiacFlatStatBoost,cleanLucyDebuffs,zodiacSecondaryRoll} from './zodiacSpirits.js';
 import { outgoingPassiveDamageFactor } from './offensivePassives.js';
 import { isRainyWeather, RAINSTORM_TURNS, tryStartRainstorm, weatherMoveFactor, totalEvasionChance } from './rainstorm.js';
+import {TAILWIND_TURNS,tailwindSpeedFactor,startTailwind,advanceTailwind,
+  LUSH_GRASS_TURNS,isLushGrass,lushGrassHeal} from './battleFieldEffects.js';
 import { resolvePoisonEndTurn } from './battleStatusTurns.js';
 import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense, endRefractionTurn, snowstormOutcome, randomBuff, randomDebuff, daffyCelebration } from './championEffects.js';
 import { ignoresShields, immuneToStatDrops, powerForAccordo, effectiveTaserPower,
@@ -510,6 +512,7 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
               phaseStartedAt: Date.now(),
               aiMemory: {},
               battleWeather: null,
+              battleTailwind: {},
               fieldTraps: {},
               fieldTrapSeen: {}, 
               teams: teams,
@@ -825,6 +828,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             let workingHyperUsed = JSON.parse(JSON.stringify(gameState.hyperUsed || {})); // <--- AGGIUNTO PER FORMA IPER
             // Meteo condiviso: si salva nello stato partita, non sul singolo personaggio.
             let workingWeather = gameState.battleWeather ? {...gameState.battleWeather} : null;
+            let workingTailwind={...(gameState.battleTailwind||{})};
             // Il meteo influenza TUTTE le mosse che infliggono danno, anche
             // quelle eseguite più tardi nello stesso turno in cui nasce la Tempesta.
             const calculateDamage=(...args)=>{
@@ -1350,7 +1354,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 
                 const action = currentActions[player][charTeamIdxStr];
                 
-                let effSpd = Math.floor(char.spd*zodiacTrapSpeedFactor(char));
+                let effSpd = Math.floor(char.spd*zodiacTrapSpeedFactor(char)*tailwindSpeedFactor(workingTailwind,player));
                 if (!immuneToStatDrops(char) && char.statuses && char.statuses.some(s => s.type === 'Elettrizzato')) effSpd = Math.floor(effSpd / 2);
                 
                 const move = action.type === 'attack' ? char.moves[action.moveIdx] : null;
@@ -2814,9 +2818,23 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                     addStickyTrap(workingFieldTraps,workingTrapSeen,foes,workingField);
                     events.push({type:'text',text:`🪤 ${attacker.name} piazza una Trappola Segreta: i nuovi avversari perderanno il 10% dei PS entrando in campo!`});
                 }
-                if (attackSucceeded && move.snowstormTurns) {
-                    workingWeather = {type:'snowstorm',turns:move.snowstormTurns};
-                    events.push({type:'text',text:'❄️ La Furia dell’Artico scatena una TEMPESTA DI NEVE per 5 turni!'});
+                if (attackSucceeded && (move.snowstormTurns ||
+                    (move.snowstormChance && Math.random()<move.snowstormChance))) {
+                    const snowTurns=move.snowstormTurns||5;
+                    workingWeather={type:'snowstorm',turns:snowTurns};
+                    events.push({type:'text',text:'❄️ '+attacker.name+' usa '+move.name+
+                      ' e scatena una TEMPESTA DI NEVE per '+snowTurns+' turni!'});
+                }
+                if(attackSucceeded && move.lushGrassTurns){
+                    workingWeather={type:'lush_grass',turns:move.lushGrassTurns};
+                    events.push({type:'text',text:'🌿 '+attacker.name+' attiva ERBA RIGOGLIOSA per '+
+                      move.lushGrassTurns+' turni! Mosse Erba +20%, i Multimon Erba recuperano il 5% PS a fine turno.'});
+                }
+                if(attackSucceeded && move.tailwindTurns){
+                    workingTailwind=startTailwind(workingTailwind,player,gameState.gameMode,
+                      gameState.settings,activeMatchPlayers);
+                    events.push({type:'text',text:'💨 '+attacker.name+' attiva TAILWIND! Per '+
+                      move.tailwindTurns+' turni tutti gli alleati (+ chi entra dopo) hanno Velocità effettiva +30%.'});
                 }
                 if(tryStartRainstorm(move,attackSucceeded)){
                     workingWeather={type:'rainstorm',turns:RAINSTORM_TURNS};
@@ -3360,6 +3378,20 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 workingWeather=null;
             }
         }
+        if(isLushGrass(workingWeather)){
+            events.push({type:'text',text:'🌿 ERBA RIGOGLIOSA · '+workingWeather.turns+' turni rimasti. Mosse Erba +20%, cure Erba 5% PS.'});
+            for(const target of eotTargets){
+                const char=workingTeams[target.player]?.[target.charTeamIdx];
+                const healed=lushGrassHeal(char,workingWeather);
+                if(healed>0)events.push({type:'damage',targetPlayer:target.player,
+                    targetIdx:target.charTeamIdx,newHp:char.hp,
+                    text:'🌿 Erba Rigogliosa: '+char.name+' recupera '+healed+' PS!'});
+            }
+            if(--workingWeather.turns<=0){
+                events.push({type:'text',text:'🌱 L’Erba Rigogliosa svanisce dal campo.'});
+                workingWeather=null;
+            }
+        }
         if(isRainyWeather(workingWeather)&&Number.isFinite(workingWeather.turns)){
             events.push({type:'text',text:`🌧️ TEMPESTA · ${workingWeather.turns} turni rimasti. Acqua +25%, Fuoco -25%.`});
             workingWeather.turns--;
@@ -3371,6 +3403,12 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
         for (const target of eotTargets) {
             const char=workingTeams[target.player]?.[target.charTeamIdx];
             if (char && char.refractionTurns > 0) endRefractionTurn(char);
+        }
+        const tailwindBefore=workingTailwind;
+        workingTailwind=advanceTailwind(workingTailwind);
+        for(const [role,turns] of Object.entries(tailwindBefore)){
+            if(turns>0&&!workingTailwind[role])
+                events.push({type:'text',text:'💨 Tailwind si esaurisce per la squadra di '+(gameState.players?.[role]||role)+'!'});
         }
 
         // --- GESTIONE RITORNO TRADITORI (Anomalia Eclissi) ---
@@ -3668,6 +3706,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
           fieldTraps: workingFieldTraps,
           fieldTrapSeen: workingTrapSeen,
           battleWeather: workingWeather,
+          battleTailwind: workingTailwind,
           hyperUsed: workingHyperUsed,
           rogueDawnUsed,
           pendingSwitches: pendingSwitches,
