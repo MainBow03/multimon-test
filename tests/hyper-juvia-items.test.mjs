@@ -68,13 +68,13 @@ test('Iper: la trasformazione è calcolata prima dell’iniziativa, anche se il 
  assert.match(battle,/actionDetails\.hyperize = true/);
 });
 
-test('Juvia: Colpo impetuoso ha esattamente 25% di chance di Tempesta, durata 5',()=>{
+test('Juvia: Colpo impetuoso ha esattamente 35% di chance di Tempesta, durata 5',()=>{
  const move=MOVES_DB['Colpo impetuoso'];
  assert.equal(move.power,95);
- assert.equal(move.rainstormChance,.25);
+ assert.equal(move.rainstormChance,.35);
  assert.equal(RAINSTORM_TURNS,5);
- assert.equal(tryStartRainstorm(move,true,()=>.2499),true);
- assert.equal(tryStartRainstorm(move,true,()=>.25),false);
+ assert.equal(tryStartRainstorm(move,true,()=>.3499),true);
+ assert.equal(tryStartRainstorm(move,true,()=>.35),false);
  assert.equal(tryStartRainstorm(move,false,()=>0),false);
  assert.equal(tryStartRainstorm(MOVES_DB['Colpo Cartoon'],true,()=>0),false);
 });
