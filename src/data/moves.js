@@ -1,7 +1,9 @@
 import { SIX_NEW_MOVES } from './sixNewChampions.js';
 import { FIVE_NEW_MOVES } from './fiveNewChampions.js';
+import {STRAW_HAT_MOVES} from './strawHatCrewMoves.js';
 
 export const MOVES_DB = {
+  ...STRAW_HAT_MOVES,
   ...SIX_NEW_MOVES,
   ...FIVE_NEW_MOVES,
   'Raggio dei Caduti': {name:'Raggio dei Caduti',type:'Spettro',power:100,accuracy:0.8,desc:'Raggio spettrale potentissimo su un singolo bersaglio. Precisione 80%.'},

@@ -1,4 +1,5 @@
 export const CHAR_PRICES = {
+  'luffy':250,'zoro':250,'nami':200,'chopper':200,
   'starbutterfly':260,'samtotallyspies':180,'clover':180,
   'superman':350,'blueberrymuffin':160,
             'fragolina': 150, 'altramadre': 200, 'blaze': 250,

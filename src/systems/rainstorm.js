@@ -22,6 +22,8 @@ export function weatherMoveFactor(move,weather){
 }
 
 export function weatherEvasionBonus(character,weather){
+  if(character?.id==='nami' && character?.passive?.type==='straw_hat_climate' &&
+     isRainyWeather(weather))return 0.10;
   return character?.id==='juvia' && character?.passive?.type==='rain_evasion' &&
     (isRainyWeather(weather) || (weather?.type==='snowstorm'&&weather.turns>0)) ? 0.20 : 0;
 }

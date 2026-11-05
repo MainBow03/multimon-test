@@ -13,6 +13,14 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov5-straw-hat-crew',category:'champions',date:'05/11/2026',title:'🏴‍☠️ Arrivano Luffy, Zoro, Nami e Chopper!',items:[
+    'Luffy (Lotta/Magico, 250 monete): Pistola Gom Gom (80, 25% calo Difesa), Haki dell’Armatura (+25% Attacco, +15% Difesa, +5% Velocità e protezione dai malus per tre turni), Jet Gatling (3 colpi) e Red Hawk Supremo (120, un solo uso). Passiva Spirito del Capitano: sotto il 50% PS ottiene +15% Attacco e Velocità, una sola volta.',
+    'Zoro (Lotta/Terra, 250 monete): Oni Giri, Tatsumaki delle Tre Spade, Concentrazione da Spadaccino e Asura. Passiva Stile delle Tre Spade: +10 punti percentuali di critico e ignora il 10% della Difesa sulle mosse fisiche.',
+    'Nami (Acqua/Aria, 200 monete): Raffica del Clima, Miraggio Ladresco, Tempesta di Zeus e Pioggia del Clima-Tact. Passiva Clima Tattico: con Pioggia +10% elusione e +15% danni alle mosse Acqua e Aria.',
+    'Chopper (Normale/Lotta, 200 monete): Colpo di Zoccolo, Guard Point, Cura d’Emergenza e Monster Point. Passiva Medico di Bordo: alla prima entrata cura del 12% PS l’alleato attivo più ferito e rimuove uno status negativo.',
+    'Buff, debuff e cure funzionano nel motore delle battaglie classiche, online e della Roguelike. I bonus temporanei e le cure non si accumulano senza limite; le nuove mosse compaiono nel Catalogo e nella selezione del roster.'
+  ]},
+
   {id:'nov4-online-zodiac-entrances',category:'fixes',date:'04/11/2026',title:'✨ Spiriti Stellari visibili a tutti nelle battaglie online',items:[
     'Gli Spiriti Stellari evocati da Lucy ora hanno un ingresso visivo con portale viola e particelle dorate, mostrato anche ai compagni, agli avversari e agli spettatori online.',
     'Sistemata la riproduzione delle evocazioni: la vista del turno non crea più un doppione se lo Spirito era già stato salvato nello stato condiviso della battaglia.',

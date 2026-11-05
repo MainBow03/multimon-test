@@ -2,8 +2,10 @@ import { CHAR_PRICES } from './prices.js';
 import { MOVES_DB } from './moves.js';
 import { SIX_NEW_CHARACTERS } from './sixNewChampions.js';
 import { FIVE_NEW_CHARACTERS } from './fiveNewChampions.js';
+import {STRAW_HAT_CHARACTERS} from './strawHatCrew.js';
 
 export const CHARACTERS = [
+  ...STRAW_HAT_CHARACTERS,
   ...FIVE_NEW_CHARACTERS,
   ...SIX_NEW_CHARACTERS,
   {id:'echomax',name:'Echomax',types:['Spettro','Buio'],hp:190,maxHp:190,atk:155,def:115,spd:105,
