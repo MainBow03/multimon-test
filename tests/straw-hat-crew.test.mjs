@@ -104,7 +104,7 @@ test('Nami trae vantaggio solo da pioggia e non cumula Miraggio Ladresco',()=>{
  assert.equal(namiClimateFactor(nami,MOVES_DB['Tempesta di Zeus'],clear),1);
  assert.equal(namiClimateFactor(nami,{type:'Fuoco'},rain),1);
  assert.equal(namiClimateFactor(basic('luffy'),MOVES_DB['Raffica del Clima'],rain),1);
- assert.equal(totalEvasionChance(nami,rain),0.10);
+ assert.ok(Math.abs(totalEvasionChance(nami,rain)-0.10)<1e-9);
  assert.equal(totalEvasionChance(nami,clear),0);
  assert.equal(applyNamiMirage(nami),0.15);
  assert.equal(applyNamiMirage(nami),0);
