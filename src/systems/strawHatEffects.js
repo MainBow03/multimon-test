@@ -76,7 +76,7 @@ export function clearZoroBlind(char){
 // anche nella battaglia Co-op (p1,p2,p3 contro il p4 controllato dalla CPU).
 // Se tutti sono pieni ma hanno status, cura comunque uno di essi.
 export function chopperEntryAid(teams,field,owner,gameMode,settings,percent=0.12){
- const jugg=settings?.juggernautPlayer||'p4';
+ const jugg=settings?.juggernautPlayer||(settings?.isRoguelikeCoop?'p4':'p1');
  let allies=[owner];
  if(gameMode==='multipla'){
    allies=['p1','p2'].includes(owner)?['p1','p2']:['p3','p4'];
