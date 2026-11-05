@@ -44,6 +44,7 @@ const POSITIVES=[
   {name:'Aumento Attacco',description:'Potenzia i danni delle mosse fisiche in base alla percentuale della mossa o passiva.'},
   {name:'Aumento Difesa',description:'Riduce i danni ricevuti secondo la modifica alla statistica Difesa.'},
   {name:'Aumento Velocità',description:'Permette di agire prima a parità di priorità delle mosse.'},
+  {name:'Tailwind',description:'Effetto di squadra, non un aumento permanente della statistica: tutti gli alleati, compresi quelli che entrano dopo, agiscono con Velocità effettiva +30% per 5 turni. Indipendente dal meteo.'},
   {name:'Ombra Rapida',description:'Potenziamento situazionale: controlla la descrizione della mossa che lo applica.'},
   {name:'In_Groppa',description:'Sinergia con Yoshi: il compagno in groppa viene protetto e potenziato.'},
   {name:'Shudoruku',description:'Trasformazione speciale di Ponygon, con effetti definiti dalla mossa.'},
@@ -75,6 +76,7 @@ const TABS=[
   ['positive','🟢','Potenziamenti'],
   ['protect','🛡️','Protezioni'],
   ['passives','✨','Abilità passive'],
+  ['weather','🌦️','Meteo e campi'],
   ['priority','⚡','Priorità mosse'],
   ['items','🎒','Strumenti']
 ];
@@ -116,6 +118,25 @@ export function BattleCodexLauncher({ gameState }) {
         condition:PASSIVE_CONDITIONS[c.passive.type]||
           (c.passive.maxUses?'Uso massimo: '+c.passive.maxUses+' per battaglia':'Condizione descritta nella passiva')
       })).sort((a,b)=>a.sub.localeCompare(b.sub,'it'));
+      case 'weather':return [
+        {name:'🌧️ Tempesta di Acqua / Pioggia',sub:'Meteo globale · 5 turni',description:'Le mosse Acqua infliggono +25% danni; le mosse Fuoco infliggono −25% danni. Juvia riceve +20 punti percentuali di elusione e Nami attiva Clima Tattico. Sostituisce Neve o Erba Rigogliosa.'},
+        {name:'❄️ Tempesta di Neve',sub:'Meteo globale · 5 turni',description:'Alla fine del turno, i Multimon non immuni perdono il 2% dei PS massimi. Tipi Ghiaccio, Roccia e Robot immuni. Sostituisce gli altri meteo.'},
+        {name:'🌿 Erba Rigogliosa',sub:'Meteo globale · 5 turni',description:'A fine turno ogni Multimon vivo di tipo Erba, alleato o avversario, recupera il 5% dei PS massimi. Le mosse Erba infliggono +20% danni. Sostituisce Pioggia o Neve.'},
+        {name:'💨 Tailwind',sub:'Effetto di squadra · 5 turni',description:'Aumenta del 30% la Velocità effettiva di tutta la squadra, inclusi gli alleati che entrano più tardi. Non modifica in modo permanente la Velocità e funziona anche insieme al meteo.'},
+        ...Object.values(MOVES_DB).filter(m=>m.rainstormChance||m.snowstormTurns||m.snowstormChance||
+          m.zodiacRainTurns||m.lushGrassTurns||m.tailwindTurns).map(m=>({
+            name:m.name,
+            sub:'Mossa '+m.type+' · '+(m.rainstormChance?'🌧️ Tempesta '+Math.round(m.rainstormChance*100)+'%':
+              m.snowstormChance?'❄️ Neve '+Math.round(m.snowstormChance*100)+'%':
+              m.snowstormTurns?'❄️ Neve garantita':
+              m.zodiacRainTurns?'🌧️ Tempesta garantita':
+              m.lushGrassTurns?'🌿 Erba Rigogliosa garantita':'💨 Tailwind garantito'),
+            condition:m.rainstormChance||m.snowstormChance?
+              'Solo dopo l’uso riuscito · probabilità '+Math.round((m.rainstormChance||m.snowstormChance)*100)+'%':
+              'Dopo l’uso riuscito · durata '+(m.snowstormTurns||m.zodiacRainTurns||m.lushGrassTurns||m.tailwindTurns||5)+' turni',
+            description:m.desc||'Modifica le condizioni sul campo per la durata indicata.'
+          }))
+      ];
       case 'priority':return Object.values(MOVES_DB).filter(m=>typeof m.priority==='number'&&m.priority!==0).map(m=>({
         name:m.name,sub:'Tipo '+m.type+' · Priorità '+(m.priority>0?'+':'')+m.priority,
         priority:m.priority,
@@ -174,6 +195,14 @@ export function BattleCodexLauncher({ gameState }) {
           </div>}
           {tab==='priority'&&<div className="mb-3 rounded-xl border border-amber-600/40 bg-amber-950/20 p-3 text-xs text-amber-100">
             Le mosse con priorità maggiore agiscono prima, anche contro avversari più veloci. A parità di priorità conta la Velocità. Alcune passive, come Trasmutazione Rapida di Alphonse, aggiungono priorità situazionale.
+          </div>}
+          {tab==='weather'&&<div className="mb-3 rounded-xl border border-lime-500/40 bg-green-950/20 p-3 text-xs text-lime-100">
+            {gameState?.battleWeather
+              ?'Meteo attuale: '+gameState.battleWeather.type+' · '+gameState.battleWeather.turns+' turni rimasti. '
+              :'Nessun meteo attivo. '}
+            Tailwind attivi: {Object.entries(gameState?.battleTailwind||{}).filter(([,turns])=>turns>0)
+              .map(([role,turns])=>(gameState?.players?.[role]||role)+' ('+turns+' turni)').join(', ')||'nessuno'}.
+            Pioggia, Neve ed Erba Rigogliosa si sostituiscono tra loro. Tailwind è indipendente.
           </div>}
           {tab==='items'&&<div className="mb-3 rounded-xl border border-violet-500/30 bg-violet-950/20 p-3 text-xs text-violet-200">
             Equipaggiabili e oggetti da zaino sono separati nelle descrizioni. Alcuni strumenti agiscono automaticamente e altri hanno usi limitati per battaglia.
