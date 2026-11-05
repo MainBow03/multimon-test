@@ -1,4 +1,3 @@
-import {applyBattleStatModifier} from './statBalance.js';
 import {isRainyWeather} from './rainstorm.js';
 
 export const STRAW_HAT_NEGATIVE_STATUSES=new Set([
