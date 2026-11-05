@@ -8,6 +8,7 @@ import {BattleTypeChartLauncher} from '../../components/BattleTypeChartLauncher.
 import { BattleStatusBadges, battleFeedbackKind, BATTLE_FEEDBACK_LABELS } from '../../components/BattleStatusBadges.jsx';
 import { isMasteryEligible, masteryDeploymentTier } from '../../systems/masterySystem.js';
 import {visibleOnlineZodiacSpirits} from '../../systems/battleSummonPlayback.js';
+import {tailwindSpeedFactor} from '../../systems/battleFieldEffects.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderBattlingView(ctx) {
 const { ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, appMode, actionMenuMode, combatLog, commandingIdx, commitAction, coopPendingAction, roomId, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
@@ -120,7 +121,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                 currentFieldForPlayer.forEach(idx => {
                     const char = team[idx];
                     if (char && char.hp > 0) {
-                        let effSpd = char.spd;
+                        let effSpd = Math.floor(char.spd*tailwindSpeedFactor(gameState.battleTailwind,p));
                         // Dimezza la velocità se è elettrizzato
                         if (char.statuses && char.statuses.some(s => s.type === 'Elettrizzato')) {
                             effSpd = Math.floor(effSpd / 2);
@@ -501,7 +502,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                 )}
 
                 {/* BATTLE ARENA */}
-                <div className={`flex-1 p-4 flex flex-col relative overflow-hidden transition-colors duration-700 ${gameState.battleWeather?.type === 'snowstorm' ? 'battlefield-snowstorm' : gameState.battleWeather?.type === 'rainstorm' ? 'bg-gradient-to-b from-sky-950 via-blue-950 to-slate-950' : 'bg-slate-950'} ${isPlayingEvents && (feedbackKind === 'ko' || feedbackKind === 'critical') ? 'battle-impact-shake' : ''}`}>
+                <div className={`flex-1 p-4 flex flex-col relative overflow-hidden transition-colors duration-700 ${gameState.battleWeather?.type === 'snowstorm' ? 'battlefield-snowstorm' : gameState.battleWeather?.type === 'rainstorm' ? 'bg-gradient-to-b from-sky-950 via-blue-950 to-slate-950' : gameState.battleWeather?.type === 'lush_grass' ? 'battlefield-lush-grass' : 'bg-slate-950'} ${isPlayingEvents && (feedbackKind === 'ko' || feedbackKind === 'critical') ? 'battle-impact-shake' : ''}`}>
                     
                     {!isEventBattle&&<button onClick={() => playerRole === 'spectator' ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-4 left-4 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
                          <LogOut size={16} /> {playerRole === 'spectator' ? 'Esci' : 'Resa'}
@@ -605,6 +606,21 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                         </div>
                     )}
 
+                    {gameState.battleWeather?.type==='lush_grass'&&(
+                        <div className="absolute z-[44] top-[7.5rem] left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl
+                            border border-lime-400/65 bg-green-950/90 text-lime-100 text-[11px] sm:text-sm font-black text-center pointer-events-none">
+                            🌿 ERBA RIGOGLIOSA · {gameState.battleWeather.turns} turni
+                            <span className="block text-[9px] text-lime-200 font-semibold">Mosse Erba +20% · Multimon Erba +5% PS a fine turno</span>
+                        </div>
+                    )}
+                    {Object.values(gameState.battleTailwind||{}).some(turns=>turns>0)&&(
+                        <div className="absolute z-[43] top-[10.7rem] left-1/2 -translate-x-1/2 max-w-[85vw] rounded-xl border border-cyan-300/70 bg-cyan-950/90 px-3 py-1 text-center text-cyan-100 text-[10px] sm:text-xs font-black shadow-lg pointer-events-none">
+                            💨 TAILWIND · Velocità +30% ai team coinvolti · {Object.entries(gameState.battleTailwind||{})
+                                .filter(([,turns])=>turns>0)
+                                .map(([role,turns])=>(gameState.players?.[role]||role)+' ('+turns+' turni)')
+                                .join(' · ')}
+                        </div>
+                    )}
                     {Object.values(gameState.fieldTraps||{}).some(Boolean)&&(
                         <div className="absolute z-[42] top-[11rem] left-1/2 -translate-x-1/2 max-w-[90vw] rounded-xl border border-fuchsia-400/60 bg-fuchsia-950/85 px-3 py-1.5 text-center text-fuchsia-200 text-[10px] font-black shadow-xl pointer-events-none">
                             🪤 TRAPPOLA SEGRETA SUL CAMPO · -10% PS AI NUOVI ARRIVI
