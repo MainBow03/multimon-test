@@ -829,6 +829,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             // Meteo condiviso: si salva nello stato partita, non sul singolo personaggio.
             let workingWeather = gameState.battleWeather ? {...gameState.battleWeather} : null;
             let workingTailwind={...(gameState.battleTailwind||{})};
+            // Il turno in cui si usa Aura Glaciale non consuma Tailwind: la coda di iniziativa
+            // è già stata calcolata, quindi i cinque turni di beneficio iniziano dal prossimo.
+            const tailwindJustActivated=new Set();
             // Il meteo influenza TUTTE le mosse che infliggono danno, anche
             // quelle eseguite più tardi nello stesso turno in cui nasce la Tempesta.
             const calculateDamage=(...args)=>{
@@ -2831,8 +2834,13 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                       move.lushGrassTurns+' turni! Mosse Erba +20%, i Multimon Erba recuperano il 5% PS a fine turno.'});
                 }
                 if(attackSucceeded && move.tailwindTurns){
+                    const potentialAllies=Object.entries(workingTeams)
+                      .filter(([,team])=>Array.isArray(team)&&team.some(c=>c&&!c.isSummonOnly))
+                      .map(([role])=>role);
                     workingTailwind=startTailwind(workingTailwind,player,gameState.gameMode,
-                      gameState.settings,activeMatchPlayers);
+                      gameState.settings,potentialAllies);
+                    for(const role of potentialAllies)if(workingTailwind[role]>0)
+                      tailwindJustActivated.add(role);
                     events.push({type:'text',text:'💨 '+attacker.name+' attiva TAILWIND! Per '+
                       move.tailwindTurns+' turni tutti gli alleati (+ chi entra dopo) hanno Velocità effettiva +30%.'});
                 }
@@ -3405,7 +3413,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
             if (char && char.refractionTurns > 0) endRefractionTurn(char);
         }
         const tailwindBefore=workingTailwind;
-        workingTailwind=advanceTailwind(workingTailwind);
+        workingTailwind=advanceTailwind(workingTailwind,tailwindJustActivated);
         for(const [role,turns] of Object.entries(tailwindBefore)){
             if(turns>0&&!workingTailwind[role])
                 events.push({type:'text',text:'💨 Tailwind si esaurisce per la squadra di '+(gameState.players?.[role]||role)+'!'});
