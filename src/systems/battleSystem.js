@@ -3,7 +3,7 @@ import {newcomerDamageFactor,recordSpyExposure,cloverExtraEvasion,triggerCloverD
 import {generateStrategicCpuActions,rememberPublicCpuMoves} from './strategicCpu.js';
 import {rogueDamageFactor} from './roguelikeEvents.js';
 import { applyBattleStatModifier } from './statBalance.js';
-import {beginHakiGuard,tickHakiGuard,shortenHakiDebuff,strawHatCritBonus,
+import {beginHakiGuard,tickHakiGuard,shortenHakiDebuff,hakiStatDebuffMultiplier,strawHatCritBonus,
   strawHatDefenseFactor,namiClimateFactor,applyNamiMirage,applyGuardPoint,
   reduceGuardPointDamage,clearZoroBlind,chopperEntryAid} from './strawHatEffects.js';
 import { applyPerfezioneBonus, firstHitProtectionFactor } from './nerfPassives.js';
@@ -2292,7 +2292,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                     }
                                 }
                                 if (move.hitStatDebuff.spd) { applyBattleStatModifier(t.char, 'spd', move.hitStatDebuff.spd); statTexts.push("la Velocità"); }
-                                if (move.hitStatDebuff.acc) { t.char.acc = (t.char.acc || 1.0) * move.hitStatDebuff.acc; statTexts.push("la Precisione"); }
+                                if (move.hitStatDebuff.acc) { t.char.acc = (t.char.acc || 1.0) * hakiStatDebuffMultiplier(t.char,move.hitStatDebuff.acc); statTexts.push("la Precisione"); }
                                 events.push({ type: 'text', text: `Il colpo riduce ${statTexts.join(" e ")} di ${t.char.name}!` });
                             }
 
@@ -2405,8 +2405,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             }
                             if (move.targetStatDebuff.def) { applyBattleStatModifier(t.char, 'def', move.targetStatDebuff.def); statTexts.push("Difesa"); }
                             if (move.targetStatDebuff.spd) { applyBattleStatModifier(t.char, 'spd', move.targetStatDebuff.spd); statTexts.push("Velocità"); }
-                            if (move.targetStatDebuff.acc) { t.char.acc = (t.char.acc || 1.0) * move.targetStatDebuff.acc; statTexts.push("Precisione"); }
-                            if (move.targetStatDebuff.accFlat) { t.char.acc = Math.max(0.1, (t.char.acc || 1.0) - move.targetStatDebuff.accFlat); statTexts.push("Precisione"); }
+                            if (move.targetStatDebuff.acc) { t.char.acc = (t.char.acc || 1.0) * hakiStatDebuffMultiplier(t.char,move.targetStatDebuff.acc); statTexts.push("Precisione"); }
+                            if (move.targetStatDebuff.accFlat) { t.char.acc = Math.max(0.1, (t.char.acc || 1.0) - move.targetStatDebuff.accFlat * (t.char.id==='luffy' && t.char.hakiGuardTurns>0?0.5:1)); statTexts.push("Precisione"); }
                             if (statTexts.length > 0) {
                                 events.push({ type: 'text', text: `${statTexts.join(" e ")} di ${t.char.name} diminuisce!` });
                             }
@@ -2439,8 +2439,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             }
                             if (move.targetStatDebuff.def) { applyBattleStatModifier(t.char, 'def', move.targetStatDebuff.def); statTexts.push("Difesa"); }
                             if (move.targetStatDebuff.spd) { applyBattleStatModifier(t.char, 'spd', move.targetStatDebuff.spd); statTexts.push("Velocità"); }
-                            if (move.targetStatDebuff.acc) { t.char.acc = (t.char.acc || 1.0) * move.targetStatDebuff.acc; statTexts.push("Precisione"); }
-                            if (move.targetStatDebuff.accFlat) { t.char.acc = Math.max(0.1, (t.char.acc || 1.0) - move.targetStatDebuff.accFlat); statTexts.push("Precisione"); }
+                            if (move.targetStatDebuff.acc) { t.char.acc = (t.char.acc || 1.0) * hakiStatDebuffMultiplier(t.char,move.targetStatDebuff.acc); statTexts.push("Precisione"); }
+                            if (move.targetStatDebuff.accFlat) { t.char.acc = Math.max(0.1, (t.char.acc || 1.0) - move.targetStatDebuff.accFlat * (t.char.id==='luffy' && t.char.hakiGuardTurns>0?0.5:1)); statTexts.push("Precisione"); }
                             if (statTexts.length > 0) {
                                 events.push({ type: 'text', text: `${statTexts.join(" e ")} di ${t.char.name} diminuisce!` });
                             }
