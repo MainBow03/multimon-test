@@ -353,6 +353,9 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                         <div className="font-bold text-sm truncate text-gray-100 mb-1">
                             {char.name} 
                             {char.isZodiacSpirit && <span className="block text-[10px] font-bold text-violet-200">✦ Spirito Stellare di {gameState.players?.[char.zodiacOwner]||'Lucy'}</span>}
+                            {char.hakiGuardTurns>0 && <span className="block text-[10px] text-amber-200 font-bold">🛡️ Haki: {char.hakiGuardTurns} turni</span>}
+                            {char.strawHatGuardPoint>0 && <span className="block text-[10px] text-emerald-200 font-bold">🛡️ Guard Point pronto</span>}
+                            {char.strawHatMirageUsed && <span className="block text-[10px] text-sky-200 font-bold">🌫️ Miraggio attivo</span>}
                             {(isJuggernaut || char.isRoguelikeBoss) && <span className="text-[10px] text-rose-500 ml-1">(BOSS)</span>}
                             {isHyper && <span className="text-[10px] text-yellow-400 font-black ml-1">(IPER)</span>}
                             {char.mahitoTransformed && <span className="text-[10px] text-fuchsia-300 font-black ml-1">(TRASFIGURATO)</span>} 
