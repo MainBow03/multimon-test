@@ -8,7 +8,7 @@ import {applyBattleStatModifier} from '../src/systems/statBalance.js';
 import {calculateDamageImpl} from '../src/systems/battleSystem.js';
 import {totalEvasionChance} from '../src/systems/rainstorm.js';
 import {
- beginHakiGuard,tickHakiGuard,shortenHakiDebuff,
+ beginHakiGuard,tickHakiGuard,shortenHakiDebuff,hakiStatDebuffMultiplier,
  strawHatCritBonus,strawHatDefenseFactor,namiClimateFactor,
  applyNamiMirage,applyGuardPoint,reduceGuardPointDamage,clearZoroBlind,
  chopperEntryAid
@@ -158,4 +158,15 @@ test('Il motore esegue i bonus speciali e mostra la durata nella UI',()=>{
  assert.match(engine,/reduceGuardPointDamage\(target,dmg\)/);
  assert.match(engine,/shortenHakiDebuff\(t.char,newStatus\)/);
  assert.match(view,/char.hakiGuardTurns>0/);
+});
+
+test('Haki dimezza anche malus alla precisione',()=>{
+ const l=basic('luffy');
+ beginHakiGuard(l);
+ assert.equal(hakiStatDebuffMultiplier(l,0.60),0.80);
+ assert.equal(hakiStatDebuffMultiplier(l,0.80),0.90);
+ assert.equal(hakiStatDebuffMultiplier(l,1.20),1.20);
+ const engine=readFileSync(new URL('../src/systems/battleSystem.js',import.meta.url),'utf8');
+ assert.match(engine,/hakiStatDebuffMultiplier\(t.char,move.targetStatDebuff.acc\)/);
+ assert.match(engine,/hakiStatDebuffMultiplier\(t.char,move.hitStatDebuff.acc\)/);
 });
