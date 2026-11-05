@@ -70,6 +70,19 @@ test('Tailwind in Roguelike Co-op copre tutti i giocatori, non il boss',()=>{
  assert.equal(tailwindSpeedFactor(effect,'p4'),1);
  assert.deepEqual(startTailwind({},'p4','juggernaut',{juggernautPlayer:'p4'},['p1','p2','p3','p4']),{p4:5});
 });
+test('Tailwind appena lanciato dura cinque turni completi e non prolunga il vento nemico',()=>{
+ const ongoing={p3:2,p4:2};
+ const wind=startTailwind(ongoing,'p1','multipla',{},['p1','p2','p3','p4']);
+ assert.deepEqual(wind,{p3:2,p4:2,p1:5,p2:5});
+ const afterTurn=advanceTailwind(wind,new Set(['p1','p2']));
+ assert.deepEqual(afterTurn,{p3:1,p4:1,p1:5,p2:5});
+ let next=afterTurn;
+ for(let i=0;i<5;i++)next=advanceTailwind(next);
+ assert.deepEqual(next,{});
+ const engine=source('../src/systems/battleSystem.js');
+ assert.match(engine,/advanceTailwind\(workingTailwind,tailwindJustActivated\)/);
+ assert.match(engine,/tailwindAllies\(player,gameState.gameMode,gameState.settings,potentialAllies\)/);
+});
 test('Elsa: 10% per Tempesta di Neve, gelo precedente del 15% conservato',()=>{
  assert.equal(m('Gelo Eterno').snowstormChance,.10);
  assert.equal(m('Gelo Eterno').statusEffect.chance,.15);
