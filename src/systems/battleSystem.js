@@ -3,6 +3,9 @@ import {newcomerDamageFactor,recordSpyExposure,cloverExtraEvasion,triggerCloverD
 import {generateStrategicCpuActions,rememberPublicCpuMoves} from './strategicCpu.js';
 import {rogueDamageFactor} from './roguelikeEvents.js';
 import { applyBattleStatModifier } from './statBalance.js';
+import {beginHakiGuard,tickHakiGuard,shortenHakiDebuff,strawHatCritBonus,
+  strawHatDefenseFactor,namiClimateFactor,applyNamiMirage,applyGuardPoint,
+  reduceGuardPointDamage,clearZoroBlind,chopperEntryAid} from './strawHatEffects.js';
 import { applyPerfezioneBonus, firstHitProtectionFactor } from './nerfPassives.js';
 import { isOnlineHealingLimited, isLimitedHealingItem, onlineHealingRemaining, ONLINE_HEAL_ITEM_LIMIT } from './onlineHealingLimit.js';
 import { consumeRaidShieldHit, createRaidShieldUpdateEvent, applyRaidShieldUpdateEvent } from './finalRaidBalance.js';
@@ -117,6 +120,17 @@ const { setAppMode, setPlayerRole, setRoomId, setShowOnlinePlayers } = ctx;
 export const applyOnEnterPassiveImpl = (ctx, char, p, idx, workingTeams, workingField, eventsArr, gameMode, settings, isCampaign) => {
 const { CHARACTERS } = ctx;
 
+              if (char.passive?.crewMedicHeal && char.hp>0) {
+                const aid=chopperEntryAid(workingTeams,workingField,p,gameMode,settings,char.passive.crewMedicHeal);
+                if(aid){
+                  eventsArr.push({type:'damage',targetPlayer:aid.player,targetIdx:aid.idx,
+                    newHp:aid.hp,isPassive:true,passiveChar:char.name,passiveName:char.passive.name,
+                    text:'🩺 '+char.name+' attiva Medico di Bordo: recuperati '+aid.healed+' PS!'});
+                  if(aid.removed)eventsArr.push({type:'status_update',targetPlayer:aid.player,targetIdx:aid.idx,
+                    statuses:JSON.parse(JSON.stringify(workingTeams[aid.player][aid.idx].statuses)),
+                    text:'🩺 '+char.name+' rimuove '+aid.removed+' grazie a Medico di Bordo!'});
+                }
+              }
               if (char.passive.zodiacSummon) {
                   const summoned=summonZodiacSpirit(workingTeams,workingField,p,idx,CHARACTERS);
                   if(summoned){
@@ -773,7 +787,7 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             const defenseStat = move.special && Number.isFinite(defender.spDef) ? defender.spDef : defender.def;
             const originalDef = move.special && Number.isFinite(defender.baseSpDef) ? defender.baseSpDef : defender.baseDef;
             let defValue = move.ignoreDefBuffs && defenseStat > originalDef ? originalDef : defenseStat;
-            defValue = Math.max(1, defValue || 1);
+            defValue = Math.max(1, (defValue || 1)*strawHatDefenseFactor(attacker,move));
             
             // Supporto selettivo alle mosse speciali senza alterare le mosse già esistenti.
             const attackValue = move.special && Number.isFinite(attacker.spAtk) ? attacker.spAtk : attacker.atk;
@@ -815,7 +829,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             // quelle eseguite più tardi nello stesso turno in cui nasce la Tempesta.
             const calculateDamage=(...args)=>{
                 const base=calculateRawDamage(...args);
-                return Math.max(1,Math.floor(base*weatherMoveFactor(args[2],workingWeather)*newcomerDamageFactor(args[0],args[1],args[2])));
+                return Math.max(1,Math.floor(base*weatherMoveFactor(args[2],workingWeather)*namiClimateFactor(args[0],args[2],workingWeather)*newcomerDamageFactor(args[0],args[1],args[2])));
             };
             let workingFieldTraps = {...(gameState.fieldTraps||{})};
             let workingTrapSeen = JSON.parse(JSON.stringify(gameState.fieldTrapSeen||{}));
@@ -905,6 +919,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 }
 
                 if(dmg>0 && options.directAttack){
+                    const guard=reduceGuardPointDamage(target,dmg);
+                    dmg=guard.damage;
+                    if(guard.activated)events.push({type:'text',text:'🛡️ Guard Point di '+target.name+': il colpo infligge il 20% di danni in meno!'});
                     const reduced=reduceIncomingHeldDamage(target,dmg,{
                       directAttack:true,superEffective:!!options.superEffective
                     });
@@ -2202,7 +2219,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             if (!immuneToCritical(t.char) && move.critChance && Math.random() < move.critChance) {
                                 currentMoveForDmg = { ...move, power: move.critPower };
                                 isCritical = true;
-                            } else if (!immuneToCritical(t.char) && Math.random() < 0.05) { // 5% base per tutte le altre mosse
+                            } else if (!immuneToCritical(t.char) && Math.random() < Math.min(0.5,0.05+strawHatCritBonus(attacker,move))) { // 5% base con bonus dei nuovi capitani
                                 isCritical = true;
                                 critMultiplier = 1.5; // +50% danno
                             }
@@ -2611,6 +2628,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 if (effect.type === 'Infatuato' && !effect.turns) turns = Math.floor(Math.random() * 2) + 4;
                                 
                                 let newStatus = { type: effect.type, turns: turns, ...(effect.type==='Incantato'?{justApplied:true}:{}) };
+                                if(shortenHakiDebuff(t.char,newStatus))
+                                  events.push({type:'text',text:'🛡️ Haki dell’Armatura: '+t.char.name+' dimezza la durata di '+effect.type+'!'});
                                 if(shortenNegativeStatus(t.char,newStatus))
                                   events.push({type:'text',text:`🔗 Sigillo della Libertà: ${effect.type} di ${t.char.name} durerà un turno in meno!`});
                                 // --- FIX: LOGICA DI "In_Groppa" DI YOSHI ---
@@ -2755,6 +2774,26 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                     if (statTexts.length > 0) {
                         events.push({ type: 'text', text: `La ${statTexts.join(" e ")} di ${attacker.name} aumenta per via dell'attacco!` });
                     }
+                }
+
+                // Tecniche Cappello di Paglia: tutti gli effetti sono memorizzati
+                // nella copia di combattimento, quindi sincronizzati online.
+                if (attackSucceeded && attacker.hp>0 && move.hakiGuardTurns){
+                    const turns=beginHakiGuard(attacker,move.hakiGuardTurns);
+                    events.push({type:'text',text:'🛡️ '+attacker.name+' protegge le statistiche e gli status con l’Haki per '+turns+' turni!'});
+                }
+                if (attackSucceeded && attacker.hp>0 && move.strawHatEvasionGain){
+                    const amount=applyNamiMirage(attacker,move.strawHatEvasionGain);
+                    if(amount)events.push({type:'text',text:'🌫️ Miraggio Ladresco di '+attacker.name+': elusione +15% fino alla fine dello scontro!'});
+                    else events.push({type:'text',text:'🌫️ Il miraggio di '+attacker.name+' è già attivo: non si accumula.'});
+                }
+                if (attackSucceeded && attacker.hp>0 && move.strawHatGuardPoint){
+                    applyGuardPoint(attacker,move.strawHatGuardPoint);
+                    events.push({type:'text',text:'🛡️ Guard Point di '+attacker.name+': il prossimo colpo diretto sarà attenuato del 20%!'});
+                }
+                if (attackSucceeded && attacker.hp>0 && move.strawHatClearBlind && clearZoroBlind(attacker)){
+                    updateStatusUI(player,charTeamIdx);
+                    events.push({type:'text',text:'✨ '+attacker.name+' ritrova la vista grazie alla concentrazione!'});
                 }
 
                 // Tecniche uniche dei nuovi campioni: effetto permanente fino a KO o fine lotta.
@@ -3276,6 +3315,11 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 applyDamage(char, soulDamage, target.player, target.charTeamIdx, `👁️ ${char.name} perde ${soulDamage} PS per Anima Distorta!`);
             }
             if (char.hp <= 0) continue;
+            const hakiBefore=char.hakiGuardTurns||0;
+            if(hakiBefore>0){
+              const hakiAfter=tickHakiGuard(char);
+              if(hakiAfter===0)events.push({type:'text',text:'🛡️ L’Haki dell’Armatura di '+char.name+' svanisce.'});
+            }
 
             let regenIdx = char.statuses.findIndex(s => s.type === 'Rigenerazione');
             if (regenIdx !== -1) {
