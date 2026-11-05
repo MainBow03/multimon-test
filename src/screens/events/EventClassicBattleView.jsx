@@ -51,7 +51,7 @@ function adaptEventBattle(battle,settings,participants,currentUid,perspective){
    players,playerAvatars:avatars,isBot,field,teams,actions,inventory,playerMastery,
    settings:{fieldSize:settings.fieldSize,allowHyper:settings.allowHyper,
      allowItems:settings.allowItems},
-   battleWeather:battle.weather||null,fieldTraps:battle.traps||{},
+   battleWeather:battle.weather||null,battleTailwind:{},fieldTraps:battle.traps||{},
    isCampaignBattle:false,turnExpiresAt:0,
    hyperUsed:Object.fromEntries(Object.entries(mapping).map(([uid,p])=>[p,!!battle.hyperUsed?.[uid]])),
    events:[]

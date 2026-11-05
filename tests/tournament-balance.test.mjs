@@ -133,7 +133,7 @@ test('Le quattro nuove passive usano tipologie già gestite dal motore di battag
  const rain=byId('juvia').passive;
  assert.equal(rain.type,'rain_evasion');
  assert.ok(rain.desc.includes('20'));
- assert.equal(MOVES_DB['Colpo impetuoso'].rainstormChance,.25);
+ assert.equal(MOVES_DB['Colpo impetuoso'].rainstormChance,.35);
  const stone=byId('kevin').passive;
  assert.equal(stone.type,'on_hp_threshold');
  assert.equal(stone.statBuff.def,1.3);

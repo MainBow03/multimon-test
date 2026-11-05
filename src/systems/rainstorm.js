@@ -1,5 +1,6 @@
 // Meteo condiviso delle battaglie classiche: Tempesta di Juvia.
 // Un'unica condizione meteo per campo, come la già esistente Tempesta di Neve.
+import {lushGrassDamageFactor} from './battleFieldEffects.js';
 export const RAINSTORM_TURNS=5;
 export const RAINSTORM_WATER_BONUS=1.25;
 export const RAINSTORM_FIRE_FACTOR=0.75;
@@ -15,7 +16,7 @@ export function tryStartRainstorm(move,attackSucceeded,random=Math.random){
 }
 
 export function weatherMoveFactor(move,weather){
-  if(!isRainyWeather(weather))return 1;
+  if(!isRainyWeather(weather))return lushGrassDamageFactor(move,weather);
   if(move?.type==='Acqua')return RAINSTORM_WATER_BONUS;
   if(move?.type==='Fuoco')return RAINSTORM_FIRE_FACTOR;
   return 1;

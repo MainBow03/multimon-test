@@ -151,7 +151,7 @@ export const MOVES_DB = {
           'Dittatura del Sorriso': { name: 'Dittatura del Sorriso', type: 'Oscuro', power: 90, targetCount: 4, statusEffect: { type: 'Confuso', chance: 0.5 }, desc: 'Obbliga tutti a sorridere! Colpisce tutti i nemici con energia oscura e ha il 50% di probabilità di confonderli.' },
 
           'Tempesta emotiva': { name: 'Tempesta emotiva', type: 'Aria', power: 110, targetCount: 2, maxUses: 5, desc: 'Un ciclone di emozioni e vento. Colpisce fino a due bersagli contemporaneamente.' },
-          'Colpo impetuoso': { name: 'Colpo impetuoso', type: 'Acqua', power: 95, rainstormChance: 0.25, desc: 'Un potente colpo Acqua: 25% di probabilità di scatenare una Tempesta di 5 turni. Con Tempesta: Acqua +25% danni, Fuoco -25% danni.' },
+          'Colpo impetuoso': { name: 'Colpo impetuoso', type: 'Acqua', power: 95, rainstormChance: 0.35, desc: 'Un potente colpo Acqua: 35% di probabilità di scatenare una Tempesta di 5 turni. Con Tempesta: Acqua +25% danni, Fuoco -25% danni.' },
           'Amore devoto': { name: 'Amore devoto', type: 'Magico', power: 0, maxUses: 3, targetMode: 'ally', targetStatBuff: { atk: 1.5, def: 1.5 }, desc: 'Il potere dell\'amore: potenzia grandemente l\'Attacco e la Difesa di un alleato in squadra.' },
           'Flirt': { name: 'Flirt', type: 'Normale', power: 0, maxUses: 5, statusEffect: { type: 'Infatuato', chance: 1.0 }, desc: 'Usa il fascino per far innamorare irrimediabilmente il bersaglio.' },
           'Abisso Disperato': { name: 'Abisso Disperato', type: 'Buio', power: 85, drain: 0.5, maxUses: 3, desc: 'L\'oscurità della sua gelosia avvolge il nemico. Drena il 50% del danno inflitto in PS. (3 utilizzi)' },
@@ -176,7 +176,7 @@ export const MOVES_DB = {
           'Scaglie di Roccia': { name: 'Scaglie di Roccia', type: 'Roccia', power: 55, targetCount: 4, desc: 'Lancia schegge di pietra affilate dal proprio corpo colpendo più bersagli.' },
           'Presa Schiacciante': { name: 'Presa Schiacciante', type: 'Terra', power: 75, statusEffect: { type: 'Stordito', chance: 0.3 }, desc: 'Afferra il nemico e lo stringe con forza sovrumana. 30% di probabilità di stordirlo.' },
 
-          'Gelo Eterno': { name: 'Gelo Eterno', type: 'Ghiaccio', power: 95, statusEffect: { type: 'Congelato', chance: 0.15 }, desc: 'Un raggio di ghiaccio puro. 15% di probabilità di congelare il bersaglio.' },
+          'Gelo Eterno': { name: 'Gelo Eterno', type: 'Ghiaccio', power: 95, snowstormChance: 0.10, statusEffect: { type: 'Congelato', chance: 0.15 }, desc: 'Potenza 95. 15% di congelare il bersaglio e 10% di evocare una Tempesta di Neve per 5 turni.' },
           'Frammenti di Neve': { name: 'Frammenti di Neve', type: 'Ghiaccio', power: 25, multiHit: { min: 2, max: 5 }, desc: 'Scaglia schegge di ghiaccio che colpiscono il bersaglio in rapida successione (da 2 a 5 volte).' },
           'Canto dell Inverno': { name: 'Canto dell\'Inverno', type: 'Ghiaccio', power: 0, targetMode: 'ally', heal: 0.4, removeNegativeStatuses: true, desc: 'Guarisce un alleato (o se stessa) del 40% dei PS massimi e rimuove gli status negativi.' },
           'Luce Cristallina': { name: 'Luce Cristallina', type: 'Magico', power: 80, ignoreDefBuffs: true, desc: 'Raggio di luce magica. Colpisce ignorando completamente i potenziamenti alla Difesa del nemico.' },
@@ -235,7 +235,7 @@ export const MOVES_DB = {
           'Frusta d\'Acqua': { name: 'Frusta d\'Acqua', type: 'Acqua', power: 75, desc: 'Plasma l\'acqua in una frusta flessibile e letale che colpisce il nemico.' },
           'Onda Guaritrice': { name: 'Onda Guaritrice', type: 'Acqua', power: 0, targetMode: 'ally', heal: 0.5, desc: 'Usa le proprietà curative dell\'acqua per curare un alleato del 50% dei PS massimi.' },
           'Dominio del Sangue': { name: 'Dominio del Sangue', type: 'Oscuro', power: 80, drain: 0.4, statusEffect: { type: 'Stordito', chance: 0.2 }, desc: 'Controlla i fluidi vitali del nemico! Drena il 40% del danno e ha il 20% di stordire.' },
-          'Gabbia di Ghiaccio': { name: 'Gabbia di Ghiaccio', type: 'Ghiaccio', power: 50, statusEffect: { type: 'Congelato', chance: 0.6 }, desc: 'Intrappola il bersaglio congelandolo. 60% di probabilità di congelare.' },
+          'Gabbia di Ghiaccio': { name: 'Gabbia di Ghiaccio', type: 'Ghiaccio', power: 80, targetCount: 2, statusEffect: { type: 'Congelato', chance: 0.25 }, desc: 'Potenza 80. Colpisce fino a 2 bersagli, ciascuno con il 25% di probabilità di essere congelato.' },
 
           // NUOVE MOSSE ZABUZA
           'Velo di Nebbia': { name: 'Velo di Nebbia', type: 'Acqua', power: 0, target: 'self', isProtect: true, priority: 5, maxUses: 3, desc: 'Si nasconde in una fitta nebbia schivando ogni attacco nemico per il turno. (3 utilizzi)' },
@@ -265,10 +265,10 @@ export const MOVES_DB = {
           'Aura spettrale': { name: 'Aura spettrale', type: 'Spettro', power: 60, desc: 'Un attacco con aura spettrale mortale che infligge 60 danni.' },
 
           // NUOVE MOSSE JACK FROST
-          'Vento Invernale': { name: 'Vento Invernale', type: 'Ghiaccio', power: 70, selfStatBuff: { spd: 1.5 }, desc: 'Cavalca il vento gelato, infliggendo danni e aumentando la sua Velocità del 50%.' },
+          'Vento Invernale': { name: 'Vento Invernale', type: 'Ghiaccio', power: 70, targetCount: 2, selfStatBuff: { spd: 1.5 }, desc: 'Potenza 70. Colpisce fino a due nemici e aumenta la propria Velocità del 50%.' },
           'Scherzetto di Neve': { name: 'Scherzetto di Neve', type: 'Ghiaccio', power: 40, targetCount: 2, statusEffect: { type: 'Congelato', chance: 0.4 }, desc: 'Lancia palle di neve magiche su 2 nemici infliggendo danni. 40% di probabilità di congelarli.' },
           'Bastone Magico': { name: 'Bastone Magico', type: 'Magico', power: 70, statusEffect: { type: 'Confuso', chance: 0.2 }, desc: 'Colpisce con il bastone magico. 20% di probabilità di confondere il bersaglio.' },
-          'Aura Glaciale': { name: 'Aura Glaciale', type: 'Ghiaccio', power: 0, targetMode: 'team', targetStatBuff: { spd: 1.5 }, desc: 'Ricopre l\'arena di ghiaccio liscio, aumentando la Velocità di tutto il team del 50%.' },
+          'Aura Glaciale': { name: 'Aura Glaciale', type: 'Ghiaccio', power: 0, target: 'self', tailwindTurns: 5, maxUses: 2, strictUses: true, desc: 'Attiva Tailwind per tutta la squadra per 5 turni: velocità effettiva +30%, anche per chi entra dopo. Non modifica permanentemente la statistica.' },
 
           // NUOVE MOSSE YUKI-ONNA
           'Alito Congelante': { name: 'Alito Congelante', type: 'Ghiaccio', power: 85, statusEffect: { type: 'Congelato', chance: 0.35 }, desc: 'Soffia aria gelida per abbassare la temperatura corporea. 35% di prob. di congelare.' },
@@ -318,6 +318,7 @@ export const MOVES_DB = {
           'Radici Avvolgenti': { name: 'Radici Avvolgenti', type: 'Erba', power: 82, statusEffect: { type: 'Stordito', chance: 0.3 }, desc: 'Evoca possenti radici che stritolano il nemico. 30% di probabilità di stordirlo.' },
           'Spore Soporifere': { name: 'Spore Soporifere', type: 'Erba', power: 0, targetCount: 2, statusEffect: { type: 'Addormentato', chance: 0.6 }, desc: 'Soffia polveri ipnotiche. Ha il 60% di probabilità di addormentare fino a due bersagli.' },
           'Fascino Botanico': { name: 'Fascino Botanico', type: 'Normale', power: 0, statusEffect: { type: 'Infatuato', chance: 1.0 }, targetStatDebuff: { atk: 0.7 }, desc: 'Ammalia il bersaglio infatuandolo (50% prob. di non attaccare) e ne riduce l\'Attacco del 30%.' },
+          'Splendete, mie piante!': { name:'Splendete, mie piante!', type:'Erba', power:0, target:'self', lushGrassTurns:5, maxUses:2, strictUses:true, desc:'Attiva Erba Rigogliosa per 5 turni: cura tutti i Multimon Erba in campo del 5% PS massimi a fine turno e potenzia le mosse Erba del 20%.' },
           'Polline scottante': { name: 'Polline scottante', type: 'Fuoco', power: 70, statusEffect: { type: 'Scottato', chance: 1.0 }, desc: 'Soffia un polline infuocato. Infligge 70 danni e scotta infallibilmente il bersaglio.' },
 
           // NUOVE MOSSE MANTIDE
@@ -360,7 +361,7 @@ export const MOVES_DB = {
           // NUOVE MOSSE LAPIS LAZULI
           'Getto Bollente': { name: 'Getto Bollente', type: 'Acqua', power: 75, statusEffect: { type: 'Scottato', chance: 0.2 }, desc: 'Colpisce il bersaglio con acqua bollente. 20% di probabilità di scottare.' },
           'Catene Oceaniche': { name: 'Catene Oceaniche', type: 'Acqua', power: 50, targetCount: 2, targetStatDebuff: { spd: 0.7 }, desc: 'Avvolge fino a due nemici nell\'acqua, riducendone la Velocità del 30%.' },
-          'Torre d\'Acqua': { name: 'Torre d\'Acqua', type: 'Acqua', power: 120, recharge: true, desc: 'Solleva un\'enorme colonna d\'acqua dal suolo. Devastante, ma richiede un turno di ricarica.' },
+          'Torre d\'Acqua': { name: 'Torre d\'Acqua', type: 'Acqua', power: 120, recharge: true, rainstormChance: 0.60, desc: 'Potenza 120, richiede ricarica. Dopo il colpo ha il 60% di evocare Tempesta per 5 turni (Acqua +25%, Fuoco −25%).' },
           'Turbine Massiccio': { name: 'Turbine Massiccio', type: 'Aria', power: 60, hitStatDebuff: { spd: 0.7, chance: 0.3 }, desc: 'Con le sue ali evoca un turbine contro il bersaglio. 30% di probabilità di ridurre la Velocità.' },
 
           // NUOVE MOSSE AANG
@@ -890,7 +891,7 @@ export const MOVES_DB = {
           // NUOVE MOSSE SUGINO
           'Jugaru': { name: 'Jugaru', type: 'Erba', power: 25, multiHit: { min: 3, max: 3 }, desc: 'Evoca tre fiori giganteschi che sparano semi. Colpisce 3 volte.' },
           'Diojugaro': { name: 'Diojugaro', type: 'Veleno', power: 50, statusEffects: [{ type: 'Avvelenato', chance: 1.0 }, { type: 'Confuso', chance: 0.4 }], desc: 'Spruzza polline velenoso. Infligge danni, avvelena sempre e ha il 40% di confondere.' },
-          'Juruku': { name: 'Juruku', type: 'Erba', power: 0, targetMode: 'team_smart_heal', healAlone: 0.5, healTeam: 0.4, desc: 'Cura tutti gli alleati in campo del 40%, o se stesso del 50% se è solo.' },
+          'Juruku': { name: 'Juruku', type: 'Erba', power: 0, target: 'self', lushGrassTurns: 5, maxUses: 2, strictUses: true, desc: 'Attiva Erba Rigogliosa per 5 turni: tutti i Multimon Erba in campo recuperano 5% PS massimi a fine turno e le mosse Erba infliggono +20% danni.' },
           'Barujuron': { name: 'Barujuron', type: 'Erba', power: 0, isSummon: 'albero_demone', maxUses: 2, strictUses: true, desc: 'Evoca un guerriero albero gigante per combattere al suo fianco. (2 utilizzi)' },
           'Pugno Arboreo': { name: 'Pugno Arboreo', type: 'Terra', power: 65, desc: 'Un potente colpo sferrato con rami e radici.' },
 
