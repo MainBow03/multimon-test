@@ -3,6 +3,7 @@ const initialGameState = () => ({
           gameMode: 'classica', 
           isCampaignBattle: false,
           battleWeather: null, // Meteo condiviso; azzerato in ogni nuova partita
+          battleTailwind: {}, // Effetto Velocità di squadra, azzerato tra battaglie
           fieldTraps: {}, // Trappole piazzate su ciascun campo avversario
           fieldTrapSeen: {}, // Ultimi membri presenti, per colpire solo i nuovi ingressi
           survivalRound: 1, // <--- AGGIUNTO PER LA SOPRAVVIVENZA
