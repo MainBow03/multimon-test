@@ -3,8 +3,10 @@ import { MOVES_DB } from './moves.js';
 import { SIX_NEW_CHARACTERS } from './sixNewChampions.js';
 import { FIVE_NEW_CHARACTERS } from './fiveNewChampions.js';
 import {STRAW_HAT_CHARACTERS} from './strawHatCrew.js';
+import {GEM_FLAME_CHARACTERS} from './gemFlameCharacters.js';
 
 export const CHARACTERS = [
+  ...GEM_FLAME_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
   ...STRAW_HAT_CHARACTERS,
   ...FIVE_NEW_CHARACTERS,
   ...SIX_NEW_CHARACTERS,
