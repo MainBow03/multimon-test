@@ -533,11 +533,11 @@ export const MOVES_DB = {
           'Raggio Oculare': { name: 'Raggio Oculare', type: 'Fuoco', power: 75, statusEffect: { type: 'Scottato', chance: 0.4 }, desc: 'Un raggio di calore concentrato dagli occhi. 40% di probabilità di scottare.' },
 
           // NUOVE MOSSE BUMBLEBEE
-          'Pungiglione Elettrico': { name: 'Pungiglione Elettrico', type: 'Elettro', power: 75, statusEffect: { type: 'Elettrizzato', chance: 0.3 }, desc: 'Una scossa letale dalle sue armi. 30% di probabilità di paralizzare.' },
-          'Pungiglione': { name: 'Pungiglione', type: 'Insetto', power: 80, desc: 'Un attacco fulmineo e letale con il pungiglione.' },
+          'Pungiglione Elettrico': { name: 'Pungiglione Elettrico', type: 'Elettro', power: 75, targetStatDebuff: { spd: 0.9 }, statusEffect: { type: 'Elettrizzato', chance: 0.3 }, desc: 'Potenza 75. Riduce la Velocità del bersaglio del 10%; conserva il 30% di probabilità di elettrizzare.' },
+          'Pungiglione': { name: 'Pungiglione', type: 'Insetto', power: 80, statusEffect: { type: 'Avvelenato', chance: 0.30, turns: 3 }, desc: 'Potenza 80. Ha il 30% di probabilità di avvelenare il bersaglio.' },
           'Rimpicciolimento': { name: 'Rimpicciolimento', type: 'Insetto', power: 0, target: 'self', isProtect: true, priority: 5, maxUses: 4, desc: 'Diventa minuscola per schivare ogni attacco avversario per un turno. (4 utilizzi)' },
-          'Raffica Sonica': { name: 'Raffica Sonica', type: 'Robot', power: 25, multiHit: { min: 2, max: 4 }, desc: 'Attacca con piccole raffiche di energia colpendo da 2 a 4 volte.' },
-          'Raggio Esplosivo': { name: 'Raggio Esplosivo', type: 'Elettro', power: 90, desc: 'Carica le sue armi al massimo per sparare un raggio devastante.' },
+          'Raffica Sonica': { name: 'Raffica Sonica', type: 'Robot', power: 25, multiHit: { min: 2, max: 6 }, desc: 'Attacca con piccole raffiche di energia colpendo da 2 a 6 volte.' },
+          'Raggio Esplosivo': { name: 'Raggio Esplosivo', type: 'Elettro', power: 100, accuracy: 0.90, desc: 'Potenza 100. Il raggio può mancare il bersaglio: precisione 90%.' },
 
           // NUOVE MOSSE CHARMCASTER
           'Mostro di Pietra': { name: 'Mostro di Pietra', type: 'Magico', power: 0, isSummon: 'golem_pietra', maxUses: 2, strictUses: true, desc: 'Anima la pietra per evocare un possente Golem in campo! (2 utilizzi)' },
