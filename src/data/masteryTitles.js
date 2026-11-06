@@ -3,6 +3,8 @@
 // la loro eleggibilità è definita in masterySystem.js.
 // Ogni titolo è esclusivo di un singolo Multimon; nessun effetto sulle statistiche.
 export const MASTERY_CHARACTER_TITLES = Object.freeze({
+  "berry": "Gelataio delle Nevi",
+  "frillish": "Custode degli Abissi Spettrali",
   "ametista": "Quarzo Senza Eguali",
   "flameprincess": "Sovrana del Regno di Fuoco",
   "luffy": "Re dei Pirati in Divenire",
