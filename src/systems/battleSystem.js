@@ -997,7 +997,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                       text:'🔥 '+target.name+' attiva Cuore di Magma: '+options.attacker.name+' è Scottato!',
                       isPassive:true,passiveChar:target.name,passiveName:target.passive.name});
                 }
-                if(hpBeforeDamage>target.hp && options.directAttack && options.isEnemyTarget){
+                if(hpBeforeDamage>target.hp && (options.directAttack||options.isOffensiveMove) && options.isEnemyTarget){
                   if(tryCursedBody(target,options.attacker,options.move)){
                     events.push({type:'status_update',targetPlayer:options.attackerPlayer,
                       targetIdx:options.attackerIdx,
@@ -2241,7 +2241,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                  }
                             }
                         } else {
-                            applyDamage(t.char, dmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText} Gli toglie ${dmg} PS!`);
+                            applyDamage(t.char, dmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText} Gli toglie ${dmg} PS!`, {isOffensiveMove:true,attacker,attackerPlayer:player,attackerIdx:charTeamIdx,move,isEnemyTarget});
                         }
                         attackSucceeded = true;
                     } else if (move.power > 0) {
