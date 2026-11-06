@@ -1,6 +1,7 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
 import {legalSupportTargets,isLegalSupportTarget} from './supportTargeting.js';
 import {healFromVampiricBite} from './vampiricBite.js';
+import {activateTitansRobin,createNightwingBuffWatcher,healBerrySlideAllies} from './titansBerryEffects.js';
 import {newcomerDamageFactor,recordSpyExposure,cloverExtraEvasion,triggerCloverDodge,triggerStarWand,resolveBlueberryAction,resetNewcomerTurnFlags} from './newcomerEffects.js';
 import {generateStrategicCpuActions,rememberPublicCpuMoves} from './strategicCpu.js';
 import {rogueDamageFactor} from './roguelikeEvents.js';
@@ -395,6 +396,8 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
               char.spAtk ??= char.atk;
               char.gemSpent=false;char.healingSproutUsed=false;char.neutralizingSprayUsed=false;
               if(char.id==='ametista')char.gemImperfectUsed=false;
+              if(char.id==='robin')char.titansReportUses=0;
+              if(char.id==='nightwing')char.evasionBonus=0;
               if(char.id==='flameprincess')char.heatCharges=0;
               if(char.id==='echomax')char.echoSoulCharges=0;
               char.rapidTransmutationReady=false;char.rapidTransmutationFresh=false;
@@ -838,7 +841,13 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             let workingTeams = JSON.parse(JSON.stringify(gameState.teams));
             let workingField = JSON.parse(JSON.stringify(gameState.field));
             const gemObserver=createImperfectGemObserver(workingTeams,workingField,events,applyBattleStatModifier);
-            const stopGemObserver=setBattleStatGainObserver(gemObserver.onStatIncrease);
+            const nightwingObserver=createNightwingBuffWatcher(workingTeams,workingField,
+              {gameMode:gameState.gameMode,settings:gameState.settings,
+                isRoguelikeCoop:gameState.isRoguelikeCoop},events);
+            const stopGemObserver=setBattleStatGainObserver((source,stat,before,after,base)=>{
+              gemObserver.onStatIncrease(source,stat,before,after,base);
+              nightwingObserver.onStatGain(source,stat,before,after);
+            });
             try {
             let workingInventory = JSON.parse(JSON.stringify(gameState.inventory));
             const workingHealingItemsUsed={...(gameState.healingItemsUsed||{})};
@@ -989,6 +998,16 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 }
                 target.damageTakenThisTurn = (target.damageTakenThisTurn || 0) + dmg;
                 events.push({ type: 'damage', text: text, targetPlayer, targetIdx, newHp: target.hp });
+                if(options.isEnemyTarget && (options.directAttack||options.isOffensiveMove) &&
+                   hpBeforeDamage>target.hp && target.hp>0){
+                  const titans=activateTitansRobin(target,applyBattleStatModifier);
+                  if(titans){
+                    events.push({type:'text',
+                      text:'🦸 '+target.name+' attiva Titans, a rapporto! +10% '+
+                        titans.statName+' ('+titans.uses+'/4)',
+                      isPassive:true,passiveChar:target.name,passiveName:target.passive.name});
+                  }
+                }
                 // Morso Vampirico cura in base ai PS REALMENTE persi dal
                 // bersaglio, non alla potenza teorica o ai colpi assorbiti.
                 // Vale anche sugli attacchi multibersaglio; mai su meteo,
@@ -1442,6 +1461,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
               heatBurstActive=false;
               const { player, charTeamIdx, action } = order;
               let move=order.move;
+              nightwingObserver.beginAction(player,action.type==='attack'?move:null);
               if (action.type === 'combo_assist') continue;
               
               const attacker = workingTeams[player]?.[charTeamIdx];
@@ -3087,6 +3107,10 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                     events.push({type:'text',text:`👁️ ${attacker.name} resta confuso dopo Dominatore del Multiverso!`});
                 }
 
+                if(attackSucceeded && move.berryTeamHeal && attacker.hp>0)
+                  healBerrySlideAllies(attacker,move,player,workingTeams,workingField,
+                    {gameMode:gameState.gameMode,settings:gameState.settings,
+                      isRoguelikeCoop:gameState.isRoguelikeCoop},events,activeMatchPlayers);
                 if(attackSucceeded && addHeatCharge(attacker)){
                   events.push({type:'text',text:'🔥 '+attacker.name+' accumula una Carica Calore! ('+
                     attacker.heatCharges+'/2)'});
