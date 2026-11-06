@@ -22,7 +22,8 @@ test('Il raid finale m38 contiene il post-dialogo narrativo e segue Cell', () =>
   const finalSector = crisis.sectors.at(-1);
   const finalMission = finalSector.missions.at(-1);
   assert.equal(finalMission.id, 'm38');
-  assert.equal(finalMission.postDialogue.length, 4);
+  assert.ok(finalMission.postDialogue.length>=4,'il raid mantiene le 4 battute precedenti e aggiunge scene');
+  assert.ok(finalMission.postDialogue.some(line=>line.t.includes('Varco')));
   assert.deepEqual(finalMission.boss, ['trigon', 'gaster']);
   assert.equal(crisis.sectors.at(-2).missions.at(-1).id, 'm37');
 });
