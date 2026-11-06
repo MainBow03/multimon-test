@@ -38,7 +38,7 @@ test('Berry è solo Ghiaccio, Frillish Acqua/Spettro; ognuno ha 4 mosse, prezzo 
  assert.equal(character('orsobianco').img,'https://i.pinimg.com/736x/f8/c0/56/f8c056c741d18ae29d7eccdb0adfd0f4.jpg');
 });
 
-test('Berry ha 4 mosse Ghiaccio con cure e rallentamenti reali',()=>{
+test('Berry ha 4 mosse Ghiaccio, Coppa Rigenerante al 51% e Scivolata offensiva curativa',()=>{
  const berry=character('berry');
  assert.deepEqual(berry.moves.map(m=>m.name),[
    'Gelato Glaciale','Grandinata di Coni','Coppa Rigenerante','Scivolata Gelata'
@@ -48,11 +48,13 @@ test('Berry ha 4 mosse Ghiaccio con cure e rallentamenti reali',()=>{
  assert.equal(move('Gelato Glaciale').statusEffect.chance,.15);
  assert.equal(move('Grandinata di Coni').targetCount,2);
  assert.deepEqual(move('Grandinata di Coni').hitStatDebuff,{spd:.9,chance:.2});
- assert.equal(move('Coppa Rigenerante').heal,.30);
+ assert.equal(move('Coppa Rigenerante').heal,.51);
  assert.equal(move('Coppa Rigenerante').targetMode,'ally');
  assert.equal(move('Coppa Rigenerante').maxUses,3);
- assert.equal(move('Scivolata Gelata').power,75);
- assert.deepEqual(move('Scivolata Gelata').targetStatDebuff,{spd:.85});
+ assert.equal(move('Scivolata Gelata').power,100);
+ assert.equal(move('Scivolata Gelata').maxUses,2);
+ assert.equal(move('Scivolata Gelata').berryTeamHeal,.25);
+ assert.equal(move('Scivolata Gelata').targetStatDebuff,undefined);
  assert.equal(berry.passive.type,'berry_sweet_chill');
  assert.equal(berry.passive.chance,.25);
 });

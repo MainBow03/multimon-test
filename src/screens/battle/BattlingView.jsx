@@ -362,6 +362,12 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                             {char.hakiGuardTurns>0 && <span className="block text-[10px] text-amber-200 font-bold">🛡️ Haki: {char.hakiGuardTurns} turni</span>}
                             {char.strawHatGuardPoint>0 && <span className="block text-[10px] text-emerald-200 font-bold">🛡️ Guard Point pronto</span>}
                             {char.strawHatMirageUsed && <span className="block text-[10px] text-sky-200 font-bold">🌫️ Miraggio attivo</span>}
+                            {char.id==='robin' && <span className="block text-[10px] font-bold text-emerald-200">
+                              🦸 Titans, a rapporto!: {Math.min(4,Number(char.titansReportUses)||0)}/4
+                            </span>}
+                            {char.id==='nightwing' && <span className="block text-[10px] font-bold text-sky-200">
+                              🦇 Sempre un passo avanti: +{Math.round((Number(char.evasionBonus)||0)*100)}% elusione
+                            </span>}
                             {char.id==='ametista' && <span className="block text-[10px] font-bold text-fuchsia-200">
                               💎 Gemma Imperfetta: {char.gemImperfectUsed?'copia usata':'pronta'}
                             </span>}

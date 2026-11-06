@@ -1,3 +1,4 @@
+import {RecentArrivalsGrid} from '../../components/RecentArrivalsGrid.jsx';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderLobbyView(ctx) {
 const { ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Loader2, SOUNDTRACKS, Swords, TYPE_STYLES, Users, Volume2, appMode, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleAddBot, handleRemovePlayer, isAllPlayersJoined, leaveRoom, playerRole, roomId, setDraftTimeLeft, startBattle, updateState } = ctx;
@@ -5,8 +6,6 @@ if (gameState.status === 'lobby') {
         const isHost = playerRole === 'p1';
         const reqPlayers = getRequiredPlayers(gameState.gameMode, gameState.settings);
         const canStartDraft = isAllPlayersJoined();
-
-        const newArrivals = ['embermclain', 'kitty', 'superboy', 'diamante', 'daffyduck', 'bugsbunny', 'orsobianco', 'mahito', 'mechajohnny', 'leon', 'perla', 'roxy', 'sans', 'ban', 'meliodas', 'sasuke', 'naruto', 'diamantebianco', 'arievicente', 'sugino', 'elly', 'sumo', 'charizard', 'megamind', 'sheldon', 'dante', 'ilcavaliere']; // Massimo 20 nuovi inserimenti
 
         return (
             <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-4 relative">
@@ -322,28 +321,8 @@ if (gameState.status === 'lobby') {
                     )}
                     </div>
 
-                    {/* PANNELLO LATERALE DESTRO - NUOVI ARRIVI */}
-                    <div className="w-full lg:w-72 bg-slate-800/80 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-5 flex flex-col shadow-[0_0_30px_rgba(0,0,0,0.3)] shrink-0 max-h-[85vh]">
-                        <h3 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500 mb-4 text-center uppercase tracking-widest border-b border-slate-700/50 pb-3">Nuovi Arrivi</h3>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
-                            {newArrivals.slice(0, 20).map(id => {
-                                const char = CHARACTERS.find(c => c.id === id);
-                                if (!char) return null;
-                                return (
-                                    <div key={id} className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-4 flex flex-col items-center text-center hover:border-emerald-500/50 transition-all shadow-md group">
-                                        <img src={char.img} className="w-20 h-20 rounded-full object-cover border-2 border-slate-600 group-hover:border-emerald-400 transition-colors mb-2 shadow-lg" alt={char.name} />
-                                        <div className="font-bold text-base text-white">{char.name}</div>
-                                        <div className="text-xs text-emerald-400 font-bold mb-3 italic">si è unito all'arena!</div>
-                                        <div className="flex flex-wrap gap-1 justify-center">
-                                            {char.types.map(t => (
-                                                <span key={t} className={`text-[9px] font-black px-2 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{t}</span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+                    {/* Nuovi Arrivi: griglia 10 colonne x fino a 10 righe, ordinata per data */}
+                    <RecentArrivalsGrid characters={CHARACTERS} TYPE_STYLES={TYPE_STYLES}/>
                 </div>
             </div>
         );

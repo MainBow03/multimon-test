@@ -138,7 +138,8 @@ test('Principessa Fiamma accumula 0-2 cariche con probabilità 50%, bonus +25% s
 test('Le cariche e Gemma Imperfetta sono collegate ai veri turni e ripartono a ogni battaglia',()=>{
  const engine=readFileSync(new URL('../src/systems/battleSystem.js',import.meta.url),'utf8');
  const arena=readFileSync(new URL('../src/screens/battle/BattlingView.jsx',import.meta.url),'utf8');
- assert.match(engine,/setBattleStatGainObserver\(gemObserver\.onStatIncrease\)/);
+ assert.match(engine,/setBattleStatGainObserver\(\(source,stat,before,after,base\)=>/);
+ assert.match(engine,/gemObserver\.onStatIncrease\(source,stat,before,after,base\)/);
  assert.match(engine,/setBattleStatGainObserver\(gemIntro\.onStatIncrease\)/);
  assert.match(engine,/gemObserver\.beginAction\(\)/);
  assert.match(engine,/finally \{ stopGemObserver\(\); \}/);

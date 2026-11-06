@@ -96,7 +96,7 @@ test('Bumblebee buff: statistiche, passiva e tutte le quattro mosse',()=>{
  assert.equal(bee.def,80);
  assert.equal(bee.passive.type,'first_strike_bonus');
  assert.equal(bee.passive.damageBonus,1.20);
- assert.deepEqual(MOVES_DB['Raffica Sonica'].multiHit,{min:2,max:6});
+ assert.deepEqual(MOVES_DB['Raffica Sonica'].multiHit,{min:2,max:5});
  assert.equal(MOVES_DB['Raggio Esplosivo'].power,100);
  assert.equal(MOVES_DB['Raggio Esplosivo'].accuracy,.9);
  assert.equal(MOVES_DB['Pungiglione Elettrico'].targetStatDebuff.spd,.9);
