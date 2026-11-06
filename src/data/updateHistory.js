@@ -13,6 +13,16 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov6-titans-berry-new-arrivals-dialogues',category:'features',date:'06/11/2026',title:'🦸🍨 Titani, nuove mosse e campagne più vive!',items:[
+    'Robin riceve la passiva Titans, a rapporto!: dopo aver subito un vero attacco nemico ha il 50% di probabilità di aumentare del 10% una statistica scelta fra Attacco, Difesa, Velocità ed Elusione, fino a quattro attivazioni per battaglia.',
+    'Nightwing riceve Sempre un passo avanti: ogni volta che una mossa nemica potenzia realmente una statistica, guadagna +10% elusione. Se la stessa mossa aumenta più statistiche, la passiva si attiva una sola volta.',
+    'Bumblebee: Raffica Sonica ritorna a 2–5 colpi per preservare il bilanciamento dei boss con scudi.',
+    'Berry: Coppa Rigenerante ora cura del 51% dei PS massimi. Scivolata Gelata ora infligge potenza 100, ha solo 2 usi, non riduce più la Velocità e dopo un colpo riuscito cura Berry e tutti gli alleati vivi sul campo del 25% dei PS massimi (anche gli amici nelle lotte multiplayer).',
+    'Nuovi Arrivi: nella Lobby i PNG sono disposti in una griglia compatta da 10 colonne, massimo 10 righe, con Frillish, Berry, Principessa Fiamma e Ametista in cima e anteprima apribile toccando le miniature.',
+    'Prima campagna (Crisi del Varco): ampliate 47 missioni con dialoghi originali, indizi ricorrenti, battute tra compagni e reazioni di fine combattimento.',
+    'Terza campagna (Eco delle Anime): tutte le 36 missioni arricchite con nuovi scambi, misteri sull’Eco, dinamiche della Resistenza e dialoghi di chiusura. Sblocchi, boss e ricompense invariati.'
+  ]},
+
   {id:'nov6-targeted-healing-vampiric-bumblebee',category:'balance',date:'06/11/2026',title:'🩸 Cure mirate, Morso Vampirico e Bumblebee potenziata!',items:[
     'Zaino in battaglia: Pozione, Cura Totale, Cura Status, Pozione Rigenerante e Revitalizzante ora aprono un selettore con PNG, nomi e PS. Si può scegliere il proprio Multimon, una riserva e gli alleati di altri giocatori nella Lotta Multipla e nella Roguelike Co-op.',
     'Revitalizzante e mosse di rianimazione (inclusa Sage): il bersaglio KO è scelto esplicitamente. Le cure e le rianimazioni sono convalidate dal motore online prima di consumare oggetti o utilizzi; non si possono usare contro avversari o su bersagli non validi.',
