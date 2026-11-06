@@ -13,6 +13,14 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov6-targeted-healing-vampiric-bumblebee',category:'balance',date:'06/11/2026',title:'🩸 Cure mirate, Morso Vampirico e Bumblebee potenziata!',items:[
+    'Zaino in battaglia: Pozione, Cura Totale, Cura Status, Pozione Rigenerante e Revitalizzante ora aprono un selettore con PNG, nomi e PS. Si può scegliere il proprio Multimon, una riserva e gli alleati di altri giocatori nella Lotta Multipla e nella Roguelike Co-op.',
+    'Revitalizzante e mosse di rianimazione (inclusa Sage): il bersaglio KO è scelto esplicitamente. Le cure e le rianimazioni sono convalidate dal motore online prima di consumare oggetti o utilizzi; non si possono usare contro avversari o su bersagli non validi.',
+    'Nuovo strumento Morso Vampirico (390 monete): permanente, equipaggiabile e con illustrazione SVG unica. Con ogni attacco offensivo recupera il 10% dei PS realmente sottratti al nemico, minimo 1 PS se applicabile, fino ai propri PS massimi. Non assorbe da scudi o danni indiretti.',
+    'Bumblebee: PS massimi 85 → 89, Difesa 75 → 80. Passiva Punge come un’ape ora infligge +20% danni se agisce per prima nel turno (prima era +5%).',
+    'Bumblebee: Raffica Sonica ora colpisce 2–6 volte; Raggio Esplosivo potenza 100, precisione 90%; Pungiglione Elettrico riduce Velocità del 10%; Pungiglione ha il 30% di chance di avvelenare.'
+  ]},
+
   {id:'nov6-berry-frillish-portraits',category:'champions',date:'06/11/2026',title:'🍦👻 Berry e Frillish arrivano a Multimon!',items:[
     'Berry di Brawl Stars (solo Ghiaccio, 200 monete): Gelato Glaciale (85, 15% Congelato), Grandinata di Coni (70, 2 bersagli e 20% di calo Velocità), Coppa Rigenerante (cura un alleato del 30%, 3 usi) e Scivolata Gelata (75, Velocità avversaria -15%).',
     'Passiva di Berry — Dolce Freddo: dopo aver inflitto danni con una mossa offensiva, ha il 25% di probabilità di rallentare il nemico del 15%.',
