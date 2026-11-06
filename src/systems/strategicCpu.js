@@ -1,3 +1,5 @@
+import {isMoveDisabled} from './berryFrillishEffects.js';
+
 // IA tattica: considera soltanto i combattenti visibili, le proprie riserve
 // e le mosse dell'avversario realmente eseguite in turni precedenti.
 // NON legge le azioni pendenti avversarie o le loro mosse/riserve segrete.
@@ -38,7 +40,7 @@ export function rogueTargetPressureBonus(tier, enemyHpRatio, effectiveness, team
     (tier===2?Math.min(12,Math.max(0,teammatesFocused)*8):0);
 }
 
-const usable=m=>m && m.remainingUses!==0 && !(finite(m.currentCooldown)>0);
+const usable=(m,char)=>m && m.remainingUses!==0 && !(finite(m.currentCooldown)>0) && !isMoveDisabled(char,m);
 const hasNegative=c=>(c?.statuses||[]).some(s=>[
   'Avvelenato','Scottato','Congelato','Elettrizzato','Addormentato',
   'Stordito','Confuso','Indebolito','Accecato'
@@ -78,7 +80,7 @@ function multiplierOf(getMultiplier,type,types){
   catch{return 1}
 }
 function bestCoverage(char,enemies,getMultiplier){
-  return Math.max(0,...(char.moves||[]).filter(m=>usable(m)&&finite(m.power)>0)
+  return Math.max(0,...(char.moves||[]).filter(m=>usable(m,char)&&finite(m.power)>0)
     .flatMap(m=>enemies.map(e=>multiplierOf(getMultiplier,m.type,e.char.types))));
 }
 
@@ -216,7 +218,7 @@ export function generateStrategicCpuActions({
     }
     for(let moveIdx=0;moveIdx<(char.moves||[]).length;moveIdx++){
       const move=char.moves[moveIdx];
-      if(!usable(move))continue;
+      if(!usable(move,char))continue;
       if(move.requiredStatus && !(char.statuses||[]).some(s=>s.type===move.requiredStatus))continue;
       if(move.requireSummonsDead && (room.teams?.[player]||[]).some(c=>
         alive(c)&&move.requireSummonsDead.includes(c.id)))continue;
