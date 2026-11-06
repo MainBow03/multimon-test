@@ -1,0 +1,123 @@
+/* Effetti meteo puramente visivi; nessuna logica di danno o durata. */
+.battlefield-rainstorm {
+  background:
+    radial-gradient(ellipse at 58% 7%, rgba(118,174,211,.18), transparent 65%),
+    linear-gradient(170deg,#071827 0%,#102f45 45%,#10283c 73%,#071523 100%);
+}
+.battlefield-rainstorm::before {
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 35% 0%,rgba(177,207,230,.2),transparent 48%),
+    radial-gradient(ellipse at 78% 18%,rgba(10,24,41,.8),transparent 58%);
+  animation:multimon-storm-clouds 12s ease-in-out infinite alternate;
+}
+.battle-weather-visuals {position:absolute;inset:0;z-index:36;pointer-events:none;overflow:hidden;contain:paint;}
+.battle-weather-particles,.battle-tailwind-visuals {position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.battle-weather-particles--rainstorm {
+  background:linear-gradient(180deg,rgba(13,35,54,.12),rgba(4,18,30,.1));
+}
+.battle-weather-particles--rainstorm::before {
+  content:"";position:absolute;inset:0;opacity:.26;pointer-events:none;
+  background-image:
+    repeating-linear-gradient(102deg,transparent 0 43px,rgba(175,226,255,.27) 44px,transparent 45px 87px),
+    repeating-linear-gradient(99deg,transparent 0 76px,rgba(125,205,248,.2) 77px,transparent 78px 124px);
+  background-size:139px 215px,197px 310px;
+  animation:multimon-rain-texture .9s linear infinite;
+}
+.battle-weather-particle {position:absolute;display:block;pointer-events:none;will-change:transform;}
+.battle-weather-particle--rainstorm {
+  top:-21%;left:var(--particle-left);width:var(--particle-size);height:16px;border-radius:80% 80% 65% 65%;
+  opacity:var(--particle-alpha);
+  background:linear-gradient(to bottom,rgba(194,239,255,0),rgba(216,246,255,.95) 68%,rgba(145,217,255,.65));
+  box-shadow:0 0 5px rgba(153,220,255,.5);
+  transform:rotate(10deg);
+  animation:multimon-rain-drop var(--particle-duration) linear var(--particle-delay) infinite;
+}
+.battle-weather-particles--snowstorm {background:linear-gradient(180deg,rgba(189,230,255,.035),transparent 48%);}
+.battle-weather-particle--snowstorm {
+  top:-21%;left:var(--particle-left);width:var(--particle-size);height:var(--particle-size);
+  border-radius:50%;opacity:var(--particle-alpha);background:rgba(247,252,255,.98);
+  box-shadow:0 0 6px 2px rgba(208,238,255,.28);
+  animation:multimon-large-snow var(--particle-duration) linear var(--particle-delay) infinite;
+}
+.battle-weather-particles--lush_grass::before {
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.8;
+  background:
+    radial-gradient(ellipse at 50% 100%,rgba(105,231,134,.2),transparent 70%),
+    radial-gradient(circle at 23% 77%,rgba(204,255,125,.15),transparent 25%);
+  animation:multimon-grass-glow 5s ease-in-out infinite alternate;
+}
+.battle-weather-particle--lush_grass {
+  bottom:-16%;left:var(--particle-left);width:var(--particle-size);height:var(--particle-size);
+  border-radius:50%;opacity:var(--particle-alpha);
+  background:#d9f99d;box-shadow:0 0 10px 3px rgba(163,230,53,.55);
+  animation:multimon-grass-pollen var(--particle-duration) ease-in-out var(--particle-delay) infinite;
+}
+.battle-weather-particle--leaf {
+  width:calc(var(--particle-size) * 2.3);height:calc(var(--particle-size) * 1.1);
+  border-radius:100% 0 100% 0;background:#86efac;box-shadow:0 0 5px rgba(110,231,183,.35);
+}
+.battle-tailwind-visuals {z-index:1;}
+.battle-tailwind-visuals span {
+  position:absolute;top:var(--wind-y);left:-38%;width:35%;height:2px;border-radius:100%;
+  background:linear-gradient(90deg,transparent,rgba(165,243,252,.6),transparent);
+  box-shadow:0 10px 0 rgba(103,232,249,.13),0 -8px 0 rgba(103,232,249,.11);
+  animation:multimon-wind-stream 4.6s linear var(--wind-delay) infinite;
+}
+@keyframes multimon-storm-clouds {from{opacity:.7;transform:translateX(-1.5%)}to{opacity:1;transform:translateX(1.5%)}}
+@keyframes multimon-rain-texture {to{background-position:-22px 215px,-42px 310px}}
+@keyframes multimon-rain-drop {
+  from{transform:translate3d(8px,-20vh,0) rotate(10deg);opacity:0}
+  14%{opacity:var(--particle-alpha)}
+  86%{opacity:var(--particle-alpha)}
+  to{transform:translate3d(-28px,130vh,0) rotate(10deg);opacity:0}
+}
+@keyframes multimon-large-snow {
+  from{transform:translate3d(0,-15vh,0);opacity:0}
+  12%{opacity:var(--particle-alpha)}
+  85%{opacity:var(--particle-alpha)}
+  to{transform:translate3d(var(--particle-drift),125vh,0);opacity:0}
+}
+@keyframes multimon-grass-pollen {
+  from{transform:translate3d(0,12vh,0) rotate(0deg);opacity:0}
+  20%{opacity:var(--particle-alpha)}
+  80%{opacity:var(--particle-alpha)}
+  to{transform:translate3d(var(--particle-drift),-115vh,0) rotate(120deg);opacity:0}
+}
+@keyframes multimon-grass-glow {from{opacity:.4}to{opacity:.85}}
+@keyframes multimon-wind-stream {from{transform:translateX(0);opacity:0}20%{opacity:.7}80%{opacity:.7}to{transform:translateX(420%);opacity:0}}
+
+/* Informazioni raccolte nell'angolo, lontane dal timer e dal centro della lotta. */
+.battle-weather-hud {
+  position:absolute;top:12px;right:12px;z-index:44;
+  display:flex;flex-direction:column;align-items:stretch;gap:5px;
+  width:min(222px,41vw);max-width:calc(100% - 20px);pointer-events:none;
+}
+.battle-weather-card {
+  border:1px solid rgba(148,163,184,.55);border-radius:13px;padding:7px 9px;
+  color:#f8fafc;background:rgba(2,6,23,.88);backdrop-filter:blur(9px);
+  box-shadow:0 6px 20px rgba(0,0,0,.36);text-align:left;
+}
+.battle-weather-card--snowstorm{border-color:rgba(186,230,253,.75);background:rgba(8,47,73,.88)}
+.battle-weather-card--rainstorm{border-color:rgba(125,211,252,.8);background:rgba(8,47,73,.92)}
+.battle-weather-card--lush_grass{border-color:rgba(163,230,53,.72);background:rgba(5,46,22,.91)}
+.battle-weather-card--tailwind{border-color:rgba(103,232,249,.65);background:rgba(8,51,68,.87)}
+.battle-weather-card--trap{border-color:rgba(232,121,249,.6);background:rgba(74,4,78,.86)}
+.battle-weather-title{font-size:11px;line-height:1.25;font-weight:900;letter-spacing:.035em;text-transform:uppercase}
+.battle-weather-turns{font-size:10px;opacity:.9;font-weight:800;margin-top:2px}
+.battle-weather-detail{font-size:10px;line-height:1.28;font-weight:600;opacity:.85;margin-top:4px;overflow-wrap:anywhere}
+@media(max-width:640px){
+  .battle-weather-hud{top:11px;right:8px;width:min(157px,40vw);gap:4px}
+  .battle-weather-card{padding:5px 6px;border-radius:9px}
+  .battle-weather-title{font-size:10px}
+  .battle-weather-detail,.battle-weather-turns{font-size:9px}
+  .battle-weather-particle--rainstorm:nth-child(n+36),
+  .battle-weather-particle--snowstorm:nth-child(n+21),
+  .battle-weather-particle--lush_grass:nth-child(n+19){display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .battlefield-rainstorm::before,.battle-weather-particles::before,
+  .battle-weather-particle,.battle-tailwind-visuals span{animation:none!important}
+  .battle-weather-particle{display:none!important}
+  .battle-tailwind-visuals span{display:none!important}
+}

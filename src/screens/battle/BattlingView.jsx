@@ -9,6 +9,7 @@ import { BattleStatusBadges, battleFeedbackKind, BATTLE_FEEDBACK_LABELS } from '
 import { isMasteryEligible, masteryDeploymentTier } from '../../systems/masterySystem.js';
 import {visibleOnlineZodiacSpirits} from '../../systems/battleSummonPlayback.js';
 import {tailwindSpeedFactor} from '../../systems/battleFieldEffects.js';
+import { BattleWeatherParticles } from '../../components/BattleWeatherParticles.jsx';
 import {isMoveDisabled,disabledMoveInfo} from '../../systems/berryFrillishEffects.js';
 import {legalSupportTargets} from '../../systems/supportTargeting.js';
 // Schermata estratta senza alterare la struttura JSX originale.
@@ -526,7 +527,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                 )}
 
                 {/* BATTLE ARENA */}
-                <div className={`flex-1 p-4 flex flex-col relative overflow-hidden transition-colors duration-700 ${gameState.battleWeather?.type === 'snowstorm' ? 'battlefield-snowstorm' : gameState.battleWeather?.type === 'rainstorm' ? 'bg-gradient-to-b from-sky-950 via-blue-950 to-slate-950' : gameState.battleWeather?.type === 'lush_grass' ? 'battlefield-lush-grass' : 'bg-slate-950'} ${isPlayingEvents && (feedbackKind === 'ko' || feedbackKind === 'critical') ? 'battle-impact-shake' : ''}`}>
+                <div className={`flex-1 p-4 flex flex-col relative overflow-hidden transition-colors duration-700 ${gameState.battleWeather?.type === 'snowstorm' ? 'battlefield-snowstorm' : gameState.battleWeather?.type === 'rainstorm' ? 'battlefield-rainstorm' : gameState.battleWeather?.type === 'lush_grass' ? 'battlefield-lush-grass' : 'bg-slate-950'} ${isPlayingEvents && (feedbackKind === 'ko' || feedbackKind === 'critical') ? 'battle-impact-shake' : ''}`}>
+                    <BattleWeatherParticles weather={gameState.battleWeather} tailwind={gameState.battleTailwind} />
                     
                     {!isEventBattle&&<button onClick={() => playerRole === 'spectator' ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-4 left-4 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
                          <LogOut size={16} /> {playerRole === 'spectator' ? 'Esci' : 'Resa'}
@@ -612,43 +614,48 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     )}
                     {/* ------------------------------------------------ */}
                     
-                    {/* Meteo condiviso: mostra i turni rimanenti a entrambi i giocatori. */}
-                    {gameState.battleWeather?.type === 'snowstorm' && (
-                        <div className="absolute z-[44] top-[7.5rem] left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl
-                            border border-cyan-200/60 bg-sky-950/90 text-cyan-100 text-[11px] sm:text-sm font-black
-                            drop-shadow-[0_0_15px_rgba(56,189,248,0.4)] text-center pointer-events-none">
-                            ❄️ TEMPESTA DI NEVE · {gameState.battleWeather.turns} turni
-                            <span className="block text-[9px] text-cyan-200/70 font-semibold">Ghiaccio / Roccia / Robot immuni</span>
-                        </div>
-                    )}
-                    {gameState.battleWeather?.type === 'rainstorm' && (
-                        <div className="absolute z-[44] top-[7.5rem] left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl
-                            border border-sky-300/70 bg-blue-950/95 text-sky-100 text-[11px] sm:text-sm font-black
-                            shadow-[0_0_24px_rgba(56,189,248,0.35)] text-center pointer-events-none">
-                            🌧️ TEMPESTA · {gameState.battleWeather.turns} turni
-                            <span className="block text-[9px] text-cyan-200/90 font-semibold">Acqua +25% · Fuoco −25% · Juvia +20% elusione</span>
-                        </div>
-                    )}
-
-                    {gameState.battleWeather?.type==='lush_grass'&&(
-                        <div className="absolute z-[44] top-[7.5rem] left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl
-                            border border-lime-400/65 bg-green-950/90 text-lime-100 text-[11px] sm:text-sm font-black text-center pointer-events-none">
-                            🌿 ERBA RIGOGLIOSA · {gameState.battleWeather.turns} turni
-                            <span className="block text-[9px] text-lime-200 font-semibold">Mosse Erba +20% · Multimon Erba +5% PS a fine turno</span>
-                        </div>
-                    )}
-                    {Object.values(gameState.battleTailwind||{}).some(turns=>turns>0)&&(
-                        <div className="absolute z-[43] top-[10.7rem] left-1/2 -translate-x-1/2 max-w-[85vw] rounded-xl border border-cyan-300/70 bg-cyan-950/90 px-3 py-1 text-center text-cyan-100 text-[10px] sm:text-xs font-black shadow-lg pointer-events-none">
-                            💨 TAILWIND · Velocità +30% ai team coinvolti · {Object.entries(gameState.battleTailwind||{})
-                                .filter(([,turns])=>turns>0)
-                                .map(([role,turns])=>(gameState.players?.[role]||role)+' ('+turns+' turni)')
-                                .join(' · ')}
-                        </div>
-                    )}
-                    {Object.values(gameState.fieldTraps||{}).some(Boolean)&&(
-                        <div className="absolute z-[42] top-[11rem] left-1/2 -translate-x-1/2 max-w-[90vw] rounded-xl border border-fuchsia-400/60 bg-fuchsia-950/85 px-3 py-1.5 text-center text-fuchsia-200 text-[10px] font-black shadow-xl pointer-events-none">
-                            🪤 TRAPPOLA SEGRETA SUL CAMPO · -10% PS AI NUOVI ARRIVI
-                        </div>
+                    {/* Pannello compatto in alto a destra: arena e timer rimangono liberi. */}
+                    {(gameState.battleWeather?.turns > 0 ||
+                      Object.values(gameState.battleTailwind || {}).some(turns => turns > 0) ||
+                      Object.values(gameState.fieldTraps || {}).some(Boolean)) && (
+                        <aside className="battle-weather-hud" aria-label="Meteo e condizioni del campo">
+                            {gameState.battleWeather?.type === 'snowstorm' && gameState.battleWeather.turns > 0 && (
+                                <div className="battle-weather-card battle-weather-card--snowstorm">
+                                    <div className="battle-weather-title">❄️ TEMPESTA DI NEVE</div>
+                                    <div className="battle-weather-turns">{gameState.battleWeather.turns} {gameState.battleWeather.turns === 1 ? 'turno' : 'turni'} rimanenti</div>
+                                    <div className="battle-weather-detail">Ghiaccio / Roccia / Robot immuni</div>
+                                </div>
+                            )}
+                            {gameState.battleWeather?.type === 'rainstorm' && gameState.battleWeather.turns > 0 && (
+                                <div className="battle-weather-card battle-weather-card--rainstorm">
+                                    <div className="battle-weather-title">🌧️ TEMPESTA</div>
+                                    <div className="battle-weather-turns">{gameState.battleWeather.turns} {gameState.battleWeather.turns === 1 ? 'turno' : 'turni'} rimanenti</div>
+                                    <div className="battle-weather-detail">Acqua +25% · Fuoco −25% · Juvia +20% elusione</div>
+                                </div>
+                            )}
+                            {gameState.battleWeather?.type === 'lush_grass' && gameState.battleWeather.turns > 0 && (
+                                <div className="battle-weather-card battle-weather-card--lush_grass">
+                                    <div className="battle-weather-title">🌿 ERBA RIGOGLIOSA</div>
+                                    <div className="battle-weather-turns">{gameState.battleWeather.turns} {gameState.battleWeather.turns === 1 ? 'turno' : 'turni'} rimanenti</div>
+                                    <div className="battle-weather-detail">Mosse Erba +20% · Multimon Erba +5% PS a fine turno</div>
+                                </div>
+                            )}
+                            {Object.values(gameState.battleTailwind || {}).some(turns => turns > 0) && (
+                                <div className="battle-weather-card battle-weather-card--tailwind">
+                                    <div className="battle-weather-title">💨 TAILWIND</div>
+                                    <div className="battle-weather-detail">Velocità +30% · {Object.entries(gameState.battleTailwind || {})
+                                        .filter(([, turns]) => turns > 0)
+                                        .map(([role, turns]) => (gameState.players?.[role] || role) + ' (' + turns + ' turni)')
+                                        .join(' · ')}</div>
+                                </div>
+                            )}
+                            {Object.values(gameState.fieldTraps || {}).some(Boolean) && (
+                                <div className="battle-weather-card battle-weather-card--trap">
+                                    <div className="battle-weather-title">🪤 TRAPPOLA SEGRETA</div>
+                                    <div className="battle-weather-detail">−10% PS ai nuovi arrivi</div>
+                                </div>
+                            )}
+                        </aside>
                     )}
                     {/* --- TIMER DI BATTAGLIA 90 SECONDI --- */}
                     {gameState.status === 'battling' && !isPlayingEvents && !isSpectator && (
