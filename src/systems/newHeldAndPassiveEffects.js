@@ -4,7 +4,7 @@
 export const NEGATIVE_STATUS_TYPES=Object.freeze([
  'Avvelenato','Scottato','Elettrizzato','Congelato','Addormentato',
  'Confuso','Indebolito','Stordito','Accecato','Incantato',
- 'Anima Distorta','Infatuato','Ricarica','Magnetico'
+ 'Anima Distorta','Infatuato','Ricarica','Magnetico','Mossa Disabilitata'
 ]);
 const negative=new Set(NEGATIVE_STATUS_TYPES);
 export const statusName=status=>typeof status==='string'?status:status?.type;
