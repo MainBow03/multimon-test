@@ -1,7 +1,8 @@
 export const ITEMS_DB = {
-            'pozione': { id: 'pozione', name: 'Pozione', desc: 'Cura il 50% dei PS del personaggio in campo.', price: 100, type: 'heal', value: 0.5, icon: '🧪' },
-            'cura_totale': { id: 'cura_totale', name: 'Cura Totale', desc: 'Ripristina il 100% dei PS del personaggio.', price: 300, type: 'heal', value: 1.0, icon: '💊' },
-            'resurrezione': { id: 'resurrezione', name: 'Revitalizzante', desc: 'Riporta in vita il primo alleato sconfitto (50% PS).', price: 400, type: 'revive', value: 0.5, icon: '✨' },
+            'morso_vampirico': { id:'morso_vampirico', name:'Morso Vampirico', desc:'Strumento da tenere: con ogni attacco offensivo recupera il 10% dei PS realmente sottratti al bersaglio (minimo 1 PS), fino ai PS massimi. Non si consuma.', price:390, type:'held', icon:'morso_vampirico' },
+            'pozione': { id: 'pozione', name: 'Pozione', desc: 'Cura il 50% dei PS massimi di un alleato a scelta, anche nelle lotte multiple.', price: 100, type: 'heal', value: 0.5, icon: '🧪' },
+            'cura_totale': { id: 'cura_totale', name: 'Cura Totale', desc: 'Cura il 100% dei PS massimi di un alleato a scelta, anche nelle lotte multiple.', price: 300, type: 'heal', value: 1.0, icon: '💊' },
+            'resurrezione': { id: 'resurrezione', name: 'Revitalizzante', desc: 'Rianima un alleato a scelta al 50% dei PS, anche nelle lotte multiple.', price: 400, type: 'revive', value: 0.5, icon: '✨' },
             'cura_status': { id: 'cura_status', name: 'Cura Status', desc: 'Rimuove ogni alterazione di stato negativa.', price: 100, type: 'heal_status', icon: '🌿' },
             'fascia_eroe': { id:'fascia_eroe',name:'Fascia dell’Eroe',desc:'Da PS pieni, resiste con 1 PS al primo attacco diretto che dovrebbe mandarlo KO. 1 volta per battaglia; non protegge dai danni di fine turno.',price:450,type:'held',icon:'fascia_eroe' },
             'scudo_antielemento': { id:'scudo_antielemento',name:'Scudo Antielemento',desc:'Il primo attacco superefficace subito infligge il 25% di danni in meno. Una sola volta per battaglia.',price:320,type:'held',icon:'scudo_antielemento' },
@@ -47,5 +48,5 @@ export const ITEMS_DB = {
             'gemma_oro': { id: 'gemma_oro', name: 'Gemma Oro', desc: 'Potenzia del 30% la prima mossa Luce dell’incontro, poi la gemma si rompe. Lo sblocco resta permanente.', price: 190, type: 'held', gemType: 'Luce', gemBonus: 1.3, icon: '💎', gemColor: '#fbbf24' },
             'gemma_trasparente': { id: 'gemma_trasparente', name: 'Gemma Trasparente', desc: 'Potenzia del 30% la prima mossa Cristallo dell’incontro, poi la gemma si rompe. Lo sblocco resta permanente.', price: 190, type: 'held', gemType: 'Cristallo', gemBonus: 1.3, icon: '💎', gemColor: '#c4b5fd' },
             'iperband': { id: 'iperband', name: 'Iperband', desc: 'Strumento da tenere: potenza delle mosse offensive +30%. Dopo averne usata una perdi il 10% dei PS massimi (min. 1). Non si consuma.', price: 450, type: 'held', icon: 'iperband' },
-            'pozione_rigenerante': { id: 'pozione_rigenerante', name: 'Pozione Rigenerante', desc: 'Cura il 15% dei PS alla fine di ogni turno per 4 turni.', price: 150, type: 'regen', turns: 4, value: 0.15, icon: '🧴' }
+            'pozione_rigenerante': { id: 'pozione_rigenerante', name: 'Pozione Rigenerante', desc: 'Applica rigenerazione a un alleato scelto: +15% PS massimi a fine turno per 4 turni.', price: 150, type: 'regen', turns: 4, value: 0.15, icon: '🧴' }
         };

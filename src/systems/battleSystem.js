@@ -1,4 +1,6 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
+import {legalSupportTargets,isLegalSupportTarget} from './supportTargeting.js';
+import {healFromVampiricBite} from './vampiricBite.js';
 import {newcomerDamageFactor,recordSpyExposure,cloverExtraEvasion,triggerCloverDodge,triggerStarWand,resolveBlueberryAction,resetNewcomerTurnFlags} from './newcomerEffects.js';
 import {generateStrategicCpuActions,rememberPublicCpuMoves} from './strategicCpu.js';
 import {rogueDamageFactor} from './roguelikeEvents.js';
@@ -987,6 +989,18 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 }
                 target.damageTakenThisTurn = (target.damageTakenThisTurn || 0) + dmg;
                 events.push({ type: 'damage', text: text, targetPlayer, targetIdx, newHp: target.hp });
+                // Morso Vampirico cura in base ai PS REALMENTE persi dal
+                // bersaglio, non alla potenza teorica o ai colpi assorbiti.
+                // Vale anche sugli attacchi multibersaglio; mai su meteo,
+                // riflessi, contraccolpo o danni inflitti a un alleato.
+                if(options.isEnemyTarget && (options.directAttack||options.isOffensiveMove) &&
+                   options.attacker && options.attacker!==target){
+                  const gained=healFromVampiricBite(options.attacker,
+                    Math.max(0,hpBeforeDamage-target.hp));
+                  if(gained>0)events.push({type:'damage',targetPlayer:options.attackerPlayer,
+                    targetIdx:options.attackerIdx,newHp:options.attacker.hp,
+                    text:'🩸 Morso Vampirico: '+options.attacker.name+' assorbe '+gained+' PS!'});
+                }
                 // Cuore di Magma si attiva solo dopo un vero danno fisico: non
                 // reagisce a meteo, scottature, autolesioni o colpi bloccati.
                 if(hpBeforeDamage>target.hp && dmg>0 && options.directAttack && options.isEnemyTarget &&
@@ -1447,85 +1461,85 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
               }
 
               if (action.type === 'use_item') {
-                  const itemId = action.itemId;
-                  const itemDef = ITEMS_DB[itemId];
-                  
-                  if (itemDef && itemDef.type !== 'held' && workingInventory[player]?.[itemId] > 0) {
-                      if(isLimitedHealingItem(itemDef)&&isOnlineHealingLimited(appMode,gameState)){
-                        const used=Number(workingHealingItemsUsed[player])||0;
-                        if(used>=ONLINE_HEAL_ITEM_LIMIT){
-                          events.push({type:'text',text:'Limite online raggiunto: massimo 3 strumenti curativi per giocatore.'});
-                          continue;
-                        }
-                        workingHealingItemsUsed[player]=used+1;
-                      }
-                      workingInventory[player][itemId] -= 1;
-                      
-                      if (itemDef.type === 'revive') {
-                          // Trova il primo alleato morto in tutta la squadra alleata
-                          let myTeamPlayers = [player];
-                          if (gameState.gameMode === 'multipla') {
-                              myTeamPlayers = ['p1', 'p2'].includes(player) ? ['p1', 'p2'] : ['p3', 'p4'];
-                          } else if (gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') {
-                              const juggPlayer = gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1');
-                              if (player !== juggPlayer) {
-                                  myTeamPlayers = activeMatchPlayers.filter(p => p !== juggPlayer);
-                              }
-                          }
+                  const itemId=action.itemId;
+                  const itemDef=ITEMS_DB[itemId];
+                  if(!itemDef || itemDef.type==='held' || !(workingInventory[player]?.[itemId]>0))
+                    continue;
+                  if(attacker.hp<=0){
+                    events.push({type:'text',text:attacker.name+' non può utilizzare '+itemDef.name+' da esausto.'});
+                    continue;
+                  }
 
-                          let deadAllyPlayer = null;
-                          let deadAllyIdx = -1;
-                          for (let pAlly of myTeamPlayers) {
-                              deadAllyIdx = workingTeams[pAlly].findIndex(c => c.hp <= 0 && !c.isSummonOnly);
-                              if (deadAllyIdx !== -1) {
-                                  deadAllyPlayer = pAlly;
-                                  break;
-                              }
-                          }
+                  // La UI sceglie targetPlayer + targetIdx: controllali SEMPRE
+                  // sullo snapshot autorevole prima di scalare inventario
+                  // e limite online, anche nelle partite multigiocatore.
+                  const kind=itemDef.type==='revive'?'revive':'alive';
+                  const ownerState={gameMode:gameState.gameMode,settings:gameState.settings,
+                    isRoguelikeCoop:gameState.isRoguelikeCoop,teams:workingTeams,field:workingField};
+                  let targetPlayer=action.targetPlayer||player;
+                  let targetIdx=Number.isInteger(action.targetIdx)?action.targetIdx:charTeamIdx;
+                  // Compatibilità con azioni vecchie senza bersaglio esplicito:
+                  // nei nuovi client il giocatore sceglie sempre il KO.
+                  if(itemDef.type==='revive' && !action.targetPlayer){
+                    const fallback=legalSupportTargets(ownerState,player,'revive',
+                      {activePlayers:activeMatchPlayers})[0];
+                    if(fallback){targetPlayer=fallback.player;targetIdx=fallback.idx}
+                  }
+                  if(!isLegalSupportTarget(ownerState,player,targetPlayer,targetIdx,kind,
+                    {activePlayers:activeMatchPlayers})){
+                    events.push({type:'text',text:'Non è possibile usare '+itemDef.name+
+                      ' sul bersaglio scelto: nessun oggetto è stato consumato.'});
+                    continue;
+                  }
+                  const recipient=workingTeams[targetPlayer][targetIdx];
+                  if(isLimitedHealingItem(itemDef)&&isOnlineHealingLimited(appMode,gameState)){
+                    const used=Number(workingHealingItemsUsed[player])||0;
+                    if(used>=ONLINE_HEAL_ITEM_LIMIT){
+                      events.push({type:'text',text:'Limite online raggiunto: massimo 3 strumenti curativi per giocatore.'});
+                      continue;
+                    }
+                    workingHealingItemsUsed[player]=used+1;
+                  }
+                  workingInventory[player][itemId]-=1;
 
-                          if (deadAllyPlayer && deadAllyIdx !== -1) {
-                              let ally = workingTeams[deadAllyPlayer][deadAllyIdx];
-                              const healAmount = Math.floor(ally.maxHp * itemDef.value);
-                              ally.hp = healAmount;
-                              ally.statuses = [];
-                              events.push({ type: 'damage', text: `${gameState.players[player]} usa ${itemDef.name}! ${ally.name} è tornato in vita!`, targetPlayer: deadAllyPlayer, targetIdx: deadAllyIdx, newHp: ally.hp });
-                              if(activatePhoenixFeather(ally))
-                                events.push({type:'text',text:`🪶 Piuma della Rinascita di ${ally.name}: Difesa +15% per 2 turni!`});
-                          } else {
-                              events.push({ type: 'text', text: `${gameState.players[player]} prova a usare ${itemDef.name}, ma non ci sono alleati da rianimare! (L'oggetto è stato consumato)` });
-                          }
-                      } else {
-                          // Oggetti che bersagliano il personaggio attivo
-                          if (attacker.hp <= 0) {
-                              events.push({ type: 'text', text: `${gameState.players[player]} prova a usare ${itemDef.name}, ma ${attacker.name} è esausto!` });
-                              continue;
-                          }
-                          
-                          if (itemDef.type === 'heal') {
-                              const healAmount = Math.floor(attacker.maxHp * itemDef.value);
-                              attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmount);
-                              events.push({ type: 'damage', text: `${gameState.players[player]} usa ${itemDef.name} su ${attacker.name}! Recupera PS.`, targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp });
-                          } else if (itemDef.type === 'buff') {
-                              if (itemDef.stat === 'atk') applyBattleStatModifier(attacker, 'atk', itemDef.value);
-                              if (itemDef.stat === 'def') applyBattleStatModifier(attacker, 'def', itemDef.value);
-                              if (itemDef.stat === 'spd') applyBattleStatModifier(attacker, 'spd', itemDef.value);
-                              events.push({ type: 'text', text: `${gameState.players[player]} usa ${itemDef.name}! Le statistiche di ${attacker.name} aumentano.` });
-                          } else if (itemDef.type === 'heal_status') {
-                              const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'];
-                              attacker.statuses = attacker.statuses.filter(s => !negatives.includes(s.type));
-                              updateStatusUI(player, charTeamIdx);
-                              events.push({ type: 'text', text: `${gameState.players[player]} usa ${itemDef.name}! Gli status di ${attacker.name} sono curati.` });
-                          } else if (itemDef.type === 'regen') {
-                              const existingIdx = attacker.statuses.findIndex(s => s.type === 'Rigenerazione');
-                              if (existingIdx === -1) {
-                                  attacker.statuses.push({ type: 'Rigenerazione', turns: itemDef.turns, healFactor: itemDef.value });
-                              } else {
-                                  attacker.statuses[existingIdx].turns = itemDef.turns;
-                              }
-                              updateStatusUI(player, charTeamIdx);
-                              events.push({ type: 'text', text: `${gameState.players[player]} usa ${itemDef.name}! ${attacker.name} inizierà a rigenerare PS ad ogni turno.` });
-                          }
-                      }
+                  if(itemDef.type==='revive'){
+                    const amount=Math.max(1,Math.floor(recipient.maxHp*itemDef.value));
+                    recipient.hp=Math.min(recipient.maxHp,amount);
+                    recipient.statuses=[];
+                    events.push({type:'damage',targetPlayer,targetIdx,newHp:recipient.hp,
+                      text:gameState.players[player]+' usa '+itemDef.name+' e rianima '+
+                        recipient.name+' ('+(gameState.players?.[targetPlayer]||targetPlayer)+')!'});
+                    updateStatusUI(targetPlayer,targetIdx);
+                    if(activatePhoenixFeather(recipient))
+                      events.push({type:'text',text:'🪶 Piuma della Rinascita di '+recipient.name+
+                        ': Difesa +15% per 2 turni!'});
+                  }else if(itemDef.type==='heal'){
+                    const amount=Math.max(1,Math.floor(recipient.maxHp*itemDef.value));
+                    const before=recipient.hp;
+                    recipient.hp=Math.min(recipient.maxHp,recipient.hp+amount);
+                    events.push({type:'damage',targetPlayer,targetIdx,newHp:recipient.hp,
+                      text:gameState.players[player]+' usa '+itemDef.name+' su '+recipient.name+
+                        ': recuperati '+(recipient.hp-before)+' PS!'});
+                  }else if(itemDef.type==='buff'){
+                    if(['atk','def','spd','spAtk','spDef'].includes(itemDef.stat))
+                      applyBattleStatModifier(recipient,itemDef.stat,itemDef.value);
+                    events.push({type:'text',text:gameState.players[player]+' usa '+itemDef.name+
+                      ': '+recipient.name+' ottiene un potenziamento!'});
+                  }else if(itemDef.type==='heal_status'){
+                    const removed=(recipient.statuses||[]).filter(isNegativeStatus);
+                    recipient.statuses=(recipient.statuses||[]).filter(s=>!isNegativeStatus(s));
+                    updateStatusUI(targetPlayer,targetIdx);
+                    events.push({type:'text',text:gameState.players[player]+' usa '+itemDef.name+
+                      ' su '+recipient.name+': rimossi '+removed.length+' status negativi.'});
+                  }else if(itemDef.type==='regen'){
+                    recipient.statuses ||= [];
+                    const regen=recipient.statuses.find(s=>s.type==='Rigenerazione');
+                    if(regen){regen.turns=itemDef.turns;regen.healFactor=itemDef.value}
+                    else recipient.statuses.push({type:'Rigenerazione',turns:itemDef.turns,
+                      healFactor:itemDef.value});
+                    updateStatusUI(targetPlayer,targetIdx);
+                    events.push({type:'text',text:gameState.players[player]+' usa '+itemDef.name+
+                      ' su '+recipient.name+': rigenerazione attiva per '+itemDef.turns+' turni!'});
                   }
                   continue;
               }
@@ -1713,6 +1727,19 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
               }
 
               if (action.type === 'attack' && move) {
+                if((move.targetMode==='revive'||move.targetMode==='ally') &&
+                   !isLegalSupportTarget(
+                     {gameMode:gameState.gameMode,settings:gameState.settings,
+                       isRoguelikeCoop:gameState.isRoguelikeCoop,
+                       teams:workingTeams,field:workingField},
+                     player,action.targetPlayer,action.targetIdx,
+                     move.targetMode==='revive'?'revive':'alive',
+                     {fieldOnly:move.targetMode!=='revive',activePlayers:activeMatchPlayers}
+                   )){
+                  events.push({type:'text',text:attacker.name+' non può usare '+move.name+
+                    ': bersaglio di supporto non valido o non più disponibile.'});
+                  continue;
+                }
                 if(isMoveDisabled(attacker,move)){
                   events.push({type:'text',text:'👻 '+attacker.name+' non può usare '+
                     move.name+': Corpo Funesto la disabilita ancora!'});

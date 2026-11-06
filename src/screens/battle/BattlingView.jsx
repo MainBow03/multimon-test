@@ -10,6 +10,7 @@ import { isMasteryEligible, masteryDeploymentTier } from '../../systems/masteryS
 import {visibleOnlineZodiacSpirits} from '../../systems/battleSummonPlayback.js';
 import {tailwindSpeedFactor} from '../../systems/battleFieldEffects.js';
 import {isMoveDisabled,disabledMoveInfo} from '../../systems/berryFrillishEffects.js';
+import {legalSupportTargets} from '../../systems/supportTargeting.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderBattlingView(ctx) {
 const { ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, appMode, actionMenuMode, combatLog, commandingIdx, commitAction, coopPendingAction, roomId, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
@@ -109,6 +110,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
         const activeCommandChar = activeCommandCharIdx !== null ? gameState.teams[playerRole][activeCommandCharIdx] : null;
         // Anteprima immediata e reversibile delle mosse Iper, senza consumare la trasformazione.
         const availableMoves = hyperPreviewMoves(activeCommandChar,pendingHyper,MOVES_DB);
+        const selectedBagItem=actionMenuMode.startsWith('item_target:')
+          ?actionMenuMode.slice('item_target:'.length):null;
 
         const currentField = isPlayingEvents ? displayField : gameState.field;
 
@@ -999,7 +1002,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
 
                                                         return (
                                                             <button key={itemId} disabled={!isUsable||blockedOnline} onClick={() => {
-                                                                commitAction({ type: 'use_item', itemId: itemId, targetIdx: activeCommandCharIdx });
+                                                                setActionMenuMode('item_target:'+itemId);
                                                             }} className={`bg-amber-600/20 p-3 rounded-xl border flex items-center justify-between transition-all text-left ${!isUsable ? 'opacity-50 grayscale border-slate-600 cursor-not-allowed' : 'border-amber-500/50 hover:bg-amber-500/30 hover:border-amber-400 hover:scale-[1.02] shadow-md'}`}>
                                                                 <div>
                                                                     <div className="font-bold text-amber-400 text-lg flex items-center gap-2">
@@ -1014,6 +1017,60 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                         );
                                                     })}
                                                  </div>
+                                                </div>
+                                            );
+                                        })()}
+
+                                        {selectedBagItem && (() => {
+                                            const item=ITEMS_DB[selectedBagItem];
+                                            if(!item || item.type==='held')return null;
+                                            const kind=item.type==='revive'?'revive':'alive';
+                                            const choices=legalSupportTargets(gameState,playerRole,kind,{
+                                                activePlayers:activeMatchPlayers
+                                            });
+                                            return (
+                                                <div className="space-y-3 max-h-[58vh] overflow-y-auto custom-scrollbar px-1">
+                                                    <div className="text-center border border-amber-500/40 bg-slate-900/90 p-3 rounded-xl">
+                                                        <div className="text-lg font-black text-amber-300">
+                                                            {item.type==='revive'?'✨ Scegli chi rianimare':'🧪 Scegli chi riceve '+item.name}
+                                                        </div>
+                                                        <div className="text-xs text-slate-300 mt-1">
+                                                            {item.type==='revive'
+                                                              ?'Seleziona un alleato KO, anche della squadra di un amico.'
+                                                              :'Seleziona un Multimon alleato, anche in panchina o della squadra di un amico.'}
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        {choices.map(t=>(
+                                                            <button key={t.player+'-'+t.idx}
+                                                              onClick={()=>commitAction({
+                                                                type:'use_item',itemId:selectedBagItem,
+                                                                targetPlayer:t.player,targetIdx:t.idx
+                                                              })}
+                                                              className="flex items-center gap-2 rounded-xl border border-amber-500/40
+                                                                bg-slate-800/80 p-2 text-left hover:bg-amber-900/30
+                                                                hover:border-amber-300 transition-all">
+                                                              <img src={t.char.img} alt={t.char.name}
+                                                                className={'w-11 h-11 sm:w-14 sm:h-14 object-contain shrink-0 '+(t.char.hp<=0?'grayscale':'')}/>
+                                                              <span className="min-w-0 flex-1">
+                                                                <span className="block font-bold text-white text-xs sm:text-sm truncate">{t.char.name}</span>
+                                                                <span className="block text-[10px] text-amber-200 truncate">
+                                                                  {gameState.players?.[t.player]||t.player}
+                                                                </span>
+                                                                <span className={'block text-xs font-semibold '+(t.char.hp<=0?'text-red-300':'text-emerald-300')}>
+                                                                  {t.char.hp<=0?'KO · rianimabile':t.char.hp+'/'+t.char.maxHp+' PS'}
+                                                                </span>
+                                                              </span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    {!choices.length&&<div className="text-center text-slate-300 font-semibold py-4">
+                                                      Nessun bersaglio valido: l'oggetto non verrà consumato.
+                                                    </div>}
+                                                    <button onClick={()=>setActionMenuMode('items')}
+                                                      className="w-full bg-slate-700 hover:bg-slate-600 rounded-lg px-4 py-2 font-bold">
+                                                      ← Torna allo zaino
+                                                    </button>
                                                 </div>
                                             );
                                         })()}
@@ -1048,28 +1105,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                 ) : (
                                     <div className="w-full">
                                         {availableMoves[targetingMoveIdx].targetMode === 'revive' && (() => {
-                                            let myTeamPlayers = [playerRole];
-                                            if (gameState.gameMode === 'multipla') {
-                                                myTeamPlayers = ['p1', 'p2'].includes(playerRole) ? ['p1', 'p2'] : ['p3', 'p4'];
-                                            } else if (gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') {
-                                                const juggPlayer = gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1');
-                                                if (playerRole !== juggPlayer) {
-                                                    const activeMatchPlayers = getActivePlayers();
-                                                    myTeamPlayers = activeMatchPlayers.filter(p => p !== juggPlayer);
-                                                }
-                                            } else if (gameState.gameMode === 'torneo') {
-                                                myTeamPlayers = [playerRole];
-                                            }
-
-                                            let deadAllies = [];
-                                            myTeamPlayers.forEach(p => {
-                                                if (gameState.teams[p]) {
-                                                    gameState.teams[p].forEach((char, i) => {
-                                                        if (char.hp <= 0 && !char.isSummonOnly) {
-                                                            deadAllies.push({ player: p, idx: i, char: char });
-                                                        }
-                                                    });
-                                                }
+                                            const deadAllies=legalSupportTargets(gameState,playerRole,'revive',{
+                                                activePlayers:activeMatchPlayers
                                             });
 
                                             return (

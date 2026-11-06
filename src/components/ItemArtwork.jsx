@@ -5,6 +5,15 @@ import { AdvancedItemArtwork, ADVANCED_HELD_ART_IDS } from './AdvancedItemArtwor
 export function ItemArtwork({id,size=54,className=''}) {
  if(ADVANCED_HELD_ART_IDS.includes(id))
    return <AdvancedItemArtwork id={id} size={size} className={className} name={ITEMS_DB[id]?.name}/>;
+ if(id==='morso_vampirico')return <svg role="img" aria-label="Morso Vampirico" viewBox="0 0 100 100" width={size} height={size} className={className} xmlns="http://www.w3.org/2000/svg">
+  <defs><linearGradient id="vampire-metal" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#fecdd3"/><stop offset=".45" stopColor="#be123c"/><stop offset="1" stopColor="#4c0519"/></linearGradient></defs>
+  <circle cx="50" cy="49" r="41" fill="#22091c" stroke="#fb7185" strokeWidth="4"/>
+  <circle cx="50" cy="49" r="34" fill="none" stroke="#a855f7" strokeWidth="2" strokeDasharray="6 5"/>
+  <path d="M20 30 Q50 9 80 30 Q75 53 62 60 L58 40 L48 64 L40 42 L34 63 Q24 52 20 30Z"
+    fill="url(#vampire-metal)" stroke="#ffe4e6" strokeWidth="3" strokeLinejoin="round"/>
+  <path d="M50 68 C47 62 35 58 40 78 Q50 92 60 78 C65 58 53 62 50 68Z" fill="#f43f5e" stroke="#fecdd3" strokeWidth="2"/>
+  <circle cx="68" cy="74" r="4" fill="#fff1f2" opacity=".85"/>
+ </svg>;
  const gem=ITEMS_DB[id]?.gemType;
  if(gem){
   const color=ITEMS_DB[id].gemColor;
