@@ -147,7 +147,8 @@ test('Prima campagna: 47 missioni arricchite con dialoghi inizio/fine coerenti',
    assert.ok(m.dialogue.length>=3,m.id+' ha più dialoghi prima del combattimento');
    assert.ok(m.postDialogue.length>=2,m.id+' ha più dialoghi dopo il combattimento');
    assert.ok(m.dialogue.every(x=>typeof x.s==='string'&&x.t.length>5));
-   assert.ok(m.postDialogue.every(x=>typeof x.s==='string'&&x.t.length>5));
+   assert.ok(m.postDialogue.every(x=>typeof x.s==='string'&&typeof x.t==='string'));
+   assert.ok(m.postDialogue.some(x=>x.t.length>20),'scena narrativa aggiuntiva lunga per '+m.id);
    assert.ok(m.boss?.length>0,m.id+' mantiene il boss');
  }
  assert.ok(missions.find(m=>m.id==='m38').postDialogue.some(x=>x.t.includes('Varco')));
