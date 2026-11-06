@@ -23,7 +23,7 @@ if (gameState.status === 'drafting') {
 
         const activeReqPlayers = getRequiredPlayers(gameState.gameMode, gameState.settings);
         const activePlayersList = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8'].filter(p => gameState.players[p]);
-        const draftLimitToCheck = (gameState.gameMode === 'torneo_punti' || gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') ? activePlayersList : ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8'].slice(0, activeReqPlayers);
+        const draftLimitToCheck = (gameState.gameMode === 'torneo_punti' || gameState.gameMode === 'ultimon' || gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') ? activePlayersList : ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8'].slice(0, activeReqPlayers);
         
         const juggPlayer = gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1');
         const myDraft = gameState.draft[playerRole] || [];
@@ -132,7 +132,7 @@ if (gameState.status === 'drafting') {
                          )}
 
                          {allReady && (appMode === 'local_room' || playerRole === 'p1') && (
-                                 <button onClick={startBattle} className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 px-10 py-5 rounded-2xl font-black text-2xl shadow-[0_10px_30px_rgba(16,185,129,0.3)] hover:-translate-y-1 transition-all flex items-center gap-3"><Swords /> Inizia Lotta!</button>
+                                 <button onClick={startBattle} className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 px-10 py-5 rounded-2xl font-black text-2xl shadow-[0_10px_30px_rgba(16,185,129,0.3)] hover:-translate-y-1 transition-all flex items-center gap-3"><Swords /> {gameState.gameMode==='ultimon'?'Presenta le squadre!':'Inizia Lotta!'}</button>
                          )}
 
                          {allReady && appMode === 'online_room' && playerRole !== 'p1' && (

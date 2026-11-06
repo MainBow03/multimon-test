@@ -6,7 +6,7 @@ export const ROOM_PHASE_TIMEOUT_MS = 120000;
 export const ROOM_HOST_TIMEOUT_MS = 45000;
 export const ROOM_SESSION_KEY = 'multiverse_rpg_session';
 const PLAYER_KEYS = ['p1','p2','p3','p4','p5','p6','p7','p8'];
-export const GAME_IN_PROGRESS = ['drafting','pre_battle','battling','executing','switching_phase','intermission'];
+export const GAME_IN_PROGRESS = ['drafting','pre_battle','battling','executing','switching_phase','intermission','ultimon_showcase','ultimon_pair','ultimon_format','ultimon_pick','ultimon_result','ultimon_recap'];
 
 export function roomRoleForUid(room,uid){
  if(!uid||!room)return null;
@@ -83,6 +83,14 @@ export function resolveMultiplayerWinner(room,players){
 }
 export function prepareEmergencySwitch(room,players,now=Date.now()){
  if(!room||room.status!=='battling')return null;
+ if(room.gameMode==='ultimon' && players.length===2){
+  const [a,b]=players;
+  const aliveA=(room.teams?.[a]||[]).some(playable);
+  const aliveB=(room.teams?.[b]||[]).some(playable);
+  if(!aliveA||!aliveB)return {status:'ultimon_result',
+   winner:aliveA?room.players[a]:aliveB?room.players[b]:'Pareggio',
+   phaseStartedAt:now,events:[],turnCalculationOwner:null,turnCalculationStartedAt:null};
+ }
  // La battaglia non deve chiedere un cambio dopo che il Guardiano è già KO.
  const terminalCoop=room.isRoguelikeCoop?resolveMultiplayerWinner(room,players):null;
  if(terminalCoop)return {status:'gameover',winner:terminalCoop,phaseStartedAt:now};
@@ -181,7 +189,7 @@ export function nextPhaseAfterExecution(room,players,now=Date.now()){
    events:[],phaseStartedAt:now};
  let post=room.postExecStatus||'battling';
  const replacement=getRequiredSwitches(room,players);
- if(post!=='gameover'&&post!=='intermission'&&replacement.any)post='switching_phase';
+ if(post!=='gameover'&&post!=='intermission'&&post!=='ultimon_result'&&replacement.any)post='switching_phase';
  const winner=post==='battling'?resolveMultiplayerWinner(room,players):null;
  if(winner)post='gameover';
  return {status:post,events:[],phaseStartedAt:now,

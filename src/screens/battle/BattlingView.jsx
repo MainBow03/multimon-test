@@ -23,7 +23,16 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
         let topPlayers = [];
         const isSpectatorState = playerRole === 'spectator';
 
-        if (gameState.gameMode === 'multipla') {
+        if (gameState.gameMode === 'ultimon') {
+                const pair = gameState.ultimon?.pair || [];
+                if (pair.includes(playerRole)) {
+                    bottomPlayers = [playerRole];
+                    topPlayers = [pair.find(p => p !== playerRole)];
+                } else {
+                    bottomPlayers = pair.slice(0,1);
+                    topPlayers = pair.slice(1,2);
+                }
+        } else if (gameState.gameMode === 'multipla') {
                 if (isSpectatorState) { bottomPlayers = ['p1', 'p2']; topPlayers = ['p3', 'p4']; }
                 else if (playerRole === 'p1' || playerRole === 'p2') { bottomPlayers = ['p1', 'p2']; topPlayers = ['p3', 'p4']; }
                 else { bottomPlayers = ['p3', 'p4']; topPlayers = ['p1', 'p2']; }
@@ -898,7 +907,9 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                                             // Bypass mira per le mosse ad area totale (tutti i nemici)
                                                                             const activeMatchPlayers = getActivePlayers();
                                                                             let enemyTeams = [];
-                                                                            if (gameState.gameMode === 'multipla') {
+                                                                            if (gameState.gameMode === 'ultimon') {
+                                                                                enemyTeams = activeMatchPlayers.filter(p=>p!==playerRole);
+                                                                            } else if (gameState.gameMode === 'multipla') {
                                                                                 enemyTeams = ['p1', 'p2'].includes(playerRole) ? ['p3', 'p4'] : ['p1', 'p2'];
                                                                             } else if (gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') {
                                                                                 const juggPlayer = gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1');

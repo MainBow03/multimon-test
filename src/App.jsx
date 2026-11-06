@@ -56,6 +56,9 @@ import { auth, db, appId, IS_PREVIEW } from './firebase/config.js';
 import { getCampaignStoryCharacters } from './systems/campaignSystem.js';
 import { TYPE_STYLES, TYPE_CHART, PLAYER_THEMES, getMultiplier, getDefaultAvatar } from './systems/typeSystem.js';
 import { initialGameState } from './systems/gameState.js';
+import { UltimonView } from './screens/battle/UltimonView.jsx';
+import {ULTIMON_STAGES,createUltimonShowcase,identityPatch,nextUltimonPair,
+  revealUltimonFormat,pickPatch,startUltimonDuel,finishUltimonDuel} from './systems/ultimonSystem.js';
 
         import { onAuthStateChanged } from 'firebase/auth';
         import { doc, setDoc, onSnapshot, getDoc, updateDoc, collection, runTransaction } from 'firebase/firestore';
@@ -1234,7 +1237,10 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                               updateState({ status: 'battling', turnExpiresAt: Date.now() + 92000 });
                           }
                           if (appMode === 'local_room') {
-                              setPlayerRole('p1');
+                              if(gameState.gameMode==='ultimon'){
+                                const active=(gameState.ultimon?.pair||[]).filter(p=>!gameState.isBot?.[p]);
+                                setPlayerRole(active[0]||gameState.ultimon?.pair?.[0]||'p1');
+                              }else setPlayerRole('p1');
                               setCommandingIdx(0);
                           }
                       }, 6000); 
@@ -1331,6 +1337,17 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const applyOnEnterPassive = (...__args) => applyOnEnterPassiveImpl({ CHARACTERS }, ...__args);
 
           const startBattle = (...__args) => {
+            if (gameState.gameMode === 'ultimon') {
+              try {
+                const candidate=__args[0];
+                const custom=candidate&&typeof candidate==='object'&&!candidate.nativeEvent&&candidate.p1
+                  ?candidate:gameState.draft;
+                updateState(createUltimonShowcase(gameState,custom))
+                  .catch(error=>setSystemAlert('Ultimon: '+(error.message||error)));
+                setCombatLog([]);setIsLogOpen(false);
+              }catch(error){setSystemAlert('Ultimon: '+(error.message||error));}
+              return;
+            }
             if(appMode==='online_room'&&gameState.isRoguelikeCoop){
               // Una transazione impedisce avvii doppi e permette a un compagno
               // di sostituire l'host quando la presenza è scaduta.
@@ -1356,6 +1373,54 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               }).catch(error=>setSystemAlert('Non posso avviare la Co-op: '+(error.message||error)));
             }
             return startBattleImpl({ appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartTimeRef, playerName, setCombatLog, setCommandingIdx, setIsLogOpen, setPlayerRole, updateLocalStats, updateState }, ...__args);
+          };
+
+          // Ultimon: transizioni atomiche per la stanza online.
+          const ultimonMutation = async (allowed,build,actor=null) => {
+            if(!['local_room','online_room'].includes(appMode)||gameState.gameMode!=='ultimon')return;
+            try {
+              const apply=room=>{
+                if(room.gameMode!=='ultimon'||!allowed.includes(room.status))
+                  throw new Error('La fase Ultimon è già cambiata.');
+                return build(room);
+              };
+              if(appMode==='local_room'){await updateState(apply(gameState));return;}
+              if(!roomId||!user?.uid)throw new Error('Stanza o account non disponibili.');
+              const ref=doc(db,'artifacts',appId,'public','data','rooms',roomId);
+              await runTransaction(db,async tx=>{
+                const snap=await tx.get(ref);
+                if(!snap.exists())throw new Error('Stanza non trovata.');
+                const live=snap.data();
+                if(actor){
+                  if(playerRole!==actor||live.playerUids?.[actor]!==user.uid||live.isBot?.[actor])
+                    throw new Error('Non puoi scegliere per questa squadra.');
+                }else if(playerRole!=='p1'&&!canRecoverRoom(live,playerRole))
+                  throw new Error('Solo l’host può avanzare il torneo.');
+                tx.update(ref,apply(live));
+              });
+            }catch(error){setSystemAlert('Ultimon: '+(error.message||error));}
+          };
+          const ultimonIdentity=(role,name,color)=>ultimonMutation(['ultimon_showcase'],
+            room=>identityPatch(room,role,name,color),role);
+          const ultimonPick=(role,indices)=>ultimonMutation(['ultimon_pick'],
+            room=>pickPatch(room,role,indices),role);
+          const ultimonHostAction=action=>{
+            const steps={
+              pair:{allowed:['ultimon_showcase','ultimon_recap'],build:room=>nextUltimonPair(room)},
+              format:{allowed:['ultimon_pair'],build:room=>revealUltimonFormat(room)},
+              pick:{allowed:['ultimon_format'],build:()=>({status:'ultimon_pick',phaseStartedAt:Date.now()})},
+              battle:{allowed:['ultimon_pick'],build:room=>startUltimonDuel(room,applyOnEnterPassive)},
+              resolve:{allowed:['ultimon_result'],build:room=>finishUltimonDuel(room)}
+            };
+            const step=steps[action];
+            if(!step)return;
+            return ultimonMutation(step.allowed,step.build).then(()=>{
+              if(action==='battle'&&appMode==='local_room'){
+                const humans=(gameState.ultimon?.pair||[]).filter(p=>!gameState.isBot[p]);
+                setPlayerRole(humans[0]||gameState.ultimon?.pair?.[0]||'p1');
+                setCommandingIdx(0);setCombatLog([]);setIsLogOpen(false);
+              }
+            });
           };
 
           // --- HELPER PER OPPONENTI NEL TORNEO SIMULTANEO ---
@@ -1741,6 +1806,14 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
   const __screen = renderDraftingView({ ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftRole, setDraftRole, draftPrice, setDraftPrice, draftFavorites, draftFavoritesOnly, setDraftFavoritesOnly, toggleDraftFavorite, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState });
   if (__screen !== undefined) return __screen;
 }
+
+    if (gameState.gameMode === 'ultimon' && ULTIMON_STAGES.includes(gameState.status)) {
+      return <UltimonView key={gameState.status+':'+(gameState.ultimon?.round||0)}
+        room={gameState} appMode={appMode} playerRole={playerRole}
+        canHost={appMode==='local_room'||playerRole==='p1'||canRecoverRoom(gameState,playerRole)}
+        onIdentity={ultimonIdentity} onPick={ultimonPick}
+        onHost={ultimonHostAction} onExit={leaveRoom}/>;
+    }
 
     if (gameState.status === 'switching_phase') {
   const __screen = renderSwitchingPhaseView({ Loader2, LogOut, TYPE_STYLES, appMode, gameState, getActivePlayers, getTournamentMatchOpponents, leaveRoom, playerRole, renderHealthBar, setPlayerRole, setShowLeaveConfirm, chooseReplacement, forceCompleteSwitches, canForceSwitch: appMode==='local_room'||canRecoverRoom(gameState,playerRole) });

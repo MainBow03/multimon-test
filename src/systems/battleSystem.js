@@ -726,7 +726,9 @@ const { commandingIdx, commitAction, gameState, getActivePlayers, getTournamentM
             // Conta nemici vivi per sapere quando fermarsi
             const activeMatchPlayers = getActivePlayers();
             let enemyTeams = [];
-            if (gameState.gameMode === 'multipla') {
+            if (gameState.gameMode === 'ultimon') {
+                enemyTeams = activeMatchPlayers.filter(p => p !== playerRole);
+            } else if (gameState.gameMode === 'multipla') {
                 enemyTeams = ['p1', 'p2'].includes(playerRole) ? ['p3', 'p4'] : ['p1', 'p2'];
             } else if (gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') {
                 const juggPlayer = gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1');
@@ -1892,7 +1894,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     // Mossa ad area totale: colpisce tutti i nemici
                     const activeMatchPlayers = getActivePlayers();
                     let enemyTeams = [];
-                    if (gameState.gameMode === 'multipla') {
+                    if (gameState.gameMode === 'ultimon') {
+                        enemyTeams = activeMatchPlayers.filter(p => p !== player);
+                    } else if (gameState.gameMode === 'multipla') {
                         enemyTeams = ['p1', 'p2'].includes(player) ? ['p3', 'p4'] : ['p1', 'p2'];
                     } else if (gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') {
                         const juggPlayer = gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1');
@@ -2688,7 +2692,9 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             let possibleEnemies = [];
                             const activeMatchPlayers = getActivePlayers();
                             let enemyTeams = [];
-                            if (gameState.gameMode === 'multipla') {
+                            if (gameState.gameMode === 'ultimon') {
+                                enemyTeams = activeMatchPlayers.filter(p => p !== player);
+                            } else if (gameState.gameMode === 'multipla') {
                                 enemyTeams = ['p1', 'p2'].includes(player) ? ['p3', 'p4'] : ['p1', 'p2'];
                             } else if (gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') {
                                 const juggPlayer = gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1');
@@ -3609,6 +3615,17 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
             else if (!team1Alive) { nextStatus = 'gameover'; winner = `${gameState.players.p3} & ${gameState.players.p4}`; }
             else if (!team2Alive) { nextStatus = 'gameover'; winner = `${gameState.players.p1} & ${gameState.players.p2}`; }
         } 
+        else if (gameState.gameMode === 'ultimon') {
+            // In Ultimon le squadre di questo incontro contengono SOLO i Multimon schierati.
+            // La riserva permanente è mantenuta in ultimon.rosters.
+            const contenders = gameState.ultimon?.pair || [];
+            const firstAlive = (workingTeams[contenders[0]] || []).some(c=>c.hp>0 && !c.isSummonOnly);
+            const secondAlive = (workingTeams[contenders[1]] || []).some(c=>c.hp>0 && !c.isSummonOnly);
+            if (!firstAlive || !secondAlive) {
+                nextStatus = 'ultimon_result';
+                winner = firstAlive ? gameState.players[contenders[0]] : secondAlive ? gameState.players[contenders[1]] : 'Pareggio';
+            }
+        }
         else if (gameState.gameMode === 'classica') {
             const p1Alive = workingTeams.p1.some(c=>c.hp>0 && !c.isSummonOnly);
             const p2Alive = workingTeams.p2.some(c=>c.hp>0 && !c.isSummonOnly);
@@ -3801,7 +3818,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
         let pendingSwitches = { p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0, p7: 0, p8: 0 };
         let hasPendingSwitches = false;
 
-        if (nextStatus !== 'gameover' && nextStatus !== 'intermission') {
+        if (nextStatus !== 'gameover' && nextStatus !== 'intermission' && nextStatus !== 'ultimon_result') {
             activeMatchPlayers.forEach(p => {
                  const mainCharsOnField = workingField[p].filter(idx => !workingTeams[p][idx].isSummonOnly).length;
                  const aliveBench = workingTeams[p].filter((c, i) => c.hp > 0 && !workingField[p].includes(i) && !c.isSummonOnly).length;
@@ -3966,7 +3983,9 @@ const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, set
                     setCommandingIdx(0);setActionMenuMode('moves');
                 }else setCommandingIdx(-1);
             }else if(appMode==='local_room'){
-                if (gameState.postExecStatus === 'gameover') {
+                if (gameState.postExecStatus === 'ultimon_result') {
+                     updateState({ status: 'ultimon_result', events: [] });
+                } else if (gameState.postExecStatus === 'gameover') {
                      updateState({ status: 'gameover', events: [] });
                 } else if (gameState.postExecStatus === 'intermission') {
                      updateState({ status: 'intermission', events: [] });

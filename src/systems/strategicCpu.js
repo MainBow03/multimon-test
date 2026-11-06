@@ -48,6 +48,7 @@ const hasNegative=c=>(c?.statuses||[]).some(s=>[
 
 export function visibleEnemyPlayers(room,player,activePlayers,matchOpponents=()=>[]){
   const mode=room.gameMode;
+  if(mode==='ultimon')return activePlayers.filter(p=>p!==player);
   if(mode==='multipla')return ['p1','p2'].includes(player)?['p3','p4']:['p1','p2'];
   if(mode==='juggernaut'||mode==='survival'){
     const leader=room.settings?.juggernautPlayer||(mode==='survival'?'p2':'p1');

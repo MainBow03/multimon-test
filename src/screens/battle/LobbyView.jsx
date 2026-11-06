@@ -27,7 +27,9 @@ if (gameState.status === 'lobby') {
                                  <select value={gameState.gameMode} onChange={e => {
                                      const newMode = e.target.value;
                                      let updates = { gameMode: newMode };
-                                     if (newMode === 'survival') {
+                                     if (newMode === 'ultimon') {
+                                         updates.settings = { ...gameState.settings, maxPlayers: Math.max(4,Math.min(8,gameState.settings.maxPlayers||4)), fieldSize: 1 };
+                                     } else if (newMode === 'survival') {
                                          const maxP = Math.min(4, Math.max(2, gameState.settings.maxPlayers));
                                          updates.settings = { ...gameState.settings, maxPlayers: maxP, juggernautPlayer: 'p2' };
                                          if (!gameState.players['p2']) {
@@ -55,6 +57,7 @@ if (gameState.status === 'lobby') {
                                          <option value="battleroyale">Battle Royale (Tutti vs Tutti)</option>
                                          <option value="torneo">Torneo (4 Giocatori)</option>
                                          <option value="torneo_punti">Torneo a Punti (Tutti vs Tutti)</option>
+                                         <option value="ultimon">ULTIMON MULTIMON · Eliminazione permanente</option>
                                  </select>
                          </div>
                     )}
@@ -138,17 +141,18 @@ if (gameState.status === 'lobby') {
                                     </select>
                                 </div>
                             )}
-                            {(gameState.gameMode === 'torneo_punti' || gameState.gameMode === 'battleroyale' || gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') && (
+                            {(gameState.gameMode === 'torneo_punti' || gameState.gameMode === 'battleroyale' || gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival' || gameState.gameMode === 'ultimon') && (
                                 <div className="flex justify-between items-center bg-slate-950/50 p-4 rounded-xl border border-slate-700/30 mb-4">
                                     <span className="font-semibold text-slate-300">Numero Giocatori (Max):</span>
                                     <input type="number" 
-                                        min={gameState.gameMode === 'juggernaut' ? "3" : "2"} 
+                                        min={gameState.gameMode === 'ultimon' ? "4" : gameState.gameMode === 'juggernaut' ? "3" : "2"} 
                                         max={gameState.gameMode === 'juggernaut' ? "5" : (gameState.gameMode === 'survival' ? "4" : "8")} 
                                         value={gameState.settings.maxPlayers} 
                                         onChange={e => {
                                             let newVal = parseInt(e.target.value) || 2;
                                             if (gameState.gameMode === 'juggernaut') newVal = Math.min(5, Math.max(3, newVal));
                                             else if (gameState.gameMode === 'survival') newVal = Math.min(4, Math.max(2, newVal));
+                                            else if (gameState.gameMode === 'ultimon') newVal = Math.min(8, Math.max(4, newVal));
                                             else newVal = Math.min(8, Math.max(2, newVal));
 
                                             if (gameState.gameMode === 'survival' || gameState.gameMode === 'juggernaut') {
@@ -173,10 +177,14 @@ if (gameState.status === 'lobby') {
                                 <span className="font-semibold text-slate-300">Personaggi in Campo:</span>
                                 {gameState.gameMode === 'multipla' ? (
                                         <span className="text-emerald-400 font-bold">1 (Fisso in 2v2)</span>
+                                ) : gameState.gameMode === 'ultimon' ? (
+                                        <span className="font-bold text-fuchsia-300 text-sm text-right">Casuale: 1v1, 2v2 o 3v3</span>
                                 ) : (
                                         <input type="number" min="1" max="4" value={gameState.settings.fieldSize} onChange={e => updateState({ settings: { ...gameState.settings, fieldSize: Math.min(4, parseInt(e.target.value) || 1) } })} className="bg-slate-800 text-center w-20 p-2 rounded-lg outline-none font-bold" />
                                 )}
                             </div>
+
+                            {gameState.gameMode === 'ultimon' && <div className="rounded-xl border border-fuchsia-400/50 bg-fuchsia-950/30 p-3 text-sm text-fuchsia-100 font-bold">👑 ULTIMON: 4–8 squadre, 20 colori, estrazioni con suspense, scontri con 1–3 Multimon. Ogni KO è definitivo; i vincitori curano il 50% dei PS massimi dei superstiti. Vince l’ultima squadra viva.</div>}
 
                             {/* NUOVO: Multimon in Nolo */}
                             <div className="flex justify-between items-center bg-slate-950/50 p-4 rounded-xl border border-amber-500/30 shadow-inner mt-4">
