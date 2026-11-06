@@ -1,5 +1,14 @@
 import {hakiStatDebuffMultiplier} from './strawHatEffects.js';
 
+// Osservatore sincrono del solo calcolo autorevole del turno.
+// Il callback viene disinstallato dopo il calcolo, mai salvato su Firestore.
+let statGainObserver=null;
+export function setBattleStatGainObserver(observer){
+  const previous=statGainObserver;
+  statGainObserver=typeof observer==='function'?observer:null;
+  return ()=>{statGainObserver=previous};
+}
+
 // I potenziamenti e i malus si applicano come percentuali della statistica
 // di base, non del valore già potenziato. Questo evita l'effetto valanga:
 // 100 -> 130 -> 160 con due bonus da +30%, invece di 100 -> 130 -> 169.
@@ -25,5 +34,7 @@ export function applyBattleStatModifier(character, stat, multiplier) {
   const lower = Math.max(1, Math.round(base * MIN_BATTLE_STAT_MULTIPLIER));
   const next = Math.max(lower, Math.min(upper, Math.floor(current + change + 1e-9)));
   character[stat] = next;
+  if(next>current && statGainObserver)
+    statGainObserver(character,stat,current,next,base);
   return next !== current;
 }
