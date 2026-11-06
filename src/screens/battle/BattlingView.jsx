@@ -1105,28 +1105,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                 ) : (
                                     <div className="w-full">
                                         {availableMoves[targetingMoveIdx].targetMode === 'revive' && (() => {
-                                            let myTeamPlayers = [playerRole];
-                                            if (gameState.gameMode === 'multipla') {
-                                                myTeamPlayers = ['p1', 'p2'].includes(playerRole) ? ['p1', 'p2'] : ['p3', 'p4'];
-                                            } else if (gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') {
-                                                const juggPlayer = gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1');
-                                                if (playerRole !== juggPlayer) {
-                                                    const activeMatchPlayers = getActivePlayers();
-                                                    myTeamPlayers = activeMatchPlayers.filter(p => p !== juggPlayer);
-                                                }
-                                            } else if (gameState.gameMode === 'torneo') {
-                                                myTeamPlayers = [playerRole];
-                                            }
-
-                                            let deadAllies = [];
-                                            myTeamPlayers.forEach(p => {
-                                                if (gameState.teams[p]) {
-                                                    gameState.teams[p].forEach((char, i) => {
-                                                        if (char.hp <= 0 && !char.isSummonOnly) {
-                                                            deadAllies.push({ player: p, idx: i, char: char });
-                                                        }
-                                                    });
-                                                }
+                                            const deadAllies=legalSupportTargets(gameState,playerRole,'revive',{
+                                                activePlayers:activeMatchPlayers
                                             });
 
                                             return (
