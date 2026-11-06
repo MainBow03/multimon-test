@@ -13,13 +13,12 @@ export const BERRY_FRILLISH_MOVES={
   },
   'Coppa Rigenerante':{
     name:'Coppa Rigenerante',type:'Ghiaccio',power:0,targetMode:'ally',
-    heal:0.3,maxUses:3,strictUses:true,
-    desc:'Berry porge un gelato curativo a sé o un alleato: recupera il 30% dei PS massimi. 3 usi.'
+    heal:0.51,maxUses:3,strictUses:true,
+    desc:'Berry porge un gelato curativo a sé o un alleato: recupera il 51% dei PS massimi. 3 usi.'
   },
   'Scivolata Gelata':{
-    name:'Scivolata Gelata',type:'Ghiaccio',power:75,accuracy:1,
-    targetStatDebuff:{spd:0.85},
-    desc:'Potenza 75. Berry scivola sul ghiaccio e riduce la Velocità del bersaglio del 15%.'
+    name:'Scivolata Gelata',type:'Ghiaccio',power:100,accuracy:1,maxUses:2,strictUses:true,berryTeamHeal:0.25,
+    desc:'Potenza 100, soltanto 2 usi. Dopo almeno un colpo riuscito cura Berry e tutti gli alleati in campo del 25% dei PS massimi. Non riduce più la Velocità.'
   },
   'Idrovampata':{
     name:'Idrovampata',type:'Acqua',power:85,accuracy:1,special:true,
