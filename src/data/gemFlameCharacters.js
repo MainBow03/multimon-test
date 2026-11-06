@@ -2,7 +2,7 @@ export const GEM_FLAME_CHARACTERS = [
   {
     id:'ametista',name:'Ametista',types:['Roccia','Magico'],
     hp:110,maxHp:110,atk:108,spAtk:101,def:88,spDef:91,spd:90,
-    img:'https://www.clipartmax.com/png/middle/94-947196_amethyst-yep-amethyst-steven-universe-no-background.png',
+    img:'https://i.pinimg.com/736x/11/b5/05/11b5056b41f87fbe3120b68ed5dcfb09.jpg',
     passive:{
       name:'Gemma Imperfetta',type:'gem_imperfect_copy',maxUses:1,
       desc:'Alla prima volta in battaglia che un alleato o un avversario attivo aumenta le proprie statistiche, Ametista replica gli stessi aumenti percentuali. Copia tutte le statistiche potenziate durante quell’azione; un’attivazione per battaglia.'
