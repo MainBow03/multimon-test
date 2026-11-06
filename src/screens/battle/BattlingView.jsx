@@ -9,6 +9,7 @@ import { BattleStatusBadges, battleFeedbackKind, BATTLE_FEEDBACK_LABELS } from '
 import { isMasteryEligible, masteryDeploymentTier } from '../../systems/masterySystem.js';
 import {visibleOnlineZodiacSpirits} from '../../systems/battleSummonPlayback.js';
 import {tailwindSpeedFactor} from '../../systems/battleFieldEffects.js';
+import {isMoveDisabled,disabledMoveInfo} from '../../systems/berryFrillishEffects.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderBattlingView(ctx) {
 const { ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, appMode, actionMenuMode, combatLog, commandingIdx, commitAction, coopPendingAction, roomId, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
@@ -140,8 +141,9 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
             return (
                 <div className="flex gap-1 justify-center mt-1 flex-wrap">
                     {statuses.map((s, i) => {
-                        const colors = { 'Confuso': 'bg-fuchsia-500 text-white', 'Protetto': 'bg-sky-400 text-black', 'Riflesso': 'bg-gray-300 text-black', 'Scudo Team': 'bg-teal-400 text-black', 'Stordito': 'bg-amber-600 text-white', 'Infatuato': 'bg-pink-400', 'Elettrizzato': 'bg-yellow-400 text-black', 'Scottato': 'bg-red-500', 'Avvelenato': 'bg-purple-500', 'Congelato': 'bg-cyan-400 text-black', 'Incantato': 'bg-fuchsia-500 text-white', 'Accecato': 'bg-yellow-200 text-gray-900', 'Addormentato': 'bg-slate-400', 'Indebolito': 'bg-stone-500 text-white', 'Ricarica': 'bg-orange-500 text-white', 'Magnetico': 'bg-indigo-500 text-white', 'Rashield': 'bg-yellow-200 text-black', 'Shudoruku': 'bg-orange-600 text-white', 'Dioemuru': 'bg-red-600 text-white', 'In_Groppa': 'bg-emerald-600 text-white', 'Ombra Rapida': 'bg-slate-700 text-cyan-300', 'Rigenerazione': 'bg-emerald-400 text-black' };
-                        return <span key={i} className={`text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm uppercase ${colors[s.type] || 'bg-gray-500'}`}>{s.type.substring(0, 3)}</span>;
+                        const colors = { 'Confuso': 'bg-fuchsia-500 text-white', 'Protetto': 'bg-sky-400 text-black', 'Riflesso': 'bg-gray-300 text-black', 'Scudo Team': 'bg-teal-400 text-black', 'Stordito': 'bg-amber-600 text-white', 'Infatuato': 'bg-pink-400', 'Elettrizzato': 'bg-yellow-400 text-black', 'Scottato': 'bg-red-500', 'Avvelenato': 'bg-purple-500', 'Congelato': 'bg-cyan-400 text-black', 'Incantato': 'bg-fuchsia-500 text-white', 'Accecato': 'bg-yellow-200 text-gray-900', 'Addormentato': 'bg-slate-400', 'Indebolito': 'bg-stone-500 text-white', 'Ricarica': 'bg-orange-500 text-white', 'Mossa Disabilitata': 'bg-purple-700 text-white', 'Magnetico': 'bg-indigo-500 text-white', 'Rashield': 'bg-yellow-200 text-black', 'Shudoruku': 'bg-orange-600 text-white', 'Dioemuru': 'bg-red-600 text-white', 'In_Groppa': 'bg-emerald-600 text-white', 'Ombra Rapida': 'bg-slate-700 text-cyan-300', 'Rigenerazione': 'bg-emerald-400 text-black' };
+                        return <span key={i} title={s.moveName?s.moveName+' · '+s.turns+' turni di blocco':s.type}
+                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm uppercase ${colors[s.type] || 'bg-gray-500'}`}>{s.type==='Mossa Disabilitata'?'DIS':s.type.substring(0,3)}</span>;
                     })}
                 </div>
             );
@@ -360,6 +362,11 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                             {char.id==='ametista' && <span className="block text-[10px] font-bold text-fuchsia-200">
                               💎 Gemma Imperfetta: {char.gemImperfectUsed?'copia usata':'pronta'}
                             </span>}
+                            {char.statuses?.filter(s=>s.type==='Mossa Disabilitata').map((s,i)=>(
+                              <span key={'curse-'+i} className="block text-[10px] font-bold text-purple-200">
+                                👻 {s.moveName} bloccata · {s.turns} turni
+                              </span>
+                            ))}
                             {char.id==='flameprincess' && <span className="block text-[10px] font-bold text-orange-200"
                               title="Ogni mossa riuscita ha il 50% di chance di generare 1 carica. Fiamma Reale consuma due cariche per +25% danni.">
                               🔥 Cariche Calore: {Math.max(0,Math.min(2,Number(char.heatCharges)||0))}/2
@@ -809,7 +816,9 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                 })()}
                                                 {/* --------------------------- */}
                                                 {availableMoves.map((move, idx) => {
-                                                    let isDisabled = move.remainingUses === 0 || (move.currentCooldown && move.currentCooldown > 0);
+                                                    const moveLock=disabledMoveInfo(activeCommandChar,move);
+                                                    let isDisabled = isMoveDisabled(activeCommandChar,move) ||
+                                                      move.remainingUses === 0 || (move.currentCooldown && move.currentCooldown > 0);
                                                     if (move.requireSummonsDead && !isDisabled) {
                                                         if (gameState.teams[playerRole].some(c => move.requireSummonsDead.includes(c.id) && c.hp > 0)) {
                                                             isDisabled = true;
@@ -920,7 +929,11 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                     >
                                                             <div className="flex flex-col items-start pointer-events-none">
                                                                     <span className="font-bold text-lg drop-shadow-sm">{move.name}{move.hyperPreview && <span className="ml-2 inline-flex items-center rounded-full bg-fuchsia-500/25 px-2 py-0.5 text-[10px] font-black text-fuchsia-200 border border-fuchsia-400">NUOVA IPER</span>}</span>
-                                                                    {move.currentCooldown > 0 ? (
+                                                                    {moveLock ? (
+                                                                        <span className="text-[10px] text-purple-300 font-black mt-1">
+                                                                          👻 Disabilitata · {moveLock.turns} turni
+                                                                        </span>
+                                                                    ) : move.currentCooldown > 0 ? (
                                                                         <span className="text-[10px] text-rose-400 font-bold mt-1">In ricarica ({move.currentCooldown})</span>
                                                                     ) : (
                                                                         move.maxUses !== undefined && <span className="text-[10px] text-slate-400 font-bold mt-1">Usi: {move.remainingUses}/{move.maxUses}</span>

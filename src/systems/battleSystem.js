@@ -5,6 +5,7 @@ import {rogueDamageFactor} from './roguelikeEvents.js';
 import { applyBattleStatModifier,setBattleStatGainObserver } from './statBalance.js';
 import {createImperfectGemObserver,addHeatCharge,consumeHeatBurst,
   flameMoveDamageFactor,tryMagmaHeartBurn} from './gemFlameEffects.js';
+import {tryCursedBody,tickCursedBody,isMoveDisabled,tryBerryChill,frillishSpoutPower} from './berryFrillishEffects.js';
 import {beginHakiGuard,tickHakiGuard,shortenHakiDebuff,hakiStatDebuffMultiplier,strawHatCritBonus,
   strawHatDefenseFactor,namiClimateFactor,applyNamiMirage,applyGuardPoint,
   reduceGuardPointDamage,clearZoroBlind,chopperEntryAid} from './strawHatEffects.js';
@@ -617,7 +618,9 @@ const { appMode, commandingIdx, ITEMS_DB, MOVES_DB, gameState, getActivePlayers,
             // Le nuove mosse Iper sono visibili in anteprima già durante la scelta:
             // convalida l'indice prima di prenotare l'azione di questo turno.
             if(actionDetails.type === 'attack' &&
-                !hyperPreviewMoves(activeCommandChar,pendingHyper,MOVES_DB)[actionDetails.moveIdx]){
+                (!hyperPreviewMoves(activeCommandChar,pendingHyper,MOVES_DB)[actionDetails.moveIdx] ||
+                 isMoveDisabled(activeCommandChar,
+                   hyperPreviewMoves(activeCommandChar,pendingHyper,MOVES_DB)[actionDetails.moveIdx]))){
                 isSubmittingActionRef.current=false;
                 return;
             }
@@ -993,6 +996,23 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                       statuses:JSON.parse(JSON.stringify(options.attacker.statuses)),
                       text:'🔥 '+target.name+' attiva Cuore di Magma: '+options.attacker.name+' è Scottato!',
                       isPassive:true,passiveChar:target.name,passiveName:target.passive.name});
+                }
+                if(hpBeforeDamage>target.hp && (options.directAttack||options.isOffensiveMove) && options.isEnemyTarget){
+                  if(tryCursedBody(target,options.attacker,options.move)){
+                    events.push({type:'status_update',targetPlayer:options.attackerPlayer,
+                      targetIdx:options.attackerIdx,
+                      statuses:JSON.parse(JSON.stringify(options.attacker.statuses)),
+                      text:'👻 Corpo Funesto di '+target.name+': '+options.attacker.name+
+                        ' non può usare '+options.move.name+' per 3 turni!',
+                      isPassive:true,passiveChar:target.name,passiveName:target.passive.name});
+                  }
+                  if(tryBerryChill(options.attacker,target,options.move) &&
+                     applyBattleStatModifier(target,'spd',0.85)){
+                    events.push({type:'text',text:'🍦 Dolce Freddo di '+options.attacker.name+
+                      ' rallenta '+target.name+': Velocità −15%!',
+                      isPassive:true,passiveChar:options.attacker.name,
+                      passiveName:options.attacker.passive.name});
+                  }
                 }
                 const sproutHeal=activateHealingSprout(target);
                 if(activateHourglass(target))
@@ -1693,6 +1713,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
               }
 
               if (action.type === 'attack' && move) {
+                if(isMoveDisabled(attacker,move)){
+                  events.push({type:'text',text:'👻 '+attacker.name+' non può usare '+
+                    move.name+': Corpo Funesto la disabilita ancora!'});
+                  continue;
+                }
                 if (move.remainingUses !== null && move.remainingUses !== undefined) {
                     move.remainingUses -= 1;
                 }
@@ -2216,7 +2241,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                  }
                             }
                         } else {
-                            applyDamage(t.char, dmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText} Gli toglie ${dmg} PS!`);
+                            applyDamage(t.char, dmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText} Gli toglie ${dmg} PS!`, {isOffensiveMove:true,attacker,attackerPlayer:player,attackerIdx:charTeamIdx,move,isEnemyTarget});
                         }
                         attackSucceeded = true;
                     } else if (move.power > 0) {
@@ -2255,6 +2280,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                               currentMoveForDmg={...move,power:powerForAccordo(n)};
                             }
                             if(move.bonusIfSlowed)currentMoveForDmg={...currentMoveForDmg,power:effectiveTaserPower(t.char)};
+                            if(move.spoutLowHpPower)
+                              currentMoveForDmg={...currentMoveForDmg,power:frillishSpoutPower(t.char,move)};
                             let isCritical = false;
                             let critMultiplier = 1.0;
 
@@ -3051,8 +3078,19 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
         // I danni e le cure automatiche a fine turno non appartengono all'ultimo attaccante.
         events.push({type:'battle_actor_end'});
         // Reset turno anche per chi è in panchina o esausto.
-        for(const roster of Object.values(workingTeams))
-          for(const fighter of roster||[])resetNewcomerTurnFlags(fighter);
+        for(const [role,roster] of Object.entries(workingTeams)){
+          for(let i=0;i<(roster||[]).length;i++){
+            const fighter=roster[i];
+            resetNewcomerTurnFlags(fighter);
+            const expired=tickCursedBody(fighter);
+            if(expired.length){
+              events.push({type:'status_update',targetPlayer:role,targetIdx:i,
+                statuses:JSON.parse(JSON.stringify(fighter.statuses)),
+                text:'👻 '+fighter.name+': '+expired.join(', ')+
+                  (expired.length===1?' torna disponibile!':' tornano disponibili!')});
+            }
+          }
+        }
 
         let eotTargets = [];
         activeMatchPlayers.forEach(p => {

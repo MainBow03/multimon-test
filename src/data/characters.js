@@ -4,8 +4,10 @@ import { SIX_NEW_CHARACTERS } from './sixNewChampions.js';
 import { FIVE_NEW_CHARACTERS } from './fiveNewChampions.js';
 import {STRAW_HAT_CHARACTERS} from './strawHatCrew.js';
 import {GEM_FLAME_CHARACTERS} from './gemFlameCharacters.js';
+import {BERRY_FRILLISH_CHARACTERS} from './berryFrillishCharacters.js';
 
 export const CHARACTERS = [
+  ...BERRY_FRILLISH_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
   ...GEM_FLAME_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
   ...STRAW_HAT_CHARACTERS,
   ...FIVE_NEW_CHARACTERS,
@@ -31,7 +33,7 @@ export const CHARACTERS = [
               desc:'La prima volta che scende sotto il 25% dei PS, Attacco e Velocità aumentano del 20%.'},
             moves:[MOVES_DB['Raggio Solare'],MOVES_DB['Pugno Tattico'],MOVES_DB['Impatto Kryptoniano'],MOVES_DB['Volo Supersonico (Superboy)']] },
           { id:'orsobianco', name:'Orso Bianco', types:['Ghiaccio','Roccia'], hp:135,maxHp:135,atk:112,def:108,spDef:100,spd:65,
-            img:'https://icon2.cleanpng.com/lnd/20241204/gx/a75a26509cca81ccdddbe4f4793c86.webp',
+            img:'https://i.pinimg.com/736x/f8/c0/56/f8c056c741d18ae29d7eccdb0adfd0f4.jpg',
             passive:{name:'Resistenza al Freddo',type:'cold_resistance',desc:'Durante una tempesta di neve recupera il 5% dei PS massimi a fine turno.'},
             moves:[MOVES_DB['Ascia di Ghiaccio'],MOVES_DB['Carica Valanga'],MOVES_DB['Tecnica dell’Orso'],MOVES_DB['Furia dell’Artico']] },
           { id:'bugsbunny', name:'Bugs Bunny', types:['Terra'], hp:105,maxHp:105,atk:98,def:85,spd:120,

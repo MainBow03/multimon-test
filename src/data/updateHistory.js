@@ -13,6 +13,14 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov6-berry-frillish-portraits',category:'champions',date:'06/11/2026',title:'🍦👻 Berry e Frillish arrivano a Multimon!',items:[
+    'Berry di Brawl Stars (solo Ghiaccio, 200 monete): Gelato Glaciale (85, 15% Congelato), Grandinata di Coni (70, 2 bersagli e 20% di calo Velocità), Coppa Rigenerante (cura un alleato del 30%, 3 usi) e Scivolata Gelata (75, Velocità avversaria -15%).',
+    'Passiva di Berry — Dolce Freddo: dopo aver inflitto danni con una mossa offensiva, ha il 25% di probabilità di rallentare il nemico del 15%.',
+    'Frillish (Acqua/Spettro, 200 monete): Idrovampata (85, 30% Scottato), Energipalla (Erba, 90, 10% Difesa -30%), Zampillo (colpisce tutti, potenza 70 o 100 contro bersagli sotto il 50% PS) e Palla Ombra (95).',
+    'Passiva Corpo Funesto: 20% di probabilità di disabilitare per tre turni la mossa che ha colpito Frillish. La mossa rimane visibile con conto alla rovescia, ma è inutilizzabile per umani e CPU. Il blocco si risolve automaticamente.',
+    'Aggiornati i PNG di Ametista e Orso Bianco con le immagini fornite. Berry e Frillish hanno nuovi titoli esclusivi di Padronanza e sono disponibili in tutte le modalità.'
+  ]},
+
   {id:'nov6-ametista-principessa-fiamma',category:'champions',date:'06/11/2026',title:'💎🔥 Ametista e Principessa Fiamma arrivano a Multimon',items:[
     'Ametista (Roccia/Magico, 250 monete): Frusta di Quarzo (95, precisione 90%, 15% Scottato), Ruotazione Furiosa (70, fino a 2 bersagli, 13% Confuso ciascuno), Titanide da Ring (110, Difesa personale -30%) e Lazo di Quarzo (90).',
     'Passiva di Ametista — Gemma Imperfetta: copia l’aumento di statistiche del primo alleato o avversario attivo che si potenzia, comprese più statistiche nella stessa azione. Un’attivazione per battaglia.',
