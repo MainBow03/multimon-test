@@ -19,7 +19,8 @@ const NEGATIVE_DESCRIPTIONS = {
   'Anima Distorta':'Alterazione di lunga durata causata da abilità e mosse particolari.',
   Infatuato:'Può impedire di attaccare (50% durante il controllo). La Freccia di Cupido lo applica per 4 turni.',
   Ricarica:'Salta un turno dopo una mossa che richiede ricarica. Lo Spray Neutralizzante può rimuoverlo.',
-  Magnetico:'Alterazione speciale: gli effetti precisi dipendono dalla mossa che la causa.'
+  Magnetico:'Alterazione speciale: gli effetti precisi dipendono dalla mossa che la causa.',
+  'Mossa Disabilitata':'Corpo Funesto di Frillish: 20% di probabilità di bloccare la mossa che lo ha colpito per 3 turni. La mossa resta nel moveset ma non si può scegliere né eseguire; il blocco termina automaticamente e può essere rimosso da uno strumento curativo per gli status negativi.'
 };
 // Durate ricavate dalle mosse realmente presenti nel database.
 const STATUS_DURATIONS = (() => {
