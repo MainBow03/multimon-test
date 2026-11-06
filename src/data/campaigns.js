@@ -1,4 +1,5 @@
 import { ECHO_CAMPAIGN } from './echoCampaign.js';
+import {enrichFirstCampaign,enrichEchoCampaign} from './campaignDialogueEnrichment.js';
 export const CAMPAIGNS = [
           {
             id: 'crisi_varco',
@@ -1373,3 +1374,8 @@ export const CAMPAIGNS = [
             }
           ]
         }];
+
+// Scene aggiuntive stabili, diverse per ogni missione delle campagne I e III.
+// I combattimenti e gli sblocchi restano invariati.
+enrichFirstCampaign(CAMPAIGNS[0]);
+enrichEchoCampaign(ECHO_CAMPAIGN);
