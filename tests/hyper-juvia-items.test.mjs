@@ -96,7 +96,9 @@ test('Tempesta: Acqua +25%, Fuoco -25%; il meteo è condiviso e rimpiazzabile',(
  assert.match(engine,/workingWeather=\{type:'rainstorm',turns:RAINSTORM_TURNS\}/);
  assert.match(engine,/workingWeather\.turns--/);
  const ui=src('src/screens/battle/BattlingView.jsx');
- assert.match(ui,/TEMPESTA · \{gameState\.battleWeather\.turns\} turni/);
+ assert.match(ui,/🌧️ TEMPESTA/);
+ assert.match(ui,/battle-weather-turns/);
+ assert.match(ui,/gameState\.battleWeather\.turns/);
 });
 
 test('Cuore di Pioggia: +20% elusione soltanto sotto tempesta o pioggia',()=>{

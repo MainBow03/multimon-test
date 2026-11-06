@@ -20,7 +20,8 @@ export const ULTIMON_STAGES = [
 ];
 const ROLES=['p1','p2','p3','p4','p5','p6','p7','p8'];
 const BOT_NAMES=['I Fulmini','Le Ombre','Draghi Astrali','I Titani','Lupi Lunari','Le Comete','Fiamme Selvagge','Gli Invincibili'];
-const clone=o=>structuredClone(o);
+// Rimuove campi undefined: Firestore rifiuta oggetti con valori non serializzabili.
+const clone=o=>JSON.parse(JSON.stringify(o));
 const alive=c=>c && c.hp>0 && !c.isSummonOnly;
 export const ultimonPlayers=room=>ROLES.slice(0,Math.min(8,Math.max(4,Number(room.settings?.maxPlayers)||4)))
  .filter(p=>!!room.players?.[p]);
@@ -54,7 +55,10 @@ export function createUltimonShowcase(room,draft=room.draft){
   stats[role]={matches:0,wins:0,losses:0,knockouts:0,lost:0};
  });
  return {status:'ultimon_showcase',phaseStartedAt:Date.now(),
-  teams:roster,ultimon:{rosters:roster,identities,stats,round:0,
+  teams:Object.fromEntries(ROLES.map(p=>[p,[]])),
+  field:Object.fromEntries(ROLES.map(p=>[p,[]])),
+  draft:Object.fromEntries(ROLES.map(p=>[p,[]])),
+  ultimon:{rosters:roster,identities,stats,round:0,
     history:[],eliminated:[],pair:[],format:null,picks:{},selected:{},lastPair:[],champion:null}};
 }
 export function identityPatch(room,role,name,color){
@@ -65,7 +69,7 @@ export function identityPatch(room,role,name,color){
  if(!ULTIMON_COLORS.some(c=>c.hex===color))throw new Error('Seleziona uno dei 20 colori.');
  if(Object.entries(room.ultimon.identities||{}).some(([p,d])=>p!==role&&d.ready&&d.color===color))
    throw new Error('Questo colore è già assegnato a un’altra squadra.');
- return {'ultimon.identities.'+role:{name:value,color,ready:true}};
+ return {['ultimon.identities.'+role]:{name:value,color,ready:true}};
 }
 export function allUltimonNamed(room){
  return ultimonPlayers(room).every(p=>room.ultimon?.identities?.[p]?.ready);
@@ -122,7 +126,7 @@ export function pickPatch(room,role,indices){
  const valid=selected.length===room.ultimon.format&&new Set(selected).size===selected.length&&
   selected.every(i=>Number.isInteger(i)&&alive(room.ultimon.rosters[role]?.[i]));
  if(!valid)throw new Error('Scegli esattamente i Multimon vivi richiesti dal formato.');
- return {'ultimon.picks.'+role:[...selected]};
+ return {['ultimon.picks.'+role]:[...selected]};
 }
 export function ultimonPicksReady(room){
  return room.ultimon?.pair?.length===2 && room.ultimon.pair.every(p=>{
