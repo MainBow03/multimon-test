@@ -1,8 +1,10 @@
 import { SIX_NEW_MOVES } from './sixNewChampions.js';
 import { FIVE_NEW_MOVES } from './fiveNewChampions.js';
 import {STRAW_HAT_MOVES} from './strawHatCrewMoves.js';
+import {GEM_FLAME_MOVES} from './gemFlameMoves.js';
 
 export const MOVES_DB = {
+  ...GEM_FLAME_MOVES,
   ...STRAW_HAT_MOVES,
   ...SIX_NEW_MOVES,
   ...FIVE_NEW_MOVES,

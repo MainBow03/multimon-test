@@ -2,7 +2,9 @@ import { prepareEmergencySwitch } from './roomRecovery.js';
 import {newcomerDamageFactor,recordSpyExposure,cloverExtraEvasion,triggerCloverDodge,triggerStarWand,resolveBlueberryAction,resetNewcomerTurnFlags} from './newcomerEffects.js';
 import {generateStrategicCpuActions,rememberPublicCpuMoves} from './strategicCpu.js';
 import {rogueDamageFactor} from './roguelikeEvents.js';
-import { applyBattleStatModifier } from './statBalance.js';
+import { applyBattleStatModifier,setBattleStatGainObserver } from './statBalance.js';
+import {createImperfectGemObserver,addHeatCharge,consumeHeatBurst,
+  flameMoveDamageFactor,tryMagmaHeartBurn} from './gemFlameEffects.js';
 import {beginHakiGuard,tickHakiGuard,shortenHakiDebuff,hakiStatDebuffMultiplier,strawHatCritBonus,
   strawHatDefenseFactor,namiClimateFactor,applyNamiMirage,applyGuardPoint,
   reduceGuardPointDamage,clearZoroBlind,chopperEntryAid} from './strawHatEffects.js';
@@ -389,6 +391,8 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
               char.spDef ??= char.def;
               char.spAtk ??= char.atk;
               char.gemSpent=false;char.healingSproutUsed=false;char.neutralizingSprayUsed=false;
+              if(char.id==='ametista')char.gemImperfectUsed=false;
+              if(char.id==='flameprincess')char.heatCharges=0;
               if(char.id==='echomax')char.echoSoulCharges=0;
               char.rapidTransmutationReady=false;char.rapidTransmutationFresh=false;
             }));
@@ -486,6 +490,9 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
             }
 
             let initialEvents = [];
+            const gemIntro=createImperfectGemObserver(teams,field,initialEvents,applyBattleStatModifier);
+            const stopGemIntro=setBattleStatGainObserver(gemIntro.onStatIncrease);
+            try {
 
             // Imposta come "rivelati" i personaggi che entrano in campo per la prima volta
             Object.keys(field).forEach(p => {
@@ -500,12 +507,15 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
                             const char = teams[p][idx];
                             if (char.passive && char.passive.type === 'on_enter' && (char.passiveUses || 0) < (char.passive.maxUses || 1)) {
                                 char.passiveUses = (char.passiveUses || 0) + 1;
+                                gemIntro.beginAction();
                                 applyOnEnterPassive(char, p, idx, teams, field, initialEvents, gameState.gameMode, gameState.settings, gameState.isCampaignBattle);
                             }
                         }
                     });
                 }
             });
+
+            } finally { stopGemIntro(); }
 
             let nextState = {
               status: 'pre_battle',
@@ -822,6 +832,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             
             let workingTeams = JSON.parse(JSON.stringify(gameState.teams));
             let workingField = JSON.parse(JSON.stringify(gameState.field));
+            const gemObserver=createImperfectGemObserver(workingTeams,workingField,events,applyBattleStatModifier);
+            const stopGemObserver=setBattleStatGainObserver(gemObserver.onStatIncrease);
+            try {
             let workingInventory = JSON.parse(JSON.stringify(gameState.inventory));
             const workingHealingItemsUsed={...(gameState.healingItemsUsed||{})};
             let rogueDawnUsed=Boolean(gameState.rogueDawnUsed);
@@ -834,9 +847,13 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             const tailwindJustActivated=new Set();
             // Il meteo influenza TUTTE le mosse che infliggono danno, anche
             // quelle eseguite più tardi nello stesso turno in cui nasce la Tempesta.
+            let heatBurstActive=false;
             const calculateDamage=(...args)=>{
                 const base=calculateRawDamage(...args);
-                return Math.max(1,Math.floor(base*weatherMoveFactor(args[2],workingWeather)*namiClimateFactor(args[0],args[2],workingWeather)*newcomerDamageFactor(args[0],args[1],args[2])));
+                return Math.max(1,Math.floor(base*weatherMoveFactor(args[2],workingWeather)*
+                  namiClimateFactor(args[0],args[2],workingWeather)*
+                  flameMoveDamageFactor(args[0],args[2],heatBurstActive)*
+                  newcomerDamageFactor(args[0],args[1],args[2])));
             };
             let workingFieldTraps = {...(gameState.fieldTraps||{})};
             let workingTrapSeen = JSON.parse(JSON.stringify(gameState.fieldTrapSeen||{}));
@@ -967,6 +984,16 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 }
                 target.damageTakenThisTurn = (target.damageTakenThisTurn || 0) + dmg;
                 events.push({ type: 'damage', text: text, targetPlayer, targetIdx, newHp: target.hp });
+                // Cuore di Magma si attiva solo dopo un vero danno fisico: non
+                // reagisce a meteo, scottature, autolesioni o colpi bloccati.
+                if(hpBeforeDamage>target.hp && dmg>0 && options.directAttack && options.isEnemyTarget &&
+                   tryMagmaHeartBurn(target,options.attacker,options.move)){
+                    events.push({type:'status_update',targetPlayer:options.attackerPlayer,
+                      targetIdx:options.attackerIdx,
+                      statuses:JSON.parse(JSON.stringify(options.attacker.statuses)),
+                      text:'🔥 '+target.name+' attiva Cuore di Magma: '+options.attacker.name+' è Scottato!',
+                      isPassive:true,passiveChar:target.name,passiveName:target.passive.name});
+                }
                 const sproutHeal=activateHealingSprout(target);
                 if(activateHourglass(target))
                     events.push({type:'text',text:`⌛ Clessidra della Rapidità di ${target.name}: Velocità +20% fino alla fine dello scontro!`});
@@ -1377,6 +1404,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             let isFirstAttackOfTurn = true;
 
             for (let order of turnQueue) {
+              gemObserver.beginAction();
+              heatBurstActive=false;
               const { player, charTeamIdx, action } = order;
               let move=order.move;
               if (action.type === 'combo_assist') continue;
@@ -1929,6 +1958,13 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     }
                 }
 
+                // Il colpo finale consuma due cariche UNA volta per mossa,
+                // così il bonus vale per tutti i bersagli e colpi del finisher.
+                if(resolvedTargets.some(t=>t.char?.hp>0) && consumeHeatBurst(attacker,move)){
+                  heatBurstActive=true;
+                  events.push({type:'text',text:'🔥 '+attacker.name+
+                    ' consuma 2 Cariche Calore! '+move.name+' infligge +25% danni!'});
+                }
                 let attackSucceeded = false;
 
                 for (let t of resolvedTargets) {
@@ -2335,7 +2371,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                         } else if (totalDmg > 0) {
                             let shieldTxt = juggHitsAbsorbed > 0 ? ` (Lo scudo ha assorbito ${juggHitsAbsorbed} colpi).` : '';
                             const previousDamageTaken=t.char.damageTakenThisTurn||0;
-                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText}${hitText}${magText}${groppaText} Infligge ${totalDmg} danni.${shieldTxt}`, {directAttack:true,directHits:Math.max(0,actualHits-juggHitsAbsorbed),bypassShields:bypassEnemyShields,superEffective:multiplier>1});
+                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText}${hitText}${magText}${groppaText} Infligge ${totalDmg} danni.${shieldTxt}`, {directAttack:true,directHits:Math.max(0,actualHits-juggHitsAbsorbed),bypassShields:bypassEnemyShields,superEffective:multiplier>1,attacker,attackerPlayer:player,attackerIdx:charTeamIdx,move,isEnemyTarget});
                             if(markCompassOnHit(attacker,t.char,victimHpBeforeHit,totalDmg))
                               events.push({type:'text',text:`🧭 Bussola del Predatore di ${attacker.name}: colpo potenziato contro bersaglio indebolito!`});
                             if(isEnemyTarget && !isFirstHitProtection && t.char.hp>0 && (t.char.damageTakenThisTurn||0)>previousDamageTaken){
@@ -2359,7 +2395,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 events.push({ type: 'text', text: `👁️ ${attacker.name} distorce l'anima di ${t.char.name}! Perde il 5% dei PS ogni turno e subisce più danni da Mahito.` });
                             }
                         } else {
-                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText} Infligge ${totalDmg} danni.`, {directAttack:true,bypassShields:bypassEnemyShields,superEffective:multiplier>1});
+                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText} Infligge ${totalDmg} danni.`, {directAttack:true,bypassShields:bypassEnemyShields,superEffective:multiplier>1,attacker,attackerPlayer:player,attackerIdx:charTeamIdx,move,isEnemyTarget});
                             markCompassOnHit(attacker,t.char,victimHpBeforeHit,totalDmg);
                         }
                         
@@ -2997,6 +3033,10 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                     events.push({type:'text',text:`👁️ ${attacker.name} resta confuso dopo Dominatore del Multiverso!`});
                 }
 
+                if(attackSucceeded && addHeatCharge(attacker)){
+                  events.push({type:'text',text:'🔥 '+attacker.name+' accumula una Carica Calore! ('+
+                    attacker.heatCharges+'/2)'});
+                }
                 const bookwormResult=resolveBlueberryAction(attacker,move,attackSucceeded);
                 if(bookwormResult)events.push({type:'text',text:bookwormResult,isPassive:true,
                     passiveChar:attacker.name,passiveName:attacker.passive.name});
@@ -3723,7 +3763,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
           tournamentMatchStatus: tStatus, // <--- FIX INSERITO: Ora si salva correttamente!
           playerScores: newScores
         });
-    
+            } finally { stopGemObserver(); }
+
 };
 
 export const playEventsAnimationImpl = async (ctx) => {

@@ -13,6 +13,15 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov6-ametista-principessa-fiamma',category:'champions',date:'06/11/2026',title:'💎🔥 Ametista e Principessa Fiamma arrivano a Multimon',items:[
+    'Ametista (Roccia/Magico, 250 monete): Frusta di Quarzo (95, precisione 90%, 15% Scottato), Ruotazione Furiosa (70, fino a 2 bersagli, 13% Confuso ciascuno), Titanide da Ring (110, Difesa personale -30%) e Lazo di Quarzo (90).',
+    'Passiva di Ametista — Gemma Imperfetta: copia l’aumento di statistiche del primo alleato o avversario attivo che si potenzia, comprese più statistiche nella stessa azione. Un’attivazione per battaglia.',
+    'Principessa Fiamma (Fuoco/Magico, 250 monete): Pioggia di Braci (80, 20% Scottato), Vortice Ardente (70, due bersagli), Nucleo Incandescente (+20% Attacco Speciale, +10% Difesa) e Fiamma Reale (115, precisione 90%, tre usi).',
+    'Passiva Cuore di Magma: quando riceve un vero danno da mossa fisica, ha il 25% di probabilità di scottare l’attaccante. Non si attiva per meteo, veleni, autosacrificio o attacchi speciali.',
+    'Cariche Calore: ciascuna mossa riuscita di Principessa Fiamma può generare una carica con probabilità 50%, fino a due. Usare Fiamma Reale con due cariche le consuma e aumenta i danni di quella mossa del 25%. Il contatore è visibile in lotta.',
+    'Entrambi acquistabili nel negozio, utilizzabili nelle modalità online e dotati di titolo di Padronanza esclusivo al livello 20.'
+  ]},
+
   {id:'nov5-weather-tailwind-lush-grass',category:'balance',date:'05/11/2026',title:'🌦️ Meteo migliorato, Tailwind ed Erba Rigogliosa!',items:[
     'Juvia: Colpo impetuoso ha ora il 35% di probabilità di evocare Tempesta di Acqua, invece del 25%.',
     'Lapis Lazuli: Torre d’Acqua ha il 60% di probabilità di evocare Tempesta. Rimane una mossa da potenza 120 con ricarica.',
