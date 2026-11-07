@@ -231,7 +231,7 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onSpeech,
      {showdown&&['ultimon_recap','ultimon_pair','ultimon_format','ultimon_pick'].includes(stage)&&
         <div className="ultimon-grand-final-banner" role="status">
          <span>⚡ LE ULTIME DUE SQUADRE ⚡</span>
-         <h2>IL GRAN FINALE</h2>
+         <h2>ULTIMO DUELLO <em>· GRAN FINALE</em></h2>
          <p>Due squadre. Un solo posto sul trono del multiverso.</p>
          <div className="ultimon-grand-final-versus" aria-label="Le ultime due squadre in gara">
           {finalTwo.map((role,i)=><React.Fragment key={role}>
