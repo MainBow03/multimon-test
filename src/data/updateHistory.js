@@ -13,6 +13,15 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov7-ultimon-double-reactions',category:'champions',date:'07/11/2026',title:'🪞🎭 Ultimon: i doppioni si riconoscono e si rispondono!',items:[
+    'Nella presentazione Ultimon, se un Multimon ha già pronunciato la propria battuta per una squadra e lo stesso personaggio appare successivamente in un’altra, il nuovo arrivato riconosce il suo doppione e gli risponde.',
+    'Scritte 232 nuove reazioni originali, una per ogni ID del roster (incluse le fusioni), con battute comiche, competitive, stupite o collaborative coerenti con il carattere di ciascun Multimon.',
+    'In caso di incontro tra doppioni compaiono entrambe le immagini, i nomi delle squadre e dei giocatori e una schermata COLPO DI SCENA; la seconda battuta sostituisce il normale dialogo di ingresso.',
+    'I due Multimon confrontano anche le proprie statistiche effettive della squadra, compresi eventuali potenziamenti del Laboratorio: Velocità, Attacco, Attacco Speciale, Difesa, Difesa Speciale o PS massimi. Il dialogo cambia in base a chi è in vantaggio.',
+    'Un doppione presente nel roster ma non estratto fra i quattro che parlano non scatena reazioni. Le copie nella stessa squadra non si prendono in giro fra loro: contano soltanto i personaggi presentati in squadre differenti.',
+    'Con tre o più versioni, l’ultimo Multimon risponde alla copia presentata più recentemente. La reazione si adatta all’ordine casuale del torneo ed è identica per tutti gli spettatori online, senza cambiare alcuna statistica o regola di combattimento.'
+  ]},
+
 
   {id:'nov7-ultimon-entrance-parade',category:'features',date:'07/11/2026',title:'🎤 Ultimon: grande presentazione delle squadre e monologhi personalizzati!',items:[
     'Prima del primo sorteggio il presentatore chiama una squadra alla volta nell’arena, seguendo un ordine di ingresso casuale, con luci scenografiche, animazioni, nomi e immagini dei Multimon.',

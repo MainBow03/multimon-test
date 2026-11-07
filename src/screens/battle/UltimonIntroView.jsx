@@ -19,6 +19,9 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onHost
  const [style,setStyle]=useState('eroico');
  const [draft,setDraft]=useState('');
  const [sending,setSending]=useState(false);
+ const selected=cast[Math.max(0,intro.lineIndex||0)];
+ const rival=selected?.duplicate?.rival;
+ const duelStat=selected?.duplicate?.comparison;
 
  useEffect(()=>{
   setStyle('eroico');
@@ -32,12 +35,12 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onHost
  // Durante il monologo umano aspetta SEMPRE l'invio esplicito del giocatore.
  useEffect(()=>{
   if(!isHost||step==='complete'||(step==='speech'&&!spoken))return;
-  const delay={call:3100,speech:4300,line:3500,exit:2500}[step]||3200;
+  const delay=step==='line'&&rival?6800:
+    ({call:3100,speech:4300,line:3500,exit:2500}[step]||3200);
   const timer=setTimeout(()=>onHost('introNext'),delay);
   return()=>clearTimeout(timer);
- },[isHost,step,intro.index,intro.lineIndex,spoken]);
+ },[isHost,step,intro.index,intro.lineIndex,spoken,Boolean(rival)]);
 
- const selected=cast[Math.max(0,intro.lineIndex||0)];
  const progress=order.length?Math.round((Math.max(0,intro.index)+(step==='complete'?1:0))/order.length*100):0;
  const caption={
   call:'IL PRESENTATORE CHIAMA LA PROSSIMA SQUADRA',
@@ -131,8 +134,38 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onHost
         <img src={selected.img} alt={selected.name}/>
        </div>}
        <h3>{selected?.name||'Il prossimo Multimon'}</h3>
-       <blockquote className="ultimon-intro-dialogue">
-        <span>❝</span>{selected?.line||'Pronti alla battaglia!'}<span>❞</span>
+       {rival&&<section className="ultimon-intro-duplicate" aria-label="Incontro fra doppioni">
+        <div className="ultimon-intro-duplicate-kicker">
+         ✨ COLPO DI SCENA · DUE {selected?.name?.toLocaleUpperCase('it')} NELL'ARENA!
+        </div>
+        <p>Il Multimon riconosce il suo doppione, già entrato con un'altra squadra!</p>
+        <div className="ultimon-intro-duplicate-faceoff">
+         <div className="ultimon-intro-duplicate-fighter"
+           style={{'--dup-color':rival.color}}>
+          <span>GIÀ PRESENTATO</span>
+          <img src={rival.img} alt={rival.name+' della squadra '+rival.team}/>
+          <strong>{rival.name}</strong>
+          <small>{rival.team} · {rival.owner}</small>
+         </div>
+         <span className="ultimon-intro-duplicate-vs" aria-hidden="true">⇄</span>
+         <div className="ultimon-intro-duplicate-fighter ultimon-intro-duplicate-fighter--new"
+           style={{'--dup-color':team.color||'#a78bfa'}}>
+          <span>NUOVO ARRIVATO</span>
+          <img src={selected.img} alt={selected.name+' della squadra '+name}/>
+          <strong>{selected.name}</strong>
+          <small>{name} · {room.players?.[role]||role}</small>
+         </div>
+        </div>
+        {duelStat&&<div className="ultimon-intro-duplicate-comparison">
+         <strong>📊 {duelStat.label}</strong>
+         <span>{duelStat.other} <b>vs</b> {duelStat.mine}</span>
+         <small>{duelStat.kind==='tie'?'Stesse statistiche!':
+          duelStat.delta>0?'Il nuovo arrivato è in vantaggio di '+duelStat.delta+' punti':
+          'Il primo arrivato è in vantaggio di '+Math.abs(duelStat.delta)+' punti'}</small>
+        </div>}
+       </section>}
+       <blockquote className={'ultimon-intro-dialogue '+(rival?'ultimon-intro-dialogue--duplicate':'')}>
+        <span>❝</span>{selected?.duplicate?.line||selected?.line||'Pronti alla battaglia!'}<span>❞</span>
        </blockquote>
        <div className="ultimon-intro-lineup">
         {cast.map((c,i)=><div key={i}

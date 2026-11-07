@@ -1,5 +1,6 @@
 import {ultimonPlayers,ultimonAlive,allUltimonNamed} from './ultimonSystem.js';
 import {ultimonEntranceLine} from './ultimonEntranceLines.js';
+import {ultimonDuplicateReaction} from './ultimonDuplicateLines.js';
 
 // Una presentazione condivisa tra tutti i client Firestore. La sorte dei
 // quattro ambasciatori viene decisa una volta dall'host e salvata nella stanza.
@@ -43,12 +44,49 @@ export function currentUltimonIntroRole(room){
  return intro?.order?.[intro.index]||null;
 }
 
+// Solo le copie che hanno già PRESO LA PAROLA in un'altra squadra
+// attivano la reazione. Un doppione rimasto in riserva non conta, e
+// due copie nella medesima squadra non sono un incontro tra avversari.
+export function ultimonPreviousSpeaker(room,role,characterId){
+ const intro=room.ultimon?.intro;
+ const position=intro?.order?.indexOf(role)??-1;
+ if(position<=0||!characterId)return null;
+ for(let i=position-1;i>=0;i--){
+  const previousRole=intro.order[i];
+  if(previousRole===role)continue;
+  const indices=intro.casts?.[previousRole]||[];
+  for(let j=indices.length-1;j>=0;j--){
+   const fighter=room.ultimon?.rosters?.[previousRole]?.[indices[j]];
+   if(fighter?.id!==characterId)continue;
+   return {role:previousRole,fighter,
+     team:room.ultimon?.identities?.[previousRole]?.name||
+       room.players?.[previousRole]||previousRole,
+     owner:room.players?.[previousRole]||previousRole,
+     color:room.ultimon?.identities?.[previousRole]?.color||'#94a3b8'};
+  }
+ }
+ return null;
+}
+
 export function ultimonIntroCast(room,role=currentUltimonIntroRole(room)){
  const ids=room.ultimon?.intro?.casts?.[role]||[];
  return ids.map(index=>{
   const fighter=room.ultimon?.rosters?.[role]?.[index];
-  return fighter?{index,id:fighter.id,name:fighter.name,img:fighter.img,
-   line:ultimonEntranceLine(fighter)}:null;
+  if(!fighter)return null;
+  const originalLine=ultimonEntranceLine(fighter);
+  const previous=ultimonPreviousSpeaker(room,role,fighter.id);
+  const response=previous?ultimonDuplicateReaction(fighter,previous.fighter):null;
+  return {index,id:fighter.id,name:fighter.name,img:fighter.img,
+   // Conserva la battuta originale; l'incontro speciale è un contenuto
+   // aggiuntivo usato solo dal renderer della presentazione.
+   line:originalLine,
+   duplicate:response?{
+     line:response.line,comparison:response.comparison,
+     rival:{role:previous.role,name:previous.fighter.name,
+       img:previous.fighter.img,team:previous.team,owner:previous.owner,
+       color:previous.color}
+   }:null
+  };
  }).filter(Boolean);
 }
 

@@ -172,3 +172,55 @@
  .ultimon-intro-shout,.ultimon-intro-character-halo,.ultimon-intro-character-portrait img{animation:none!important}
  .ultimon-intro-lineup-item,.ultimon-intro-progress>span{transition:none}
 }
+
+
+/* Incontri speciali tra doppioni: il secondo reagisce al primo, non a un clone generico. */
+.ultimon-intro-duplicate{max-width:760px;margin:16px auto 0;padding:15px;
+ border:2px solid #fbbf24a6;border-radius:20px;
+ background:linear-gradient(120deg,#78350f88,#312e81a8,#312e81b5);
+ box-shadow:0 0 35px #f59e0b32;animation:ultimon-intro-reveal .7s ease-out both}
+.ultimon-intro-duplicate-kicker{font-weight:1000;font-size:clamp(12px,2.5vw,19px);
+ color:#fef08a;text-shadow:0 0 17px #f59e0b;line-height:1.3}
+.ultimon-intro-duplicate>p{color:#e9d5ff;margin:8px auto 13px;
+ font-size:12px;font-weight:800}
+.ultimon-intro-duplicate-faceoff{display:flex;justify-content:center;align-items:center;gap:10px}
+.ultimon-intro-duplicate-fighter{--dup-color:#a78bfa;flex:1;min-width:0;max-width:265px;
+ border:2px solid var(--dup-color);border-radius:14px;background:#020617d9;
+ display:flex;flex-direction:column;align-items:center;padding:10px}
+.ultimon-intro-duplicate-fighter>span{color:#fde68a;font-weight:1000;letter-spacing:.09em;font-size:10px}
+.ultimon-intro-duplicate-fighter img{width:100%;height:clamp(82px,16vw,143px);
+ object-fit:contain;filter:drop-shadow(0 0 10px var(--dup-color))}
+.ultimon-intro-duplicate-fighter strong{color:#fff;font-weight:1000;
+ font-size:clamp(12px,2.3vw,20px);overflow-wrap:anywhere}
+.ultimon-intro-duplicate-fighter small{color:#cbd5e1;
+ text-align:center;font-size:10px;overflow-wrap:anywhere}
+.ultimon-intro-duplicate-fighter--new{animation:ultimon-intro-duplicate-arrive .7s ease-out both}
+.ultimon-intro-duplicate-vs{font-size:clamp(22px,4vw,36px);font-weight:1000;
+ color:#fde68a;filter:drop-shadow(0 0 15px #f59e0b)}
+.ultimon-intro-duplicate-comparison{margin:13px auto 0;max-width:510px;
+ border:1px solid #fbbf2480;border-radius:11px;
+ background:#030712c7;padding:10px;display:flex;align-items:center;
+ flex-wrap:wrap;justify-content:center;gap:7px 15px}
+.ultimon-intro-duplicate-comparison strong{font-size:13px;color:#fef08a}
+.ultimon-intro-duplicate-comparison span{font-weight:1000;color:#fff;
+ font-variant-numeric:tabular-nums}
+.ultimon-intro-duplicate-comparison span b{font-size:10px;color:#c4b5fd;margin:0 7px}
+.ultimon-intro-duplicate-comparison small{width:100%;font-size:11px;color:#e9d5ff}
+.ultimon-intro-dialogue--duplicate{border:2px solid #fbbf24;
+ box-shadow:0 0 35px #eab30855;background:linear-gradient(135deg,#311246ee,#171b35ed)}
+@keyframes ultimon-intro-duplicate-arrive{
+ from{opacity:0;transform:translateX(35px) scale(.85)}
+ to{opacity:1;transform:translateX(0) scale(1)}
+}
+@media(max-width:640px){
+ .ultimon-intro-duplicate{padding:11px 6px}
+ .ultimon-intro-duplicate-faceoff{gap:5px}
+ .ultimon-intro-duplicate-fighter{padding:7px 4px}
+ .ultimon-intro-duplicate-vs{font-size:22px}
+ .ultimon-intro-duplicate-fighter>span{font-size:8px}
+ .ultimon-intro-duplicate-fighter small{font-size:9px}
+ .ultimon-intro-duplicate-comparison{gap:5px 10px;padding:8px}
+}
+@media(prefers-reduced-motion:reduce){
+ .ultimon-intro-duplicate,.ultimon-intro-duplicate-fighter--new{animation:none!important}
+}
