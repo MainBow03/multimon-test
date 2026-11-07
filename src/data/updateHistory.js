@@ -14,6 +14,17 @@ export const UPDATE_CATEGORIES = [
 ];
 export const GAME_UPDATES = [
 
+  {id:'nov7-ultimon-entrance-parade',category:'features',date:'07/11/2026',title:'🎤 Ultimon: grande presentazione delle squadre e monologhi personalizzati!',items:[
+    'Prima del primo sorteggio il presentatore chiama una squadra alla volta nell’arena, seguendo un ordine di ingresso casuale, con luci scenografiche, animazioni, nomi e immagini dei Multimon.',
+    'Ogni giocatore umano, quando viene chiamato, può scegliere un monologo eroico, spavaldo, misterioso o divertente, oppure scriverne uno completamente personalizzato (da 12 a 260 caratteri). Il discorso viene mostrato a tutti i presenti.',
+    'I partecipanti CPU pronunciano automaticamente un monologo in linea con la propria squadra: nessuno deve scegliere al posto del bot.',
+    'Dopo il capitano vengono estratti casualmente fino a quattro Multimon diversi dalla sua squadra: ognuno appare in primo piano con PNG, nome e una propria battuta originale.',
+    'Scritte 232 battute di ingresso esclusive per tutti i Multimon presenti nel gioco, comprese le 19 fusioni, le evocazioni e i personaggi speciali: ogni frase richiama carattere, poteri o storia del suo personaggio.',
+    'Gli ingressi sono sincronizzati per i giocatori online tramite lo stato della stanza Firestore. L’host gestisce automaticamente i tempi del presentatore, ma deve aspettare la conferma di ogni discorso umano prima di proseguire.',
+    'Quando tutte le squadre hanno concluso la presentazione, l’host può sorteggiare il primo duello. Roster, KO permanenti, premi e combattimenti classici restano invariati.'
+  ]},
+
+
   {id:'nov7-ultimon-showcase-final',category:'interface',date:'07/11/2026',title:'🎭⚡ Ultimon: cerimonie, tabellone e Gran Finale!',items:[
     'Cerimonia delle eliminazioni: dopo il KO dell’ultimo Multimon di una squadra, la partita passa a una fase condivisa con rivelazione scenografica del nome, immagini dei personaggi oscurate e piazzamento definitivo.',
     'La cerimonia mostra anche le monete del piazzamento. L’host conclude il verdetto prima che compaia il prossimo sorteggio o la premiazione finale; funziona anche nelle stanze online.',

@@ -1,6 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import {ULTIMON_COLORS,ultimonPlayers,ultimonAlive,ultimonLeaderboard,ultimonDuelOutcome,ultimonPicksReady,ultimonIsFinalShowdown} from '../../systems/ultimonSystem.js';
 import {ultimonRewardForPlace} from '../../systems/ultimonRewards.js';
+import {UltimonIntroView} from './UltimonIntroView.jsx';
 import './UltimonView.css';
 
 const alive=c=>c?.hp>0&&!c.isSummonOnly;
@@ -126,7 +127,7 @@ function EliminationCeremony({room,standings,step}){
   </section>;
 }
 
-export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onHost,onExit,canHost=false}){
+export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onSpeech,onHost,onExit,canHost=false}){
  const stage=room.status,u=room.ultimon||{},pair=u.pair||[];
  const isLocal=appMode==='local_room',isHost=!!canHost;
  const available=ultimonPlayers(room);
@@ -206,12 +207,14 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onHost,on
        </section>}
        {!unnamed.length&&<section className="ultimon-center">
          <h3>🎉 Tutte le squadre sono pronte!</h3>
-         {isHost?button('🎲 Inizia l’estrazione dei due sfidanti','pair'):
-           <p>In attesa che l’host inizi il sorteggio…</p>}
+         {isHost?button('🎤 Inizia la presentazione delle squadre','introStart'):
+           <p>In attesa che l’host chiami le squadre nell’arena…</p>}
        </section>}
        {!!unnamed.length&&!isLocal&&nameRole!==playerRole&&<p className="ultimon-center">In attesa delle altre squadre…</p>}
        {!!unnamed.length&&!isLocal&&identity.ready&&<p className="ultimon-center">✓ Squadra confermata. In attesa degli altri giocatori…</p>}
      </>}
+     {stage==='ultimon_intro'&&<UltimonIntroView room={room} appMode={appMode}
+       playerRole={playerRole} isHost={isHost} onSpeech={onSpeech} onHost={onHost}/>}
      {showdown&&['ultimon_recap','ultimon_pair','ultimon_format','ultimon_pick'].includes(stage)&&
         <div className="ultimon-grand-final-banner" role="status">
          <span>⚡ LE ULTIME DUE SQUADRE ⚡</span>

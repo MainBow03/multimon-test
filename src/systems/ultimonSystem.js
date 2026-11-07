@@ -15,7 +15,7 @@ export const ULTIMON_COLORS = [
  {name:'Grigio argento',hex:'#94a3b8'},{name:'Indaco',hex:'#4f46e5'}
 ];
 export const ULTIMON_STAGES = [
- 'ultimon_showcase','ultimon_pair','ultimon_format','ultimon_pick',
+ 'ultimon_showcase','ultimon_intro','ultimon_pair','ultimon_format','ultimon_pick',
  'ultimon_result','ultimon_elimination','ultimon_recap','ultimon_final'
 ];
 const ROLES=['p1','p2','p3','p4','p5','p6','p7','p8'];
@@ -65,7 +65,7 @@ export function createUltimonShowcase(room,draft=room.draft){
   field:Object.fromEntries(ROLES.map(p=>[p,[]])),
   draft:Object.fromEntries(ROLES.map(p=>[p,[]])),
   ultimon:{runId:newUltimonRunId(),rosters:roster,identities,stats,round:0,
-    history:[],eliminated:[],pair:[],format:null,picks:{},selected:{},lastPair:[],champion:null}};
+    history:[],eliminated:[],pair:[],format:null,picks:{},selected:{},lastPair:[],champion:null,intro:null}};
 }
 export function identityPatch(room,role,name,color){
  if(room.status!=='ultimon_showcase'||!ultimonPlayers(room).includes(role)||
@@ -86,9 +86,11 @@ const shuffle=(items,random=Math.random)=>{
  return list;
 };
 export function nextUltimonPair(room,random=Math.random){
- if(!['ultimon_showcase','ultimon_recap'].includes(room.status))
+ if(!['ultimon_showcase','ultimon_intro','ultimon_recap'].includes(room.status))
    throw new Error('Non è il momento di estrarre gli sfidanti.');
  if(!allUltimonNamed(room))throw new Error('Le squadre devono scegliere nome e colore.');
+ if(room.status==='ultimon_intro'&&room.ultimon?.intro?.step!=='complete')
+   throw new Error('Attendi che tutti i partecipanti finiscano la presentazione.');
  const aliveRoles=ultimonActive(room);
  if(aliveRoles.length<=1){
   return {status:'ultimon_final',phaseStartedAt:Date.now(),

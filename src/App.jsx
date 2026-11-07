@@ -58,6 +58,7 @@ import { TYPE_STYLES, TYPE_CHART, PLAYER_THEMES, getMultiplier, getDefaultAvatar
 import { initialGameState } from './systems/gameState.js';
 import { UltimonView } from './screens/battle/UltimonView.jsx';
 import {ultimonLeaderboard} from './systems/ultimonSystem.js';
+import {beginUltimonIntroduction,ultimonIntroMonologuePatch,advanceUltimonIntroduction} from './systems/ultimonIntro.js';
 import {ULTIMON_STAGES,createUltimonShowcase,identityPatch,nextUltimonPair,
   revealUltimonFormat,pickPatch,startUltimonDuel,finishUltimonDuel,finishUltimonElimination,
   ultimonIsFinalShowdown} from './systems/ultimonSystem.js';
@@ -1435,9 +1436,20 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
             room=>identityPatch(room,role,name,color),role);
           const ultimonPick=(role,indices)=>ultimonMutation(['ultimon_pick'],
             room=>pickPatch(room,role,indices),role);
+          const ultimonSpeech=(role,monologue)=>ultimonMutation(['ultimon_intro'],
+            room=>ultimonIntroMonologuePatch(room,role,monologue),role);
           const ultimonHostAction=action=>{
             const steps={
-              pair:{allowed:['ultimon_showcase','ultimon_recap'],build:room=>nextUltimonPair(room)},
+              introStart:{allowed:['ultimon_showcase'],build:room=>beginUltimonIntroduction(room)},
+              introNext:{allowed:['ultimon_intro'],build:room=>{
+                const expected=gameState.ultimon?.intro,actual=room.ultimon?.intro;
+                // Ignora avanzamenti doppi dovuti a timer/client in ritardo.
+                if(!expected||!actual||expected.index!==actual.index||
+                  expected.step!==actual.step||expected.lineIndex!==actual.lineIndex)
+                  throw new Error('Il presentatore ha già proseguito.');
+                return advanceUltimonIntroduction(room);
+              }},
+              pair:{allowed:['ultimon_intro','ultimon_recap'],build:room=>nextUltimonPair(room)},
               format:{allowed:['ultimon_pair'],build:room=>revealUltimonFormat(room)},
               pick:{allowed:['ultimon_format'],build:()=>({status:'ultimon_pick',phaseStartedAt:Date.now()})},
               battle:{allowed:['ultimon_pick'],build:room=>startUltimonDuel(room,applyOnEnterPassive)},
@@ -1843,7 +1855,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
       return <UltimonView key={gameState.status+':'+(gameState.ultimon?.round||0)}
         room={gameState} appMode={appMode} playerRole={playerRole}
         canHost={appMode==='local_room'||playerRole==='p1'||canRecoverRoom(gameState,playerRole)}
-        onIdentity={ultimonIdentity} onPick={ultimonPick}
+        onIdentity={ultimonIdentity} onPick={ultimonPick} onSpeech={ultimonSpeech}
         onHost={ultimonHostAction} onExit={leaveRoom}/>;
     }
 
