@@ -102,7 +102,7 @@ test('Scelte valide, lotta classica, KO permanenti, cura della squadra vincente'
  assert.equal(state.ultimon.rosters[b][state.ultimon.selected[b][2]].hp,90);
  assert.equal(state.ultimon.stats[b].wins,1);
  assert.ok(state.ultimon.eliminated.includes(a));
- assert.ok(['ultimon_recap','ultimon_final'].includes(state.status));
+ assert.equal(state.status,'ultimon_elimination');
  assert.equal(state.ultimon.history.length,1);
  const ranks=ultimonLeaderboard(state);
  assert.equal(ranks.at(-1).role,a);

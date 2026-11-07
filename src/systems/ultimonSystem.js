@@ -16,7 +16,7 @@ export const ULTIMON_COLORS = [
 ];
 export const ULTIMON_STAGES = [
  'ultimon_showcase','ultimon_pair','ultimon_format','ultimon_pick',
- 'ultimon_result','ultimon_recap','ultimon_final'
+ 'ultimon_result','ultimon_elimination','ultimon_recap','ultimon_final'
 ];
 const ROLES=['p1','p2','p3','p4','p5','p6','p7','p8'];
 const newUltimonRunId=()=>`ultimon-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,12)}`;
@@ -29,6 +29,10 @@ export const ultimonPlayers=room=>ROLES.slice(0,Math.min(8,Math.max(4,Number(roo
  .filter(p=>!!room.players?.[p]);
 export const ultimonAlive=(rosters,p)=>(rosters?.[p]||[]).filter(alive).length;
 export const ultimonActive=room=>ultimonPlayers(room).filter(p=>ultimonAlive(room.ultimon?.rosters,p)>0);
+// Il Gran Finale inizia solo quando rimangono esattamente due squadre.
+// La lotta conserva comunque le normali regole e gli schieramenti estratti.
+export const ultimonIsFinalShowdown=room=>room?.gameMode==='ultimon' &&
+ ultimonActive(room).length===2;
 export function prepareUltimonFighter(original,room,role){
  const c=clone(original);
  const owned=room.playerStrengthOwned?.[role]||[];
@@ -218,11 +222,24 @@ export function finishUltimonDuel(room){
  const record={round:u.round,pair:[...u.pair],format:u.format,
   winner:outcome.winner,loser:outcome.loser,ko,eliminated:newlyEliminated,
   surviving:Object.fromEntries(u.pair.map(p=>[p,ultimonAlive(rosters,p)]))};
- return {status:survivors.length<=1?'ultimon_final':'ultimon_recap',
+ // Le eliminazioni definitive hanno una cerimonia dedicata prima del recap
+ // o dei premi: un solo host avanza lo stato condiviso con una transazione.
+ return {status:newlyEliminated.length?'ultimon_elimination':
+   survivors.length<=1?'ultimon_final':'ultimon_recap',
   phaseStartedAt:Date.now(),events:[],
   'ultimon.rosters':rosters,'ultimon.stats':stats,
   'ultimon.history':[...u.history,record],'ultimon.eliminated':eliminated,
   'ultimon.champion':champion};
+}
+export function finishUltimonElimination(room){
+ if(room.gameMode!=='ultimon'||room.status!=='ultimon_elimination')
+   throw new Error('Non è in corso una cerimonia di eliminazione.');
+ const last=room.ultimon?.history?.at(-1);
+ if(!last?.eliminated?.length)
+   throw new Error('Non ci sono squadre eliminate da presentare.');
+ const survivors=ultimonActive(room);
+ return {status:survivors.length<=1?'ultimon_final':'ultimon_recap',
+   phaseStartedAt:Date.now()};
 }
 export function ultimonLeaderboard(room){
  const u=room.ultimon||{},players=ultimonPlayers(room);

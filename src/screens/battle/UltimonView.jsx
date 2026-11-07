@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import {ULTIMON_COLORS,ultimonPlayers,ultimonAlive,ultimonLeaderboard,ultimonDuelOutcome,ultimonPicksReady} from '../../systems/ultimonSystem.js';
+import {ULTIMON_COLORS,ultimonPlayers,ultimonAlive,ultimonLeaderboard,ultimonDuelOutcome,ultimonPicksReady,ultimonIsFinalShowdown} from '../../systems/ultimonSystem.js';
 import {ultimonRewardForPlace} from '../../systems/ultimonRewards.js';
 import './UltimonView.css';
 
@@ -49,6 +49,83 @@ function ResultCard({room,summary=false}){
    {last&&winner&&<p className="ultimon-heal">💚 Ai Multimon schierati e sopravvissuti della squadra vincente sono stati restituiti fino al 50% dei PS massimi.</p>}
  </section>;
 }
+
+function SurvivorBoard({room,standings}){
+ const living=standings.filter(p=>p.alive>0),fallen=standings.filter(p=>p.alive===0);
+ const card=(p)=>(
+  <article key={p.role} className={'ultimon-board-team '+(!p.alive?'ultimon-board-team--gone':'')}
+    style={{'--ultimon-team-color':p.color}}>
+   <div className="ultimon-board-top">
+    <span className="ultimon-team-dot"/>
+    <div className="ultimon-board-name"><strong>{p.team}</strong><small>{p.name}{room.isBot?.[p.role]?' · CPU':''}</small></div>
+    <span className="ultimon-board-count">{p.alive}/{p.original} vivi</span>
+   </div>
+   <div className="ultimon-board-icons">
+    {(room.ultimon?.rosters?.[p.role]||[]).map((c,i)=>(
+     <div className={'ultimon-board-avatar '+(!alive(c)?'ultimon-board-avatar--ko':'')}
+       key={i} title={c.name+' · '+(alive(c)?Math.ceil(c.hp)+' PS':'KO')}>
+      <img src={c.img} alt={c.name} loading="lazy"/>
+      {!alive(c)&&<span aria-label="KO">✕</span>}
+     </div>
+    ))}
+   </div>
+   <div className="ultimon-board-stats">
+    <span>⚔️ {p.matches} duelli</span><span>🏆 {p.wins} vittorie</span><span>💥 {p.lost} perdite</span>
+   </div>
+  </article>
+ );
+ return <section className="ultimon-survivor-board" aria-label="Tabellone dei superstiti">
+   <div className="ultimon-board-heading">
+    <span>📡 SITUAZIONE IN TEMPO REALE</span>
+    <h2>Il tabellone dei superstiti</h2>
+    <p>{living.length} squadre ancora in gioco · {fallen.length} eliminate</p>
+   </div>
+   <h3 className="ultimon-board-section-head">🟢 ANCORA IN GARA <span>{living.length}</span></h3>
+   <div className="ultimon-board-grid">{living.map(card)}</div>
+   {!!fallen.length&&<>
+    <h3 className="ultimon-board-section-head ultimon-board-section-head--out">ELIMINATE <span>{fallen.length}</span></h3>
+    <div className="ultimon-board-grid ultimon-board-grid--out">{fallen.map(card)}</div>
+   </>}
+  </section>;
+}
+function EliminationCeremony({room,standings,step}){
+ const last=room.ultimon?.history?.at(-1);
+ const eliminated=last?.eliminated||[];
+ return <section className="ultimon-ceremony" aria-live="polite">
+   <div className="ultimon-ceremony-decoration" aria-hidden="true">✦　✧　✦</div>
+   <div className="ultimon-stage-label">ROUND {last?.round} · VERDETTO DEFINITIVO</div>
+   <h2>✦ CERIMONIA DI ELIMINAZIONE ✦</h2>
+   <p className="ultimon-ceremony-suspense">{step===0?
+     'Il risultato è definitivo… Chi dovrà abbandonare Ultimon?':
+     'Il viaggio di queste squadre nel torneo termina qui.'}</p>
+   <div className="ultimon-ceremony-eliminated">
+    {eliminated.map((role)=>{
+      const info=standings.find(p=>p.role===role);
+      const position=standings.findIndex(p=>p.role===role)+1;
+      const fighters=room.ultimon?.rosters?.[role]||[];
+      return <article key={role} className={'ultimon-ceremony-team '+(step>=1?'ultimon-ceremony-team--shown':'')}
+        style={{'--ultimon-team-color':info?.color||'#94a3b8'}}>
+        {step>=1?<>
+          <div className="ultimon-ceremony-out">SQUADRA ELIMINATA</div>
+          <h3>{info?.team||role}</h3><small>{info?.name||room.players?.[role]}</small>
+          <div className="ultimon-ceremony-fighters">
+           {fighters.map((c,i)=><div key={i} className="ultimon-ceremony-fighter">
+             <img src={c.img} alt={c.name} loading="lazy"/>
+             <strong>{c.name}</strong><span>KO DEFINITIVO</span>
+           </div>)}
+          </div>
+          {step>=2&&<div className="ultimon-ceremony-placement">
+           <b>{position}° POSTO</b>
+           <span>🪙 +{ultimonRewardForPlace(standings.length,position)} monete</span>
+          </div>}
+        </>:<div className="ultimon-ceremony-silhouette"><span>?</span><small>Destino da rivelare…</small></div>}
+       </article>;
+     })}
+   </div>
+   {step>=3&&<p className="ultimon-ceremony-closing">Le squadre eliminate sono fuori. Il torneo continua con chi è rimasto!</p>}
+  </section>;
+}
+
 export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onHost,onExit,canHost=false}){
  const stage=room.status,u=room.ultimon||{},pair=u.pair||[];
  const isLocal=appMode==='local_room',isHost=!!canHost;
@@ -60,6 +137,7 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onHost,on
  const [color,setColor]=useState(identity.color||ULTIMON_COLORS[0].hex);
  const [chosen,setChosen]=useState([]);
  const [revealed,setRevealed]=useState(false);
+ const [ceremonyStep,setCeremonyStep]=useState(0);
  const selectionRole=isLocal
    ?pair.find(p=>!room.isBot?.[p]&&!u.picks?.[p])
    :playerRole;
@@ -72,12 +150,23 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onHost,on
    const timer=setTimeout(()=>setRevealed(true),stage==='ultimon_pair'?3100:2700);
    return()=>clearTimeout(timer);
  },[stage,u.round]);
+ useEffect(()=>{
+   if(stage!=='ultimon_elimination'){setCeremonyStep(0);return;}
+   setCeremonyStep(0);
+   const timers=[
+     setTimeout(()=>setCeremonyStep(1),1300),
+     setTimeout(()=>setCeremonyStep(2),3200),
+     setTimeout(()=>setCeremonyStep(3),4600)
+   ];
+   return()=>timers.forEach(clearTimeout);
+ },[stage,u.round,u.history?.length]);
  const standings=ultimonLeaderboard(room);
  const prizes=standings.map((_,i)=>ultimonRewardForPlace(standings.length,i+1));
+ const showdown=ultimonIsFinalShowdown(room);
  const button=(text,action,disabled=false)=>
   <button type="button" className="ultimon-action" onClick={()=>onHost(action)} disabled={disabled||!isHost}>{text}</button>;
  const canPick=ultimonPicksReady(room);
- return <main className="ultimon-screen">
+ return <main className={"ultimon-screen "+(showdown?"ultimon-screen--showdown":"")}>
    <div className="ultimon-sparks" aria-hidden="true"/>
    <div className="ultimon-container">
      <header className="ultimon-header">
@@ -123,7 +212,13 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onHost,on
        {!!unnamed.length&&!isLocal&&nameRole!==playerRole&&<p className="ultimon-center">In attesa delle altre squadre…</p>}
        {!!unnamed.length&&!isLocal&&identity.ready&&<p className="ultimon-center">✓ Squadra confermata. In attesa degli altri giocatori…</p>}
      </>}
-     {stage==='ultimon_pair'&&<section className="ultimon-hero ultimon-reveal">
+     {showdown&&['ultimon_recap','ultimon_pair','ultimon_format','ultimon_pick'].includes(stage)&&
+        <div className="ultimon-grand-final-banner" role="status">
+         <span>⚡ LE ULTIME DUE SQUADRE ⚡</span>
+         <h2>ULTIMO DUELLO</h2>
+         <p>Solo una squadra può uscire vincitrice. L'arena attende il suo campione.</p>
+        </div>}
+     {stage==='ultimon_pair'&&<section className={'ultimon-hero ultimon-reveal '+(showdown?'ultimon-hero--showdown':'')}>
        <div className="ultimon-stage-label">ROUND {u.round} · SORTEGGIO SFIDANTI</div>
        <h2>{revealed?'Gli sfidanti sono stati scelti!':'Chi entrerà nell’arena?'}</h2>
        <div className="ultimon-faceoff">
@@ -136,7 +231,7 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onHost,on
        {!revealed&&<p className="ultimon-tension">I nomi stanno per essere rivelati…</p>}
        {revealed&&!isHost&&<p>In attesa del formato scelto dall’host…</p>}
      </section>}
-     {stage==='ultimon_format'&&<section className="ultimon-hero ultimon-reveal">
+     {stage==='ultimon_format'&&<section className={'ultimon-hero ultimon-reveal '+(showdown?'ultimon-hero--showdown':'')}>
        <div className="ultimon-stage-label">IL FORMATO DEL DUELLO</div>
        <h2>Quanti Multimon scenderanno in campo?</h2>
        <div className={'ultimon-format '+(!revealed?'ultimon-format--rolling':'')}>
@@ -174,16 +269,24 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onHost,on
         <div className="ultimon-center">{isHost?button('📜 Mostra il verdetto e aggiorna la classifica','resolve'):
           <p>In attesa del verdetto ufficiale…</p>}</div>
        </>}
+     {stage==='ultimon_elimination'&&<>
+       <EliminationCeremony room={room} standings={standings} step={ceremonyStep}/>
+       {ceremonyStep>=3&&<>
+        <SurvivorBoard room={room} standings={standings}/>
+        <div className="ultimon-center">{isHost?
+          button(standings.some(p=>p.alive>0)&&standings.filter(p=>p.alive>0).length>1?
+            '✦ Concludi la cerimonia e torna al tabellone':'🏆 Concludi la cerimonia e premia il vincitore','ceremony'):
+          <p>In attesa che l’host concluda la cerimonia…</p>}</div>
+       </>}
+     </>}
      {stage==='ultimon_recap'&&<>
        <ResultCard room={room} summary/>
-       <h2 className="ultimon-section-title">Classifica provvisoria</h2>
-       <div className="ultimon-scoreboard">{standings.map((p,i)=>
-         <div className="ultimon-score-row" key={p.role} style={{'--ultimon-team-color':p.color}}>
-          <strong>#{i+1} {p.team}</strong><span>{p.alive}/{p.original} vivi · {p.wins} vittorie · {p.knockouts} KO inflitti</span>
-         </div>)}</div>
+       <SurvivorBoard room={room} standings={standings}/>
        <div className="ultimon-center">{isHost?button('🎲 Sorteggia il prossimo duello','pair'):
          <p>In attesa del prossimo sorteggio…</p>}</div>
      </>}
+     {['ultimon_pair','ultimon_format'].includes(stage)&&
+        <SurvivorBoard room={room} standings={standings}/>}
      {stage==='ultimon_final'&&<section className="ultimon-final">
         <div className="ultimon-stage-label">IL GRANDE VERDETTO</div>
         <h2>🏆 ULTIMO SUPERSTITE 🏆</h2>

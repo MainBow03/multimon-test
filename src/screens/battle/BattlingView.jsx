@@ -12,12 +12,14 @@ import {tailwindSpeedFactor} from '../../systems/battleFieldEffects.js';
 import { BattleWeatherParticles } from '../../components/BattleWeatherParticles.jsx';
 import {isMoveDisabled,disabledMoveInfo} from '../../systems/berryFrillishEffects.js';
 import {legalSupportTargets} from '../../systems/supportTargeting.js';
+import {ultimonIsFinalShowdown} from '../../systems/ultimonSystem.js';
 import {canUseBagItems} from '../../systems/bagItemPolicy.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderBattlingView(ctx) {
 const { ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, appMode, actionMenuMode, combatLog, commandingIdx, commitAction, coopPendingAction, roomId, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
 if (gameState.status === 'battling' || gameState.status === 'executing') {
         const activeMatchPlayers = getActivePlayers();
+        const grandFinale = ultimonIsFinalShowdown(gameState);
         const bagAvailable = canUseBagItems(gameState);
         const feedbackKind = battleFeedbackKind(eventPlaybackText, !!eventPlaybackPassive);
         
@@ -510,7 +512,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
         }
 
         return (
-            <div className="min-h-screen bg-slate-900 flex flex-col font-sans text-white overflow-hidden">
+            <div className={`min-h-screen bg-slate-900 flex flex-col font-sans text-white overflow-hidden ${grandFinale ? "ultimon-final-battle" : ""}`}>
                 
                 {/* SCREEN FLASH BIANCO PER FORMA IPER (Messo allo z-[40] per far scattare Barry in primo piano) */}
                 {screenFlash && <div className="fixed inset-0 bg-white z-[40] animate-screen-flash"></div>}
@@ -538,7 +540,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                 )}
 
                 {/* BATTLE ARENA */}
-                <div className={`flex-1 p-4 flex flex-col relative overflow-hidden transition-colors duration-700 ${gameState.battleWeather?.type === 'snowstorm' ? 'battlefield-snowstorm' : gameState.battleWeather?.type === 'rainstorm' ? 'battlefield-rainstorm' : gameState.battleWeather?.type === 'lush_grass' ? 'battlefield-lush-grass' : 'bg-slate-950'} ${isPlayingEvents && (feedbackKind === 'ko' || feedbackKind === 'critical') ? 'battle-impact-shake' : ''}`}>
+                <div className={`flex-1 p-4 flex flex-col relative overflow-hidden transition-colors duration-700 ${gameState.battleWeather?.type === 'snowstorm' ? 'battlefield-snowstorm' : gameState.battleWeather?.type === 'rainstorm' ? 'battlefield-rainstorm' : gameState.battleWeather?.type === 'lush_grass' ? 'battlefield-lush-grass' : 'bg-slate-950'} ${isPlayingEvents && (feedbackKind === 'ko' || feedbackKind === 'critical') ? 'battle-impact-shake' : ''} ${grandFinale ? 'ultimon-final-battlefield' : ''}`}>
+                    {grandFinale && <div className="ultimon-final-arena-glow" aria-hidden="true" />}
                     <BattleWeatherParticles weather={gameState.battleWeather} tailwind={gameState.battleTailwind} />
                     
                     {!isEventBattle&&<button onClick={() => playerRole === 'spectator' ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-4 left-4 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
@@ -611,7 +614,13 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                         );
                     })()}
                     
-                    {gameState.gameMode === 'battleroyale' && (
+                    {grandFinale && (
+                        <div className="ultimon-final-arena-banner" role="status">
+                          <strong>⚡ ULTIMO DUELLO ⚡</strong>
+                          <small>{(gameState.ultimon?.pair||[]).map(p=>gameState.ultimon?.identities?.[p]?.name||gameState.players?.[p]||p).join(' VS ')}</small>
+                        </div>
+                    )}
+                                        {gameState.gameMode === 'battleroyale' && (
                          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20 bg-slate-900/80 backdrop-blur-md px-6 py-2 rounded-full border border-amber-500/50 shadow-lg text-amber-400 font-black tracking-widest uppercase text-xs sm:text-sm">
                                 BATTLE ROYALE
                          </div>

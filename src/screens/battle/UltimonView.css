@@ -105,3 +105,121 @@
 .ultimon-prize-amount{font-size:15px!important;color:#fde68a!important;font-weight:1000;
  border:1px solid #fbbf2459;background:#78350f55;border-radius:10px;padding:6px 10px;white-space:nowrap}
 @media(max-width:600px){.ultimon-prize-chips{gap:6px}.ultimon-prize-chips span{padding:6px 8px;font-size:11px}}
+
+
+/* ULTIMON - Tabellone vivo: visibile tra gli scontri su tutti i dispositivi */
+.ultimon-survivor-board{margin:22px auto;padding:clamp(15px,2.4vw,28px);
+ max-width:1120px;border:1px solid #6366f168;border-radius:24px;
+ background:linear-gradient(135deg,#101b37ec,#16132fe8);box-shadow:0 12px 48px #0006}
+.ultimon-board-heading{text-align:center;margin-bottom:22px}
+.ultimon-board-heading>span{font-size:11px;color:#a5b4fc;font-weight:900;letter-spacing:.16em}
+.ultimon-board-heading h2{font-size:clamp(22px,3.5vw,34px);font-weight:1000;margin:5px 0}
+.ultimon-board-heading p{font-size:13px;color:#cbd5e1}
+.ultimon-board-section-head{display:flex;align-items:center;justify-content:space-between;
+ font-size:13px;font-weight:1000;letter-spacing:.08em;color:#86efac;margin:18px 0 9px}
+.ultimon-board-section-head span{color:#fff;font-size:12px;background:#14532d;border:1px solid #16a34a;
+ border-radius:100px;padding:2px 11px}
+.ultimon-board-section-head--out{color:#fda4af;margin-top:25px}
+.ultimon-board-section-head--out span{background:#4c0519;border-color:#be123c}
+.ultimon-board-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,350px),1fr));gap:12px}
+.ultimon-board-team{--ultimon-team-color:#94a3b8;border-radius:16px;border:1px solid #64748b6b;
+ border-left:5px solid var(--ultimon-team-color);background:#020617aa;padding:13px;min-width:0}
+.ultimon-board-team--gone{opacity:.66;background:#050915b9}
+.ultimon-board-top{display:flex;align-items:center;gap:9px}
+.ultimon-board-name{min-width:0;flex:1;overflow-wrap:anywhere}
+.ultimon-board-name strong{display:block;font-size:15px;line-height:1.3}
+.ultimon-board-name small{font-size:11px;color:#94a3b8}
+.ultimon-board-count{font-size:11px;font-weight:900;color:#a7f3d0;
+ border:1px solid #15803d;border-radius:9px;padding:5px 8px;white-space:nowrap}
+.ultimon-board-team--gone .ultimon-board-count{color:#fda4af;border-color:#9f1239}
+.ultimon-board-icons{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.ultimon-board-avatar{position:relative;width:53px;height:57px;border-radius:10px;border:1px solid #64748b;
+ background:#17213a;overflow:hidden;flex-shrink:0}
+.ultimon-board-avatar img{width:100%;height:100%;object-fit:contain}
+.ultimon-board-avatar--ko img{filter:grayscale(1) brightness(.45)}
+.ultimon-board-avatar--ko>span{position:absolute;inset:0;display:grid;place-items:center;
+ color:#fda4af;font-size:21px;font-weight:1000;text-shadow:0 1px 8px black}
+.ultimon-board-stats{border-top:1px solid #3341558c;padding-top:9px;display:flex;gap:12px;flex-wrap:wrap;
+ font-weight:800;color:#cbd5e1;font-size:11px}
+
+/* ULTIMON - Cerimonia sincronizzata tramite la nuova fase Firestore */
+.ultimon-ceremony{max-width:1120px;margin:18px auto;text-align:center;border-radius:25px;
+ padding:clamp(20px,4vw,40px) clamp(12px,3vw,30px);border:2px solid #fda4af75;
+ background:radial-gradient(ellipse at 50% 0%,#510e36,#160d2c 52%,#080a17);
+ box-shadow:inset 0 0 70px #9f123936,0 18px 65px #000b;overflow:hidden}
+.ultimon-ceremony-decoration{color:#fda4af;letter-spacing:1.5em;margin-bottom:12px;opacity:.6;
+ animation:ultimon-ceremony-glow 2s ease-in-out infinite alternate}
+.ultimon-ceremony h2{font-weight:1000;letter-spacing:.045em;font-size:clamp(24px,4.2vw,44px);
+ line-height:1.14;color:#fff1f2;text-shadow:0 0 25px #f43f5e87;margin:13px 0}
+.ultimon-ceremony-suspense{color:#fecdd3;font-size:clamp(13px,2vw,17px);min-height:28px}
+.ultimon-ceremony-eliminated{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));
+ gap:17px;margin:26px auto 0;max-width:970px}
+.ultimon-ceremony-team{--ultimon-team-color:#94a3b8;min-width:0;border-radius:22px;
+ background:linear-gradient(160deg,#1e293bcb,#020617ef);border:2px solid #64748b80;
+ padding:23px 12px;min-height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+ transition:border-color .5s,background-color .5s}
+.ultimon-ceremony-team--shown{border-color:var(--ultimon-team-color);
+ box-shadow:0 0 32px #0009;animation:ultimon-ceremony-reveal .8s ease-out both}
+.ultimon-ceremony-out{font-size:11px;color:#fecdd3;font-weight:1000;letter-spacing:.16em;
+ background:#9f12395c;border:1px solid #fb71855c;border-radius:100px;padding:6px 12px}
+.ultimon-ceremony-team h3{font-weight:1000;color:#fff;
+ font-size:clamp(22px,4vw,35px);line-height:1.1;overflow-wrap:anywhere;margin:12px 0 5px}
+.ultimon-ceremony-team>small{font-size:13px;color:#cbd5e1}
+.ultimon-ceremony-silhouette{display:flex;flex-direction:column;align-items:center;color:#fda4af}
+.ultimon-ceremony-silhouette span{font-size:74px;line-height:1;animation:ultimon-pulse .7s infinite alternate}
+.ultimon-ceremony-silhouette small{margin-top:14px;font-size:12px}
+.ultimon-ceremony-fighters{display:flex;justify-content:center;align-items:stretch;flex-wrap:wrap;gap:10px;margin:22px auto 5px}
+.ultimon-ceremony-fighter{width:clamp(68px,9vw,100px);border:1px solid #64748b6b;
+ padding:6px 4px;border-radius:11px;background:#080d1ab8;display:flex;flex-direction:column;align-items:center}
+.ultimon-ceremony-fighter img{width:100%;height:77px;object-fit:contain;filter:grayscale(1) brightness(.58)}
+.ultimon-ceremony-fighter strong{font-size:11px;line-height:1.2;overflow-wrap:anywhere;margin:4px 0}
+.ultimon-ceremony-fighter span{font-size:9px;font-weight:900;color:#fda4af;margin-top:auto}
+.ultimon-ceremony-placement{display:flex;justify-content:center;align-items:center;gap:13px;flex-wrap:wrap;
+ border-top:1px solid #fb718562;margin-top:17px;padding-top:18px;animation:ultimon-ceremony-reveal .65s ease-out both}
+.ultimon-ceremony-placement b{font-size:clamp(23px,3.8vw,38px);font-weight:1000;color:#fde68a}
+.ultimon-ceremony-placement span{font-size:15px;color:#fef08a;font-weight:900}
+.ultimon-ceremony-closing{font-size:15px;color:#fce7f3;animation:ultimon-ceremony-reveal .7s ease-out}
+
+/* Finalissima: presentazione speciale, battaglia classica invariata */
+.ultimon-screen--showdown{background:radial-gradient(ellipse at 50% 10%,#51132a,#180c2f 47%,#020409)}
+.ultimon-grand-final-banner{text-align:center;border:2px solid #fbbf24c9;border-radius:22px;
+ background:linear-gradient(105deg,#7f1d1d8c,#31104caa,#0c4a6e7c);
+ padding:20px 12px;margin:18px auto;box-shadow:0 0 44px #f59e0b4b;
+ animation:ultimon-final-arrive .9s cubic-bezier(.2,.8,.2,1) both}
+.ultimon-grand-final-banner span{color:#fde68a;font-size:11px;letter-spacing:.2em;font-weight:1000}
+.ultimon-grand-final-banner h2{margin:5px auto;color:#fff;font-size:clamp(35px,7vw,75px);
+ letter-spacing:.04em;text-shadow:0 0 16px #fb923c,0 0 40px #dc2626;font-weight:1000}
+.ultimon-grand-final-banner p{font-size:14px;color:#fef3c7;font-weight:800}
+.ultimon-hero--showdown{border:2px solid #fbbf24ad;background:linear-gradient(125deg,#7f1d1db3,#210e3aee)}
+.ultimon-final-battlefield{box-shadow:inset 0 0 120px #be123c66}
+.ultimon-final-arena-glow{position:absolute;inset:0;pointer-events:none;z-index:0;
+ background:radial-gradient(ellipse at 50% 44%,transparent 10%,#7f1d1d47 100%),
+ linear-gradient(115deg,#7f1d1d1f,transparent 40%,#4338ca2c)}
+.ultimon-final-arena-banner{position:absolute;left:50%;top:9px;transform:translateX(-50%);
+ z-index:35;display:flex;flex-direction:column;align-items:center;text-align:center;pointer-events:none;
+ width:max-content;max-width:58%;padding:6px 22px;border-radius:13px;
+ border:1px solid #fbbf248f;background:#0b061bdb;box-shadow:0 0 25px #b91c1c6b}
+.ultimon-final-arena-banner strong{font-weight:1000;color:#fef08a;font-size:clamp(12px,2.4vw,22px);
+ letter-spacing:.08em;text-shadow:0 0 12px #fb923c}
+.ultimon-final-arena-banner small{font-weight:900;color:#e9d5ff;font-size:10px;overflow-wrap:anywhere}
+@keyframes ultimon-ceremony-glow{from{opacity:.35}to{opacity:1}}
+@keyframes ultimon-ceremony-reveal{from{opacity:.05;transform:translateY(22px) scale(.94)}
+ to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes ultimon-final-arrive{from{opacity:0;transform:scale(.89)}to{opacity:1;transform:scale(1)}}
+@media(max-width:600px){
+ .ultimon-survivor-board{padding:14px 10px}
+ .ultimon-board-team{padding:10px}
+ .ultimon-board-avatar{width:48px;height:50px}
+ .ultimon-board-icons{gap:5px}
+ .ultimon-ceremony{padding:20px 10px}
+ .ultimon-ceremony-fighters{gap:7px}
+ .ultimon-ceremony-fighter{width:69px}
+ .ultimon-ceremony-fighter img{height:65px}
+ .ultimon-ceremony-decoration{letter-spacing:.5em}
+ .ultimon-final-arena-banner{max-width:58%;padding:4px 8px}
+ .ultimon-final-arena-banner small{font-size:8px}
+}
+@media(prefers-reduced-motion:reduce){
+ .ultimon-ceremony-decoration,.ultimon-ceremony-team--shown,.ultimon-ceremony-silhouette span,
+ .ultimon-ceremony-placement,.ultimon-ceremony-closing,.ultimon-grand-final-banner{animation:none!important}
+}

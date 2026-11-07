@@ -59,7 +59,8 @@ import { initialGameState } from './systems/gameState.js';
 import { UltimonView } from './screens/battle/UltimonView.jsx';
 import {ultimonLeaderboard} from './systems/ultimonSystem.js';
 import {ULTIMON_STAGES,createUltimonShowcase,identityPatch,nextUltimonPair,
-  revealUltimonFormat,pickPatch,startUltimonDuel,finishUltimonDuel} from './systems/ultimonSystem.js';
+  revealUltimonFormat,pickPatch,startUltimonDuel,finishUltimonDuel,finishUltimonElimination,
+  ultimonIsFinalShowdown} from './systems/ultimonSystem.js';
 
         import { onAuthStateChanged } from 'firebase/auth';
         import { doc, setDoc, onSnapshot, getDoc, updateDoc, collection, runTransaction } from 'firebase/firestore';
@@ -232,6 +233,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const ytRef = useRef(null);
           // La musica si attiva solo durante le fasi di lotta
           const shouldPlayMusic = ['pre_battle', 'battling', 'executing', 'switching_phase', 'intermission'].includes(gameState.status);
+          // Il tema speciale della finalissima usa una traccia GIA' disponibile
+          // nella colonna sonora; mute e volume continuano a funzionare.
+          const ultimonFinalTheme=gameState.gameMode==='ultimon' && ultimonIsFinalShowdown(gameState);
+          const activeBgmId=ultimonFinalTheme?'bUG_NS0xqSY':
+            (gameState.settings?.soundtrack||'wpEBouFcwqI');
 
           useEffect(() => {
               if (ytRef.current && ytRef.current.contentWindow) {
@@ -1435,7 +1441,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               format:{allowed:['ultimon_pair'],build:room=>revealUltimonFormat(room)},
               pick:{allowed:['ultimon_format'],build:()=>({status:'ultimon_pick',phaseStartedAt:Date.now()})},
               battle:{allowed:['ultimon_pick'],build:room=>startUltimonDuel(room,applyOnEnterPassive)},
-              resolve:{allowed:['ultimon_result'],build:room=>finishUltimonDuel(room)}
+              resolve:{allowed:['ultimon_result'],build:room=>finishUltimonDuel(room)},
+              ceremony:{allowed:['ultimon_elimination'],build:room=>finishUltimonElimination(room)}
             };
             const step=steps[action];
             if(!step)return;
@@ -1976,7 +1983,15 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
             <iframe 
                 ref={ytRef}
                 className="hidden"
-                src={`https://www.youtube.com/embed/${gameState.settings?.soundtrack || 'wpEBouFcwqI'}?enablejsapi=1&loop=1&playlist=${gameState.settings?.soundtrack || 'wpEBouFcwqI'}`}
+                src={`https://www.youtube.com/embed/${activeBgmId}?enablejsapi=1&loop=1&playlist=${activeBgmId}`}
+                onLoad={() => {
+                    // La finalissima ricarica il video: ripristina volume, mute e play.
+                    const player=ytRef.current?.contentWindow;
+                    if(!player || !shouldPlayMusic)return;
+                    player.postMessage(JSON.stringify({event:'command',func:'setVolume',args:[bgmVolume]}),'*');
+                    player.postMessage(JSON.stringify({event:'command',func:isMuted?'mute':'unMute'}),'*');
+                    player.postMessage(JSON.stringify({event:'command',func:'playVideo'}),'*');
+                }}
                 allow="autoplay"
                 title="BGM"
             ></iframe>

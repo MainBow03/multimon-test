@@ -6,7 +6,7 @@ export const ROOM_PHASE_TIMEOUT_MS = 120000;
 export const ROOM_HOST_TIMEOUT_MS = 45000;
 export const ROOM_SESSION_KEY = 'multiverse_rpg_session';
 const PLAYER_KEYS = ['p1','p2','p3','p4','p5','p6','p7','p8'];
-export const GAME_IN_PROGRESS = ['drafting','pre_battle','battling','executing','switching_phase','intermission','ultimon_showcase','ultimon_pair','ultimon_format','ultimon_pick','ultimon_result','ultimon_recap'];
+export const GAME_IN_PROGRESS = ['drafting','pre_battle','battling','executing','switching_phase','intermission','ultimon_showcase','ultimon_pair','ultimon_format','ultimon_pick','ultimon_result','ultimon_elimination','ultimon_recap'];
 
 export function roomRoleForUid(room,uid){
  if(!uid||!room)return null;
