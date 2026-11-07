@@ -1,10 +1,17 @@
 // Presence online: scadono automaticamente le sessioni senza heartbeat,
 // evitando di mostrare giocatori che hanno chiuso il browser.
 export const ONLINE_TIMEOUT_MS=90*1000;
+// Due dispositivi possono avere orologi non perfettamente sincronizzati.
+// Un timestamp leggermente nel futuro NON significa che la lotta è finita.
+export const ONLINE_CLOCK_SKEW_MS=120*1000;
+export function freshOnlineTimestamp(timestamp,now=Date.now()){
+ return typeof timestamp==='number'&&Number.isFinite(timestamp)&&
+   timestamp<=now+ONLINE_CLOCK_SKEW_MS&&now-timestamp<ONLINE_TIMEOUT_MS;
+}
 export function visibleOnlinePlayers(sessions,ownSessionId,now=Date.now()){
  const unique=new Map();
  for(const s of sessions||[]){
-  if(!s||typeof s.timestamp!=='number'||s.timestamp>now+30000||now-s.timestamp>=ONLINE_TIMEOUT_MS
+  if(!s||!freshOnlineTimestamp(s.timestamp,now)
      ||s.sessionId===ownSessionId||!s.uid||!String(s.name||'').trim())continue;
   const prev=unique.get(s.uid);
   // Un account può avere due schede: la battaglia attiva ha precedenza
@@ -99,7 +106,21 @@ export function canObserveCampaignPresence(entry,now=Date.now()){
  const snapshot=entry?.campaignBattle;
  return !!(entry?.uid&&entry?.sessionId&&snapshot?.version===1&&
   CAMPAIGN_BATTLE_PHASES.includes(snapshot.phase)&&
-  typeof entry.timestamp==='number'&&now-entry.timestamp>=0&&now-entry.timestamp<ONLINE_TIMEOUT_MS&&
-  typeof snapshot.updatedAt==='number'&&now-snapshot.updatedAt>=0&&now-snapshot.updatedAt<ONLINE_TIMEOUT_MS&&
+  freshOnlineTimestamp(entry.timestamp,now)&&
+  freshOnlineTimestamp(snapshot.updatedAt,now)&&
   Array.isArray(snapshot.allies)&&Array.isArray(snapshot.opponents));
+}
+
+
+// L'amico può ricaricare la pagina: la sua nuova sessione ha un id diverso.
+// Lo spettatore segue l'UID, non resta bloccato sul vecchio documento.
+export function selectCampaignSpectatorSession(sessions,uid,preferredSessionId,now=Date.now()){
+ const rows=(sessions||[]).filter(s=>s?.uid===uid&&s.sessionId&&s.name);
+ const newest=(a,b)=>(Number(b.timestamp)||0)-(Number(a.timestamp)||0);
+ const live=rows.filter(row=>canObserveCampaignPresence(row,now)).sort(newest);
+ if(live.length)return live[0];
+ // Se la diretta scompare, conserviamo lo stato della sessione scelta
+ // per distinguere una disattivazione volontaria da un semplice ritardo.
+ return rows.find(s=>s.sessionId===preferredSessionId)||
+   rows.sort(newest)[0]||null;
 }

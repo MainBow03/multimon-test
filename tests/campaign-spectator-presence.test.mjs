@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {
- ONLINE_TIMEOUT_MS,visibleOnlinePlayers,activityForPresence,isLiveCampaignBattle,
- campaignBattlePublicSnapshot,canObserveCampaignPresence
+ ONLINE_TIMEOUT_MS,ONLINE_CLOCK_SKEW_MS,freshOnlineTimestamp,
+ visibleOnlinePlayers,activityForPresence,isLiveCampaignBattle,
+ campaignBattlePublicSnapshot,canObserveCampaignPresence,selectCampaignSpectatorSession
 } from '../src/systems/onlinePresence.js';
 import {campaignSnapshotToSpectatorState} from '../src/systems/campaignSpectatorBattle.js';
 
@@ -152,4 +153,47 @@ test('Il campo normale riceve PNG, PS, stati e schieramenti nello stesso formato
  assert.equal(campaignSnapshotToSpectatorState(null),null);
  assert.equal(campaignSnapshotToSpectatorState({...snap,phase:'executing'}).status,'executing');
  assert.equal(campaignSnapshotToSpectatorState({...snap,phase:'switching_phase'}).status,'battling');
+});
+
+
+test('Orologi di due dispositivi non perfettamente sincronizzati non fanno terminare la diretta',()=>{
+ const snap=campaignBattlePublicSnapshot(campaignState);
+ const friend={uid:'friend',sessionId:'battle',name:'Giulia',status:'⚔️ Lotta Campagna',
+  timestamp:now+45000,campaignBattle:{...snap,updatedAt:now+45000}};
+ assert.equal(canObserveCampaignPresence(friend,now),true,
+  'L’orologio dell’amica 45 secondi avanti non deve interrompere la diretta');
+ assert.equal(visibleOnlinePlayers([friend],'mine',now).length,1);
+ assert.equal(freshOnlineTimestamp(now+ONLINE_CLOCK_SKEW_MS+1,now),false,
+  'Gli orologi veramente errati restano esclusi');
+ assert.equal(canObserveCampaignPresence({...friend,timestamp:now-ONLINE_TIMEOUT_MS-1},now),false);
+});
+
+test('Dopo un aggiornamento della pagina segue automaticamente la nuova sessione dello stesso account',()=>{
+ const snap=campaignBattlePublicSnapshot(campaignState);
+ const old={uid:'friend',sessionId:'old-tab',name:'Giulia',status:'Nel Menu',
+  timestamp:now-10000,campaignBattle:null};
+ const newer={uid:'friend',sessionId:'new-tab',name:'Giulia',status:'⚔️ Lotta Campagna',
+  timestamp:now-1000,campaignBattle:{...snap,updatedAt:now-1000}};
+ const unexpected={...newer,uid:'not-friend',sessionId:'other'};
+ const selected=selectCampaignSpectatorSession([old,newer,unexpected],'friend','old-tab',now);
+ assert.equal(selected.sessionId,'new-tab');
+ assert.equal(selectCampaignSpectatorSession([old],'friend','old-tab',now).sessionId,'old-tab');
+ assert.equal(selectCampaignSpectatorSession([unexpected],'friend','old-tab',now),null);
+ const source=read('../src/screens/battle/CampaignSpectatorView.jsx');
+ assert.match(source,/where\('uid','==',expectedUid\)/);
+ assert.match(source,/selectCampaignSpectatorSession\(rows,expectedUid,sessionId\)/);
+ assert.doesNotMatch(source,/La battaglia è terminata/);
+ assert.match(source,/In attesa del segnale della battaglia/);
+ assert.match(source,/la trasmissione ripartirà automaticamente/);
+});
+
+test('Gli heartbeat sono serializzati: nessun vecchio turno può sovrascrivere il più recente',()=>{
+ const app=read('../src/App.jsx');
+ assert.match(app,/presenceWriteRef=useRef\(\{running:false,queued:false,latest:null\}\)/);
+ assert.match(app,/if\(writer\.running\)return/);
+ assert.match(app,/while\(writer\.queued\)/);
+ assert.match(app,/const payload=writer\.latest/);
+ assert.match(app,/campaignBattle:payload\.campaignBattle/);
+ assert.match(app,/updatedAt:timestamp/);
+ assert.match(app,/setInterval\(updatePresence,25000\)/);
 });

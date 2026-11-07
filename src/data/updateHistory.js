@@ -14,6 +14,16 @@ export const UPDATE_CATEGORIES = [
 ];
 export const GAME_UPDATES = [
 
+  {id:'nov7-campaign-spectator-false-ended',category:'fixes',date:'07/11/2026',
+    title:'📡 Corretta la falsa fine delle dirette Campagna!',items:[
+      'Lo spettatore non dichiara più che la battaglia è terminata al primo ritardo del segnale: distingue connessione instabile, campagna senza lotta e condivisione disattivata, continuando a cercare la diretta.',
+      'Quando un amico ricarica la pagina e ottiene un nuovo identificativo di sessione, la visuale spettatore lo segue automaticamente tramite l’account anziché restare collegata al documento precedente.',
+      'Le scritture della presenza online sono ora seriali: un heartbeat vecchio non può sovrascrivere lo stato della battaglia aggiornato in un turno successivo.',
+      'Gli orologi dei dispositivi possono differire moderatamente senza far scomparire la diretta per errore; gli utenti davvero offline continuano a scadere.',
+      'La battaglia mantiene la visuale spettatore originale, e chi trasmette può sempre disattivare esplicitamente la diretta Campagna.'
+    ]},
+
+
   {id:'nov7-campaign-spectator-classic-ui',category:'interface',date:'07/11/2026',
     title:'👁️ Campagne osservabili con la VERA modalità spettatore!',
     items:[

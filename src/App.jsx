@@ -217,6 +217,9 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const [onlineUsersError, setOnlineUsersError] = useState('');
           const [checkingOnlineUsers, setCheckingOnlineUsers] = useState(false);
           const onlinePresenceRowsRef = useRef([]);
+          // Evita che vecchi heartbeat di Firestore arrivino fuori ordine:
+          // una sola scrittura alla volta, sempre con la partita più recente.
+          const presenceWriteRef=useRef({running:false,queued:false,latest:null});
           const [spectatingCampaign,setSpectatingCampaign]=useState(null);
           const [shareCampaignBattles,setShareCampaignBattles]=useState(()=>
             localStorage.getItem('multimon_campaign_watch_v1')!=='off');
@@ -945,44 +948,70 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               return () => unsubscribe();
           }, []);
 
-          // --- PRESENZA ONLINE (heartbeat + feedback errori) ---
+          // --- PRESENZA ONLINE: un solo scrittore seriale + heartbeat ---
           useEffect(() => {
-              if (!user || !playerName.trim()) return;
-              const updatePresence = async () => {
-                  try {
-                      const stats = getPlayerData();
-                      const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'online_users', sessionId);
-                      await setDoc(userRef, {
-                          uid: user.uid,
-                          sessionId,
-                          name: playerName.trim(),
-                          avatar: playerAvatarUrl || '',
-                          status: activityForPresence(appMode,gameState,roomId),
-                          campaignBattle: shareCampaignBattles&&isLiveCampaignBattle(appMode,gameState)
-                            ?campaignBattlePublicSnapshot(gameState,{
-                               campaignId:activeCampaignId,
-                               campaignName:activeCampaign?.title||activeCampaign?.name||'Campagna Multimon',
-                               missionName:activeMission?.name||activeMission?.title||'Battaglia Campagna'
-                             }):null,
-                          roomId: appMode === 'online_room' ? roomId : null,
-                          timestamp: Date.now(),
-                          wins: stats.wins || 0,
-                          matches: stats.matches || 0,
-                          title: equippedMasteryTitle(stats, [...CHARACTERS, ...FUSION_CHARACTERS])
-                      });
-                      setOnlineUsersError('');
-                  } catch (err) {
-                      console.error('Multimon: presenza online non autorizzata:', err);
-                      setOnlineUsersError('Impossibile aggiornare la presenza. Controlla le regole Firestore online_users e Authentication: ' + err.message);
-                  }
+              const writer=presenceWriteRef.current;
+              if (!user || !playerName.trim()) {
+                  writer.latest=null;
+                  return;
+              }
+              const stats=getPlayerData();
+              // Copia lo stato visibile più recente. Un aggiornamento vecchio
+              // non deve sovrascrivere la diretta di un turno successivo.
+              writer.latest={
+                  uid:user.uid,
+                  sessionId,
+                  name:playerName.trim(),
+                  avatar:playerAvatarUrl||'',
+                  status:activityForPresence(appMode,gameState,roomId),
+                  campaignBattle:shareCampaignBattles&&isLiveCampaignBattle(appMode,gameState)
+                    ?campaignBattlePublicSnapshot(gameState,{
+                      campaignId:activeCampaignId,
+                      campaignName:activeCampaign?.title||activeCampaign?.name||'Campagna Multimon',
+                      missionName:activeMission?.name||activeMission?.title||'Battaglia Campagna'
+                    }):null,
+                  roomId:appMode==='online_room'?roomId:null,
+                  wins:stats.wins||0,
+                  matches:stats.matches||0,
+                  title:equippedMasteryTitle(stats,[...CHARACTERS,...FUSION_CHARACTERS])
+              };
+              const updatePresence=()=>{
+                  writer.queued=true;
+                  if(writer.running)return;
+                  writer.running=true;
+                  const flush=async()=>{
+                      try{
+                          const userRef=doc(db,'artifacts',appId,'public','data','online_users',sessionId);
+                          while(writer.queued){
+                              writer.queued=false;
+                              const payload=writer.latest;
+                              if(!payload)break;
+                              const timestamp=Date.now();
+                              await setDoc(userRef,{
+                                  ...payload,timestamp,
+                                  campaignBattle:payload.campaignBattle
+                                    ?{...payload.campaignBattle,updatedAt:timestamp}
+                                    :null
+                              });
+                          }
+                          setOnlineUsersError('');
+                      }catch(err){
+                          console.error('Multimon: presenza online non autorizzata:',err);
+                          setOnlineUsersError('Impossibile aggiornare la presenza. Controlla le regole Firestore online_users e Authentication: '+err.message);
+                      }finally{
+                          writer.running=false;
+                          if(writer.queued)updatePresence();
+                      }
+                  };
+                  void flush();
               };
               updatePresence();
-              const interval = setInterval(updatePresence, 25000);
-              const onVisible = () => { if (!document.hidden) updatePresence(); };
-              document.addEventListener('visibilitychange', onVisible);
-              return () => {
+              const interval=setInterval(updatePresence,25000);
+              const onVisible=()=>{if(!document.hidden)updatePresence();};
+              document.addEventListener('visibilitychange',onVisible);
+              return ()=>{
                   clearInterval(interval);
-                  document.removeEventListener('visibilitychange', onVisible);
+                  document.removeEventListener('visibilitychange',onVisible);
               };
           }, [user?.uid, playerName, playerAvatarUrl, appMode, roomId, sessionId,
               profileRevision,shareCampaignBattles,activeCampaignId,activeMission?.id,
