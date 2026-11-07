@@ -11,7 +11,9 @@ const ids=[
 ];
 
 test('Le novità Ultimon appaiono per prime e con data, categoria e dettagli corretti',()=>{
- assert.deepEqual(GAME_UPDATES.slice(0,ids.length).map(u=>u.id),ids);
+ // Nuove patch possono precedere quelle esistenti: verifica l'ordine relativo,
+ // non che le vecchie voci siano fissate ai primi quattro indici.
+ assert.deepEqual(GAME_UPDATES.filter(u=>ids.includes(u.id)).map(u=>u.id),ids);
  assert.equal(new Set(GAME_UPDATES.map(u=>u.id)).size,GAME_UPDATES.length);
  assert.equal(UPDATE_COUNT,GAME_UPDATES.reduce((n,u)=>n+u.items.length,0));
  for(const id of ids){
