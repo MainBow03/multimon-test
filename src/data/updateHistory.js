@@ -14,6 +14,14 @@ export const UPDATE_CATEGORIES = [
 ];
 export const GAME_UPDATES = [
 
+  {id:'nov7-cosmetics-shop-visible-purchase-cards',category:'fixes',date:'07/11/2026',
+   title:'🛍️ Negozio Cosmetici: sistemate le schede e i pulsanti Acquista!',items:[
+    'Corretto il bug che schiacciava le 16 schede delle entrate Ultimon fino a mostrare soltanto l’icona e la scritta Da sbloccare: ogni card ha ora un’altezza minima e mostra nome, descrizione, slogan e prezzo.',
+    'Il catalogo scorre verticalmente all’interno del negozio anche quando la finestra è bassa o ci sono molte entrate, senza nascondere i pulsanti.',
+    'Ogni cosmetico ha un pulsante Acquista da 100 monete ben visibile e cliccabile, con indicazione permanente per quelli già sbloccati; la spesa e il salvataggio restano invariati.'
+   ]},
+
+
   {id:'nov7-ultimon-cosmetics-sixteen-entrances-random-menu',category:'features',date:'07/11/2026',
    title:'🎬 Ultimon: 16 entrate cosmetiche, sfilata completa e Multimon casuali nel menu!',items:[
     'Nel Negozio è arrivata la quarta sezione COSMETICI: contiene 16 entrate ad effetto Ultimon, ciascuna acquistabile a 100 monete una sola volta. Rimangono sbloccate per sempre nel profilo e non aumentano le statistiche.',

@@ -51,7 +51,7 @@ if (appMode === 'shop') {
             <div className="min-h-screen bg-slate-950 text-white p-6 flex flex-col relative overflow-hidden items-center justify-center">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-900/40 via-slate-950 to-black pointer-events-none opacity-60"></div>
                 
-                <div className="relative z-10 w-full max-w-5xl bg-slate-900/80 backdrop-blur-xl border border-amber-700/50 rounded-3xl p-8 shadow-2xl flex flex-col max-h-[90vh]">
+                <div className="relative z-10 w-full max-w-5xl bg-slate-900/80 backdrop-blur-xl border border-amber-700/50 rounded-3xl p-4 sm:p-6 lg:p-8 shadow-2xl flex flex-col min-h-0 max-h-[92dvh]">
                     <div className="flex justify-between items-center mb-6 border-b border-amber-800/50 pb-6 shrink-0">
                         <button onClick={() => setAppMode('menu')} className="flex items-center gap-2 text-slate-400 hover:text-amber-400 transition-colors font-bold bg-slate-950/50 px-4 py-2 rounded-xl border border-slate-700/50">
                             <ArrowLeft size={20} /> Menu
@@ -106,7 +106,7 @@ if (appMode === 'shop') {
                     )}
 
                     {shopTab === 'cosmetics'&&(
-                      <section className="flex-1 min-h-0 flex flex-col gap-3">
+                      <section className="flex-1 min-h-0 flex flex-col gap-3" aria-label="Catalogo dei cosmetici Ultimon">
                         <div className="shrink-0 rounded-2xl border border-fuchsia-400/50 bg-gradient-to-r from-purple-950 via-indigo-950 to-pink-950 p-4 sm:p-5">
                           <div className="flex items-center justify-between gap-3 flex-wrap">
                             <div>
@@ -119,11 +119,12 @@ if (appMode === 'shop') {
                           </div>
                           <p className="text-emerald-200 text-xs font-bold mt-2">🎤 Senza cosmetici entri normalmente: l'ingresso classico è sempre GRATIS.</p>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto custom-scrollbar p-2">
+                        <div className="grid min-h-0 flex-1 content-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 auto-rows-[minmax(250px,max-content)] gap-4 overflow-y-auto overscroll-contain custom-scrollbar p-2"
+                          aria-label="Entrate ad effetto acquistabili">
                           {ULTIMON_ENTRANCE_EFFECTS.map(effect=>{
                             const owned=ownedEntrances.has(effect.id);
                             const affordable=playerData.coins>=ULTIMON_ENTRANCE_PRICE;
-                            return <article key={effect.id} className="relative rounded-2xl overflow-hidden border-2 p-4 flex flex-col gap-2 shadow-xl transition-transform hover:-translate-y-1"
+                            return <article key={effect.id} className="relative min-h-[250px] h-full rounded-2xl border-2 p-4 flex flex-col gap-2 shadow-xl transition-transform hover:-translate-y-1"
                               style={{borderColor:effect.accent,background:`radial-gradient(circle at 50% 0%,${effect.accent}66,#0b1024 76%)`}}>
                               <div className="flex items-center justify-between gap-2">
                                 <span className="text-4xl drop-shadow-xl" aria-hidden="true">{effect.icon}</span>
@@ -131,14 +132,15 @@ if (appMode === 'shop') {
                                   {owned?'✓ POSSEDUTO':'🔒 DA SBLOCCARE'}
                                 </span>
                               </div>
-                              <h4 className="text-lg font-black" style={{color:effect.color}}>{effect.name}</h4>
+                              <h4 className="text-lg leading-tight font-black" style={{color:effect.color}}>{effect.name}</h4>
                               <p className="text-xs leading-relaxed text-slate-200 flex-1">{effect.hint}</p>
                               <div className="rounded-xl bg-black/45 border border-white/20 px-3 py-2 text-[10px] font-black tracking-wide text-white">
                                 {effect.tagline}
                               </div>
                               <button type="button" onClick={()=>handleBuyEntrance(effect)}
                                 disabled={owned||!affordable}
-                                className={`mt-2 py-3 rounded-xl font-black text-xs border transition-colors ${owned
+                                aria-label={owned?effect.name+' già acquistata':'Acquista '+effect.name+' per 100 monete'}
+                                className={`mt-auto min-h-[44px] w-full shrink-0 py-3 rounded-xl font-black text-xs border transition-colors ${owned
                                   ?'bg-emerald-900/60 text-emerald-200 border-emerald-500/60 cursor-default'
                                   :affordable?'bg-gradient-to-r from-fuchsia-600 to-violet-600 border-fuchsia-400 text-white hover:brightness-125'
                                   :'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed'}`}>

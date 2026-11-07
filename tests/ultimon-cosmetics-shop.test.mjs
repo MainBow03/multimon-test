@@ -123,3 +123,21 @@ test('La home cambia il trio senza ripetizioni e il negozio mostra tutti i cosme
  assert.match(shop,/buyUltimonEntrance:effect\.id/);
  assert.match(app,/ownedUltimonEntrances\(getPlayerData\(\)\)/);
 });
+
+
+test('Le schede cosmetici NON collassano: nomi, descrizioni e Acquista restano visibili',()=>{
+ const shop=read('../src/screens/hub/ShopView.jsx');
+ assert.match(shop,/auto-rows-\[minmax\(250px,max-content\)\]/,
+  'Le righe della griglia devono mantenere un altezza minima e scorrere');
+ assert.match(shop,/overflow-y-auto overscroll-contain custom-scrollbar/,
+  'Le schede in più devono scorrere dentro il negozio');
+ assert.match(shop,/min-h-\[250px\] h-full rounded-2xl border-2/,
+  'Le card non devono collassare fino a mostrare solo l icona');
+ assert.match(shop,/aria-label=\{owned\?effect\.name\+' già acquistata':'Acquista '\+effect\.name\+' per 100 monete'\}/);
+ assert.match(shop,/min-h-\[44px\] w-full shrink-0/,
+  'Il bottone comprare deve essere sempre raggiungibile e cliccabile');
+ assert.match(shop,/onClick=\{\(\)=>handleBuyEntrance\(effect\)\}/);
+ assert.match(shop,/disabled=\{owned\|\|!affordable\}/);
+ assert.match(shop,/shopTab === 'cosmetics'/);
+ assert.match(shop,/playerData\.coins>=ULTIMON_ENTRANCE_PRICE/);
+});
