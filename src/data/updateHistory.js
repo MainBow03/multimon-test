@@ -14,6 +14,17 @@ export const UPDATE_CATEGORIES = [
 ];
 export const GAME_UPDATES = [
 
+  {id:'nov7-ultimon-showdown-mvp',category:'interface',date:'07/11/2026',title:'🏆 Ultimon: gran finale scenografico e MVP di ogni squadra!',items:[
+    'Quando restano esattamente due squadre in Ultimon, lo sfondo diventa un’arena speciale con fasci di luce dei colori delle finaliste, particelle, un anello luminoso, scritta VS gigante e una nuova locandina GRAN FINALE con i PNG dei superstiti.',
+    'Il nuovo scenario anima le schermate di sorteggio, scelta formato, selezione Multimon e riepilogo. Su telefono e tablet si adatta alle dimensioni dello schermo e rispetta le preferenze di movimento ridotto.',
+    'La classifica finale mostra per ogni giocatore un Multimon MVP con PNG, nome e statistiche cumulative reali: KO effettuati, danni inflitti, danni subiti, PS curati, turni in campo, duelli disputati, attivazioni passive e scudi distrutti.',
+    'Le statistiche individuali vengono conservate per ogni slot originale del roster durante tutti i duelli Ultimon: non si mescolano quando il giocatore schiera personaggi differenti e non si conteggiano i Multimon rimasti in riserva.',
+    'Il calcolo dell’MVP considera KO, danni inflitti, cure, danni subiti, passive, scudi e partecipazione; anche un Multimon curatore può vincere il premio. Nessun valore viene inventato quando il resoconto non è disponibile.',
+    'Il report battaglia registra ora i turni realmente trascorsi sul campo da ciascun Multimon attivo: gli inattivi, i KO e le riserve non ricevono turni fittizi.',
+    'Le regole Ultimon, i KO permanenti, le cure ai vincitori, i sorteggi, le ricompense e le modalità di combattimento non sono state modificate.'
+  ]},
+
+
   {id:'nov7-ultimon-six-entrance-effects',category:'champions',date:'07/11/2026',title:'🎬⚡ Ultimon: sei entrate ad effetto dopo il monologo!',items:[
     'La presentazione Ultimon aggiunge due fasi fra il monologo del capitano e i quattro Multimon: scelta del tipo di entrata e filmato personalizzato. Le squadre vengono presentate nell’ordine casuale già presente.',
     'Ogni capitano umano sceglie fra sei spettacoli visivi: Pioggia di Stelle, Tuono del Destino, Portale Multiversale, Fiamme del Campione, Tappeto delle Leggende e Glitch del Multiverso.',

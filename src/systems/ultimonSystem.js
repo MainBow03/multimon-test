@@ -1,5 +1,6 @@
 import {applyStrengthToFighter} from './strengthLab.js';
 import {createBattleReport} from './battleReport.js';
+import {initializeUltimonFighterStats,mergeUltimonDuelFighterStats} from './ultimonMvp.js';
 
 // Colori nominati e scelti a mano: non dipendono dai temi dei quattro giocatori classici.
 export const ULTIMON_COLORS = [
@@ -64,7 +65,8 @@ export function createUltimonShowcase(room,draft=room.draft){
   teams:Object.fromEntries(ROLES.map(p=>[p,[]])),
   field:Object.fromEntries(ROLES.map(p=>[p,[]])),
   draft:Object.fromEntries(ROLES.map(p=>[p,[]])),
-  ultimon:{runId:newUltimonRunId(),rosters:roster,identities,stats,round:0,
+  ultimon:{runId:newUltimonRunId(),rosters:roster,identities,stats,
+    fighterStats:initializeUltimonFighterStats(roster),round:0,
     history:[],eliminated:[],pair:[],format:null,picks:{},selected:{},lastPair:[],champion:null,intro:null}};
 }
 export function identityPatch(room,role,name,color){
@@ -198,6 +200,10 @@ export function finishUltimonDuel(room){
  const outcome=ultimonDuelOutcome(room);
  if(!outcome)throw new Error('Ci sono ancora due squadre in campo.');
  const u=room.ultimon,rosters=clone(u.rosters),stats=clone(u.stats);
+ // Ogni turno del report è già stato registrato dal motore di combattimento.
+ // Associa gli indici locali schierati agli slot permanenti del roster.
+ const fighterStats=mergeUltimonDuelFighterStats(
+   u.fighterStats,u.rosters,u.selected,room.battleReport);
  const ko={},eliminated=[...u.eliminated];
  for(const p of u.pair){
   const old=rosters[p],selection=u.selected?.[p]||[];
@@ -230,6 +236,7 @@ export function finishUltimonDuel(room){
    survivors.length<=1?'ultimon_final':'ultimon_recap',
   phaseStartedAt:Date.now(),events:[],
   'ultimon.rosters':rosters,'ultimon.stats':stats,
+  'ultimon.fighterStats':fighterStats,
   'ultimon.history':[...u.history,record],'ultimon.eliminated':eliminated,
   'ultimon.champion':champion};
 }

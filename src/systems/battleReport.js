@@ -31,7 +31,7 @@ function register(report,player,idx,char){
   if(!report.entries[key]){
     report.entries[key]={
       player,idx:Number(idx),id:char.id||'',name:char.name||'Multimon',
-      img:char.img||'',damageDealt:0,damageTaken:0,healing:0,
+      img:char.img||'',damageDealt:0,damageTaken:0,healing:0,turnsOnField:0,
       kos:0,shieldsBroken:0,passiveActivations:0
     };
   }
@@ -53,7 +53,9 @@ function namedPassiveOwner(report,event,acting){
   return matches.length===1?matches[0]:null;
 }
 
-export function accumulateBattleReport(previous, teamsAtTurnStart, events, {countTurn=true,gameMode='classica',settings={}}={}){
+export function accumulateBattleReport(previous, teamsAtTurnStart, events, {countTurn=true,gameMode='classica',settings={},fieldAtTurnStart=null}={}){
+  // Turni reali trascorsi sul campo: contiamo solo i personaggi schierati
+  // e vivi all'inizio di ciascun turno, mai tutta la squadra in riserva.
   const report=previous?.version===1
     ? {version:1,turns:integer(previous.turns),entries:JSON.parse(JSON.stringify(previous.entries||{}))}
     : createBattleReport();
@@ -69,6 +71,18 @@ export function accumulateBattleReport(previous, teamsAtTurnStart, events, {coun
     });
   }
 
+  if(countTurn && fieldAtTurnStart && typeof fieldAtTurnStart==='object'){
+    for(const [player,indices] of Object.entries(fieldAtTurnStart)){
+      if(!Array.isArray(indices))continue;
+      for(const idx of new Set(indices)){
+        if(!Number.isInteger(idx)||idx<0)continue;
+        const fighter=teamsAtTurnStart?.[player]?.[idx];
+        if(!fighter || Number(fighter.hp)<=0)continue;
+        const entry=register(report,player,idx,fighter);
+        if(entry)entry.turnsOnField=integer(entry.turnsOnField)+1;
+      }
+    }
+  }
   let actor=null;
   for(const event of events||[]){
     if(!event)continue;

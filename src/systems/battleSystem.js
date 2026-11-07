@@ -3859,7 +3859,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
           events: events,
           aiMemory: rememberPublicCpuMoves(gameState.aiMemory,publicMovesForAi),
           battleReport: accumulateBattleReport(gameState.battleReport, startOfTurnTeams, events,
-            {gameMode:gameState.gameMode,settings:gameState.settings}),
+            {gameMode:gameState.gameMode,settings:gameState.settings,fieldAtTurnStart:startOfTurnField}),
           actions: { p1: {}, p2: {}, p3: {}, p4: {}, p5: {}, p6: {}, p7: {}, p8: {} },
           inventory: workingInventory,
           healingItemsUsed: workingHealingItemsUsed,

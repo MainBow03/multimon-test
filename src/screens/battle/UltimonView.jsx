@@ -1,6 +1,7 @@
 import React,{useEffect,useState} from 'react';
-import {ULTIMON_COLORS,ultimonPlayers,ultimonAlive,ultimonLeaderboard,ultimonDuelOutcome,ultimonPicksReady,ultimonIsFinalShowdown} from '../../systems/ultimonSystem.js';
+import {ULTIMON_COLORS,ultimonPlayers,ultimonAlive,ultimonActive,ultimonLeaderboard,ultimonDuelOutcome,ultimonPicksReady,ultimonIsFinalShowdown} from '../../systems/ultimonSystem.js';
 import {ultimonRewardForPlace} from '../../systems/ultimonRewards.js';
+import {ultimonTeamMvp} from '../../systems/ultimonMvp.js';
 import {UltimonIntroView} from './UltimonIntroView.jsx';
 import './UltimonView.css';
 
@@ -164,11 +165,23 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onSpeech,
  const standings=ultimonLeaderboard(room);
  const prizes=standings.map((_,i)=>ultimonRewardForPlace(standings.length,i+1));
  const showdown=ultimonIsFinalShowdown(room);
+ const finalTwo=showdown?ultimonActive(room):[];
+ const finaleColors=finalTwo.map(role=>u.identities?.[role]?.color||'#a78bfa');
+ const finaleName=role=>u.identities?.[role]?.name||room.players?.[role]||'Squadra';
+ const finaleHero=role=>(u.rosters?.[role]||[]).find(c=>c?.hp>0&&c.img);
  const button=(text,action,disabled=false)=>
   <button type="button" className="ultimon-action" onClick={()=>onHost(action)} disabled={disabled||!isHost}>{text}</button>;
  const canPick=ultimonPicksReady(room);
- return <main className={"ultimon-screen "+(showdown?"ultimon-screen--showdown":"")}>
+ return <main className={"ultimon-screen "+(showdown?"ultimon-screen--showdown":"")}
+   style={showdown?{'--final-left':finaleColors[0],'--final-right':finaleColors[1]}:undefined}>
    <div className="ultimon-sparks" aria-hidden="true"/>
+   {showdown&&<div className="ultimon-showdown-scenery" aria-hidden="true">
+     <div className="ultimon-showdown-beam ultimon-showdown-beam--left"/>
+     <div className="ultimon-showdown-beam ultimon-showdown-beam--right"/>
+     <div className="ultimon-showdown-ring"/>
+     <div className="ultimon-showdown-stars">✦　✧　✦　✧　✦</div>
+     <span className="ultimon-showdown-watermark">VS</span>
+   </div>}
    <div className="ultimon-container">
      <header className="ultimon-header">
        <button type="button" onClick={onExit} className="ultimon-exit">← Esci</button>
@@ -218,8 +231,20 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onSpeech,
      {showdown&&['ultimon_recap','ultimon_pair','ultimon_format','ultimon_pick'].includes(stage)&&
         <div className="ultimon-grand-final-banner" role="status">
          <span>⚡ LE ULTIME DUE SQUADRE ⚡</span>
-         <h2>ULTIMO DUELLO</h2>
-         <p>Solo una squadra può uscire vincitrice. L'arena attende il suo campione.</p>
+         <h2>IL GRAN FINALE</h2>
+         <p>Due squadre. Un solo posto sul trono del multiverso.</p>
+         <div className="ultimon-grand-final-versus" aria-label="Le ultime due squadre in gara">
+          {finalTwo.map((role,i)=><React.Fragment key={role}>
+           {i===1&&<div className="ultimon-grand-final-vs" aria-hidden="true">VS</div>}
+           <div className="ultimon-grand-final-contender"
+             style={{'--ultimon-team-color':u.identities?.[role]?.color||'#94a3b8'}}>
+             {finaleHero(role)&&<img src={finaleHero(role).img} alt=""/>}
+             <strong>{finaleName(role)}</strong>
+             <small>{room.players?.[role]||role}</small>
+           </div>
+          </React.Fragment>)}
+         </div>
+         <div className="ultimon-grand-final-subline">✦ SOLO UNA SQUADRA RESTERÀ IN PIEDI ✦</div>
         </div>}
      {stage==='ultimon_pair'&&<section className={'ultimon-hero ultimon-reveal '+(showdown?'ultimon-hero--showdown':'')}>
        <div className="ultimon-stage-label">ROUND {u.round} · SORTEGGIO SFIDANTI</div>
@@ -243,7 +268,7 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onSpeech,
        <p>{revealed?'Ogni giocatore sceglierà '+u.format+' Multimon tra quelli ancora vivi.':'Il sorteggio si adatta ai superstiti di entrambe le squadre…'}</p>
        {revealed&&isHost&&button('⚔️ Passa alla scelta degli schieramenti','pick')}
      </section>}
-     {stage==='ultimon_pick'&&<section className="ultimon-hero">
+     {stage==='ultimon_pick'&&<section className={'ultimon-hero '+(showdown?'ultimon-hero--showdown':'')}>
        <div className="ultimon-stage-label">ROUND {u.round} · SFIDA {u.format}v{u.format}</div>
        <h2>Schieramenti segreti</h2>
        <p>Puoi studiare TUTTI i Multimon dell’avversario. Solo i prescelti entreranno in battaglia: gli altri restano in riserva.</p>
@@ -295,12 +320,37 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onSpeech,
         <h2>🏆 ULTIMO SUPERSTITE 🏆</h2>
         <p className="ultimon-champion">{u.champion?u.identities?.[u.champion]?.name:'Nessun superstite: pareggio assoluto!'}</p>
         <p>Classifica completa, dal vincitore al primo eliminato. Ogni giocatore umano riceve le monete del proprio piazzamento!</p>
-        <div className="ultimon-scoreboard">{standings.map((p,i)=>
-          <div key={p.role} className="ultimon-score-row" style={{'--ultimon-team-color':p.color}}>
-            <strong>{i+1}° {p.team} <small>({p.name})</small></strong>
-            <span>{p.wins} vittorie · {p.matches} incontri · {p.knockouts} KO inflitti · {p.lost} persi</span>
-            <span className="ultimon-prize-amount">🪙 +{prizes[i]} monete</span>
-          </div>)}</div>
+        <div className="ultimon-scoreboard">{standings.map((p,i)=>{
+          const mvp=ultimonTeamMvp(room,p.role);
+          return <article key={p.role} className={'ultimon-score-row '+(i===0?'ultimon-score-row--champion':'')}
+            style={{'--ultimon-team-color':p.color}}>
+            <div className="ultimon-score-row-top">
+             <strong><span className="ultimon-score-position">{i===0?'👑':i===1?'🥈':i===2?'🥉':'#'}{i+1}°</span> {p.team} <small>({p.name})</small></strong>
+             <span className="ultimon-prize-amount">🪙 +{prizes[i]} monete</span>
+            </div>
+            <div className="ultimon-score-record">{p.wins} vittorie · {p.matches} duelli · {p.knockouts} KO di squadra · {p.lost} persi</div>
+            {mvp?<section className="ultimon-mvp-card" aria-label={'MVP della squadra '+p.team}>
+              <div className="ultimon-mvp-portrait">
+               {mvp.img&&<img src={mvp.img} alt={mvp.name} loading="lazy"/>}
+               <div className="ultimon-mvp-crown" aria-hidden="true">👑</div>
+              </div>
+              <div className="ultimon-mvp-info">
+               <div className="ultimon-mvp-kicker">✦ MULTIMON MVP DELLA SQUADRA</div>
+               <h4>{mvp.name}</h4>
+               <div className="ultimon-mvp-stats">
+                <span title="KO attribuiti al Multimon"><b>💥 {mvp.kos}</b> KO</span>
+                <span title="Danni realmente inflitti ai nemici"><b>⚔️ {mvp.damageDealt}</b> danni inflitti</span>
+                <span title="Danni subiti"><b>🛡️ {mvp.damageTaken}</b> subiti</span>
+                <span title="Punti salute recuperati"><b>💚 {mvp.healing}</b> PS curati</span>
+                <span title="Turni trascorsi in campo"><b>⏳ {mvp.turnsOnField}</b> turni</span>
+                <span title="Duelli in cui è stato schierato"><b>🎮 {mvp.battles}</b> duelli</span>
+                <span title="Attivazioni passive registrate"><b>✨ {mvp.passiveActivations}</b> passive</span>
+                <span title="Scudi distrutti in battaglia"><b>🔰 {mvp.shieldsBroken}</b> scudi</span>
+               </div>
+              </div>
+             </section>:<p className="ultimon-mvp-unavailable">MVP non disponibile: nessun duello individuale registrato per questa squadra.</p>}
+          </article>;
+        })}</div>
         <div className="ultimon-honors">
           <h3>🌟 Record della stagione</h3>
           <div className="ultimon-honors-grid">
