@@ -65,7 +65,8 @@ import {ULTIMON_STAGES,createUltimonShowcase,identityPatch,nextUltimonPair,
 
         import { onAuthStateChanged } from 'firebase/auth';
         import { doc, setDoc, onSnapshot, getDoc, updateDoc, collection, runTransaction, query, orderBy, limit } from 'firebase/firestore';
-import { visibleOnlinePlayers } from './systems/onlinePresence.js';
+import {visibleOnlinePlayers,activityForPresence,isLiveCampaignBattle,campaignBattlePublicSnapshot,canObserveCampaignPresence} from './systems/onlinePresence.js';
+import {CampaignSpectatorView} from './screens/battle/CampaignSpectatorView.jsx';
 import {visibleRoomInvitations} from './systems/roomInvitations.js';
 import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostFresh,
   prepareEmergencySwitch, getRequiredSwitches, resolveSwitchingRoom, nextPhaseAfterExecution } from './systems/roomRecovery.js';
@@ -216,6 +217,16 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const [onlineUsersError, setOnlineUsersError] = useState('');
           const [checkingOnlineUsers, setCheckingOnlineUsers] = useState(false);
           const onlinePresenceRowsRef = useRef([]);
+          const [spectatingCampaign,setSpectatingCampaign]=useState(null);
+          const [shareCampaignBattles,setShareCampaignBattles]=useState(()=>
+            localStorage.getItem('multimon_campaign_watch_v1')!=='off');
+          const toggleCampaignBroadcast=()=>{
+            setShareCampaignBattles(prev=>{
+              const next=!prev;
+              try{localStorage.setItem('multimon_campaign_watch_v1',next?'on':'off');}catch{}
+              return next;
+            });
+          };
           const [sessionId] = useState(() => Math.random().toString(36).substring(2, 15));
 
           const matchStartTimeRef = useRef(null);
@@ -946,7 +957,13 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                           sessionId,
                           name: playerName.trim(),
                           avatar: playerAvatarUrl || '',
-                          status: (appMode === 'online_room' && roomId) ? 'In Partita' : 'Nel Menu',
+                          status: activityForPresence(appMode,gameState,roomId),
+                          campaignBattle: shareCampaignBattles&&isLiveCampaignBattle(appMode,gameState)
+                            ?campaignBattlePublicSnapshot(gameState,{
+                               campaignId:activeCampaignId,
+                               campaignName:activeCampaign?.title||activeCampaign?.name||'Campagna Multimon',
+                               missionName:activeMission?.name||activeMission?.title||'Battaglia Campagna'
+                             }):null,
                           roomId: appMode === 'online_room' ? roomId : null,
                           timestamp: Date.now(),
                           wins: stats.wins || 0,
@@ -967,7 +984,10 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                   clearInterval(interval);
                   document.removeEventListener('visibilitychange', onVisible);
               };
-          }, [user?.uid, playerName, playerAvatarUrl, appMode, roomId, sessionId, profileRevision]);
+          }, [user?.uid, playerName, playerAvatarUrl, appMode, roomId, sessionId,
+              profileRevision,shareCampaignBattles,activeCampaignId,activeMission?.id,
+              gameState.status,gameState.isCampaignBattle,gameState.teams,gameState.field,
+              gameState.events,gameState.battleReport?.turns]);
 
           useEffect(() => {
               if (!user || !showOnlinePlayers) return;
@@ -1014,6 +1034,15 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           };
 
           const handleObserve = (...__args) => handleObserveImpl({ setAppMode, setPlayerRole, setRoomId, setShowOnlinePlayers }, ...__args);
+          const handleObserveCampaign=(person)=>{
+            if(!canObserveCampaignPresence(person)){
+              setSystemAlert('Questa diretta campagna non è più disponibile.');
+              return;
+            }
+            setSpectatingCampaign({sessionId:person.sessionId,uid:person.uid,name:person.name});
+            setShowOnlinePlayers(false);
+            setAppMode('campaign_spectate');
+          };
 
           // --- EFFETTO TRANSIZIONE CO-OP LOBBY -> DRAFT ONLINE ---
           useEffect(() => {
@@ -1746,6 +1775,13 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
     // --- RENDERERS ---
 
     const renderView = () => {
+        if(appMode==='campaign_spectate'){
+          return <CampaignSpectatorView
+            sessionId={spectatingCampaign?.sessionId}
+            expectedUid={spectatingCampaign?.uid}
+            playerName={spectatingCampaign?.name}
+            onExit={()=>{setSpectatingCampaign(null);setAppMode('menu');setShowOnlinePlayers(true);}}/>;
+        }
         if (appMode === 'menu') {
   const __screen = renderMenuView({ BarChart, BookOpen, CHARACTERS, GridIcon, IS_PREVIEW, ImageIcon, Shield, ShoppingCart, Swords, Target, Trophy, Upload, Users, Wifi, appMode, getDefaultAvatar, getPlayerData, handleAvatarUpload, handleCreateRoguelikeCoop, handleCreateRoom, handleJoinRoom, handleLocalStart, handleSurvivalStart, handleVsCpuStart, onlineUsers, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), roguelikeState, roomIdInput, roomInvitations, useClassicMenu, onMenuStyleChange, sessionId, setAppMode, setPlayerAvatarUrl, setPlayerName, setRoguelikeDraftChoices, setRoguelikeState, setRoomIdInput, setShowOnlinePlayers, setSystemAlert, startWithModeGuide });
   if (__screen !== undefined) return __screen;
@@ -1932,6 +1968,15 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
         <>
             <MultiverseEventHub appMode={appMode} user={user} playerName={playerName} playerAvatarUrl={playerAvatarUrl} playerTitle={getPlayerTitle()} getPlayerData={getPlayerData} updateLocalStats={updateLocalStats} />
             <UpdateHistoryPanel appMode={appMode} hideLauncher={appMode==='menu'&&!useClassicMenu} />
+            {isLiveCampaignBattle(appMode,gameState)&&
+              <button type="button" onClick={toggleCampaignBroadcast}
+                aria-pressed={shareCampaignBattles}
+                title="Permetti agli altri giocatori online di osservare il campo e gli eventi della tua campagna, senza comandare i tuoi Multimon."
+                className={'fixed bottom-4 right-3 z-[80] rounded-xl border px-3 py-2 shadow-xl font-black text-xs '+
+                  (shareCampaignBattles?'bg-emerald-950/90 border-emerald-400 text-emerald-100':
+                    'bg-slate-950/90 border-slate-500 text-slate-200')}>
+                {shareCampaignBattles?'📡 Diretta Campagna: ON':'📴 Diretta Campagna: OFF'}
+              </button>}
             {pendingModeGuide&&<FirstVisitModeGuide key={pendingModeGuide.key}
               guideKey={pendingModeGuide.key}
               onCancel={()=>setPendingModeGuide(null)}
@@ -2007,13 +2052,19 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                                     <div className="flex-1 min-w-0">
                                         <div className="font-bold text-white truncate text-base mb-0.5">{u.name}</div>
                                         {u.title && <div className="text-xs text-amber-300 truncate">✦ {u.title}</div>}
-                                        <div className={`text-[10px] font-bold uppercase tracking-widest ${u.status === 'In Partita' ? 'text-amber-400' : 'text-emerald-400'}`}>{u.status}</div>
+                                        <div className={`text-[10px] font-bold uppercase tracking-widest ${u.status?.includes('Lotta')||u.status?.includes('Partita')?'text-amber-400':u.status?.includes('Campagna')?'text-violet-300':'text-emerald-400'}`}>{u.status||'Online'}</div>
+                                        {canObserveCampaignPresence(u)&&<div className="text-[10px] text-cyan-300 font-semibold mt-1">📡 Battaglia campagna in diretta</div>}
                                     </div>
-                                    {u.roomId && (
+                                    {canObserveCampaignPresence(u)?(
+                                        <button type="button" onClick={()=>handleObserveCampaign(u)}
+                                          className="bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-lg transition-all hover:-translate-y-0.5">
+                                            <Eye size={16}/> Osserva campagna
+                                        </button>
+                                    ):u.roomId?(
                                         <button onClick={() => handleObserve(u.roomId)} className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg transition-all hover:-translate-y-0.5">
                                             <Eye size={16}/> Osserva
                                         </button>
-                                    )}
+                                    ):null}
                                 </div>
                             ))}
                         </div>

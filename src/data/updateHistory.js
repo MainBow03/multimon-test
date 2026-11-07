@@ -14,6 +14,17 @@ export const UPDATE_CATEGORIES = [
 ];
 export const GAME_UPDATES = [
 
+  {id:'nov7-campaign-spectators-presence-fix',category:'online',date:'07/11/2026',title:'📡 Osserva le battaglie campagna + presenza online corretta!',items:[
+    'La lista Giocatori Online mostra ora cosa si sta facendo veramente: nelle battaglie Campagna compare “Lotta Campagna”, nei dialoghi e nella mappa “In Campagna”; anche Roguelike, Co-op, Sopravvivenza, Negozio e altre attività non sono più scambiate per “Nel Menu”.',
+    'Se il medesimo account è aperto in due schede, una partita o diretta valida ha precedenza sulla scheda rimasta nel menu, mantenendo il filtro che nasconde le sessioni non più attive.',
+    'Accanto a una giocatrice che sta combattendo in campagna ora appare “Osserva campagna”: apre un campo di battaglia visuale in sola lettura, con ritratti, PS, stati, scudi, turno ed eventi della partita aggiornati da Firestore.',
+    'Le battaglie delle campagne rimangono locali e conservano intatti progressi, scelte e ricompense: la diretta usa solo un piccolo riepilogo pubblico, senza inviare inventario, riserve o mosse ancora da eseguire.',
+    'Chi combatte ha un pulsante “Diretta Campagna ON/OFF” per scegliere se condividere la propria battaglia; la preferenza viene ricordata dal dispositivo. Se disattivata, gli altri possono vedere la presenza ma non osservare lo scontro.',
+    'Quando la battaglia termina, il giocatore lascia la campagna o si interrompe la connessione, la schermata spettatore smette di mostrare la diretta. Nessuno spettatore può modificare la partita.',
+    'Il sistema sfrutta i documenti online_users esistenti e le regole Firestore già previste, quindi non serve una nuova raccolta di stanze né toccare la sincronizzazione delle battaglie online.'
+  ]},
+
+
   {id:'nov7-ultimon-showdown-mvp',category:'interface',date:'07/11/2026',title:'🏆 Ultimon: gran finale scenografico e MVP di ogni squadra!',items:[
     'Quando restano esattamente due squadre in Ultimon, lo sfondo diventa un’arena speciale con fasci di luce dei colori delle finaliste, particelle, un anello luminoso, scritta VS gigante e una nuova locandina GRAN FINALE con i PNG dei superstiti.',
     'Il nuovo scenario anima le schermate di sorteggio, scelta formato, selezione Multimon e riepilogo. Su telefono e tablet si adatta alle dimensioni dello schermo e rispetta le preferenze di movimento ridotto.',
