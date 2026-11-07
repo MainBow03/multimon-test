@@ -329,7 +329,7 @@ if (gameState.status === 'lobby') {
                     )}
                     </div>
 
-                    {/* Nuovi Arrivi: griglia 10 colonne x fino a 10 righe, ordinata per data */}
+                    {/* Nuovi Arrivi: vetrina responsive con quattro novità in evidenza e ritratti grandi */}
                     <RecentArrivalsGrid characters={CHARACTERS} TYPE_STYLES={TYPE_STYLES}/>
                 </div>
             </div>

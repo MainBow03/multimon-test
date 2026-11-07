@@ -7,15 +7,18 @@ import { CHAR_PRICES } from '../src/data/prices.js';
 import { calculateDamageImpl } from '../src/systems/battleSystem.js';
 import { RECENT_ARRIVALS_IDS,recentArrivalCharacters } from '../src/data/recentArrivals.js';
 
-test('Nuovi arrivi: roster storico conservato nella griglia 10x10 con tutte le novità in alto',()=>{
+test('Nuovi arrivi: roster storico conservato nella vetrina ingrandita, novità in alto',()=>{
  const lobby=readFileSync(new URL('../src/screens/battle/LobbyView.jsx',import.meta.url),'utf8');
  const grid=readFileSync(new URL('../src/components/RecentArrivalsGrid.jsx',import.meta.url),'utf8');
  assert.ok(lobby.includes('<RecentArrivalsGrid'),'manca pannello Nuovi Arrivi');
- assert.match(grid,/grid-cols-10/);
+ assert.match(grid,/recent-arrivals-featured-grid/);
+ assert.match(grid,/recent-arrivals-roster-grid/);
+ assert.match(grid,/\.slice\(0,100\)/);
+ assert.doesNotMatch(grid,/grid-cols-10/);
  const ids=recentArrivalCharacters(CHARACTERS).map(c=>c.id);
  for(const id of ['mahito','orsobianco','bugsbunny','daffyduck','diamante','superboy']){
   assert.ok(ids.includes(id),id+' non compare nella lista');
-  assert.ok(ids.indexOf(id)<100,id+' deve essere visibile nel riquadro 10x10');
+  assert.ok(ids.indexOf(id)<100,id+' deve essere visibile nel pannello delle novità');
   assert.ok(CHARACTERS.some(c=>c.id===id),id+' non esiste nel roster');
  }
  assert.deepEqual(RECENT_ARRIVALS_IDS.slice(0,4),['frillish','berry','flameprincess','ametista']);

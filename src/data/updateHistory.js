@@ -13,6 +13,14 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov7-recent-arrivals-ui-redesign',category:'interface',date:'07/11/2026',title:'✨ Nuovi Arrivi: PNG più grandi e vetrina rinnovata!',items:[
+    'Nella lobby, il pannello Nuovi Arrivi passa dalle dieci miniature minuscole per riga a una vetrina più ampia con ritratti grandi, nomi leggibili e colori vivaci.',
+    'Frillish, Berry, Principessa Fiamma e Ametista restano i primi quattro arrivi e ricevono schede speciali in evidenza, con PNG ancora più grandi.',
+    'Gli altri Multimon sono disposti in una griglia responsive di tre colonne su telefono e desktop, e cinque colonne sui tablet dove c’è più spazio; l’elenco continua a scorrere senza ingrandire tutta la lobby.',
+    'Toccando un personaggio si apre una scheda completa con PNG grande, tipi, PS, Attacco, Difesa e Velocità, con pulsanti Precedente/Successivo e chiusura tramite Esc.',
+    'Tutti gli arrivi presenti in precedenza rimangono disponibili; la modifica riguarda solo la visualizzazione e non altera le statistiche né le modalità.'
+  ]},
+
   {id:'nov7-ultimon-double-reactions',category:'champions',date:'07/11/2026',title:'🪞🎭 Ultimon: i doppioni si riconoscono e si rispondono!',items:[
     'Nella presentazione Ultimon, se un Multimon ha già pronunciato la propria battuta per una squadra e lo stesso personaggio appare successivamente in un’altra, il nuovo arrivato riconosce il suo doppione e gli risponde.',
     'Scritte 232 nuove reazioni originali, una per ogni ID del roster (incluse le fusioni), con battute comiche, competitive, stupite o collaborative coerenti con il carattere di ciascun Multimon.',

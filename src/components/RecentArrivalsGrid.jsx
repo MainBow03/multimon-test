@@ -1,51 +1,111 @@
+import {useEffect,useRef,useState} from 'react';
+import {createPortal} from 'react-dom';
 import {recentArrivalCharacters} from '../data/recentArrivals.js';
+import './RecentArrivalsGrid.css';
 
-// Griglia compatta: 10 colonne, al massimo 10 righe (100 personaggi).
-// I ritratti non sono miniature da 80 px impilate verticalmente.
-// Cliccando o toccando una miniatura si apre il nome completo con PNG grande.
+// Vetrina della lobby: i PNG devono essere leggibili anche sui tablet.
+// Gli ultimi 4 arrivati hanno schede in evidenza, gli altri una griglia
+// di ritratti più grandi. La selezione apre una scheda fuori dallo scroll.
 export function RecentArrivalsGrid({characters,TYPE_STYLES={}}){
   const arrivals=recentArrivalCharacters(characters).slice(0,100);
+  const [selectedIndex,setSelectedIndex]=useState(null);
+  const closeRef=useRef(null);
+  const selected=selectedIndex===null?null:arrivals[selectedIndex];
+
+  useEffect(()=>{
+    if(!selected)return;
+    const handleKey=e=>{
+      if(e.key==='Escape'){e.preventDefault();setSelectedIndex(null);}
+      if(e.key==='ArrowRight')setSelectedIndex(i=>i===null?null:(i+1)%arrivals.length);
+      if(e.key==='ArrowLeft')setSelectedIndex(i=>i===null?null:(i-1+arrivals.length)%arrivals.length);
+    };
+    document.addEventListener('keydown',handleKey);
+    closeRef.current?.focus();
+    return()=>document.removeEventListener('keydown',handleKey);
+  },[selected?.id,arrivals.length]);
+
+  const open=index=>setSelectedIndex(index);
+  const close=()=>setSelectedIndex(null);
+  const types=char=>(char.types||[]).map(t=>(
+    <span key={t} className={'recent-arrivals-type '+(TYPE_STYLES[t]||'bg-slate-700')}>
+      {t}
+    </span>
+  ));
+  const portrait=(char,index,featured)=>(
+    <button key={char.id} type="button" onClick={()=>open(index)}
+      className={'recent-arrivals-card '+(featured?'recent-arrivals-card--featured':'')}
+      aria-label={'Visualizza '+char.name} title={'Scopri '+char.name}>
+      <span className="recent-arrivals-card-art">
+        <img src={char.img} alt="" loading="lazy"/>
+        {featured&&<span className="recent-arrivals-new-tag">NEW</span>}
+      </span>
+      <span className="recent-arrivals-card-name">{char.name}</span>
+      {featured&&<span className="recent-arrivals-card-types">{(char.types||[]).slice(0,2).join(' · ')}</span>}
+    </button>
+  );
+
   return (
-    <aside className="w-full lg:w-[270px] bg-slate-800/80 backdrop-blur-xl border border-slate-700/50
-      rounded-2xl p-3 flex flex-col shadow-[0_0_25px_rgba(0,0,0,0.3)] shrink-0
-      self-start max-h-[360px]" aria-label="Nuovi Multimon, dal più recente">
-      <div className="flex items-center justify-between gap-2 border-b border-slate-700/70 pb-2 mb-2">
-        <h3 className="text-sm font-black text-emerald-300 uppercase tracking-wide">
-          ✨ Nuovi Arrivi
-        </h3>
-        <span className="text-[10px] font-bold text-cyan-200 bg-cyan-900/30 rounded-md px-2 py-0.5">
-          {arrivals.length}
-        </span>
-      </div>
-      <p className="text-[10px] text-slate-400 mb-2">Più recenti in alto · tocca un PNG per i dettagli</p>
-      <div className="overflow-y-auto overflow-x-visible custom-scrollbar pr-1 pb-1">
-        <div className="grid grid-cols-10 gap-1 auto-rows-auto">
-          {arrivals.map((char,index)=>(
-            <details key={char.id} className="group relative min-w-0">
-              <summary title={char.name} aria-label={char.name}
-                className={`list-none cursor-pointer rounded border transition-all
-                  hover:border-cyan-300 focus-visible:ring-2 focus-visible:ring-cyan-300
-                  [&::-webkit-details-marker]:hidden
-                  ${index<4?'border-amber-400/75 bg-amber-700/25':'border-slate-600 bg-slate-950/70'}`}>
-                <img src={char.img} alt="" loading="lazy"
-                  className="block w-full aspect-square object-contain" />
-              </summary>
-              <div className="absolute z-30 left-1/2 -translate-x-1/2 top-full mt-1 w-44
-                rounded-xl border border-emerald-400/70 bg-slate-950 p-2 shadow-2xl
-                text-center pointer-events-none">
-                <img src={char.img} alt="" className="w-16 h-16 mx-auto object-contain mb-1"/>
-                <div className="font-black text-xs text-white leading-tight">{char.name}</div>
-                <div className="flex flex-wrap gap-1 justify-center mt-1">
-                  {char.types.map(t=>(
-                    <span key={t} className={`text-[8px] font-black uppercase rounded px-1 py-0.5
-                      ${TYPE_STYLES[t]||'bg-slate-700'}`}>{t}</span>
-                  ))}
-                </div>
-              </div>
-            </details>
-          ))}
+    <>
+      <aside className="recent-arrivals-panel" aria-label="Nuovi Multimon, dal più recente">
+        <div className="recent-arrivals-panel-top">
+          <span className="recent-arrivals-eyebrow">✦ IL MULTIVERSO SI ESPANDE ✦</span>
+          <div className="recent-arrivals-title-row">
+            <h3><span aria-hidden="true">✨</span> Nuovi Arrivi</h3>
+            <span className="recent-arrivals-total" aria-label={arrivals.length+' nuovi Multimon'}>{arrivals.length}</span>
+          </div>
+          <p>PNG più grandi, nomi leggibili e schede da esplorare.</p>
         </div>
-      </div>
-    </aside>
+
+        <div className="recent-arrivals-scroll custom-scrollbar">
+          {arrivals.length>0&&<>
+            <div className="recent-arrivals-section-heading"><span>★ ULTIMI ARRIVATI</span><small>In primo piano</small></div>
+            <div className="recent-arrivals-featured-grid">
+              {arrivals.slice(0,4).map((char,index)=>portrait(char,index,true))}
+            </div>
+          </>}
+          {arrivals.length>4&&<>
+            <div className="recent-arrivals-section-heading recent-arrivals-section-heading--archive">
+              <span>✧ ALTRI ARRIVI</span><small>{arrivals.length-4} Multimon</small>
+            </div>
+            <div className="recent-arrivals-roster-grid">
+              {arrivals.slice(4).map((char,index)=>portrait(char,index+4,false))}
+            </div>
+          </>}
+          {arrivals.length===0&&<p className="recent-arrivals-empty">Nessun nuovo Multimon disponibile.</p>}
+        </div>
+        <div className="recent-arrivals-footer">👆 Tocca un personaggio per vederlo in grande</div>
+      </aside>
+
+      {selected&&createPortal(
+        <div className="recent-arrivals-modal-backdrop" onMouseDown={e=>{
+          if(e.target===e.currentTarget)close();
+        }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="recent-arrivals-dialog-title"
+            className="recent-arrivals-modal">
+            <button type="button" ref={closeRef} onClick={close}
+              className="recent-arrivals-modal-close" aria-label="Chiudi i dettagli">✕</button>
+            <div className="recent-arrivals-modal-eyebrow">
+              ✦ NUOVI ARRIVI <span>{selectedIndex+1} / {arrivals.length}</span>
+            </div>
+            <div className="recent-arrivals-modal-art">
+              <img src={selected.img} alt={selected.name}/>
+            </div>
+            <h3 id="recent-arrivals-dialog-title">{selected.name}</h3>
+            <div className="recent-arrivals-modal-types">{types(selected)}</div>
+            <div className="recent-arrivals-modal-stats" aria-label="Statistiche del Multimon">
+              {[['PS',selected.hp],['ATT',selected.atk],['DIF',selected.def],['VEL',selected.spd]]
+                .filter(([,value])=>Number.isFinite(Number(value)))
+                .map(([label,value])=><span key={label}><small>{label}</small><strong>{value}</strong></span>)}
+            </div>
+            <div className="recent-arrivals-modal-nav">
+              <button type="button" onClick={()=>setSelectedIndex(i=>(i-1+arrivals.length)%arrivals.length)}
+                aria-label="Mostra il Multimon precedente">‹ Precedente</button>
+              <button type="button" onClick={()=>setSelectedIndex(i=>(i+1)%arrivals.length)}
+                aria-label="Mostra il prossimo Multimon">Successivo ›</button>
+            </div>
+          </section>
+        </div>,document.body
+      )}
+    </>
   );
 }

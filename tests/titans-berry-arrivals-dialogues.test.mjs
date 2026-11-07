@@ -120,7 +120,7 @@ test('Scivolata Gelata cura una sola volta Berry e alleati vivi sul campo, anche
    teams,field,{gameMode:'multipla'},[],['p1','p2','p3']),0);
 });
 
-test('Nuovi Arrivi: quattro arrivi di questa chat in cima, fino a 100 su 10 colonne',()=>{
+test('Nuovi Arrivi: quattro arrivi evidenziati e ritratti più leggibili',()=>{
  assert.deepEqual(RECENT_ARRIVALS_IDS.slice(0,4),
    ['frillish','berry','flameprincess','ametista']);
  const arrivals=recentArrivalCharacters(CHARACTERS);
@@ -130,10 +130,11 @@ test('Nuovi Arrivi: quattro arrivi di questa chat in cima, fino a 100 su 10 colo
  assert.ok(arrivals.length>24);
  const ui=contents('../src/components/RecentArrivalsGrid.jsx');
  const lobby=contents('../src/screens/battle/LobbyView.jsx');
- assert.match(ui,/grid-cols-10/);
+ assert.match(ui,/recent-arrivals-featured-grid/);
+ assert.match(ui,/recent-arrivals-roster-grid/);
  assert.match(ui,/\.slice\(0,100\)/);
- assert.match(ui,/<details/);
- assert.match(ui,/onClick|summary/);
+ assert.match(ui,/createPortal/);
+ assert.match(ui,/onClick/);
  assert.match(lobby,/<RecentArrivalsGrid/);
  assert.doesNotMatch(lobby,/newArrivals\.slice\(0, 20\)/);
 });

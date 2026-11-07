@@ -1,5 +1,5 @@
 // Dall'alto a sinistra: nuovi Multimon prima, poi le aggiunte storiche.
-// La griglia della Lobby mostra fino a 10 colonne x 10 righe.
+// La vetrina della Lobby mostra fino a 100 Multimon con schede grandi.
 // I personaggi non ancora presenti nel catalogo vengono ignorati.
 export const RECENT_ARRIVALS_IDS=Object.freeze([
   // Ultime aggiunte di questa chat (dal più recente):
