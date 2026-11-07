@@ -36,6 +36,8 @@ import { renderDraftingView } from './screens/battle/DraftingView.jsx';
 import { renderSwitchingPhaseView } from './screens/battle/SwitchingPhaseView.jsx';
 import { renderBattlingView } from './screens/battle/BattlingView.jsx';
 import { renderGameoverView } from './screens/battle/GameoverView.jsx';
+import {VictoryCelebration} from './screens/battle/VictoryCelebration.jsx';
+import {victoryCelebrationForRoom} from './systems/victoryCosmetics.js';
 import { renderIntermissionView } from './screens/battle/IntermissionView.jsx';
 import { renderPreBattleView } from './screens/battle/PreBattleView.jsx';
 import { handleForceSkipImpl, handleObserveImpl, applyOnEnterPassiveImpl, startBattleImpl, generateCPUActionsForPlayerImpl, commitActionImpl, handleSelectMoveTargetImpl, checkTurnReadyImpl, calculateDamageImpl, calculateTurnImpl, playEventsAnimationImpl } from './systems/battleSystem.js';
@@ -159,6 +161,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const [catalogFilter, setCatalogFilter] = useState('Tutti');
           const [catalogSearch, setCatalogSearch] = useState('');
           const [shopCharSearch, setShopCharSearch] = useState('');
+          const [shopCosmeticTab,setShopCosmeticTab]=useState('entrances');
+          const [victoryPreview,setVictoryPreview]=useState(null);
 
           const [draftSearch, setDraftSearch] = useState('');
           const [draftFilterType, setDraftFilterType] = useState('Tutti');
@@ -1942,7 +1946,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (appMode === 'shop') {
-  const __screen = renderShopView({ ArrowLeft, BookOpen, CHARACTERS, Coins, IS_PREVIEW, ITEMS_DB, Lock, ShoppingCart, TYPE_STYLES, Unlock, Users, appMode, gameState, getPlayerData, setAppMode, setGameState, setShopCharSearch, setShopTab, setSystemAlert, shopCharSearch, shopTab, updateLocalStats });
+  const __screen = renderShopView({ ArrowLeft, BookOpen, CHARACTERS, Coins, IS_PREVIEW, ITEMS_DB, Lock, ShoppingCart, TYPE_STYLES, Unlock, Users, appMode, gameState, getPlayerData, setAppMode, setGameState, setShopCharSearch, setShopCosmeticTab, setShopTab, setSystemAlert, setVictoryPreview, shopCharSearch, shopCosmeticTab, shopTab, updateLocalStats });
   if (__screen !== undefined) return __screen;
 }
 
@@ -2018,6 +2022,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
         return null;
     }; // Fine renderView
+
+    // La scelta dell'animazione appartiene al VINCITORE e resta una
+    // proprietà condivisa della stanza. Nessuna modifica a KO o premi.
+    const victoryPresentation=(appMode==='online_room'||appMode==='local_room')
+      ?victoryCelebrationForRoom(gameState,getPlayerData(),appMode):null;
 
     return (
         <>
@@ -2180,6 +2189,16 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
             )}
             
             {renderView()}
+            {victoryPresentation&&<VictoryCelebration
+              key={victoryPresentation.id}
+              presentation={victoryPresentation}/>}
+            {appMode==='shop'&&victoryPreview&&<VictoryCelebration
+              key={'shop-preview-'+victoryPreview.id}
+              presentation={{id:'shop-preview-'+victoryPreview.id,
+                effect:victoryPreview,
+                winnerName:playerName||'Campione',
+                heroImage:CHARACTERS.find(c=>c.id==='kirby')?.img||''}}
+              onClose={()=>setVictoryPreview(null)}/>}
         </>
     );
 }

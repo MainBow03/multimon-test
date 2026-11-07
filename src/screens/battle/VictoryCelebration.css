@@ -1,0 +1,235 @@
+/* MULTIMON · dieci filmati di vittoria. Nessuna interazione con il motore. */
+.victory-cinema{
+ position:fixed;inset:0;z-index:180;isolation:isolate;overflow:hidden;
+ display:grid;place-items:center;text-align:center;
+ --victory-ink:#fde68a;--victory-accent:#f59e0b;
+ color:white;background:#06091bdc;
+ animation:victory-entry .55s ease-out both;
+}
+.victory-cinema-backdrop{position:absolute;inset:0;z-index:-8;
+ background:radial-gradient(ellipse at 50% 31%,color-mix(in srgb,var(--victory-accent) 58%,transparent),
+ transparent 53%),linear-gradient(155deg,#080b22,#17102d,#070c1e)}
+.victory-cinema::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:-4;
+ background:repeating-linear-gradient(0deg,transparent 0 8px,#fff1 9px,transparent 10px);
+ opacity:.13}
+.victory-cinema-light{position:absolute;z-index:-3;top:-15%;height:130%;
+ width:50%;filter:blur(17px);opacity:.3;background:linear-gradient(to bottom,var(--victory-ink),transparent);
+ clip-path:polygon(48% 0,52% 0,100% 100%,0 100%);
+ animation:victory-beam 3s ease-in-out infinite alternate}
+.victory-cinema-light--a{left:-14%;transform:rotate(-16deg)}
+.victory-cinema-light--b{right:-14%;transform:rotate(16deg);animation-delay:-1.5s}
+.victory-cinema-content{position:relative;z-index:5;max-width:min(770px,96vw);padding:29px 18px 20px;
+ display:flex;flex-direction:column;align-items:center;gap:6px;
+ animation:victory-content .75s cubic-bezier(.16,1,.3,1) both}
+.victory-cinema-kicker{font-weight:1000;letter-spacing:.19em;font-size:clamp(10px,1.5vw,14px);
+ color:var(--victory-ink);text-shadow:0 0 17px var(--victory-accent)}
+.victory-cinema-emblem{font-size:clamp(48px,8vw,90px);filter:drop-shadow(0 0 28px var(--victory-accent));
+ animation:victory-float 2.4s ease-in-out infinite alternate}
+.victory-cinema-hero{position:relative;display:grid;place-items:center;
+ height:clamp(130px,25vh,245px);width:min(310px,53vw);margin:0 auto;
+ filter:drop-shadow(0 10px 24px #000c)}
+.victory-cinema-hero::before{content:'';position:absolute;inset:8% 1%;
+ background:radial-gradient(ellipse,var(--victory-accent),transparent 68%);opacity:.65;filter:blur(18px);z-index:-1}
+.victory-cinema-hero img{max-height:100%;width:100%;object-fit:contain;
+ filter:drop-shadow(0 8px 9px #000b);animation:victory-character .85s ease-out both}
+.victory-cinema-content h2{max-width:760px;margin:6px auto 0;font-size:clamp(24px,4.8vw,48px);
+ font-weight:1000;line-height:1.13;font-style:italic;letter-spacing:-.035em;
+ color:#fff;text-shadow:0 4px 0 #0f172a,0 0 19px var(--victory-accent);
+ animation:victory-title .95s cubic-bezier(.16,1,.3,1) both}
+.victory-cinema-divider{color:var(--victory-ink);letter-spacing:.15em;font-size:13px}
+.victory-cinema-winner{font-size:clamp(21px,4vw,38px);color:var(--victory-ink);
+ font-weight:1000;line-height:1.12;text-shadow:0 0 24px var(--victory-accent);overflow-wrap:anywhere}
+.victory-cinema-content p{font-size:13px;color:#e2e8f0;font-weight:850;margin-top:2px}
+.victory-cinema-skip{margin:14px auto 0;min-height:42px;pointer-events:auto;
+ border:1px solid var(--victory-ink);background:#020617c9;color:white;border-radius:99px;
+ padding:10px 18px;font-size:12px;font-weight:1000;box-shadow:0 0 18px #0008;
+ transition:transform .2s,background .2s}
+.victory-cinema-skip:hover,.victory-cinema-skip:focus-visible{transform:translateY(-3px);background:#1e293b}
+.victory-cinema-orbit,.victory-cinema-curtain,.victory-cinema-disco-ball,
+.victory-cinema-flower,.victory-cinema-water,.victory-cinema-crystal,
+.victory-cinema-fireworks{position:absolute;pointer-events:none;z-index:-2;display:none}
+.victory-cinema-particles{position:absolute;inset:0;z-index:1;pointer-events:none}
+.victory-cinema-particles span{position:absolute;left:var(--particle-x);top:-12%;
+ width:9px;height:17px;background:var(--victory-ink);
+ box-shadow:0 0 10px var(--victory-accent);border-radius:2px;
+ opacity:0;transform:scale(var(--particle-scale));
+ animation:victory-snow var(--particle-duration) linear infinite;
+ animation-delay:var(--particle-delay)}
+/* 1 · Coronazione: corona enorme e colonne dorate. */
+.victory-cinema--coronation .victory-cinema-backdrop{
+ background:radial-gradient(ellipse at 50% 0%,#fde68a88,transparent 53%),
+ repeating-linear-gradient(90deg,#fef08a12 0 4px,transparent 5px 140px),
+ linear-gradient(150deg,#4b2506,#2b1453 59%,#110b22)}
+.victory-cinema--coronation .victory-cinema-orbit{display:block;top:5%;left:50%;
+ transform:translateX(-50%);width:min(76vw,600px);aspect-ratio:1;border-radius:50%;
+ border:15px double #fde68a76;box-shadow:0 0 40px #f59e0b77,inset 0 0 37px #fbbf2455;
+ animation:victory-crown 4.7s ease-in-out infinite alternate}
+.victory-cinema--coronation .victory-cinema-particles span{
+ clip-path:polygon(50% 0,62% 38%,100% 50%,62% 60%,50% 100%,38% 60%,0 50%,38% 38%);
+ background:#fef08a}
+/* 2 · Comete: stelle in diagonale, scie lunghe su sfondo notturno. */
+.victory-cinema--comet .victory-cinema-backdrop{
+ background:radial-gradient(ellipse at 50% 0%,#38bdf875,transparent 57%),#070a29}
+.victory-cinema--comet .victory-cinema-particles span{width:clamp(30px,5vw,85px);height:3px;
+ border-radius:99px;background:linear-gradient(90deg,transparent,#38bdf8,#fff);
+ transform:rotate(-24deg);box-shadow:0 0 19px #67e8f9;
+ animation:victory-comet var(--particle-duration) linear infinite}
+/* 3 · Rainbow: concentric conic rainbow rings, rotating gradients. */
+.victory-cinema--rainbow .victory-cinema-backdrop{background:
+ radial-gradient(ellipse at 50% 30%,#fb71858a,transparent 60%),
+ linear-gradient(140deg,#4c1d95,#1d4ed8)}
+.victory-cinema--rainbow .victory-cinema-orbit{display:block;
+ top:16%;left:50%;width:min(92vw,760px);aspect-ratio:1;
+ border-radius:50%;transform:translateX(-50%);
+ background:conic-gradient(#ef4444,#f97316,#facc15,#22c55e,#38bdf8,#a855f7,#ec4899,#ef4444);
+ -webkit-mask:radial-gradient(circle,transparent 55%,#000 58%,#000 61%,transparent 66%);
+ mask:radial-gradient(circle,transparent 55%,#000 58%,#000 61%,transparent 66%);
+ filter:blur(4px);animation:victory-rainbow 5s linear infinite}
+.victory-cinema--rainbow .victory-cinema-particles span:nth-child(6n+1){background:#f87171}
+.victory-cinema--rainbow .victory-cinema-particles span:nth-child(6n+2){background:#facc15}
+.victory-cinema--rainbow .victory-cinema-particles span:nth-child(6n+3){background:#4ade80}
+.victory-cinema--rainbow .victory-cinema-particles span:nth-child(6n+4){background:#67e8f9}
+.victory-cinema--rainbow .victory-cinema-particles span:nth-child(6n+5){background:#c084fc}
+.victory-cinema--rainbow .victory-cinema-particles span:nth-child(6n){background:#f9a8d4}
+/* 4 · Curtain: two giant velvet wings open and expose spotlight. */
+.victory-cinema--curtain .victory-cinema-backdrop{
+ background:radial-gradient(ellipse at 50% 0%,#fff5a855,transparent 55%),
+ linear-gradient(150deg,#4c0519,#1e102d)}
+.victory-cinema--curtain .victory-cinema-curtain{display:block;top:0;bottom:0;width:51%;
+ background:repeating-linear-gradient(90deg,#7f1d1d,#be123c 17px,#7f1d1d 38px);
+ border-right:9px solid #fbbf2499;box-shadow:0 0 27px #000a;
+ animation:victory-curtain 3.2s cubic-bezier(.2,.83,.2,1) both}
+.victory-cinema-curtain--left{left:0;border-radius:0 0 35% 0;--curtain-move:-96%}
+.victory-cinema-curtain--right{right:0;border-radius:0 0 0 35%;--curtain-move:96%}
+.victory-cinema--curtain .victory-cinema-particles span{background:#fbbf24}
+/* 5 · Disco: glitter mirrored sphere and three laser slices. */
+.victory-cinema--disco .victory-cinema-backdrop{background:
+ repeating-linear-gradient(160deg,transparent 0 35px,#f0abfc1a 36px 38px),
+ radial-gradient(ellipse at 50% 20%,#e879f972,transparent 50%),#0b0630}
+.victory-cinema--disco .victory-cinema-disco-ball{display:block;top:5%;right:8%;
+ width:clamp(85px,16vw,185px);aspect-ratio:1;border-radius:50%;
+ background:
+ repeating-linear-gradient(0deg,transparent 0 15px,#fff9 16px 17px),
+ repeating-linear-gradient(90deg,#c4b5fd,#c4b5fd 13px,#475569 14px,#f0abfc 17px);
+ box-shadow:0 0 55px #f0abfc,0 0 85px #67e8f94d;
+ animation:victory-disco 3s ease-in-out infinite alternate}
+.victory-cinema--disco .victory-cinema-light--a{background:linear-gradient(#f0abfc,transparent);
+ transform:rotate(-25deg)}
+.victory-cinema--disco .victory-cinema-light--b{background:linear-gradient(#67e8f9,transparent);
+ transform:rotate(25deg)}
+.victory-cinema--disco .victory-cinema-particles span{border-radius:50%;background:#f0abfc;
+ animation-duration:1.4s}
+/* 6 · Bloom: magical spring forest and petal showers. */
+.victory-cinema--bloom .victory-cinema-backdrop{background:
+ radial-gradient(ellipse at 50% 12%,#bef26475,transparent 54%),
+ radial-gradient(ellipse at 50% 100%,#16a34a75,transparent 51%),#052e25}
+.victory-cinema--bloom .victory-cinema-flower{display:block;
+ font-size:clamp(140px,32vw,410px);left:-12%;bottom:-19%;line-height:1;
+ color:#a3e63577;text-shadow:0 0 56px #bef264;transform-origin:bottom;
+ animation:victory-bloom 4.5s ease-in-out infinite alternate}
+.victory-cinema--bloom .victory-cinema-flower--other{left:auto;right:-12%;bottom:-23%;
+ color:#f9a8d477;animation-delay:-2s}
+.victory-cinema--bloom .victory-cinema-particles span{
+ clip-path:polygon(50% 0,100% 35%,72% 100%,0 65%);background:#f9a8d4;border-radius:50% 0}
+/* 7 · Retro pixels: 8-bit grid, bright digital squares. */
+.victory-cinema--pixel .victory-cinema-backdrop{background:
+ repeating-linear-gradient(0deg,transparent 0 18px,#67e8f920 19px 20px),
+ repeating-linear-gradient(90deg,#0c1434,#0c1434 19px,#e879f920 20px 21px)}
+.victory-cinema--pixel .victory-cinema-particles span{border-radius:0;width:12px;height:12px;
+ background:#67e8f9;box-shadow:4px 4px 0 #e879f9;
+ animation:victory-pixel 2.3s steps(7) infinite}
+.victory-cinema--pixel .victory-cinema-content h2{
+ text-shadow:3px 0 #67e8f9,-3px 0 #f472b6,0 5px #020617}
+/* 8 · Ocean pearls: waves with translucent bubbles rising. */
+.victory-cinema--ocean .victory-cinema-backdrop{background:
+ radial-gradient(ellipse at 50% 0%,#5eead483,transparent 52%),
+ linear-gradient(180deg,#083344,#075985,#051326)}
+.victory-cinema--ocean .victory-cinema-water{display:block;left:-20%;width:140%;height:55%;bottom:-20%;
+ border:5px solid #99f6e48a;border-radius:50%;
+ background:#38bdf84d;box-shadow:0 0 60px #67e8f9;
+ animation:victory-ocean 3.7s ease-in-out infinite alternate}
+.victory-cinema--ocean .victory-cinema-particles span{border:2px solid #c7f9f5;
+ background:#c7f9f52a;border-radius:50%;width:18px;height:18px;
+ animation:victory-bubbles var(--particle-duration) ease-in infinite}
+/* 9 · Diamonds: rotating polygon facets. */
+.victory-cinema--diamonds .victory-cinema-backdrop{background:
+ radial-gradient(ellipse at 50% 25%,#93c5fd91,transparent 58%),
+ linear-gradient(150deg,#172554,#312e81 68%,#06102b)}
+.victory-cinema--diamonds .victory-cinema-crystal{display:block;width:min(40vw,290px);
+ height:min(55vh,380px);top:17%;left:3%;
+ background:linear-gradient(130deg,#fff9,#67e8f94d,#c4b5fdcc);
+ clip-path:polygon(50% 0,93% 35%,68% 100%,28% 93%,3% 38%);
+ filter:drop-shadow(0 0 35px #93c5fd);
+ animation:victory-crystal 4.5s ease-in-out infinite alternate}
+.victory-cinema--diamonds .victory-cinema-crystal--b{left:auto;right:3%;
+ transform:rotate(-35deg) scale(.76);animation-delay:-1.8s}
+.victory-cinema--diamonds .victory-cinema-particles span{width:12px;height:17px;
+ clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);background:#bfdbfe}
+/* 10 · Fireworks: pure CSS radial bursts in four positions. */
+.victory-cinema--fireworks .victory-cinema-backdrop{background:
+ radial-gradient(ellipse at 50% 0%,#f59e0b66,transparent 54%),
+ linear-gradient(130deg,#101d49,#380b4c 65%,#06081d)}
+.victory-cinema--fireworks .victory-cinema-fireworks{display:block;inset:0}
+.victory-cinema-fireworks span{display:block;position:absolute;width:clamp(90px,20vw,220px);
+ aspect-ratio:1;border-radius:50%;
+ background:repeating-conic-gradient(from 0deg,#fde68a 0 4deg,transparent 4deg 18deg,
+ #f9a8d4 18deg 22deg,transparent 22deg 36deg);
+ -webkit-mask:radial-gradient(circle,transparent 20%,#000 29%,#000 38%,transparent 45%);
+ mask:radial-gradient(circle,transparent 20%,#000 29%,#000 38%,transparent 45%);
+ filter:drop-shadow(0 0 20px #fbbf24);
+ animation:victory-firework 2s ease-out infinite}
+.victory-cinema-fireworks span:nth-child(1){top:4%;left:6%}
+.victory-cinema-fireworks span:nth-child(2){top:7%;right:6%;animation-delay:-.85s}
+.victory-cinema-fireworks span:nth-child(3){bottom:12%;left:3%;animation-delay:-1.4s}
+.victory-cinema-fireworks span:nth-child(4){bottom:10%;right:3%;animation-delay:-.3s}
+.victory-cinema--fireworks .victory-cinema-particles span{width:6px;height:6px;
+ border-radius:50%;background:#fef08a}
+@keyframes victory-entry{from{opacity:0}to{opacity:1}}
+@keyframes victory-content{from{opacity:0;transform:translateY(32px) scale(.88)}
+ to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes victory-beam{from{opacity:.15;filter:blur(18px)}to{opacity:.43;filter:blur(27px)}}
+@keyframes victory-title{from{opacity:0;transform:scale(1.28);filter:blur(8px)}
+ to{opacity:1;transform:scale(1);filter:blur(0)}}
+@keyframes victory-character{from{opacity:0;transform:translateY(65px) scale(.76) rotate(-5deg)}
+ to{opacity:1;transform:translateY(0) scale(1) rotate(0)}}
+@keyframes victory-float{from{transform:translateY(0) rotate(-5deg)}
+ to{transform:translateY(-9px) rotate(5deg)}}
+@keyframes victory-snow{0%{opacity:0;transform:translateY(-20px) rotate(0) scale(var(--particle-scale))}
+ 14%{opacity:.85}85%{opacity:.7}100%{opacity:0;transform:translateY(110vh) rotate(550deg) scale(var(--particle-scale))}}
+@keyframes victory-crown{from{opacity:.5;filter:blur(0)}to{opacity:1;filter:blur(5px)}}
+@keyframes victory-comet{0%{opacity:0;transform:translate(-45vw,-15vh) rotate(-24deg)}
+ 17%{opacity:1}100%{opacity:0;transform:translate(115vw,110vh) rotate(-24deg)}}
+@keyframes victory-rainbow{from{rotate:0deg}to{rotate:360deg}}
+@keyframes victory-curtain{from{transform:translateX(0)}to{transform:translateX(var(--curtain-move))}}
+@keyframes victory-disco{from{transform:rotate(-12deg) scale(.92)}to{transform:rotate(14deg) scale(1.05)}}
+@keyframes victory-bloom{from{opacity:.36;transform:scale(.8) rotate(-10deg)}
+ to{opacity:1;transform:scale(1.13) rotate(10deg)}}
+@keyframes victory-pixel{0%{opacity:0;transform:translateY(-25vh) scale(.4)}
+ 30%{opacity:1}100%{opacity:0;transform:translateY(105vh) scale(1.25)}}
+@keyframes victory-ocean{from{transform:translate(-3%,-4%) rotate(-3deg)}
+ to{transform:translate(3%,4%) rotate(3deg)}}
+@keyframes victory-bubbles{from{opacity:0;transform:translateY(100vh) scale(.2)}
+ 24%{opacity:.84}to{opacity:0;transform:translateY(-20vh) scale(1.5)}}
+@keyframes victory-crystal{from{opacity:.65;transform:rotate(-15deg) scale(.9)}
+ to{opacity:1;transform:rotate(13deg) scale(1.09)}}
+@keyframes victory-firework{0%{transform:scale(.15);opacity:0}
+ 28%{opacity:1}100%{transform:scale(1.7);opacity:0}}
+@media(max-width:650px){
+ .victory-cinema-content{padding:16px 9px}
+ .victory-cinema-emblem{font-size:45px}
+ .victory-cinema-hero{height:clamp(105px,20vh,165px)}
+ .victory-cinema-content h2{font-size:clamp(19px,6vw,30px)}
+ .victory-cinema-winner{font-size:clamp(19px,5.5vw,27px)}
+ .victory-cinema-kicker{font-size:9px;letter-spacing:.08em}
+ .victory-cinema-content p{font-size:11px}
+ .victory-cinema-skip{margin-top:8px}
+}
+@media(prefers-reduced-motion:reduce){
+ .victory-cinema,.victory-cinema-content,.victory-cinema-title,.victory-cinema-emblem,
+ .victory-cinema-hero img,.victory-cinema-light,.victory-cinema-orbit,
+ .victory-cinema-curtain,.victory-cinema-disco-ball,.victory-cinema-flower,
+ .victory-cinema-water,.victory-cinema-crystal,.victory-cinema-fireworks span,
+ .victory-cinema-particles span,.victory-cinema-content h2{animation:none!important;transition:none!important}
+ .victory-cinema-particles span{display:none}
+ .victory-cinema-curtain{display:none}
+}

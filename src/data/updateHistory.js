@@ -14,6 +14,19 @@ export const UPDATE_CATEGORIES = [
 ];
 export const GAME_UPDATES = [
 
+  {id:'nov7-victory-cosmetics-ten-effects',category:'features',date:'07/11/2026',
+    title:'🏆🎆 Dieci animazioni di vittoria originali nel Negozio Cosmetici!',items:[
+      'La sezione Cosmetici contiene ora due cataloghi separati: 16 Entrate Ultimon e 10 Animazioni di Vittoria, selezionabili con schede in alto.',
+      'Sono arrivate dieci celebrazioni personalizzate: Incoronazione Celestiale, Comete della Gloria, Esplosione Arcobaleno, L’Ultimo Sipario, Disco Nebulosa, Giardino dei Campioni, Game Over? Mai!, Perle degli Abissi, Tempesta di Diamanti e Festival dei Dieci Cieli.',
+      'Ogni animazione ha una scenografia diversa con particelle e animazioni CSS dedicate, colori distintivi, una frase di vittoria e il PNG di un Multimon della squadra vincitrice.',
+      'Il costo è di 100 monete per animazione. Gli acquisti sono permanenti, vengono salvati nel profilo e non conferiscono alcun vantaggio nelle battaglie. La prima acquistata si equipaggia automaticamente.',
+      'Nel negozio puoi acquistare, vedere un’Anteprima prima dell’acquisto, equipaggiare una sola animazione per volta o disattivare tutte le celebrazioni.',
+      'Nelle battaglie normali, nelle campagne e nella modalità Ultimon, il filmato della squadra vincente appare sopra la schermata dei risultati e si chiude automaticamente; con Continua ai risultati puoi saltarlo immediatamente.',
+      'Nelle stanze online la scelta equipaggiata di ciascun giocatore viene sincronizzata insieme al suo profilo nella stanza: tutti vedono l’effetto del VINCITORE, senza interferire con turni, premi o risultati.',
+      'Le celebrazioni sono responsive su tablet e telefono e rispettano la preferenza di movimento ridotto; chi non ne acquista usa le normali schermate di vittoria.'
+    ]},
+
+
   {id:'nov7-cosmetics-shop-visible-purchase-cards',category:'fixes',date:'07/11/2026',
    title:'🛍️ Negozio Cosmetici: sistemate le schede e i pulsanti Acquista!',items:[
     'Corretto il bug che schiacciava le 16 schede delle entrate Ultimon fino a mostrare soltanto l’icona e la scritta Da sbloccare: ogni card ha ora un’altezza minima e mostra nome, descrizione, slogan e prezzo.',

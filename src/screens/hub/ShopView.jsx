@@ -1,9 +1,11 @@
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import {ULTIMON_ENTRANCE_EFFECTS,ULTIMON_ENTRANCE_PRICE,ownedUltimonEntrances}
   from '../../systems/ultimonCosmetics.js';
+import {VICTORY_EFFECTS,VICTORY_EFFECT_PRICE,ownedVictoryEffects,equippedVictoryEffect}
+ from '../../systems/victoryCosmetics.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderShopView(ctx) {
-const { ArrowLeft, BookOpen, CHARACTERS, Coins, IS_PREVIEW, ITEMS_DB, Lock, ShoppingCart, TYPE_STYLES, Unlock, Users, appMode, gameState, getPlayerData, setAppMode, setGameState, setShopCharSearch, setShopTab, setSystemAlert, shopCharSearch, shopTab, updateLocalStats } = ctx;
+const { ArrowLeft, BookOpen, CHARACTERS, Coins, IS_PREVIEW, ITEMS_DB, Lock, ShoppingCart, TYPE_STYLES, Unlock, Users, appMode, gameState, getPlayerData, setAppMode, setGameState, setShopCharSearch, setShopTab, setShopCosmeticTab, setSystemAlert, setVictoryPreview, shopCharSearch, shopTab, shopCosmeticTab, updateLocalStats } = ctx;
 if (appMode === 'shop') {
         const playerData = getPlayerData();
         
@@ -32,6 +34,20 @@ if (appMode === 'shop') {
             setSystemAlert('✨ Hai sbloccato '+effect.name+'! È tuo per sempre.');
         };
         const ownedEntrances=new Set(ownedUltimonEntrances(playerData));
+        const ownedVictories=new Set(ownedVictoryEffects(playerData));
+        const equippedVictory=equippedVictoryEffect(playerData);
+        const handleBuyVictory=effect=>{
+            const result=updateLocalStats({buyVictoryEffect:effect.id});
+            if(!result?.ok){setSystemAlert(result?.reason||'Acquisto non riuscito.');return;}
+            setGameState(prev=>({...prev}));
+            setSystemAlert('🏆 '+effect.name+' acquistata!'+(!equippedVictory?' È già equipaggiata.':' Ora puoi equipaggiarla.'));
+        };
+        const handleEquipVictory=id=>{
+            const result=updateLocalStats({equipVictoryEffect:id});
+            if(!result?.ok){setSystemAlert(result?.reason||'Non puoi equipaggiare questo effetto.');return;}
+            setGameState(prev=>({...prev}));
+            setSystemAlert(id?'✨ Animazione di vittoria equipaggiata!':'Animazione di vittoria disattivata.');
+        };
 
         const handleBuyChar = (char) => {
             // --- LOGICA REGALO DELLA BETA ---
@@ -106,7 +122,20 @@ if (appMode === 'shop') {
                     )}
 
                     {shopTab === 'cosmetics'&&(
-                      <section className="flex-1 min-h-0 flex flex-col gap-3" aria-label="Catalogo dei cosmetici Ultimon">
+                      <section className="flex-1 min-h-0 flex flex-col gap-3" aria-label="Catalogo cosmetici">
+                        <nav className="flex flex-wrap gap-2 shrink-0" aria-label="Categorie cosmetici">
+                          <button type="button" onClick={()=>setShopCosmeticTab('entrances')}
+                            className={`flex-1 min-w-[145px] rounded-xl px-4 py-3 font-black text-xs border transition-all
+                              ${shopCosmeticTab==='entrances'?'bg-gradient-to-r from-violet-600 to-fuchsia-700 border-fuchsia-300 text-white':'bg-slate-950/70 border-violet-700/70 text-slate-300 hover:bg-slate-800'}`}>
+                            🎬 Entrate Ultimon · 16
+                          </button>
+                          <button type="button" onClick={()=>setShopCosmeticTab('victories')}
+                            className={`flex-1 min-w-[145px] rounded-xl px-4 py-3 font-black text-xs border transition-all
+                              ${shopCosmeticTab==='victories'?'bg-gradient-to-r from-amber-600 to-rose-600 border-yellow-300 text-white':'bg-slate-950/70 border-amber-700/70 text-slate-300 hover:bg-slate-800'}`}>
+                            🏆 Animazioni di Vittoria · 10
+                          </button>
+                        </nav>
+                        {shopCosmeticTab==='entrances'&&<>
                         <div className="shrink-0 rounded-2xl border border-fuchsia-400/50 bg-gradient-to-r from-purple-950 via-indigo-950 to-pink-950 p-4 sm:p-5">
                           <div className="flex items-center justify-between gap-3 flex-wrap">
                             <div>
@@ -149,6 +178,63 @@ if (appMode === 'shop') {
                             </article>;
                           })}
                         </div>
+                        </>}
+                        {shopCosmeticTab==='victories'&&<>
+                          <div className="shrink-0 rounded-2xl border border-amber-400/60 bg-gradient-to-r from-amber-950 via-violet-950 to-rose-950 p-4 sm:p-5">
+                            <div className="flex flex-wrap gap-3 justify-between items-center">
+                              <div>
+                                <h3 className="font-black text-lg sm:text-2xl text-amber-100">🏆 Animazioni di Vittoria</h3>
+                                <p className="text-xs sm:text-sm text-amber-50 mt-1">Festeggia la tua vittoria con uno spettacolo originale! <b>100 monete</b> per animazione, permanente.</p>
+                              </div>
+                              <span className="bg-black/60 border border-amber-400/70 rounded-full px-3 py-2 text-xs font-black text-amber-100">
+                                ✨ {ownedVictories.size}/{VICTORY_EFFECTS.length} sbloccate
+                              </span>
+                            </div>
+                            <p className="text-xs text-emerald-200 mt-2 font-bold">Ne puoi comprare tante, ma ne equipaggi una sola. Le vedono anche gli altri durante le partite online!</p>
+                            {equippedVictory&&<button type="button" onClick={()=>handleEquipVictory(null)}
+                              className="mt-3 px-3 py-2 text-xs font-black rounded-lg border border-slate-400 text-slate-200 hover:bg-slate-700">
+                              Disattiva animazione equipaggiata
+                            </button>}
+                          </div>
+                          <div className="grid min-h-0 flex-1 content-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 auto-rows-[minmax(255px,max-content)] gap-4 overflow-y-auto overscroll-contain custom-scrollbar p-2"
+                            aria-label="Animazioni di vittoria acquistabili">
+                            {VICTORY_EFFECTS.map(effect=>{
+                              const owned=ownedVictories.has(effect.id);
+                              const equipped=equippedVictory===effect.id;
+                              const affordable=Number(playerData.coins)>=VICTORY_EFFECT_PRICE;
+                              return <article key={effect.id} className="relative min-h-[255px] h-full rounded-2xl border-2 p-4 flex flex-col gap-2 shadow-xl transition-transform hover:-translate-y-1"
+                                style={{borderColor:effect.accent,background:`radial-gradient(circle at 50% 0%,${effect.accent}66,#101227 76%)`}}>
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-4xl" aria-hidden="true">{effect.icon}</span>
+                                  <span className={`text-[10px] font-black rounded-full px-2 py-1 border ${equipped?'bg-amber-400/30 text-amber-100 border-amber-300':owned?'bg-emerald-900/70 text-emerald-200 border-emerald-400':'bg-black/50 text-slate-200 border-slate-500'}`}>
+                                    {equipped?'👑 EQUIPAGGIATA':owned?'✓ POSSEDUTA':'🔒 DA SBLOCCARE'}
+                                  </span>
+                                </div>
+                                <h4 className="font-black text-lg leading-tight" style={{color:effect.color}}>{effect.name}</h4>
+                                <p className="text-xs text-slate-200 leading-relaxed flex-1">{effect.hint}</p>
+                                <div className="bg-black/45 border border-white/20 text-white rounded-xl px-3 py-2 text-[10px] font-black">{effect.tagline}</div>
+                                <button type="button" onClick={()=>setVictoryPreview(effect)}
+                                  aria-label={'Guarda anteprima di '+effect.name}
+                                  className="shrink-0 w-full rounded-lg border border-white/40 bg-black/40 px-3 py-2 text-xs font-black text-cyan-100 hover:bg-white/15">
+                                  👁️ Anteprima animazione
+                                </button>
+                                {owned?<button type="button" onClick={()=>handleEquipVictory(effect.id)} disabled={equipped}
+                                  aria-label={'Equipaggia '+effect.name}
+                                  className={`mt-auto min-h-[44px] w-full shrink-0 rounded-xl font-black text-xs border
+                                    ${equipped?'bg-emerald-900/50 border-emerald-500/60 text-emerald-200 cursor-default':
+                                      'bg-gradient-to-r from-amber-600 to-orange-600 border-amber-400 text-white hover:brightness-125'}`}>
+                                    {equipped?'✓ In uso':'✨ Equipaggia'}
+                                  </button>:<button type="button" onClick={()=>handleBuyVictory(effect)} disabled={!affordable}
+                                  aria-label={'Acquista '+effect.name+' per 100 monete'}
+                                  className={`mt-auto min-h-[44px] w-full shrink-0 rounded-xl font-black text-xs border
+                                    ${affordable?'bg-gradient-to-r from-fuchsia-600 to-purple-600 border-fuchsia-400 text-white hover:brightness-125':
+                                      'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed'}`}>
+                                    {affordable?'🪙 Acquista · 100 monete':'🔒 Servono 100 monete'}
+                                  </button>}
+                              </article>;
+                            })}
+                          </div>
+                        </>}
                       </section>
                     )}
 

@@ -2,6 +2,7 @@ import { roomRoleForUid, recoverableLegacyRole, findJoinableSlot, getRequiredSwi
 import { buildOnlineForfeitPatch } from './onlineForfeit.js';
 import {normalizeZodiacSpirit} from './zodiacSpirits.js';
 import { masteryVisibleLevels } from './masterySystem.js';
+import {equippedVictoryEffect} from './victoryCosmetics.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleAvatarUploadImpl = (ctx, e) => {
 const { setPlayerAvatarUrl } = ctx;
@@ -254,6 +255,8 @@ const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, player
             state.phaseStartedAt = Date.now();
             state.playerAvatars.p1 = playerAvatarUrl;
             state.playerTitles.p1 = playerTitle || '';
+            state.playerVictoryEffects={...(state.playerVictoryEffects||{}),
+              p1:equippedVictoryEffect(getPlayerData())};
             state.playerMastery.p1 = masteryVisibleLevels(getPlayerData());
             state.playerStrength.p1 = getPlayerData().strengthUpgrades || {};
             state.playerStrengthOwned.p1 = getPlayerData().unlockedChars || [];
@@ -290,8 +293,10 @@ const { appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, play
       const existing=roomRoleForUid(room,user.uid)||
         recoverableLegacyRole(room,session,code,playerName.trim(),user.uid);
       if(existing){
-        if(room.playerUids?.[existing]!==user.uid)
-          tx.update(ref,{[`playerUids.${existing}`]:user.uid});
+        tx.update(ref,{
+          [`playerUids.${existing}`]:user.uid,
+          [`playerVictoryEffects.${existing}`]:equippedVictoryEffect(getPlayerData())
+        });
         return {role:existing,returning:true,coop:!!room.isRoguelikeCoop,status:room.status};
       }
       // Mai prendere il posto di un giocatore che si è disconnesso:
@@ -311,6 +316,7 @@ const { appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, play
         [`playerUids.${slot}`]:user.uid,
         [`playerAvatars.${slot}`]:playerAvatarUrl,
         [`playerTitles.${slot}`]:playerTitle || '',
+        [`playerVictoryEffects.${slot}`]:equippedVictoryEffect(getPlayerData()),
         [`playerMastery.${slot}`]:masteryVisibleLevels(getPlayerData()),
         [`playerStrength.${slot}`]:getPlayerData().strengthUpgrades||{},
         [`playerStrengthOwned.${slot}`]:getPlayerData().unlockedChars||[],
@@ -411,6 +417,8 @@ const { getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitl
             state.players.p1 = playerName || "Gioc. 1";
             state.playerAvatars.p1 = playerAvatarUrl;
             state.playerTitles.p1 = playerTitle || '';
+            state.playerVictoryEffects={...(state.playerVictoryEffects||{}),
+              p1:equippedVictoryEffect(getPlayerData())};
             state.playerMastery.p1 = masteryVisibleLevels(getPlayerData());
             state.playerStrength.p1 = getPlayerData().strengthUpgrades || {};
             state.playerStrengthOwned.p1 = getPlayerData().unlockedChars || [];
@@ -428,6 +436,8 @@ const { getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitl
             state.players.p1 = playerName || "Giocatore";
             state.playerAvatars.p1 = playerAvatarUrl;
             state.playerTitles.p1 = playerTitle || '';
+            state.playerVictoryEffects={...(state.playerVictoryEffects||{}),
+              p1:equippedVictoryEffect(getPlayerData())};
             state.playerMastery.p1 = masteryVisibleLevels(getPlayerData());
             state.playerStrength.p1 = getPlayerData().strengthUpgrades || {};
             state.playerStrengthOwned.p1 = getPlayerData().unlockedChars || [];

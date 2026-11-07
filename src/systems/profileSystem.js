@@ -7,6 +7,7 @@ import { grantRoguelikeMilestone, grantRoguelikeCompletion, openPowerChest, ackn
 import {claimCoopPersonalRewards} from './coopPersonalRewards.js';
 import {claimUltimonPrize} from './ultimonRewards.js';
 import {purchaseUltimonEntrance} from './ultimonCosmetics.js';
+import {purchaseVictoryEffect,equipVictoryEffect} from './victoryCosmetics.js';
 
 const masteryEligibleIds = new Set(CHARACTERS.filter(isMasteryEligible).map(char => char.id));
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
@@ -38,6 +39,20 @@ const { getPlayerData } = ctx;
               // Roguelike: una cassa per traguardo di 5 piani della stessa run.
               // La registrazione e il saldo sono nello stesso salvataggio, per
               // impedire doppie ricompense al refresh o al doppio click.
+              if(updates.buyVictoryEffect){
+                  const result=purchaseVictoryEffect(current,updates.buyVictoryEffect);
+                  if(!result.ok)return result;
+                  current=result.profile;
+                  localStorage.setItem(key,JSON.stringify(current));
+                  return {ok:true,effect:result.effect,coins:current.coins};
+              }
+              if(Object.prototype.hasOwnProperty.call(updates,'equipVictoryEffect')){
+                  const result=equipVictoryEffect(current,updates.equipVictoryEffect);
+                  if(!result.ok)return result;
+                  current=result.profile;
+                  localStorage.setItem(key,JSON.stringify(current));
+                  return {ok:true,effectId:result.effectId};
+              }
               if(updates.buyUltimonEntrance){
                   // Una sola transazione del profilo: sblocca il cosmetico,
                   // scala 100 monete e salva tutto insieme, senza doppi acquisti.
