@@ -13,6 +13,20 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+
+  {id:'nov7-menu-dashboard-room-invites',category:'interface',date:'07/11/2026',title:'🌈🎮 Multimon Festival: menu coloratissimo, inviti online e Prestigi separati!',items:[
+    'Rifatto il menu come una vivace arena multiversale: Sonic, Kirby e Marceline compaiono in primo piano, con grandi PNG dei Multimon nelle modalità, forme più morbide, luci animate e colori ciano, blu, viola, rosa, verde, oro e corallo.',
+    'La navigazione resta divisa in Online, Avventure, Locale, Collezione e Profilo, ma ogni sezione ha colori riconoscibili, pulsanti più allegri e spazio per vedere i personaggi senza affollare lo schermo.',
+    'Statistiche rapide e profilo restano disponibili nella home: partite, vittorie, percentuale di successi e monete.',
+    'Quando un giocatore crea una stanza online può inserire il nome della partita e scegliere se pubblicarla. Le stanze pubbliche recenti e ancora aperte compaiono in un piccolo invito discreto nella home degli altri giocatori, con proprietario, modalità, posti e pulsante Unisciti.',
+    'L’invito è una sola scheda, senza popup a raffica. Può essere nascosto e la bacheca completa compare solo su richiesta. Le stanze iniziate, complete, private, senza host attivo e proprie non vengono proposte.',
+    'La creazione e l’accesso tramite codice stanza restano esattamente disponibili; le stanze private non vengono elencate pubblicamente ma sono raggiungibili con il codice.',
+    'Il Registro aggiornamenti ha un pulsante dedicato e sempre accessibile nel nuovo menu; nelle altre schermate rimane il suo pulsante globale.',
+    'Prestigi e Padronanza, titoli e progressi dei Multimon sono ora una sezione autonoma, separata dalle statistiche di carriera, senza perdere livelli o titoli già sbloccati.',
+    'Le statistiche personali includono ora sconfitte, numero di Multimon differenti giocati, mosse eseguite e tempo medio per partita; il menu mostra inoltre vittorie, partite, percentuale di vittorie e monete.',
+    'Il precedente menu rimane disponibile con il pulsante Menu classico. Si può tornare subito al nuovo menu da lì: la scelta viene ricordata su questo dispositivo, senza modificare il profilo o il salvataggio.'
+  ]},
+
   {id:'nov7-recent-arrivals-ui-redesign',category:'interface',date:'07/11/2026',title:'✨ Nuovi Arrivi: PNG più grandi e vetrina rinnovata!',items:[
     'Nella lobby, il pannello Nuovi Arrivi passa dalle dieci miniature minuscole per riga a una vetrina più ampia con ritratti grandi, nomi leggibili e colori vivaci.',
     'Frillish, Berry, Principessa Fiamma e Ametista restano i primi quattro arrivi e ricevono schede speciali in evidenza, con PNG ancora più grandi.',

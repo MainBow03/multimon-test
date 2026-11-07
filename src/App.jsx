@@ -64,8 +64,9 @@ import {ULTIMON_STAGES,createUltimonShowcase,identityPatch,nextUltimonPair,
   ultimonIsFinalShowdown} from './systems/ultimonSystem.js';
 
         import { onAuthStateChanged } from 'firebase/auth';
-        import { doc, setDoc, onSnapshot, getDoc, updateDoc, collection, runTransaction } from 'firebase/firestore';
+        import { doc, setDoc, onSnapshot, getDoc, updateDoc, collection, runTransaction, query, orderBy, limit } from 'firebase/firestore';
 import { visibleOnlinePlayers } from './systems/onlinePresence.js';
+import {visibleRoomInvitations} from './systems/roomInvitations.js';
 import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostFresh,
   prepareEmergencySwitch, getRequiredSwitches, resolveSwitchingRoom, nextPhaseAfterExecution } from './systems/roomRecovery.js';
 
@@ -124,6 +125,9 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const [playerName, setPlayerName] = useState(() => localStorage.getItem('multiverse_rpg_saved_name') || '');
           const [playerAvatarUrl, setPlayerAvatarUrl] = useState(() => localStorage.getItem('multiverse_rpg_saved_avatar') || ''); 
           const [roomIdInput, setRoomIdInput] = useState('');
+          const [roomInvitations,setRoomInvitations]=useState([]);
+          const [useClassicMenu,setUseClassicMenu]=useState(()=>
+            localStorage.getItem('multimon_menu_style_v2')==='classic');
           const [profileRevision, setProfileRevision] = useState(0);
           const [pendingModeGuide,setPendingModeGuide] = useState(null);
           const [masterySearch, setMasterySearch] = useState('');
@@ -985,6 +989,30 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               return () => { unsubscribe(); clearInterval(timer); };
           }, [user?.uid, showOnlinePlayers, sessionId]);
 
+          // Una sola riga di invito nel menu: la sottoscrizione è attiva solo
+          // in home, si sgancia quando si entra in una partita.
+          useEffect(()=>{
+            if(appMode!=='menu'||!user?.uid){setRoomInvitations([]);return;}
+            const collectionRef=collection(db,'artifacts',appId,'public','data','rooms');
+            const recent=query(collectionRef,orderBy('createdAt','desc'),limit(40));
+            let rows=[];
+            const refresh=()=>setRoomInvitations(visibleRoomInvitations(rows,user.uid));
+            const unsubscribe=onSnapshot(recent,snapshot=>{
+              rows=snapshot.docs.map(d=>({code:d.id,...d.data()}));
+              refresh();
+            },error=>{
+              console.warn('Inviti partite non disponibili: il codice stanza resta utilizzabile.',error);
+              setRoomInvitations([]);
+            });
+            const timer=setInterval(refresh,20000);
+            return()=>{unsubscribe();clearInterval(timer);};
+          },[appMode,user?.uid]);
+          const onMenuStyleChange=(mode)=>{
+            const classic=mode==='classic';
+            setUseClassicMenu(classic);
+            try{localStorage.setItem('multimon_menu_style_v2',classic?'classic':'new');}catch{}
+          };
+
           const handleObserve = (...__args) => handleObserveImpl({ setAppMode, setPlayerRole, setRoomId, setShowOnlinePlayers }, ...__args);
 
           // --- EFFETTO TRANSIZIONE CO-OP LOBBY -> DRAFT ONLINE ---
@@ -1717,7 +1745,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
     const renderView = () => {
         if (appMode === 'menu') {
-  const __screen = renderMenuView({ BarChart, BookOpen, CHARACTERS, GridIcon, IS_PREVIEW, ImageIcon, Shield, ShoppingCart, Swords, Target, Trophy, Upload, Users, Wifi, appMode, getDefaultAvatar, getPlayerData, handleAvatarUpload, handleCreateRoguelikeCoop, handleCreateRoom, handleJoinRoom, handleLocalStart, handleSurvivalStart, handleVsCpuStart, onlineUsers, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), roguelikeState, roomIdInput, sessionId, setAppMode, setPlayerAvatarUrl, setPlayerName, setRoguelikeDraftChoices, setRoguelikeState, setRoomIdInput, setShowOnlinePlayers, setSystemAlert, startWithModeGuide });
+  const __screen = renderMenuView({ BarChart, BookOpen, CHARACTERS, GridIcon, IS_PREVIEW, ImageIcon, Shield, ShoppingCart, Swords, Target, Trophy, Upload, Users, Wifi, appMode, getDefaultAvatar, getPlayerData, handleAvatarUpload, handleCreateRoguelikeCoop, handleCreateRoom, handleJoinRoom, handleLocalStart, handleSurvivalStart, handleVsCpuStart, onlineUsers, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), roguelikeState, roomIdInput, roomInvitations, useClassicMenu, onMenuStyleChange, sessionId, setAppMode, setPlayerAvatarUrl, setPlayerName, setRoguelikeDraftChoices, setRoguelikeState, setRoomIdInput, setShowOnlinePlayers, setSystemAlert, startWithModeGuide });
   if (__screen !== undefined) return __screen;
 }
     
@@ -1826,7 +1854,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
   if (__screen !== undefined) return __screen;
 }
 
-    if (appMode === 'stats') {
+    if (appMode === 'stats' || appMode === 'mastery') {
   const __screen = renderStatsView({ ArrowLeft, Swords, Target, Trophy, Users, CHARACTERS, FUSION_CHARACTERS, appMode, getPlayerData, playerName, masterySearch, setMasterySearch, masteryFilter, setMasteryFilter, setAppMode, updateLocalStats });
   if (__screen !== undefined) return __screen;
 }
@@ -1901,7 +1929,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
     return (
         <>
             <MultiverseEventHub appMode={appMode} user={user} playerName={playerName} playerAvatarUrl={playerAvatarUrl} playerTitle={getPlayerTitle()} getPlayerData={getPlayerData} updateLocalStats={updateLocalStats} />
-            <UpdateHistoryPanel appMode={appMode} />
+            <UpdateHistoryPanel appMode={appMode} hideLauncher={appMode==='menu'&&!useClassicMenu} />
             {pendingModeGuide&&<FirstVisitModeGuide key={pendingModeGuide.key}
               guideKey={pendingModeGuide.key}
               onCancel={()=>setPendingModeGuide(null)}
