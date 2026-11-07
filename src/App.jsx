@@ -26,6 +26,7 @@ import {canSubmitCoopAction,canCommitCoopTurn,coopValidatedActionDelta} from './
 import { renderShopView } from './screens/hub/ShopView.jsx';
 import { StrengthLabView } from './screens/hub/StrengthLabView.jsx';
 import { migrateCampaignChests } from './systems/campaignChests.js';
+import {grantMultimonWelcomeKeys} from './systems/multimonKeys.js';
 import { CampaignChestsView } from './screens/hub/CampaignChestsView.jsx';
 import { PowerChestsView } from './screens/hub/PowerChestsView.jsx';
 import { renderStatsView } from './screens/hub/StatsView.jsx';
@@ -1090,8 +1091,12 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               const key = `multiverse_rpg_global_profile`;
               const reconcile = data => {
                   const migration=migrateCampaignChests(data,CAMPAIGNS,localStorage);
-                  if(migration.changed)localStorage.setItem(key,JSON.stringify(migration.profile));
-                  return migration.profile;
+                  // Assegna il regalo ai veterani al prossimo accesso,
+                  // dopo aver recuperato il loro profilo (anche dal cloud).
+                  const keys=grantMultimonWelcomeKeys(migration.profile);
+                  if(migration.changed||keys.changed)
+                      localStorage.setItem(key,JSON.stringify(keys.profile));
+                  return keys.profile;
               };
               const raw = localStorage.getItem(key);
               if (raw) {

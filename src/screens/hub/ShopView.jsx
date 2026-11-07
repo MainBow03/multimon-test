@@ -3,11 +3,13 @@ import {ULTIMON_ENTRANCE_EFFECTS,ULTIMON_ENTRANCE_PRICE,ownedUltimonEntrances}
   from '../../systems/ultimonCosmetics.js';
 import {VICTORY_EFFECTS,VICTORY_EFFECT_PRICE,ownedVictoryEffects,equippedVictoryEffect}
  from '../../systems/victoryCosmetics.js';
+import {multimonKeyBalance,MULTIMON_WELCOME_KEYS} from '../../systems/multimonKeys.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderShopView(ctx) {
 const { ArrowLeft, BookOpen, CHARACTERS, Coins, IS_PREVIEW, ITEMS_DB, Lock, ShoppingCart, TYPE_STYLES, Unlock, Users, appMode, gameState, getPlayerData, setAppMode, setGameState, setShopCharSearch, setShopTab, setShopCosmeticTab, setSystemAlert, setVictoryPreview, shopCharSearch, shopTab, shopCosmeticTab, updateLocalStats } = ctx;
 if (appMode === 'shop') {
         const playerData = getPlayerData();
+        const multimonKeys=multimonKeyBalance(playerData);
         
         const handleBuyItem = (itemDef) => {
             if(itemDef.type==='held' && (playerData.inventory?.[itemDef.id]||0)>0){
@@ -49,6 +51,16 @@ if (appMode === 'shop') {
             setSystemAlert(id?'✨ Animazione di vittoria equipaggiata!':'Animazione di vittoria disattivata.');
         };
 
+        const handleRedeemKey = char => {
+            const result=updateLocalStats({redeemMultimonKey:char.id});
+            if(!result?.ok){
+                setSystemAlert(result?.reason||'Non è stato possibile usare la Chiave Multimon.');
+                return;
+            }
+            setGameState(current=>({...current}));
+            setSystemAlert('🔑 '+char.name+' sbloccato GRATIS con una Chiave Multimon! Chiavi rimaste: '+result.keys+'.');
+        };
+
         const handleBuyChar = (char) => {
             // --- LOGICA REGALO DELLA BETA ---
             if (!playerData.freeUnlockUsed) {
@@ -75,9 +87,16 @@ if (appMode === 'shop') {
                         <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 text-center flex-1 flex items-center justify-center gap-3">
                             <ShoppingCart size={32} className="text-amber-500" /> Negozio
                         </h2>
-                        <div className="flex items-center gap-2 bg-black/50 px-5 py-2 rounded-full border border-amber-500/50">
-                            <Coins size={24} className="text-yellow-400" />
-                            <span className="font-black text-xl text-yellow-400">{playerData.coins}</span>
+                        <div className="flex flex-col items-end gap-1.5 shrink-0">
+                          <div className="flex items-center gap-2 bg-black/50 px-3 sm:px-5 py-2 rounded-full border border-amber-500/50">
+                            <Coins size={20} className="text-yellow-400" />
+                            <span className="font-black text-lg sm:text-xl text-yellow-400">{playerData.coins}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 rounded-full px-3 py-1 bg-cyan-950/70 border border-cyan-400/60"
+                            title="Una Chiave Multimon sblocca gratuitamente un personaggio del negozio">
+                            <span aria-hidden="true">🔑</span>
+                            <span className="text-cyan-100 text-xs sm:text-sm font-black">{multimonKeys} Chiavi</span>
+                          </div>
                         </div>
                     </div>
 
@@ -240,6 +259,27 @@ if (appMode === 'shop') {
 
                     {shopTab === 'chars' && (
                         <>
+                            <div className="mb-4 shrink-0 px-4 py-3 rounded-2xl border-2 border-cyan-400/60 bg-gradient-to-r from-cyan-950 via-slate-900 to-indigo-950 shadow-lg">
+                              <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex gap-3 items-center">
+                                  <span className="text-3xl sm:text-4xl" aria-hidden="true">🔑</span>
+                                  <div>
+                                    <h3 className="font-black text-cyan-100 text-base sm:text-lg">Chiavi Multimon</h3>
+                                    <p className="text-xs text-slate-200">
+                                      {playerData.multimonWelcomeKeysV1
+                                        ? 'Regalo veterani ricevuto! Sblocca 1 personaggio per chiave, senza spendere monete.'
+                                        : 'Completa la prima partita per ricevere 5 Chiavi Multimon gratuite.'}
+                                    </p>
+                                  </div>
+                                </div>
+                                <span className="text-sm font-black text-cyan-100 rounded-full border border-cyan-400 bg-cyan-500/20 px-4 py-2">
+                                  🔑 {multimonKeys} disponibili
+                                </span>
+                              </div>
+                              {playerData.multimonWelcomeKeysV1&&<p className="text-[11px] text-emerald-200 font-bold mt-2">
+                                🎁 Bonus una tantum: {MULTIMON_WELCOME_KEYS} Chiavi per chi ha già giocato. Le chiavi non scadono e non sostituiscono il Regalo Beta.
+                              </p>}
+                            </div>
                             {/* --- BANNER REGALO DELLA BETA --- */}
                             {!playerData.freeUnlockUsed && (
                                 <div className="mb-4 shrink-0 px-4 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl border border-emerald-400 flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(16,185,129,0.4)] animate-pulse">
@@ -260,7 +300,7 @@ if (appMode === 'shop') {
                                     className="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all placeholder-slate-500 shadow-inner"
                                 />
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 overflow-y-auto custom-scrollbar p-2">
+                            <div className="grid min-h-0 flex-1 content-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto overscroll-contain custom-scrollbar p-2">
                                 {CHARACTERS.filter(c => c.price && !c.isSummonOnly && c.name.toLowerCase().includes(shopCharSearch.toLowerCase())).sort((a,b) => a.price - b.price).map(char => {
                                     const isUnlocked = IS_PREVIEW || playerData.unlockedChars.includes(char.id);
                                     const hasFreeUnlock = !playerData.freeUnlockUsed; // <-- CONTROLLO SBLOCCO
@@ -277,21 +317,30 @@ if (appMode === 'shop') {
                                             </div>
 
                                         {isUnlocked ? (
-                                            <button disabled className="w-full py-2 rounded-xl font-bold flex items-center justify-center gap-1 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 text-xs cursor-default">
+                                            <button disabled className="w-full min-h-[42px] py-2 rounded-xl font-bold flex items-center justify-center gap-1 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 text-xs cursor-default">
                                                 <Unlock size={14}/> Sbloccato
                                             </button>
                                         ) : (
-                                            <button 
-                                                onClick={() => handleBuyChar(char)}
-                                                disabled={!canAfford}
-                                                className={`w-full py-2 rounded-xl font-bold flex items-center justify-center gap-1 transition-all text-xs ${hasFreeUnlock ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.6)] border border-emerald-300' : (canAfford ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-lg' : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700')}`}
-                                            >
-                                                {hasFreeUnlock ? (
-                                                    <>🎁 Sblocca Gratis</>
-                                                ) : (
-                                                    <><Lock size={14}/> {char.price} <Coins size={12}/></>
-                                                )}
-                                            </button>
+                                            <div className="flex flex-col gap-2">
+                                                {multimonKeys>0&&<button type="button"
+                                                    onClick={() => handleRedeemKey(char)}
+                                                    aria-label={'Sblocca '+char.name+' con 1 Chiave Multimon'}
+                                                    className="w-full min-h-[44px] py-2 px-2 rounded-xl font-black text-xs text-white
+                                                      bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500
+                                                      border border-cyan-300/70 shadow-lg transition-all">
+                                                    🔑 Usa 1 Chiave · GRATIS
+                                                </button>}
+                                                <button type="button"
+                                                    onClick={() => handleBuyChar(char)}
+                                                    disabled={!canAfford}
+                                                    className={`w-full min-h-[42px] py-2 px-2 rounded-xl font-bold flex items-center justify-center gap-1 transition-all text-xs ${hasFreeUnlock ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.6)] border border-emerald-300' : (canAfford ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-lg' : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700')}`}>
+                                                    {hasFreeUnlock ? (
+                                                        <>🎁 Regalo Beta (gratis)</>
+                                                    ) : (
+                                                        <><Lock size={14}/> {char.price} <Coins size={12}/></>
+                                                    )}
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                 );

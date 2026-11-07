@@ -8,6 +8,7 @@ import {claimCoopPersonalRewards} from './coopPersonalRewards.js';
 import {claimUltimonPrize} from './ultimonRewards.js';
 import {purchaseUltimonEntrance} from './ultimonCosmetics.js';
 import {purchaseVictoryEffect,equipVictoryEffect} from './victoryCosmetics.js';
+import {grantMultimonWelcomeKeys,redeemMultimonKey} from './multimonKeys.js';
 
 const masteryEligibleIds = new Set(CHARACTERS.filter(isMasteryEligible).map(char => char.id));
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
@@ -26,6 +27,9 @@ const { getPlayerData } = ctx;
                       current.equippedMasteryTitle = id;
               }
               if (updates.match) current.matches++;
+              // Anche i nuovi giocatori ricevono il regalo, una sola volta,
+              // quando termina la loro prima partita registrata.
+              current=grantMultimonWelcomeKeys(current).profile;
               if (updates.win) current.wins++;
               if (updates.playtime) current.playtime += updates.playtime;
               if (updates.char) {
@@ -39,6 +43,13 @@ const { getPlayerData } = ctx;
               // Roguelike: una cassa per traguardo di 5 piani della stessa run.
               // La registrazione e il saldo sono nello stesso salvataggio, per
               // impedire doppie ricompense al refresh o al doppio click.
+              if(updates.redeemMultimonKey){
+                  const result=redeemMultimonKey(current,updates.redeemMultimonKey,CHARACTERS);
+                  if(!result.ok)return result;
+                  current=result.profile;
+                  localStorage.setItem(key,JSON.stringify(current));
+                  return {ok:true,character:result.character,keys:current.multimonKeys};
+              }
               if(updates.buyVictoryEffect){
                   const result=purchaseVictoryEffect(current,updates.buyVictoryEffect);
                   if(!result.ok)return result;

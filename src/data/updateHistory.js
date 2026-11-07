@@ -14,6 +14,18 @@ export const UPDATE_CATEGORIES = [
 ];
 export const GAME_UPDATES = [
 
+  {id:'nov8-multimon-five-veteran-keys',category:'features',date:'08/11/2026',
+    title:'🔑 Regalo Veterani: 5 Chiavi Multimon per tutti i giocatori!',items:[
+      'Tutti i profili che hanno già giocato almeno una partita registrata ricevono automaticamente 5 Chiavi Multimon al prossimo accesso, anche se hanno creato l’account prima di questo aggiornamento.',
+      'Il bonus viene assegnato esattamente UNA volta per salvataggio, con un indicatore persistente; non si può duplicare aprendo il negozio, aggiornando la pagina o cambiando dispositivo con un account sincronizzato.',
+      'Ogni Chiave Multimon permette di sbloccare permanentemente un personaggio normalmente acquistabile nel negozio, anche se costa molte monete: si scala una chiave, ma ZERO monete.',
+      'La sezione Personaggi Sbloccabili mostra il saldo di Chiavi Multimon e un pulsante separato “Usa 1 Chiave · GRATIS” accanto al normale acquisto e al precedente Regalo Beta.',
+      'Il riscatto viene verificato e salvato in modo atomico: non si può spendere una chiave sullo stesso Multimon due volte, acquistare personaggi non presenti nel negozio o usare chiavi inesistenti.',
+      'I nuovi giocatori ricevono a loro volta le 5 chiavi dopo la prima partita registrata; un successivo incontro non le riaccredita.',
+      'Le chiavi sono permanenti, non scadono e rimangono nel profilo con gli altri progressi e i salvataggi cloud.'
+    ]},
+
+
   {id:'nov7-victory-cosmetics-ten-effects',category:'features',date:'07/11/2026',
     title:'🏆🎆 Dieci animazioni di vittoria originali nel Negozio Cosmetici!',items:[
       'La sezione Cosmetici contiene ora due cataloghi separati: 16 Entrate Ultimon e 10 Animazioni di Vittoria, selezionabili con schede in alto.',
