@@ -224,3 +224,250 @@
 @media(prefers-reduced-motion:reduce){
  .ultimon-intro-duplicate,.ultimon-intro-duplicate-fighter--new{animation:none!important}
 }
+
+
+/* ULTIMON: sei entrate ad effetto scelte dal capitano DOPO il monologo */
+.ultimon-intro-entrance-picker{text-align:center;padding:13px 8px 22px;max-width:1000px;margin:0 auto}
+.ultimon-intro-entrance-crown{color:#fde68a;font-size:11px;font-weight:1000;letter-spacing:.16em;
+ text-shadow:0 0 16px #f59e0b7a}
+.ultimon-intro-entrance-picker h3{font-weight:1000;color:#fff;
+ font-size:clamp(23px,4.4vw,37px);line-height:1.15;margin:10px auto 8px}
+.ultimon-intro-entrance-picker>p{color:#e2e8f0;font-size:13px;margin:0 auto 18px;max-width:620px}
+.ultimon-intro-entrance-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:13px;margin:15px auto 9px}
+.ultimon-intro-entrance-option{--entrance-accent:#7c3aed;--entrance-ink:#fff;
+ position:relative;min-height:185px;display:flex;flex-direction:column;align-items:center;gap:7px;
+ border:2px solid var(--entrance-accent);border-radius:20px 25px 18px 24px;
+ background:radial-gradient(ellipse at 50% 0%,var(--entrance-accent),transparent 160%),
+ linear-gradient(155deg,#1b2041,#0b1228);padding:15px 12px;color:white;
+ overflow:hidden;isolation:isolate;text-align:center;box-shadow:0 6px 0 #020617bd,0 11px 25px #0007;
+ transition:transform .18s,box-shadow .18s,filter .18s}
+.ultimon-intro-entrance-option:before{content:"✦";z-index:-1;position:absolute;
+ right:8px;top:3px;font-size:78px;opacity:.18;color:var(--entrance-ink);
+ transform:rotate(-15deg)}
+.ultimon-intro-entrance-option:hover,.ultimon-intro-entrance-option:focus-visible{
+ transform:translateY(-5px) rotate(-.6deg);box-shadow:0 10px 0 #020617bd,0 20px 30px #0008;
+ filter:brightness(1.18)}
+.ultimon-intro-entrance-option:focus-visible{outline:3px solid #fef08a;outline-offset:3px}
+.ultimon-intro-entrance-option:disabled{opacity:.62;cursor:wait}
+.ultimon-intro-entrance-option-icon{font-size:clamp(32px,5vw,48px);line-height:1.2;
+ filter:drop-shadow(0 6px 5px #000a)}
+.ultimon-intro-entrance-option strong{font-size:clamp(13px,2vw,18px);font-weight:1000;
+ line-height:1.16;color:#fff;text-shadow:0 2px 8px #020617}
+.ultimon-intro-entrance-option small{color:#eef2ff;font-size:11px;line-height:1.4;max-width:210px;
+ flex:1}
+.ultimon-intro-entrance-option b{display:block;padding:7px 10px;border:1px solid #ffffff75;
+ background:#02061783;border-radius:10px;color:var(--entrance-ink);font-size:10px;
+ letter-spacing:.035em}
+.ultimon-intro-entrance-option--starfall{background:radial-gradient(circle at 50% 0%,#b45309,#3a2056 63%,#11142c)}
+.ultimon-intro-entrance-option--thunder{background:radial-gradient(circle at 50% 0%,#6d28d9,#282269 63%,#0e142c)}
+.ultimon-intro-entrance-option--portal{background:radial-gradient(circle at 50% 0%,#0891b2,#1e3a8a 63%,#0e142c)}
+.ultimon-intro-entrance-option--inferno{background:radial-gradient(circle at 50% 0%,#ea580c,#7f1d1d 63%,#0e142c)}
+.ultimon-intro-entrance-option--royal{background:radial-gradient(circle at 50% 0%,#be185d,#6b21a8 63%,#0e142c)}
+.ultimon-intro-entrance-option--glitch{background:radial-gradient(circle at 50% 0%,#4f46e5,#0f766e 63%,#0e142c)}
+.ultimon-intro-entrance-confirmed{max-width:470px;margin:25px auto;padding:22px;
+ background:#172554ce;border-radius:20px;border:2px solid #fbbf24b5}
+.ultimon-intro-entrance-confirmed>div{font-size:54px}
+.ultimon-intro-entrance-confirmed h4{font-size:23px;font-weight:1000;color:#fde68a}
+.ultimon-intro-entrance-confirmed p{color:#dbeafe;font-size:12px;margin-top:8px}
+
+/* Il filmato è letto dallo stato Firestore: il CSS è solo la regia visiva. */
+.ultimon-intro-entrance-show{
+ --entrance-accent:#f59e0b;--entrance-ink:#fde68a;
+ position:relative;isolation:isolate;margin:13px auto 19px;
+ width:100%;max-width:1040px;min-height:clamp(415px,56vw,560px);
+ overflow:hidden;border:2px solid var(--entrance-accent);border-radius:28px;
+ background:linear-gradient(155deg,#121535,#080e25);
+ box-shadow:0 0 55px #0009,0 0 45px var(--entrance-accent);
+}
+.ultimon-intro-entrance-backdrop,.ultimon-intro-entrance-effect,
+.ultimon-intro-entrance-portal,.ultimon-intro-entrance-thunder,
+.ultimon-intro-entrance-flames,.ultimon-intro-entrance-red-carpet,
+.ultimon-intro-entrance-burst{position:absolute;pointer-events:none}
+.ultimon-intro-entrance-backdrop{inset:0;z-index:-3;
+ background:radial-gradient(ellipse at 50% 34%,var(--entrance-accent),transparent 65%),
+ linear-gradient(160deg,#161b47,#060b20);opacity:.8}
+.ultimon-intro-entrance-effect{inset:0;z-index:-1}
+.ultimon-intro-effect-particle{
+ --i:0;--delay:0s;--x:50%;--scale:1;
+ position:absolute;left:var(--x);top:-20%;width:10px;height:10px;
+ background:var(--entrance-ink);border-radius:3px;
+ transform:rotate(45deg) scale(var(--scale));opacity:0;
+ box-shadow:0 0 17px var(--entrance-accent);
+ animation:ultimon-cinema-stars 3s ease-in infinite;
+ animation-delay:var(--delay)
+}
+.ultimon-intro-entrance-vip{display:flex;position:relative;z-index:3;min-height:415px;
+ flex-direction:column;align-items:center;justify-content:flex-end;
+ padding:19px 16px 23px;text-align:center}
+.ultimon-intro-entrance-type{position:relative;z-index:6;
+ background:#020617cc;border:1px solid var(--entrance-accent);
+ border-radius:99px;padding:8px 19px;color:var(--entrance-ink);font-size:11px;
+ font-weight:1000;letter-spacing:.14em;box-shadow:0 0 22px var(--entrance-accent);
+ margin:0 auto 11px;text-transform:uppercase}
+.ultimon-intro-entrance-player-avatar{position:absolute;z-index:5;top:69px;left:50%;
+ transform:translateX(-50%);width:84px;height:84px;object-fit:cover;
+ border:4px solid var(--entrance-ink);border-radius:50%;background:#020617;
+ box-shadow:0 0 28px var(--entrance-accent),0 6px 14px #0009;
+ animation:ultimon-cinema-avatar .8s cubic-bezier(.2,1,.3,1) both}
+.ultimon-intro-entrance-fighters{position:relative;display:flex;align-items:end;
+ justify-content:center;gap:clamp(3px,2vw,15px);max-width:790px;width:100%;
+ min-height:clamp(153px,22vw,236px);padding:0 5px;margin:15px auto 8px}
+.ultimon-intro-entrance-fighter{position:relative;flex:1;min-width:0;max-width:180px;
+ display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+ transform-origin:50% 90%;opacity:0;
+ animation:ultimon-cinema-fighters 1.05s cubic-bezier(.16,1,.3,1) forwards;
+ animation-delay:calc(.4s + var(--fighter-index)*.23s)}
+.ultimon-intro-entrance-fighter img{width:100%;
+ height:clamp(135px,20vw,208px);object-fit:contain;object-position:center bottom;
+ filter:drop-shadow(0 7px 10px #000d) drop-shadow(0 0 8px var(--entrance-accent))}
+.ultimon-intro-entrance-fighter span{display:block;background:#020617b8;border:1px solid #ffffff63;
+ border-radius:99px;padding:4px 7px;color:#fff;font-size:10px;
+ font-weight:900;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ultimon-intro-entrance-vip h3{margin:9px auto 4px;color:var(--entrance-ink);
+ font-size:clamp(17px,4vw,34px);font-weight:1000;line-height:1.12;
+ text-shadow:0 4px 10px #000b,0 0 28px var(--entrance-accent);
+ animation:ultimon-cinema-title .9s ease-out both;animation-delay:1.5s}
+.ultimon-intro-entrance-show-team{font-size:clamp(17px,3vw,25px);
+ font-weight:1000;line-height:1.3;color:#fff;text-shadow:0 2px 8px #000b}
+.ultimon-intro-entrance-vip blockquote{font-size:clamp(11px,2vw,16px);color:#f8fafc;
+ font-weight:800;line-height:1.4;max-width:620px;margin:8px auto 0;
+ background:#020617cc;border:1px solid #ffffff56;border-radius:13px;
+ padding:10px 15px}
+
+/* 1. Pioggia di stelle: scintille e corona dorata. */
+.ultimon-intro-entrance-show--starfall .ultimon-intro-entrance-backdrop{
+ background:radial-gradient(ellipse at 50% 34%,#b4530988,transparent 60%),
+ linear-gradient(145deg,#25114f,#080e25)}
+.ultimon-intro-entrance-show--starfall .ultimon-intro-effect-particle{
+ clip-path:polygon(50% 0,61% 38%,100% 50%,61% 62%,50% 100%,39% 62%,0 50%,39% 38%);
+}
+
+/* 2. Tuono: un lampo centrale più flash sullo sfondo. */
+.ultimon-intro-entrance-show--thunder .ultimon-intro-entrance-backdrop{
+ background:repeating-linear-gradient(135deg,#7c3aed32 0 5px,transparent 6px 30px),
+ linear-gradient(130deg,#111a50,#36124c)}
+.ultimon-intro-entrance-thunder{display:none;z-index:-1;top:-25%;left:39%;
+ width:22%;height:112%;
+ clip-path:polygon(64% 0,34% 34%,71% 35%,26% 95%,49% 52%,20% 50%);
+ background:#e0e7ff;filter:drop-shadow(0 0 24px #c4b5fd);
+ animation:ultimon-cinema-lightning 2.5s ease-in-out infinite}
+.ultimon-intro-entrance-show--thunder .ultimon-intro-entrance-thunder{display:block}
+.ultimon-intro-entrance-show--thunder .ultimon-intro-effect-particle{border-radius:50%;background:#a5f3fc;
+ animation-duration:1.6s}
+
+/* 3. Portale: anello circolare con rotazione delle dimensioni. */
+.ultimon-intro-entrance-show--portal .ultimon-intro-entrance-backdrop{
+ background:radial-gradient(circle at 50% 46%,#22d3eea6,transparent 27%),
+ radial-gradient(circle at 50% 46%,#4338ca,#070a20 70%)}
+.ultimon-intro-entrance-portal{display:none;left:50%;top:42%;width:min(58%,430px);
+ aspect-ratio:1;transform:translate(-50%,-50%);border:10px double #a5f3fc;
+ border-radius:50%;box-shadow:0 0 0 12px #22d3ee36,0 0 50px #67e8f9,
+ inset 0 0 55px #06b6d4;background:radial-gradient(circle,#4338ca88,transparent 74%)}
+.ultimon-intro-entrance-portal:before{content:"";position:absolute;inset:-35px;border-radius:50%;
+ border:3px dashed #fde68a;animation:ultimon-cinema-portal 8s linear infinite}
+.ultimon-intro-entrance-show--portal .ultimon-intro-entrance-portal{display:block}
+
+/* 4. Inferno: colonne di fuoco e scintille in salita. */
+.ultimon-intro-entrance-show--inferno .ultimon-intro-entrance-backdrop{
+ background:radial-gradient(ellipse at 50% 105%,#f97316ba,transparent 72%),
+ linear-gradient(150deg,#7f1d1d,#1c1034)}
+.ultimon-intro-entrance-flames{display:none;inset:auto 0 0;height:36%;z-index:-1;
+ font-size:clamp(48px,11vw,125px);text-align:center;letter-spacing:9vw;white-space:nowrap;
+ opacity:.65;text-shadow:0 0 40px #f59e0b;animation:ultimon-cinema-flame 1.3s ease-in-out infinite alternate}
+.ultimon-intro-entrance-show--inferno .ultimon-intro-entrance-flames{display:block}
+.ultimon-intro-entrance-show--inferno .ultimon-intro-effect-particle{
+ width:5px;height:12px;background:#fbbf24;border-radius:80%;
+ animation-name:ultimon-cinema-embers;animation-duration:2s}
+
+/* 5. Tappeto rosso: tappeto prospettico e riflettori rosa/oro. */
+.ultimon-intro-entrance-show--royal .ultimon-intro-entrance-backdrop{
+ background:radial-gradient(ellipse at 30% 9%,#fef08a83,transparent 45%),
+ radial-gradient(ellipse at 85% 9%,#f9a8d486,transparent 45%),
+ linear-gradient(155deg,#69163b,#2a164a 65%,#0b1031)}
+.ultimon-intro-entrance-red-carpet{display:none;z-index:-1;left:17%;right:17%;bottom:-16%;height:72%;
+ clip-path:polygon(43% 0,57% 0,100% 100%,0 100%);
+ background:linear-gradient(90deg,#881337,#e11d48 47%,#be123c 65%,#881337);
+ border-top:2px solid #fef08a;box-shadow:0 0 25px #fda4af}
+.ultimon-intro-entrance-show--royal .ultimon-intro-entrance-red-carpet{display:block}
+.ultimon-intro-entrance-show--royal .ultimon-intro-effect-particle{
+ border-radius:50% 0 50% 0;background:#fda4af}
+
+/* 6. Glitch: scatti digitali e bande ciano. */
+.ultimon-intro-entrance-show--glitch .ultimon-intro-entrance-backdrop{
+ background:repeating-linear-gradient(0deg,transparent 0 9px,#67e8f91c 10px 11px),
+ repeating-linear-gradient(90deg,#0f172a,#0f172a 35px,#4f46e520 36px 38px),
+ linear-gradient(145deg,#312e81,#164e63)}
+.ultimon-intro-entrance-show--glitch .ultimon-intro-entrance-fighter img{
+ animation:ultimon-cinema-glitch 2.7s step-end infinite}
+.ultimon-intro-entrance-show--glitch .ultimon-intro-entrance-show-team{
+ text-shadow:3px 0 #f472b6,-3px 0 #67e8f9,0 5px #020617}
+.ultimon-intro-entrance-show--glitch .ultimon-intro-effect-particle{
+ width:18px;height:5px;border-radius:0;background:#67e8f9;animation-duration:1.2s}
+
+@keyframes ultimon-cinema-stars{
+ 0%{opacity:0;transform:translateY(-18px) rotate(0) scale(var(--scale))}
+ 14%{opacity:.95}
+ 90%{opacity:.85}
+ 100%{opacity:0;transform:translateY(620px) rotate(450deg) scale(var(--scale))}
+}
+@keyframes ultimon-cinema-embers{
+ 0%{opacity:0;transform:translateY(480px) scale(.5)}
+ 15%{opacity:1}
+ 100%{opacity:0;transform:translateY(-120px) scale(1.2)}
+}
+@keyframes ultimon-cinema-lightning{
+ 0%,18%,22%,27%,66%,100%{opacity:0}
+ 19%,25%,65%{opacity:1}
+}
+@keyframes ultimon-cinema-portal{to{transform:rotate(360deg)}}
+@keyframes ultimon-cinema-flame{
+ from{transform:translateY(10px) scaleY(.8);opacity:.5}
+ to{transform:translateY(-8px) scaleY(1.1);opacity:.85}
+}
+@keyframes ultimon-cinema-fighters{
+ from{opacity:0;transform:translateY(95px) scale(.65) rotate(-6deg)}
+ to{opacity:1;transform:translateY(0) scale(1) rotate(0)}
+}
+@keyframes ultimon-cinema-title{
+ from{opacity:0;transform:scale(1.35);filter:blur(6px)}
+ to{opacity:1;transform:scale(1);filter:blur(0)}
+}
+@keyframes ultimon-cinema-avatar{
+ from{opacity:0;transform:translateX(-50%) scale(.3) rotate(-40deg)}
+ to{opacity:1;transform:translateX(-50%) scale(1) rotate(0)}
+}
+@keyframes ultimon-cinema-glitch{
+ 0%,75%,82%,92%,100%{transform:translateX(0);filter:drop-shadow(0 7px 10px #000d)}
+ 77%,94%{transform:translateX(4px);filter:drop-shadow(5px 0 #f472b6)}
+ 80%,96%{transform:translateX(-4px);filter:drop-shadow(-5px 0 #22d3ee)}
+}
+@media(max-width:700px){
+ .ultimon-intro-entrance-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .ultimon-intro-entrance-option{min-height:171px;padding:12px 7px}
+ .ultimon-intro-entrance-option-icon{font-size:35px}
+ .ultimon-intro-entrance-option small{font-size:10px}
+ .ultimon-intro-entrance-show{min-height:420px;border-radius:20px}
+ .ultimon-intro-entrance-vip{padding:16px 7px 18px}
+ .ultimon-intro-entrance-fighters{gap:4px;margin-top:24px;min-height:170px}
+ .ultimon-intro-entrance-fighter img{height:clamp(125px,29vw,170px)}
+ .ultimon-intro-entrance-fighter span{font-size:8px;padding:3px}
+ .ultimon-intro-entrance-player-avatar{width:58px;height:58px;top:64px;border-width:3px}
+ .ultimon-intro-entrance-type{font-size:9px}
+ .ultimon-intro-entrance-vip h3{font-size:clamp(17px,5vw,27px)}
+ .ultimon-intro-entrance-vip blockquote{font-size:11px}
+}
+@media(max-width:360px){
+ .ultimon-intro-entrance-option small{font-size:9px}
+ .ultimon-intro-entrance-option strong{font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){
+ .ultimon-intro-entrance-option,.ultimon-intro-effect-particle,
+ .ultimon-intro-entrance-player-avatar,.ultimon-intro-entrance-fighter,
+ .ultimon-intro-entrance-vip h3,.ultimon-intro-entrance-thunder,
+ .ultimon-intro-entrance-portal:before,.ultimon-intro-entrance-flames,
+ .ultimon-intro-entrance-show--glitch .ultimon-intro-entrance-fighter img{animation:none!important;transition:none!important}
+ .ultimon-intro-entrance-fighter{opacity:1}
+ .ultimon-intro-effect-particle{opacity:.35;top:20%}
+ .ultimon-intro-entrance-thunder{opacity:.6}
+}

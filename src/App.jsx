@@ -58,7 +58,7 @@ import { TYPE_STYLES, TYPE_CHART, PLAYER_THEMES, getMultiplier, getDefaultAvatar
 import { initialGameState } from './systems/gameState.js';
 import { UltimonView } from './screens/battle/UltimonView.jsx';
 import {ultimonLeaderboard} from './systems/ultimonSystem.js';
-import {beginUltimonIntroduction,ultimonIntroMonologuePatch,advanceUltimonIntroduction} from './systems/ultimonIntro.js';
+import {beginUltimonIntroduction,ultimonIntroMonologuePatch,ultimonIntroEntrancePatch,advanceUltimonIntroduction} from './systems/ultimonIntro.js';
 import {ULTIMON_STAGES,createUltimonShowcase,identityPatch,nextUltimonPair,
   revealUltimonFormat,pickPatch,startUltimonDuel,finishUltimonDuel,finishUltimonElimination,
   ultimonIsFinalShowdown} from './systems/ultimonSystem.js';
@@ -1466,6 +1466,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
             room=>pickPatch(room,role,indices),role);
           const ultimonSpeech=(role,monologue)=>ultimonMutation(['ultimon_intro'],
             room=>ultimonIntroMonologuePatch(room,role,monologue),role);
+          const ultimonEntrance=(role,effectId)=>ultimonMutation(['ultimon_intro'],
+            room=>ultimonIntroEntrancePatch(room,role,effectId),role);
           const ultimonHostAction=action=>{
             const steps={
               introStart:{allowed:['ultimon_showcase'],build:room=>beginUltimonIntroduction(room)},
@@ -1884,7 +1886,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
         room={gameState} appMode={appMode} playerRole={playerRole}
         canHost={appMode==='local_room'||playerRole==='p1'||canRecoverRoom(gameState,playerRole)}
         onIdentity={ultimonIdentity} onPick={ultimonPick} onSpeech={ultimonSpeech}
-        onHost={ultimonHostAction} onExit={leaveRoom}/>;
+        onEntrance={ultimonEntrance} onHost={ultimonHostAction} onExit={leaveRoom}/>;
     }
 
     if (gameState.status === 'switching_phase') {

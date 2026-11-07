@@ -8,6 +8,7 @@ import {createUltimonShowcase,identityPatch,nextUltimonPair,ULTIMON_STAGES}
   from '../src/systems/ultimonSystem.js';
 import {beginUltimonIntroduction,ultimonIntroMonologuePatch,
  advanceUltimonIntroduction,ultimonIntroCast,ultimonIntroSpeech,
+ ultimonIntroEntrancePatch,ultimonIntroEntrance,ULTIMON_ENTRANCE_EFFECTS,
  currentUltimonIntroRole,ultimonSuggestedMonologue,ultimonIntroductionReady}
  from '../src/systems/ultimonIntro.js';
 import {GAME_IN_PROGRESS} from '../src/systems/roomRecovery.js';
@@ -111,6 +112,22 @@ test('Il monologo umano è scelto solo dal capitano chiamato e confermato prima 
     assert.throws(()=>ultimonIntroMonologuePatch(state,role,'Non sono un umano, sono un bot.'),/Non puoi parlare/);
    }
   }
+  if(intro.step==='entrance_select'){
+   if(!state.isBot[role]){
+    assert.equal(ultimonIntroEntrance(state,role),null);
+    assert.throws(()=>advanceUltimonIntroduction(state),/ingresso ad effetto/);
+    assert.throws(()=>ultimonIntroEntrancePatch(state,role,'inventato'),/sei ingressi/);
+    const other=role==='p1'?'p2':'p1';
+    assert.throws(()=>ultimonIntroEntrancePatch(state,other,'starfall'),/Non puoi scegliere/);
+    const index=role==='p1'?0:5;
+    state=apply(state,ultimonIntroEntrancePatch(state,role,ULTIMON_ENTRANCE_EFFECTS[index].id));
+    assert.equal(ultimonIntroEntrance(state,role),ULTIMON_ENTRANCE_EFFECTS[index].id);
+    assert.throws(()=>ultimonIntroEntrancePatch(state,role,'portal'),/già stato confermato/);
+   }else{
+    assert.ok(ULTIMON_ENTRANCE_EFFECTS.some(x=>x.id===ultimonIntroEntrance(state,role)));
+    assert.throws(()=>ultimonIntroEntrancePatch(state,role,'starfall'),/Non puoi scegliere/);
+   }
+  }
   const before=state.ultimon.intro.step;
   state=apply(state,advanceUltimonIntroduction(state));
   if(before==='line'&&state.ultimon.intro.step==='line')
@@ -119,6 +136,8 @@ test('Il monologo umano è scelto solo dal capitano chiamato e confermato prima 
  assert.equal(ultimonIntroductionReady(state),true);
  assert.equal(Object.keys(state.ultimon.intro.monologues).length,2,
   'I bot non hanno bisogno di scrivere nel documento Firestore');
+ assert.equal(Object.keys(state.ultimon.intro.entrances).length,2,
+  'Solo gli esseri umani salvano la scelta in Firestore; le CPU scelgono automaticamente');
  assert.equal(nextUltimonPair(state,()=>.3).status,'ultimon_pair');
  assert.throws(()=>advanceUltimonIntroduction(state),/già conclusa/);
 });
@@ -139,6 +158,9 @@ test('La UI collega scrittura personale, quattro stili, attesa online e passi si
  assert.match(app,/introStart:\{allowed:\['ultimon_showcase'\]/);
  assert.match(app,/introNext:\{allowed:\['ultimon_intro'\]/);
  assert.match(app,/onSpeech=\{ultimonSpeech\}/);
+ assert.match(app,/onEntrance=\{ultimonEntrance\}/);
+ assert.match(ui,/ULTIMON_ENTRANCE_EFFECTS\.map/);
+ assert.match(ui,/onEntrance\(role,effect\.id\)/);
  assert.match(screen,/stage==='ultimon_intro'/);
  assert.match(screen,/Inizia la presentazione delle squadre/);
  assert.match(ui,/ULTIMON_MONOLOGUE_STYLES\.map/);

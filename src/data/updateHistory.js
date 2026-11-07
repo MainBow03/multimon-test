@@ -14,6 +14,18 @@ export const UPDATE_CATEGORIES = [
 ];
 export const GAME_UPDATES = [
 
+  {id:'nov7-ultimon-six-entrance-effects',category:'champions',date:'07/11/2026',title:'🎬⚡ Ultimon: sei entrate ad effetto dopo il monologo!',items:[
+    'La presentazione Ultimon aggiunge due fasi fra il monologo del capitano e i quattro Multimon: scelta del tipo di entrata e filmato personalizzato. Le squadre vengono presentate nell’ordine casuale già presente.',
+    'Ogni capitano umano sceglie fra sei spettacoli visivi: Pioggia di Stelle, Tuono del Destino, Portale Multiversale, Fiamme del Campione, Tappeto delle Leggende e Glitch del Multiverso.',
+    'Ogni effetto possiede una regia CSS dedicata con luci, colori, animazioni, particelle, entrata dei quattro PNG dei Multimon, nome della squadra, eventuale avatar del capitano e un annuncio esclusivo del presentatore.',
+    'Prima del filmato appaiono sei schede con anteprima descrittiva dell’effetto. La conferma è del solo capitano chiamato; gli altri giocatori vedono l’attesa senza poter scegliere al suo posto.',
+    'La scelta viene registrata nella stanza Firestore mediante transazione; un host non può saltare un ingresso umano non ancora selezionato. Le squadre CPU ottengono invece un effetto automatico e deterministico, evitando attese infinite.',
+    'Il filmato dura circa sette secondi, viene sincronizzato tramite la fase condivisa della presentazione e non altera le battute originali dei Multimon né le reazioni speciali tra doppioni.',
+    'Animazioni e schede sono responsive per tablet e telefoni e rispettano le preferenze di movimento ridotto. Le vecchie presentazioni iniziate prima dell’aggiornamento restano compatibili.',
+    'Le regole delle battaglie Ultimon, i premi, i KO permanenti e le squadre non cambiano.'
+  ]},
+
+
   {id:'nov7-menu-dashboard-room-invites',category:'interface',date:'07/11/2026',title:'🌈🎮 Multimon Festival: menu coloratissimo, inviti online e Prestigi separati!',items:[
     'Rifatto il menu come una vivace arena multiversale: Sonic, Kirby e Marceline compaiono in primo piano, con grandi PNG dei Multimon nelle modalità, forme più morbide, luci animate e colori ciano, blu, viola, rosa, verde, oro e corallo.',
     'La navigazione resta divisa in Online, Avventure, Locale, Collezione e Profilo, ma ogni sezione ha colori riconoscibili, pulsanti più allegri e spazio per vedere i personaggi senza affollare lo schermo.',
