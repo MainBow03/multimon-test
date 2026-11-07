@@ -12,11 +12,13 @@ import {tailwindSpeedFactor} from '../../systems/battleFieldEffects.js';
 import { BattleWeatherParticles } from '../../components/BattleWeatherParticles.jsx';
 import {isMoveDisabled,disabledMoveInfo} from '../../systems/berryFrillishEffects.js';
 import {legalSupportTargets} from '../../systems/supportTargeting.js';
+import {canUseBagItems} from '../../systems/bagItemPolicy.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderBattlingView(ctx) {
 const { ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, appMode, actionMenuMode, combatLog, commandingIdx, commitAction, coopPendingAction, roomId, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
 if (gameState.status === 'battling' || gameState.status === 'executing') {
         const activeMatchPlayers = getActivePlayers();
+        const bagAvailable = canUseBagItems(gameState);
         const feedbackKind = battleFeedbackKind(eventPlaybackText, !!eventPlaybackPassive);
         
         let bottomPlayers = [];
@@ -741,7 +743,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                          {(!isPlayingEvents && isMyTurn && activeCommandChar && targetingMoveIdx === null) && (
                                  <div className="flex gap-3 justify-center mb-2 z-10">
                                          <button onClick={() => setActionMenuMode('moves')} className={`px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase transition-all ${actionMenuMode === 'moves' ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.5)]' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'}`}>Mosse</button>
-                                         {!isEventBattle&&<button onClick={() => setActionMenuMode('items')} className={`px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase transition-all ${actionMenuMode === 'items' ? 'bg-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'}`}>Zaino</button>}
+                                         {!isEventBattle&&bagAvailable&&<button onClick={() => setActionMenuMode('items')} className={`px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase transition-all ${actionMenuMode === 'items' ? 'bg-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'}`}>Zaino</button>}
+                                         {!bagAvailable && <span className="self-center text-[10px] font-bold text-amber-300">🚫 Zaino vietato in Ultimon</span>}
                                          {!activeCommandChar.isSummonOnly && (
                                             <button onClick={() => setActionMenuMode('switch')} className={`px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase transition-all ${actionMenuMode === 'switch' ? 'bg-emerald-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'}`}>Cambia (Squadra)</button>
                                          )}
@@ -976,7 +979,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                             </div>
                                         )}
 
-                                        {actionMenuMode === 'items' && (() => {
+                                        {bagAvailable && actionMenuMode === 'items' && (() => {
                                             const myInventory = gameState.inventory?.[playerRole] || {};
                                             const curativesLeft=onlineHealingRemaining(gameState,playerRole,appMode,ITEMS_DB);
                                             const itemsToRender = Object.keys(myInventory).filter(itemId => myInventory[itemId] > 0 && ITEMS_DB[itemId] && ITEMS_DB[itemId].type !== 'held');
@@ -1045,7 +1048,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                             );
                                         })()}
 
-                                        {selectedBagItem && (() => {
+                                        {bagAvailable && selectedBagItem && (() => {
                                             const item=ITEMS_DB[selectedBagItem];
                                             if(!item || item.type==='held')return null;
                                             const kind=item.type==='revive'?'revive':'alive';

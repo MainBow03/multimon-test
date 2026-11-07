@@ -1,4 +1,5 @@
 import {isMoveDisabled} from './berryFrillishEffects.js';
+import {canUseBagItems} from './bagItemPolicy.js';
 
 // IA tattica: considera soltanto i combattenti visibili, le proprie riserve
 // e le mosse dell'avversario realmente eseguite in turni precedenti.
@@ -204,8 +205,8 @@ export function generateStrategicCpuActions({
     const queued=Object.values({...currentActions?.[player],...result})
       .filter(a=>a?.type==='use_item');
     const itemAvailable=id=>finite(inv[id])>queued.filter(a=>a.itemId===id).length;
-    const healingAllowed=appMode!=='online_room' ||
-      itemsUsed+queued.length<healLimit;
+    const healingAllowed=canUseBagItems(room) && (appMode!=='online_room' ||
+      itemsUsed+queued.length<healLimit);
     if(healingAllowed){
       const urgency=(1-life)*style.heal;
       if(itemAvailable('cura_totale') && life<(styleId==='aggressive'?.23:styleId==='defensive'?.58:.43))

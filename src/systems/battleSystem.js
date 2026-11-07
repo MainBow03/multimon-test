@@ -1,4 +1,5 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
+import {canUseBagItems} from './bagItemPolicy.js';
 import {legalSupportTargets,isLegalSupportTarget} from './supportTargeting.js';
 import {healFromVampiricBite} from './vampiricBite.js';
 import {activateTitansRobin,createNightwingBuffWatcher,healBerrySlideAllies} from './titansBerryEffects.js';
@@ -597,6 +598,8 @@ export const generateCPUActionsForPlayerImpl = (ctx,cpuPlayer,currentActions) =>
 export const commitActionImpl = (ctx, actionDetails) => {
 const { appMode, commandingIdx, ITEMS_DB, MOVES_DB, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState } = ctx;
 
+            // Il divieto dello Zaino in Ultimon vale anche per comandi vecchi o inviati a mano.
+            if (actionDetails?.type === 'use_item' && !canUseBagItems(gameState)) return;
             if (isSubmittingActionRef.current) return; // FIX: Evita che i doppi click sovrascrivano le azioni precedenti!
             isSubmittingActionRef.current = true;
 
@@ -1462,6 +1465,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
               gemObserver.beginAction();
               heatBurstActive=false;
               const { player, charTeamIdx, action } = order;
+              // Validazione nel calcolo autorevole: nessun consumabile, cura o revive
+              // può essere applicato in Ultimon, anche da bot/client non aggiornati.
+              if (action.type === 'use_item' && !canUseBagItems(gameState)) continue;
               let move=order.move;
               nightwingObserver.beginAction(player,action.type==='attack'?move:null);
               if (action.type === 'combo_assist') continue;
