@@ -55,7 +55,14 @@ function visibleFighter(char){
   hp:finite(char.hp),maxHp:Math.max(1,finite(char.maxHp)),
   types:Array.isArray(char.types)?char.types.slice(0,2).map(x=>limitedText(x,24)):[],
   statuses:Array.isArray(char.statuses)?char.statuses.slice(0,5).map(s=>limitedText(s?.type,36)):[],
-  shield:finite(char.juggHitsRemaining)
+  shield:finite(char.juggHitsRemaining),
+  spd:finite(char.spd),
+  isJuggernaut:!!char.isJuggernaut,
+  isHyper:!!char.isHyper,
+  isZodiacSpirit:!!char.isZodiacSpirit,
+  zodiacOwner:limitedText(char.zodiacOwner,12),
+  mahitoTransformed:!!char.mahitoTransformed,
+  imageFilter:limitedText(char.imageFilter||'none',190)
  };
 }
 export function campaignBattlePublicSnapshot(gameState,{campaignId='',campaignName='',missionName=''}={}){
@@ -74,6 +81,12 @@ export function campaignBattlePublicSnapshot(gameState,{campaignId='',campaignNa
   missionName:limitedText(missionName,84),
   turn:finite(gameState.battleReport?.turns),
   fieldSize:Math.min(6,finite(gameState.settings?.fieldSize)||1),
+  battleWeather:gameState.battleWeather?.type?{
+   type:limitedText(gameState.battleWeather.type,28),
+   turns:finite(gameState.battleWeather.turns)
+  }:null,
+  battleTailwind:Object.fromEntries(['p1','p2'].map(role=>
+   [role,finite(gameState.battleTailwind?.[role])])),
   playerName:limitedText(gameState.players?.p1||'Squadra',54),
   opponentName:limitedText(gameState.players?.p2||'Avversari',96),
   allies:teamView('p1'),opponents:teamView('p2'),

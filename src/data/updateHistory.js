@@ -14,6 +14,17 @@ export const UPDATE_CATEGORIES = [
 ];
 export const GAME_UPDATES = [
 
+  {id:'nov7-campaign-spectator-classic-ui',category:'interface',date:'07/11/2026',
+    title:'👁️ Campagne osservabili con la VERA modalità spettatore!',
+    items:[
+      'Rimossa la schermata spettatore sperimentale della campagna: ora “Osserva campagna” usa direttamente la stessa BattlingView delle lotte online, con lo stesso campo, la stessa disposizione dei PNG, le barre PS e il pannello MODALITÀ SPETTATORE.',
+      'Chi osserva vede i Multimon in campo, gli stati, gli scudi, il meteo, il registro e gli annunci di combattimento nella grafica originale, senza nessuna seconda interfaccia.',
+      'Le informazioni del campo sono sincronizzate dai dati visibili della campagna dell’amico, senza inviare inventario, riserve, comandi o salvataggi privati.',
+      'Gli spettatori non possono usare mosse, oggetti o Forza Skip: possono soltanto osservare e uscire, come nelle partite online.',
+      'Restano la presenza online corretta “Lotta Campagna”, il pulsante Osserva campagna e la scelta Diretta Campagna ON/OFF della persona che combatte.'
+    ]},
+
+
   {id:'nov7-campaign-spectators-presence-fix',category:'online',date:'07/11/2026',title:'📡 Osserva le battaglie campagna + presenza online corretta!',items:[
     'La lista Giocatori Online mostra ora cosa si sta facendo veramente: nelle battaglie Campagna compare “Lotta Campagna”, nei dialoghi e nella mappa “In Campagna”; anche Roguelike, Co-op, Sopravvivenza, Negozio e altre attività non sono più scambiate per “Nel Menu”.',
     'Se il medesimo account è aperto in due schede, una partita o diretta valida ha precedenza sulla scheda rimasta nel menu, mantenendo il filtro che nasconde le sessioni non più attive.',

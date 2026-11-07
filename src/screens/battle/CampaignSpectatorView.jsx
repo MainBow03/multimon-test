@@ -1,110 +1,90 @@
-import React,{useEffect,useState} from 'react';
+import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {doc,onSnapshot} from 'firebase/firestore';
 import {db,appId} from '../../firebase/config.js';
 import {canObserveCampaignPresence} from '../../systems/onlinePresence.js';
-import './CampaignSpectatorView.css';
+import {campaignSnapshotToSpectatorState} from '../../systems/campaignSpectatorBattle.js';
 
-const amount=n=>Math.max(0,Math.round(Number(n)||0));
-function TeamSide({name,fighters,enemy=false}){
- return <section className={'campaign-watch-side '+(enemy?'campaign-watch-side--enemy':'')}>
-  <header className="campaign-watch-side-head">
-   <span>{enemy?'💥 SCHIERAMENTO AVVERSARIO':'🛡️ SQUADRA EROICA'}</span>
-   <h3>{name||'Multimon'}</h3>
-  </header>
-  <div className="campaign-watch-fighters">
-   {fighters?.length?fighters.map((c,i)=>{
-    const fraction=Math.min(100,Math.max(0,amount(c.hp)/Math.max(1,amount(c.maxHp))*100));
-    return <article className={'campaign-watch-fighter '+(!c.hp?'campaign-watch-fighter--ko':'')}
-      key={c.slot+'-'+c.id} style={{'--fighter-order':i}}>
-      <div className="campaign-watch-art">
-       {c.img?<img src={c.img} alt={c.name}/>:<span>✦</span>}
-       {!c.hp&&<span className="campaign-watch-ko">KO</span>}
-      </div>
-      <div className="campaign-watch-fighter-data">
-       <strong>{c.name}</strong>
-       <small>{(c.types||[]).join(' · ')||'Multimon'}</small>
-       <div className="campaign-watch-hp"><div style={{width:fraction+'%',
-        background:fraction>50?'#4ade80':fraction>25?'#fbbf24':'#fb7185'}}/></div>
-       <small className="campaign-watch-health">{amount(c.hp)} / {amount(c.maxHp)} PS</small>
-       {!!c.shield&&<small className="campaign-watch-status">🛡️ Scudo: {c.shield}</small>}
-       {!!c.statuses?.length&&<small className="campaign-watch-status">{c.statuses.join(' · ')}</small>}
-      </div>
-     </article>;
-   }):<p className="campaign-watch-empty">In attesa dello schieramento…</p>}
-  </div>
- </section>;
-}
-
-export function CampaignSpectatorView({sessionId,expectedUid,playerName,onExit}){
+// Non esiste più un campo della campagna diverso da quello standard:
+// il componente parent renderizza la vera BattlingView (stessa visuale
+// e stessa modalità spettatore delle partite online).
+export function CampaignSpectatorView({sessionId,expectedUid,playerName,onExit,renderBattle}){
  const [entry,setEntry]=useState(null);
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState('');
  const [clock,setClock]=useState(Date.now());
+ const [isLogOpen,setIsLogOpen]=useState(false);
+ const [playback,setPlayback]=useState({active:false,text:''});
+ const lastHighlightRef=useRef('');
+ const logEndRef=useRef(null);
  useEffect(()=>{
-  if(!sessionId||!expectedUid){setError('Giocatore non disponibile.');setLoading(false);return;}
+  if(!sessionId||!expectedUid){
+   setError('Giocatore non disponibile.');setLoading(false);return;
+  }
   setEntry(null);setLoading(true);setError('');
   const ref=doc(db,'artifacts',appId,'public','data','online_users',sessionId);
   const unsubscribe=onSnapshot(ref,snap=>{
-   if(!snap.exists()){setEntry(null);setLoading(false);setError('La sessione non è più disponibile.');return;}
+   if(!snap.exists()){
+    setEntry(null);setError('La sessione non è più disponibile.');setLoading(false);return;
+   }
    const data=snap.data();
-   if(data.uid!==expectedUid || data.sessionId!==sessionId){
+   if(data.uid!==expectedUid||data.sessionId!==sessionId){
     setEntry(null);setError('La sessione non corrisponde al giocatore scelto.');setLoading(false);return;
    }
    setEntry(data);setError('');setLoading(false);
-  },e=>{setEntry(null);setError('Non riesco a seguire questa battaglia: '+(e.message||e));setLoading(false);});
-  const t=setInterval(()=>setClock(Date.now()),10000);
-  return()=>{unsubscribe();clearInterval(t)};
+  },err=>{
+   setEntry(null);setError('Impossibile seguire la battaglia: '+(err.message||err));
+   setLoading(false);
+  });
+  const timer=setInterval(()=>setClock(Date.now()),10000);
+  return()=>{unsubscribe();clearInterval(timer)};
  },[sessionId,expectedUid]);
  const live=canObserveCampaignPresence(entry,clock);
- const battle=live?entry.campaignBattle:null;
- return <main className="campaign-watch">
-  <div className="campaign-watch-noise" aria-hidden="true"/>
-  <div className="campaign-watch-shell">
-   <header className="campaign-watch-header">
-    <button type="button" onClick={onExit} className="campaign-watch-back">← Torna al menu</button>
-    <div className="campaign-watch-brand"><span>📡 TRASMISSIONE MULTIVERSALE</span>
-     <h1>OSSERVA LA <em>CAMPAGNA</em></h1></div>
-    <div className="campaign-watch-badge"><span/> LIVE</div>
-   </header>
-   {loading?<section className="campaign-watch-message"><div className="campaign-watch-spinner">🌀</div>
-     <h2>Collegamento all'arena…</h2>
-     <p>Sto ricevendo lo scontro della tua amica.</p></section>
-   :error?<section className="campaign-watch-message"><div>📡</div>
-      <h2>Trasmissione non disponibile</h2><p>{error}</p>
-      <button onClick={onExit}>Torna ai giocatori online</button>
-     </section>
-   :!live?<section className="campaign-watch-message">
-     <div>🏁</div>
-     <h2>La battaglia è terminata o la diretta è stata disattivata.</h2>
-     <p>{playerName||'Il giocatore'} potrebbe aver concluso lo scontro, cambiato modalità o perso la connessione.</p>
-     <button onClick={onExit}>Torna al menu</button>
-    </section>
-   :<>
-     <section className="campaign-watch-arena-title">
-      <div className="campaign-watch-live"><span/> IN DIRETTA · SOLO SPETTATORE</div>
-      <h2>{battle.campaignName||'Campagna Multimon'}</h2>
-      <p>{battle.missionName||'Una battaglia nel multiverso'}</p>
-      <div className="campaign-watch-round">
-       <span>⚔️ Turno {battle.turn||0}</span>
-       <span>{battle.phase==='pre_battle'?'🎬 Entrata in campo':
-        battle.phase==='executing'?'✨ Mosse in esecuzione':
-        battle.phase==='switching_phase'?'🔄 Cambio di Multimon':'🎮 Scelta delle mosse'}</span>
-      </div>
-     </section>
-     <section className="campaign-watch-battlefield" aria-label="Campo della battaglia di campagna in diretta">
-      <TeamSide name={battle.opponentName} fighters={battle.opponents} enemy/>
-      <div className="campaign-watch-versus" aria-hidden="true">VS</div>
-      <TeamSide name={battle.playerName} fighters={battle.allies}/>
-     </section>
-     <section className="campaign-watch-log">
-      <h3>📜 Ultimi eventi del combattimento</h3>
-      {battle.highlights?.length?
-        <div className="campaign-watch-events">{battle.highlights.map((text,i)=>
-         <p key={battle.updatedAt+'-'+i}>{text}</p>)}</div>
-       :<p className="campaign-watch-empty">Aspettando le prime mosse…</p>}
-     </section>
-     <p className="campaign-watch-disclaimer">👁️ Stai osservando un riepilogo visivo aggiornato in tempo reale. Non puoi scegliere mosse, controllare i Multimon o modificare la partita.</p>
-   </>}
-  </div>
- </main>;
+ const snapshot=live?entry.campaignBattle:null;
+ const spectatorState=useMemo(()=>campaignSnapshotToSpectatorState(snapshot),[snapshot]);
+ const highlights=snapshot?.highlights||[];
+ const eventSignature=snapshot
+  ?String(snapshot.turn)+':'+snapshot.phase+':'+JSON.stringify(highlights)
+  :'';
+ useEffect(()=>{
+  if(!eventSignature){setPlayback({active:false,text:''});return;}
+  if(lastHighlightRef.current===eventSignature)return;
+  const isInitial=!lastHighlightRef.current;
+  lastHighlightRef.current=eventSignature;
+  const text=highlights.at(-1)||'';
+  // Mostra gli annunci nello stesso overlay del combattimento normale,
+  // non in un secondo riquadro inventato per questa modalità.
+  if(!text||snapshot?.phase!=='executing'){
+   setPlayback({active:false,text:''});return;
+  }
+  setPlayback({active:true,text});
+  const timer=setTimeout(()=>setPlayback({active:false,text:''}),1400);
+  return()=>clearTimeout(timer);
+ },[eventSignature]);
+ const log=useMemo(()=>highlights.map(text=>({text,type:'normal'})),[eventSignature]);
+ if(!live||!spectatorState){
+  return <main className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 text-center gap-4">
+   <span className="text-5xl">{loading?'🌀':error?'📡':'🏁'}</span>
+   <h1 className="text-2xl font-black">
+    {loading?'Collegamento alla lotta…':error?'Collegamento non disponibile':'La battaglia è terminata'}
+   </h1>
+   <p className="text-sm text-slate-300 max-w-lg">
+    {loading?'Recupero la diretta di '+(playerName||'questo giocatore')+'.':
+     error||'La tua amica ha finito lo scontro, ha disattivato la condivisione o è offline.'}
+   </p>
+   <button type="button" onClick={onExit}
+    className="bg-cyan-700 hover:bg-cyan-600 border border-cyan-400 px-5 py-3 rounded-xl font-bold">
+    ← Torna ai giocatori online
+   </button>
+  </main>;
+ }
+ return renderBattle({
+  gameState:spectatorState,
+  isPlayingEvents:playback.active,
+  eventPlaybackText:playback.text,
+  eventPlaybackPassive:null,
+  displayTeams:spectatorState.teams,
+  displayField:spectatorState.field,
+  combatLog:log,isLogOpen,setIsLogOpen,logEndRef,
+  onExit
+ });
 }

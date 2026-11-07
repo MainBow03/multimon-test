@@ -5,6 +5,7 @@ import {
  ONLINE_TIMEOUT_MS,visibleOnlinePlayers,activityForPresence,isLiveCampaignBattle,
  campaignBattlePublicSnapshot,canObserveCampaignPresence
 } from '../src/systems/onlinePresence.js';
+import {campaignSnapshotToSpectatorState} from '../src/systems/campaignSpectatorBattle.js';
 
 const read=p=>readFileSync(new URL(p,import.meta.url),'utf8');
 const now=Date.now();
@@ -100,10 +101,10 @@ test('Un account con due schede: la campagna attiva precede la scheda Nel Menu',
  assert.equal(visibleOnlinePlayers(expired,'mine',now).find(u=>u.uid==='friend').sessionId,'menu');
 });
 
-test('L’osservatore legge online_users senza mutare la propria campagna',()=>{
+test('La campagna usa il campo ORIGINALE delle lotte online, senza una seconda UI',()=>{
  const app=read('../src/App.jsx');
  const screen=read('../src/screens/battle/CampaignSpectatorView.jsx');
- const css=read('../src/screens/battle/CampaignSpectatorView.css');
+ const battle=read('../src/screens/battle/BattlingView.jsx');
  assert.match(app,/activityForPresence\(appMode,gameState,roomId\)/);
  assert.match(app,/campaignBattlePublicSnapshot\(gameState/);
  assert.match(app,/setAppMode\('campaign_spectate'\)/);
@@ -116,9 +117,39 @@ test('L’osservatore legge online_users senza mutare la propria campagna',()=>{
  assert.match(screen,/online_users/);
  assert.match(screen,/expectedUid/);
  assert.match(screen,/canObserveCampaignPresence\(entry,clock\)/);
- assert.match(screen,/Ultimi eventi del combattimento/);
- assert.match(screen,/SOLO SPETTATORE/);
- assert.match(screen,/Non puoi scegliere mosse/);
- assert.match(css,/campaign-watch-battlefield/);
- assert.match(css,/@media\(max-width:490px\)/);
+ assert.match(screen,/campaignSnapshotToSpectatorState\(snapshot\)/);
+ assert.match(screen,/return renderBattle\(\{/);
+ assert.match(app,/renderBattle=\{\(\{gameState:watchedState/);
+ assert.match(app,/renderBattlingView\(\{/);
+ assert.match(app,/playerRole:'spectator'/);
+ assert.match(battle,/MODALITÀ SPETTATORE/);
+ assert.match(battle,/!isSpectatorState&&\(!isEventBattle\|\|eventBattleCanForce\)/);
+ assert.doesNotMatch(screen,/campaign-watch-battlefield/);
+});
+
+test('Il campo normale riceve PNG, PS, stati e schieramenti nello stesso formato delle lotte online',()=>{
+ const snap=campaignBattlePublicSnapshot(campaignState);
+ const state=campaignSnapshotToSpectatorState(snap);
+ assert.equal(state.status,'battling');
+ assert.equal(state.gameMode,'classica');
+ assert.equal(state.isCampaignBattle,true);
+ assert.equal(state.players.p1,'Giulia');
+ assert.equal(state.players.p2,'Echomax');
+ assert.deepEqual(state.field.p1,[0,1]);
+ assert.deepEqual(state.field.p2,[0,1]);
+ assert.deepEqual(state.teams.p1.map(c=>c.name),['Jake','Finn']);
+ assert.equal(state.teams.p1[0].hp,62);
+ assert.equal(state.teams.p1[0].maxHp,100);
+ assert.equal(state.teams.p1[0].statuses[0].type,'Scottato');
+ assert.equal(state.teams.p2[0].juggHitsRemaining,2);
+ assert.equal(state.isBot.p2,true);
+ assert.equal(state.battleReport.turns,4);
+ assert.deepEqual(state.teams.p3,[]);
+ assert.deepEqual(state.field.p3,[]);
+ assert.equal(state.inventory.p1['cura_totale'],undefined);
+ assert.equal(state.actions.p1[0],undefined);
+ assert.equal(state.teams.p1.find(c=>c.id==='secret'),undefined);
+ assert.equal(campaignSnapshotToSpectatorState(null),null);
+ assert.equal(campaignSnapshotToSpectatorState({...snap,phase:'executing'}).status,'executing');
+ assert.equal(campaignSnapshotToSpectatorState({...snap,phase:'switching_phase'}).status,'battling');
 });

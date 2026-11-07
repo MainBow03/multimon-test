@@ -1780,7 +1780,31 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
             sessionId={spectatingCampaign?.sessionId}
             expectedUid={spectatingCampaign?.uid}
             playerName={spectatingCampaign?.name}
-            onExit={()=>{setSpectatingCampaign(null);setAppMode('menu');setShowOnlinePlayers(true);}}/>;
+            onExit={()=>{setSpectatingCampaign(null);setAppMode('menu');setShowOnlinePlayers(true);}}
+            renderBattle={({gameState:watchedState,isPlayingEvents:watchAnimation,
+              eventPlaybackText:watchText,eventPlaybackPassive:watchPassive,
+              displayTeams:watchedTeams,displayField:watchedField,
+              combatLog:watchedLog,isLogOpen:watchLogOpen,
+              setIsLogOpen:setWatchLogOpen,logEndRef:watchLogEnd,onExit})=>
+              renderBattlingView({
+                coopPendingAction:null,roomId:null,ownMasteryLevels:{},
+                ChevronRight,ITEMS_DB,appMode:'campaign_spectate',Loader2,LogOut,
+                PLAYER_THEMES,ScrollText,Shield,TYPE_STYLES,Target,Trophy,XIcon,
+                actionMenuMode:'moves',combatLog:watchedLog,commandingIdx:-1,
+                commitAction:()=>{},displayField:watchedField,displayTeams:watchedTeams,
+                eventPlaybackPassive:watchPassive,eventPlaybackText:watchText,
+                gameState:watchedState,getActivePlayers:()=>['p1','p2'],
+                getDefaultAvatar,getMultiplier,getTournamentMatchOpponents,
+                handleForceSkip:()=>{},handleSelectMoveTarget:()=>{},hoveredMove:null,
+                isLogOpen:watchLogOpen,isLongPressRef,isPlayingEvents:watchAnimation,
+                leaveRoom:onExit,logEndRef:watchLogEnd,pendingHyper:false,
+                playerRole:'spectator',pressTimerRef,renderHealthBar,screenFlash:false,
+                selectedMultiTargets:[],setActionMenuMode:()=>{},setHoveredMove:()=>{},
+                setIsLogOpen:setWatchLogOpen,setPassiveInfoPopup:()=>{},
+                setPendingHyper:()=>{},setSelectedMultiTargets:()=>{},
+                setShowLeaveConfirm:()=>{},setTargetingMoveIdx:()=>{},
+                targetingMoveIdx:null,timeLeft:0
+              })}/>;
         }
         if (appMode === 'menu') {
   const __screen = renderMenuView({ BarChart, BookOpen, CHARACTERS, GridIcon, IS_PREVIEW, ImageIcon, Shield, ShoppingCart, Swords, Target, Trophy, Upload, Users, Wifi, appMode, getDefaultAvatar, getPlayerData, handleAvatarUpload, handleCreateRoguelikeCoop, handleCreateRoom, handleJoinRoom, handleLocalStart, handleSurvivalStart, handleVsCpuStart, onlineUsers, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), roguelikeState, roomIdInput, roomInvitations, useClassicMenu, onMenuStyleChange, sessionId, setAppMode, setPlayerAvatarUrl, setPlayerName, setRoguelikeDraftChoices, setRoguelikeState, setRoomIdInput, setShowOnlinePlayers, setSystemAlert, startWithModeGuide });
