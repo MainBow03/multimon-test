@@ -147,7 +147,7 @@ test('Vere animazioni, anteprima nel negozio, equipaggiamento e sincronizzazione
  assert.match(shop,/setShopCosmeticTab\('victories'\)/);
  assert.match(shop,/VICTORY_EFFECTS\.map\(effect=>/);
  assert.match(shop,/buyVictoryEffect:effect\.id/);
- assert.match(shop,/equipVictoryEffect:effect\.id/);
+ assert.match(shop,/equipVictoryEffect:id/);
  assert.match(shop,/onClick=\{\(\)=>setVictoryPreview\(effect\)\}/);
  assert.match(shop,/auto-rows-\[minmax\(255px,max-content\)\]/);
  assert.match(shop,/overflow-y-auto overscroll-contain/);
