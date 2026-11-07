@@ -1,5 +1,6 @@
 import React,{useEffect,useState} from 'react';
 import {ULTIMON_COLORS,ultimonPlayers,ultimonAlive,ultimonLeaderboard,ultimonDuelOutcome,ultimonPicksReady} from '../../systems/ultimonSystem.js';
+import {ultimonRewardForPlace} from '../../systems/ultimonRewards.js';
 import './UltimonView.css';
 
 const alive=c=>c?.hp>0&&!c.isSummonOnly;
@@ -72,6 +73,7 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onHost,on
    return()=>clearTimeout(timer);
  },[stage,u.round]);
  const standings=ultimonLeaderboard(room);
+ const prizes=standings.map((_,i)=>ultimonRewardForPlace(standings.length,i+1));
  const button=(text,action,disabled=false)=>
   <button type="button" className="ultimon-action" onClick={()=>onHost(action)} disabled={disabled||!isHost}>{text}</button>;
  const canPick=ultimonPicksReady(room);
@@ -89,6 +91,12 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onHost,on
         <p>Guarda tutti i team, scegli nome e colore della tua squadra. I KO saranno definitivi!</p>
        </section>
        <div className="ultimon-roster-list">{available.map(p=><TeamCard key={p} room={room} role={p}/>)}</div>
+       <div className="ultimon-prize-preview">
+         <strong>🪙 Montepremi Ultimon · {standings.length} giocatori</strong>
+         <div className="ultimon-prize-chips">
+           {prizes.map((amount,i)=><span key={i}>{i+1}° <b>+{amount}</b> monete</span>)}
+         </div>
+       </div>
        {nameRole&&unnamed.includes(nameRole)&&<section className="ultimon-customizer">
          <h3>🎨 Personalizza la squadra di {room.players[nameRole]}</h3>
          <label>Nome della squadra
@@ -180,11 +188,12 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onHost,on
         <div className="ultimon-stage-label">IL GRANDE VERDETTO</div>
         <h2>🏆 ULTIMO SUPERSTITE 🏆</h2>
         <p className="ultimon-champion">{u.champion?u.identities?.[u.champion]?.name:'Nessun superstite: pareggio assoluto!'}</p>
-        <p>Classifica completa, dal vincitore al primo eliminato</p>
+        <p>Classifica completa, dal vincitore al primo eliminato. Ogni giocatore umano riceve le monete del proprio piazzamento!</p>
         <div className="ultimon-scoreboard">{standings.map((p,i)=>
           <div key={p.role} className="ultimon-score-row" style={{'--ultimon-team-color':p.color}}>
             <strong>{i+1}° {p.team} <small>({p.name})</small></strong>
             <span>{p.wins} vittorie · {p.matches} incontri · {p.knockouts} KO inflitti · {p.lost} persi</span>
+            <span className="ultimon-prize-amount">🪙 +{prizes[i]} monete</span>
           </div>)}</div>
         <div className="ultimon-honors">
           <h3>🌟 Record della stagione</h3>

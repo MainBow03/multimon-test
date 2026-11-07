@@ -93,3 +93,15 @@
 .ultimon-history-row strong{color:#fde68a;font-size:12px}
 .ultimon-history-row span{font-size:14px}
 .ultimon-history-row small{color:#cbd5e1}
+
+/* Tabella premi visibile prima dell'estrazione e nell'epilogo. */
+.ultimon-prize-preview{background:linear-gradient(125deg,#78350f77,#0f172ad9);
+ border:1px solid #fbbf249c;border-radius:18px;padding:17px;margin:16px auto;text-align:center}
+.ultimon-prize-preview>strong{color:#fde68a;font-size:16px;display:block;margin-bottom:12px}
+.ultimon-prize-chips{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.ultimon-prize-chips span{border:1px solid #fbbf2466;background:#020617b9;
+ padding:8px 12px;border-radius:10px;color:#fef3c7;font-size:13px;font-weight:800}
+.ultimon-prize-chips b{color:#fbbf24}
+.ultimon-prize-amount{font-size:15px!important;color:#fde68a!important;font-weight:1000;
+ border:1px solid #fbbf2459;background:#78350f55;border-radius:10px;padding:6px 10px;white-space:nowrap}
+@media(max-width:600px){.ultimon-prize-chips{gap:6px}.ultimon-prize-chips span{padding:6px 8px;font-size:11px}}

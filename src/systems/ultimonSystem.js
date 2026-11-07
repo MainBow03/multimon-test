@@ -19,6 +19,8 @@ export const ULTIMON_STAGES = [
  'ultimon_result','ultimon_recap','ultimon_final'
 ];
 const ROLES=['p1','p2','p3','p4','p5','p6','p7','p8'];
+const newUltimonRunId=()=>`ultimon-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,12)}`;
+
 const BOT_NAMES=['I Fulmini','Le Ombre','Draghi Astrali','I Titani','Lupi Lunari','Le Comete','Fiamme Selvagge','Gli Invincibili'];
 // Rimuove campi undefined: Firestore rifiuta oggetti con valori non serializzabili.
 const clone=o=>JSON.parse(JSON.stringify(o));
@@ -58,7 +60,7 @@ export function createUltimonShowcase(room,draft=room.draft){
   teams:Object.fromEntries(ROLES.map(p=>[p,[]])),
   field:Object.fromEntries(ROLES.map(p=>[p,[]])),
   draft:Object.fromEntries(ROLES.map(p=>[p,[]])),
-  ultimon:{rosters:roster,identities,stats,round:0,
+  ultimon:{runId:newUltimonRunId(),rosters:roster,identities,stats,round:0,
     history:[],eliminated:[],pair:[],format:null,picks:{},selected:{},lastPair:[],champion:null}};
 }
 export function identityPatch(room,role,name,color){

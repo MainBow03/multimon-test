@@ -57,6 +57,7 @@ import { getCampaignStoryCharacters } from './systems/campaignSystem.js';
 import { TYPE_STYLES, TYPE_CHART, PLAYER_THEMES, getMultiplier, getDefaultAvatar } from './systems/typeSystem.js';
 import { initialGameState } from './systems/gameState.js';
 import { UltimonView } from './screens/battle/UltimonView.jsx';
+import {ultimonLeaderboard} from './systems/ultimonSystem.js';
 import {ULTIMON_STAGES,createUltimonShowcase,identityPatch,nextUltimonPair,
   revealUltimonFormat,pickPatch,startUltimonDuel,finishUltimonDuel} from './systems/ultimonSystem.js';
 
@@ -1093,6 +1094,30 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
              gameState.coopRun?.runId,gameState.coopRun?.lastClearFloor,
              gameState.coopRun?.finished,gameState.playerUids?.[playerRole]]);
 
+
+          // Alla classifica finale ogni account online riscatta solo il proprio
+          // piazzamento. Le CPU non hanno profilo; in locale il profilo è quello p1.
+          // Un identificativo di partita + ricevuta nel profilo evitano premi ripetuti.
+          useEffect(()=>{
+            if(gameState.gameMode!=='ultimon'||gameState.status!=='ultimon_final')return;
+            if(appMode!=='local_room'&&appMode!=='online_room')return;
+            const role=appMode==='local_room'?'p1':playerRole;
+            if(!role || role==='spectator'||gameState.isBot?.[role])return;
+            if(appMode==='online_room'&&(!user?.uid||!roomId||
+               gameState.playerUids?.[role]!==user.uid))return;
+            const rankings=ultimonLeaderboard(gameState);
+            const placement=rankings.findIndex(entry=>entry.role===role)+1;
+            if(!placement||!gameState.ultimon?.runId)return;
+            updateLocalStats({ultimonPrize:{
+              runId:gameState.ultimon.runId,
+              role,
+              participants:rankings.length,
+              placement
+            }});
+          },[gameState.status,gameState.gameMode,gameState.ultimon?.runId,
+             gameState.ultimon?.champion,gameState.ultimon?.eliminated,
+             gameState.ultimon?.stats,gameState.ultimon?.rosters,
+             gameState.isBot,gameState.playerUids,appMode,playerRole,roomId,user?.uid]);
 
           const leaveRoom = (...__args) => leaveRoomImpl({ initialGameState, setAppMode, setCombatLog, setGameState, setIsLogOpen, setPlayerRole, setRoomId }, ...__args);
 
