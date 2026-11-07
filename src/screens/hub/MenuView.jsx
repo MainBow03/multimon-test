@@ -1,6 +1,8 @@
-// Schermata estratta senza alterare la struttura JSX originale.
+import {MenuDashboard} from './MenuDashboard.jsx';
+// Il menu originale resta disponibile come alternativa immediata alla nuova dashboard.
 export function renderMenuView(ctx) {
 const { BarChart, BookOpen, CHARACTERS, GridIcon, IS_PREVIEW, ImageIcon, Shield, ShoppingCart, Swords, Target, Trophy, Upload, Users, Wifi, appMode, getDefaultAvatar, getPlayerData, handleAvatarUpload, handleCreateRoguelikeCoop, handleCreateRoom, handleJoinRoom, handleLocalStart, handleSurvivalStart, handleVsCpuStart, onlineUsers, playerAvatarUrl, playerName, playerTitle, roguelikeState, roomIdInput, sessionId, setAppMode, setPlayerAvatarUrl, setPlayerName, setRoguelikeDraftChoices, setRoguelikeState, setRoomIdInput, setShowOnlinePlayers, setSystemAlert, startWithModeGuide } = ctx;
+if (appMode === 'menu' && !ctx.useClassicMenu) return <MenuDashboard ctx={ctx}/>;
 if (appMode === 'menu') {
             const playerData = getPlayerData();
             
@@ -19,6 +21,10 @@ if (appMode === 'menu') {
 
             return (
                 <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                <button type="button" onClick={()=>ctx.onMenuStyleChange('new')}
+                  className="fixed bottom-4 left-4 z-[90] px-3 py-2.5 text-xs font-black bg-indigo-700 hover:bg-indigo-600 border border-indigo-400 rounded-xl shadow-xl">
+                  ✨ Prova il nuovo menu
+                </button>
                 <button onClick={()=>startWithModeGuide('online_players',()=>{ if(!playerName.trim()) setSystemAlert("Inserisci prima il tuo nome per vedere gli altri!"); else setShowOnlinePlayers(true); })} className="absolute top-4 right-4 bg-slate-900/80 hover:bg-slate-800 border border-cyan-500/50 text-cyan-400 font-bold py-2 px-4 rounded-xl flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] backdrop-blur-sm z-20 hover:-translate-y-0.5">
                     <Users size={18}/> Giocatori Online
                 </button>

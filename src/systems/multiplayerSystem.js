@@ -235,7 +235,7 @@ const { gameState, getRequiredPlayers } = ctx;
           
 };
 
-export const handleCreateRoomImpl = async (ctx) => {
+export const handleCreateRoomImpl = async (ctx, requestedName='', publicRoom=true) => {
 const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitle, setAppMode, setDoc, setPlayerRole, setRoomId, setSystemAlert, user } = ctx;
 
             if (!playerName.trim()) return setSystemAlert("Inserisci il tuo nome!");
@@ -243,6 +243,12 @@ const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, player
             const newRoomId = Math.random().toString(36).substring(2, 7).toUpperCase();
             const state = initialGameState();
             state.players.p1 = playerName;
+            // Solo le stanze esplicitamente pubbliche compaiono negli inviti del menu.
+            // Tutte restano raggiungibili con il codice, anche se non pubblicizzate.
+            state.roomName=String(requestedName||'').trim().slice(0,40) ||
+              ('Arena di '+playerName.trim()).slice(0,40);
+            state.publicInvite=publicRoom===true;
+            state.createdAt=Date.now();
             state.playerUids.p1 = user.uid;
             state.hostHeartbeatAt = Date.now();
             state.phaseStartedAt = Date.now();
@@ -262,14 +268,15 @@ const { appId, db, doc, getPlayerData, initialGameState, playerAvatarUrl, player
           
 };
 
-export const handleJoinRoomImpl = async (ctx) => {
+export const handleJoinRoomImpl = async (ctx, inviteCode=null) => {
 const { appId, db, doc, getPlayerData, getRequiredPlayers, playerAvatarUrl, playerName, playerTitle,
   roomIdInput, setAppMode, setCoopRoomId, setPlayerRole, setRoomId,
   setSystemAlert, runTransaction, user } = ctx;
 
-  if(!playerName.trim()||!roomIdInput.trim())return setSystemAlert('Inserisci nome e codice stanza!');
+  const selectedCode=typeof inviteCode==='string'&&inviteCode.trim()?inviteCode:roomIdInput;
+  if(!playerName.trim()||!selectedCode.trim())return setSystemAlert('Inserisci nome e codice stanza!');
   if(!user)return setSystemAlert('Connessione ai server in corso...');
-  const code=roomIdInput.trim().toUpperCase();
+  const code=selectedCode.trim().toUpperCase();
   const ref=doc(db,'artifacts',appId,'public','data','rooms',code);
   let session=null;
   try{session=JSON.parse(localStorage.getItem(ROOM_SESSION_KEY)||'null');}catch{}

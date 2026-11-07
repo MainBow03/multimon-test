@@ -1,7 +1,7 @@
 import React, {useEffect,useMemo,useState} from 'react';
 import { GAME_UPDATES, UPDATE_CATEGORIES, UPDATE_COUNT } from '../data/updateHistory.js';
 
-export function UpdateHistoryPanel({appMode='menu'}) {
+export function UpdateHistoryPanel({appMode='menu',hideLauncher=false}) {
   const [open,setOpen]=useState(false);
   const [category,setCategory]=useState('all');
   const [search,setSearch]=useState('');
@@ -19,12 +19,17 @@ export function UpdateHistoryPanel({appMode='menu'}) {
     window.addEventListener('keydown',onKey);
     return()=>window.removeEventListener('keydown',onKey);
   },[open]);
+  useEffect(()=>{
+    const openFromMenu=()=>setOpen(true);
+    window.addEventListener('multimon:open-updates',openFromMenu);
+    return()=>window.removeEventListener('multimon:open-updates',openFromMenu);
+  },[]);
   return <>
-    <button type="button" onClick={()=>setOpen(true)} aria-haspopup="dialog"
+    {!hideLauncher&&<button type="button" onClick={()=>setOpen(true)} aria-haspopup="dialog"
       aria-label="Apri registro aggiornamenti e bilanciamenti"
       className={`fixed right-3 sm:right-5 z-[85] px-3 py-2.5 rounded-xl border border-violet-400/65 bg-slate-950/95 text-violet-200 text-xs font-black shadow-[0_0_18px_rgba(139,92,246,0.3)] hover:bg-violet-900/70 hover:text-white backdrop-blur-md transition-colors ${appMode==='menu'?'bottom-4':'top-20'}`}>
       📜 Aggiornamenti
-    </button>
+    </button>}
     {open&&<div className="fixed inset-0 z-[350] bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-5"
       onMouseDown={e=>{if(e.target===e.currentTarget)setOpen(false);}}>
       <section role="dialog" aria-modal="true" aria-labelledby="update-history-title"

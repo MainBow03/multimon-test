@@ -4,7 +4,7 @@ export function renderStatsView(ctx) {
 const { ArrowLeft, Swords, Target, Trophy, Users, CHARACTERS, FUSION_CHARACTERS, appMode,
   getPlayerData, playerName, setAppMode, masterySearch, setMasterySearch, masteryFilter,
   setMasteryFilter, updateLocalStats } = ctx;
-if (appMode === 'stats') {
+if (appMode === 'stats' || appMode === 'mastery') {
         const stats = getPlayerData();
 
         const getMostUsed = (obj) => {
@@ -25,6 +25,10 @@ if (appMode === 'stats') {
         };
 
         const winRate = stats.matches > 0 ? Math.round((stats.wins / stats.matches) * 100) : 0;
+        const defeats=Math.max(0,(stats.matches||0)-(stats.wins||0));
+        const usedDifferent=Object.keys(stats.chars||{}).length;
+        const totalMoves=Object.values(stats.moves||{}).reduce((n,v)=>n+(Number(v)||0),0);
+        const averageTime=stats.matches>0?Math.round((stats.playtime||0)/stats.matches):0;
         const roster = CHARACTERS.filter(isMasteryEligible);
         const currentTitle = equippedMasteryTitle(stats, roster);
         const completed = roster.filter(char => isMasteryUnlocked(stats, char.id)).length;
@@ -45,12 +49,12 @@ if (appMode === 'stats') {
                             <ArrowLeft size={20} /> Menu
                         </button>
                         <div className="flex-1 text-center min-w-0">
-                            <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Statistiche di {playerName || 'Giocatore'}</h2>
-                            {currentTitle && <div className="text-amber-300 font-black tracking-wide text-sm mt-1">✦ {currentTitle} ✦</div>}
+                            <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">{appMode==='mastery'?'✦ Prestigi e Padronanza':'Statistiche di '+(playerName || 'Giocatore')}</h2>
+                            {appMode==='mastery' && currentTitle && <div className="text-amber-300 font-black tracking-wide text-sm mt-1">✦ {currentTitle} ✦</div>}
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    {appMode==='stats'&&<><div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         {/* Panoramica */}
                         <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-6 shadow-inner">
                             <h3 className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-4 flex items-center gap-2"><Trophy size={16} className="text-yellow-500"/> Carriera</h3>
@@ -107,7 +111,22 @@ if (appMode === 'stats') {
                         </div>
                     </div>
 
-                    <section className="border-t border-violet-500/30 pt-6 space-y-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-7" aria-label="Statistiche aggiuntive">
+                      {[
+                        {label:'Sconfitte',value:defeats,icon:'🛡️',color:'text-rose-300'},
+                        {label:'Multimon provati',value:usedDifferent,icon:'🧬',color:'text-cyan-300'},
+                        {label:'Mosse eseguite',value:totalMoves,icon:'⚡',color:'text-violet-300'},
+                        {label:'Tempo medio / partita',value:formatTime(averageTime),icon:'⌛',color:'text-amber-300'}
+                      ].map(item=><div key={item.label} className="rounded-2xl bg-slate-950/75 border border-slate-700/80 p-4">
+                        <div className="text-xs text-slate-400 font-bold">{item.icon} {item.label}</div>
+                        <div className={`font-black text-xl md:text-2xl mt-2 ${item.color}`}>{item.value}</div>
+                      </div>)}
+                    </div>
+                    <button type="button" onClick={()=>setAppMode('mastery')}
+                      className="w-full mb-5 rounded-2xl bg-violet-950/35 border border-violet-500/50 hover:bg-violet-800/30 px-4 py-3 text-sm font-bold text-violet-200">
+                      🏅 Gestisci Prestigi, Padronanza e titoli in una sezione separata →
+                    </button></>}
+                    {appMode==='mastery'&&<section className="border-t border-violet-500/30 pt-6 space-y-4">
                         <div className="flex flex-wrap gap-3 justify-between items-start">
                             <div>
                                 <h3 className="text-2xl font-black text-violet-300">✦ Padronanza Multimon</h3>
@@ -172,7 +191,9 @@ if (appMode === 'stats') {
                             );
                           })}
                         </div>
-                    </section>
+                    </section>}
+                    {appMode==='mastery'&&<button type="button" onClick={()=>setAppMode('stats')}
+                      className="mt-5 text-sm font-black text-cyan-300 hover:text-cyan-200 underline">📊 Vai alle statistiche della carriera</button>}
 
                     <p className="text-center text-slate-500 text-xs mt-4">
                         I dati vengono salvati localmente su questo browser associandoli al profilo globale.
