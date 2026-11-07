@@ -13,6 +13,42 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+
+  {id:'nov7-ultimon-showcase-final',category:'interface',date:'07/11/2026',title:'🎭⚡ Ultimon: cerimonie, tabellone e Gran Finale!',items:[
+    'Cerimonia delle eliminazioni: dopo il KO dell’ultimo Multimon di una squadra, la partita passa a una fase condivisa con rivelazione scenografica del nome, immagini dei personaggi oscurate e piazzamento definitivo.',
+    'La cerimonia mostra anche le monete del piazzamento. L’host conclude il verdetto prima che compaia il prossimo sorteggio o la premiazione finale; funziona anche nelle stanze online.',
+    'Nuovo tabellone dei superstiti tra gli incontri: elenco delle squadre ancora in gara, PNG di ogni Multimon, KO anneriti, numero di superstiti, duelli disputati, vittorie e perdite.',
+    'Le squadre eliminate appaiono in una sezione separata, senza sparire dalla cronologia e dalla classifica del torneo.',
+    'Quando restano esattamente due squadre comincia il Gran Finale: scritta ULTIMO DUELLO, colori speciali dell’arena, luci drammatiche e colonna sonora dedicata selezionata tra le tracce già presenti nel gioco.',
+    'La finalissima utilizza sempre la normale battaglia visiva, con formati 1v1, 2v2 o 3v3 consentiti dai superstiti, e non cambia danni, cure o regole dei combattimenti.'
+  ]},
+
+  {id:'nov7-ultimon-rewards',category:'features',date:'07/11/2026',title:'🪙 Ultimon: ricompense per ogni piazzamento!',items:[
+    'Con 4 giocatori: 1° +150, 2° +75, 3° +40, 4° +25 monete globali.',
+    'Con 5 giocatori: 1° +175, 2° +80, 3° +60, 4° +40, 5° +25 monete globali.',
+    'Con 6 giocatori: 1° +200, 2° +90, 3° +80, 4° +75, 5° +60, 6° +40 monete globali.',
+    'Con 7 giocatori: 1° +215, 2° +100, 3° +95, 4° +80, 5° +70, 6° +60, 7° +40 monete globali.',
+    'Con 8 giocatori: 1° +250, 2° +140, 3° +110, 4° +100, 5° +85, 6° +80, 7° +70, 8° +55 monete globali.',
+    'I premi sono visibili già alla presentazione delle squadre e accanto a ogni giocatore nel verdetto finale; non si sommano ai bonus per la dimensione della squadra.',
+    'I profili dei giocatori online ricevono il proprio premio una sola volta per partita, anche in caso di refresh o rientro. Nelle partite locali il premio viene assegnato al profilo principale; le CPU sono classificate ma non possiedono un saldo.'
+  ]},
+
+  {id:'nov7-ultimon-bag-ban',category:'items',date:'07/11/2026',title:'🎒🚫 Zaino vietato in Ultimon Multimon!',items:[
+    'Nelle battaglie di Ultimon il pulsante Zaino non appare: nessun partecipante può utilizzare pozioni, cure, Revitalizzanti o altri consumabili dello Zaino.',
+    'Anche le CPU evitano gli oggetti dello Zaino e il motore ignora eventuali comandi di utilizzo inviati da client vecchi o manualmente.',
+    'Gli strumenti già equipaggiati ai Multimon, le mosse curative e le abilità passive rimangono regolarmente disponibili. Le altre modalità non subiscono modifiche.'
+  ]},
+
+  {id:'nov7-ultimon-mode',category:'features',date:'07/11/2026',title:'🏆 Nuova modalità: ULTIMON MULTIMON!',items:[
+    'Nuovo torneo a eliminazione per 4–8 partecipanti, umani o CPU: l’host decide il numero di giocatori e i Multimon per squadra.',
+    'Prima del torneo ogni squadra sceglie un nome e uno dei 20 colori distinti; tutte le formazioni sono mostrate con i PNG dei personaggi.',
+    'Prima di ogni incontro vengono sorteggiati due sfidanti e un formato 1v1, 2v2 o 3v3, senza mai superare il numero di Multimon vivi della squadra meno numerosa.',
+    'Gli sfidanti vedono la rosa completa dell’avversario e scelgono segretamente quali propri Multimon schierare. La CPU effettua automaticamente le scelte secondo PS e statistiche.',
+    'I combattimenti usano il motore della lotta classica; ogni KO è definitivo per il resto del torneo. I Multimon vincitori schierati e sopravvissuti recuperano fino al 50% dei PS massimi.',
+    'Una squadra lascia il torneo solo quando non possiede più alcun Multimon vivo, anche in riserva. Gli incontri proseguono fino a un unico superstite, con classifica completa e statistiche finali.',
+    'Il sorteggio privilegia le squadre con meno incontri e cerca di evitare rivincite immediate. La gestione delle fasi online utilizza transazioni per impedire avanzamenti duplicati.'
+  ]},
+
   {id:'nov6-titans-berry-new-arrivals-dialogues',category:'features',date:'06/11/2026',title:'🦸🍨 Titani, nuove mosse e campagne più vive!',items:[
     'Robin riceve la passiva Titans, a rapporto!: dopo aver subito un vero attacco nemico ha il 50% di probabilità di aumentare del 10% una statistica scelta fra Attacco, Difesa, Velocità ed Elusione, fino a quattro attivazioni per battaglia.',
     'Nightwing riceve Sempre un passo avanti: ogni volta che una mossa nemica potenzia realmente una statistica, guadagna +10% elusione. Se la stessa mossa aumenta più statistiche, la passiva si attiva una sola volta.',
