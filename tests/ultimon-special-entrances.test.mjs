@@ -40,11 +40,12 @@ function apply(room,patch){
  return next;
 }
 
-test('Sei entrate differenti, ciascuna con tema, annunciatore e colore',()=>{
- assert.equal(ULTIMON_ENTRANCE_EFFECTS.length,6);
+test('Sedici entrate differenti, ciascuna con tema, annunciatore e colore',()=>{
+ assert.equal(ULTIMON_ENTRANCE_EFFECTS.length,16);
  assert.deepEqual(ULTIMON_ENTRANCE_EFFECTS.map(x=>x.id),
- ['starfall','thunder','portal','inferno','royal','glitch']);
- assert.equal(new Set(ULTIMON_ENTRANCE_EFFECTS.map(x=>x.name)).size,6);
+ ['starfall','thunder','portal','inferno','royal','glitch',
+  'eclipse','abyss','jungle','neon','blizzard','origami','nebula','clockwork','candy','meteor']);
+ assert.equal(new Set(ULTIMON_ENTRANCE_EFFECTS.map(x=>x.name)).size,16);
  for(const effect of ULTIMON_ENTRANCE_EFFECTS){
   assert.ok(effect.name.length>6);
   assert.ok(effect.icon);
@@ -67,8 +68,9 @@ test('Dopo il monologo il presentatore DEVE aspettare l’ingresso umano',()=>{
  room=apply(room,advanceUltimonIntroduction(room));
  assert.throws(()=>advanceUltimonIntroduction(room),/ingresso ad effetto/);
  assert.throws(()=>ultimonIntroEntrancePatch(room,'p2','portal'),/Non puoi scegliere/);
- assert.throws(()=>ultimonIntroEntrancePatch(room,'p1','fantasy'),/sei ingressi/);
- room=apply(room,ultimonIntroEntrancePatch(room,'p1','portal'));
+ assert.throws(()=>ultimonIntroEntrancePatch(room,'p1','fantasy'),/ingresso esistente/);
+ assert.throws(()=>ultimonIntroEntrancePatch(room,'p1','portal'),/non è stato acquistato/);
+ room=apply(room,ultimonIntroEntrancePatch(room,'p1','portal',['portal']));
  assert.equal(ultimonIntroEntrance(room,'p1'),'portal');
  assert.throws(()=>ultimonIntroEntrancePatch(room,'p1','inferno'),/già stato confermato/);
  room=apply(room,advanceUltimonIntroduction(room));
@@ -82,7 +84,7 @@ test('Dopo il monologo il presentatore DEVE aspettare l’ingresso umano',()=>{
 test('Una CPU riceve un effetto automatico e il presentatore non rimane bloccato',()=>{
  let room=makeRoom(true);
  const auto=ultimonIntroEntrance(room,'p1');
- assert.ok(ULTIMON_ENTRANCE_EFFECTS.some(x=>x.id===auto));
+ assert.equal(auto,'basic');
  assert.equal(room.ultimon.intro.entrances.p1,undefined);
  room=apply(room,advanceUltimonIntroduction(room));
  assert.equal(room.ultimon.intro.step,'entrance_select');
@@ -115,7 +117,7 @@ test('La scena e i sei effetti appaiono a TUTTI, con supporto tablet e movimento
  const app=read('../src/App.jsx');
  assert.match(intro,/step==='entrance_select'/);
  assert.match(intro,/step==='entrance'/);
- assert.match(intro,/ULTIMON_ENTRANCE_EFFECTS\.map/);
+ assert.match(intro,/usableEffects\.map/);
  assert.match(intro,/onEntrance\(role,effect\.id\)/);
  assert.match(intro,/entranceReady/);
  assert.match(intro,/entrance:6700/);
@@ -128,6 +130,6 @@ test('La scena e i sei effetti appaiono a TUTTI, con supporto tablet e movimento
  assert.match(css,/@media\(max-width:700px\)/);
  assert.match(css,/prefers-reduced-motion:reduce/);
  assert.match(view,/onEntrance=\{onEntrance\}/);
- assert.match(app,/ultimonIntroEntrancePatch\(room,role,effectId\)/);
+ assert.match(app,/ultimonIntroEntrancePatch\(room,role,effectId,ownedUltimonEntrances\(getPlayerData\(\)\)\)/);
  assert.match(app,/onEntrance=\{ultimonEntrance\}/);
 });

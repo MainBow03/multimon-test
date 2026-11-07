@@ -28,12 +28,19 @@ export function MenuDashboard({ctx}){
  const invite=readyRooms[0];
  const inviteCount=readyRooms.length;
  const favorite=Object.entries(data.chars||{}).sort((a,b)=>b[1]-a[1])[0];
- const heroCast=[
-  {id:'sonic',label:'Sonic',color:'blue'},
-  {id:'kirby',label:'Kirby',color:'pink'},
-  {id:'marceline',label:'Marceline',color:'violet'}
- ].map(entry=>({...entry,character:CHARACTERS.find(char=>char.id===entry.id)}))
-   .filter(entry=>entry.character?.img);
+ // Un trio nuovo a OGNI ingresso nel menu. La scelta avviene una sola
+ // volta al mount: niente PNG che cambiano mentre si clicca o si scrive.
+ const [heroCast]=useState(()=>{
+  const pool=CHARACTERS.filter(c=>c.img&&!c.isSummonOnly&&!c.isSecretUnlock);
+  for(let i=pool.length-1;i>0;i--){
+   const j=Math.floor(Math.random()*(i+1));
+   [pool[i],pool[j]]=[pool[j],pool[i]];
+  }
+  return pool.slice(0,3).map((character,i)=>({
+   id:character.id,label:character.name,character,
+   color:['blue','pink','violet'][i]
+  }));
+ });
  const cardMascots={
   'Campagne':'finn','Roguelike Solo':'jake','Roguelike Co-op':'sage',
   'Sopravvivenza':'godzilla','Sfida vs CPU':'goku',

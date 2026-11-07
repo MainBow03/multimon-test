@@ -14,6 +14,19 @@ export const UPDATE_CATEGORIES = [
 ];
 export const GAME_UPDATES = [
 
+  {id:'nov7-ultimon-cosmetics-sixteen-entrances-random-menu',category:'features',date:'07/11/2026',
+   title:'🎬 Ultimon: 16 entrate cosmetiche, sfilata completa e Multimon casuali nel menu!',items:[
+    'Nel Negozio è arrivata la quarta sezione COSMETICI: contiene 16 entrate ad effetto Ultimon, ciascuna acquistabile a 100 monete una sola volta. Rimangono sbloccate per sempre nel profilo e non aumentano le statistiche.',
+    'Le 6 entrate esistenti si possono sbloccare: Pioggia di Stelle, Tuono del Destino, Portale Multiversale, Fiamme del Campione, Tappeto delle Leggende e Glitch del Multiverso.',
+    'Le 10 entrate nuove hanno scenografie differenti: Eclissi delle Ombre, Marea degli Abissi, Trono della Natura, Neon Overdrive, Aurora di Cristallo, Danza dei Mille Origami, Trono della Galassia, Ora Zero, Carnevale Zuccherato e Impatto Meteora.',
+    'Chi non possiede ancora cosmetici entra AUTOMATICAMENTE con l’Ingresso Classico gratuito dopo il monologo. Gli altri scelgono solo fra i cosmetici sbloccati o l’ingresso classico; l’acquisto viene verificato prima di registrare la scelta nella stanza.',
+    'La grande entrata e la posa finale mostrano ORA TUTTI i Multimon di ogni squadra, con PNG e nomi in una griglia adatta a tablet e telefoni. Solo quattro ambasciatori continuano a parlare con le loro battute originali.',
+    'Nella home Multimon Festival il trio di personaggi fluttuanti è casuale a ogni nuova visita del menu, scegliendo tre PNG diversi dal roster normale: Sonic, Marceline e Kirby non sono più fissi.',
+    'Animazioni CSS originali con eclissi, onde, liane, laser, aurora, origami, nebulose, ingranaggi, coriandoli e meteora; rispettano le preferenze di movimento ridotto.',
+    'Le partite Ultimon, il PvP, la sincronizzazione dei monologhi, le statistiche MVP e il negozio degli strumenti restano invariati.'
+   ]},
+
+
   {id:'nov7-campaign-spectator-false-ended',category:'fixes',date:'07/11/2026',
     title:'📡 Corretta la falsa fine delle dirette Campagna!',items:[
       'Lo spettatore non dichiara più che la battaglia è terminata al primo ritardo del segnale: distingue connessione instabile, campagna senza lotta e condivisione disattivata, continuando a cercare la diretta.',

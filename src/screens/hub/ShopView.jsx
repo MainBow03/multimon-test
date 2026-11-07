@@ -1,4 +1,6 @@
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
+import {ULTIMON_ENTRANCE_EFFECTS,ULTIMON_ENTRANCE_PRICE,ownedUltimonEntrances}
+  from '../../systems/ultimonCosmetics.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderShopView(ctx) {
 const { ArrowLeft, BookOpen, CHARACTERS, Coins, IS_PREVIEW, ITEMS_DB, Lock, ShoppingCart, TYPE_STYLES, Unlock, Users, appMode, gameState, getPlayerData, setAppMode, setGameState, setShopCharSearch, setShopTab, setSystemAlert, shopCharSearch, shopTab, updateLocalStats } = ctx;
@@ -18,6 +20,18 @@ if (appMode === 'shop') {
                 setSystemAlert("Non hai abbastanza monete!");
             }
         };
+
+        const handleBuyEntrance = effect => {
+            const result=updateLocalStats({buyUltimonEntrance:effect.id});
+            if(!result?.ok){
+                setSystemAlert(result?.reason||'Impossibile acquistare questo cosmetico.');
+                return;
+            }
+            // Lo stato del profilo si aggiorna dal salvataggio persistente.
+            setGameState(current=>({...current}));
+            setSystemAlert('✨ Hai sbloccato '+effect.name+'! È tuo per sempre.');
+        };
+        const ownedEntrances=new Set(ownedUltimonEntrances(playerData));
 
         const handleBuyChar = (char) => {
             // --- LOGICA REGALO DELLA BETA ---
@@ -51,10 +65,13 @@ if (appMode === 'shop') {
                         </div>
                     </div>
 
-                    <div className="flex gap-4 mb-6 shrink-0">
-                         <button onClick={() => setShopTab('items')} className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${shopTab === 'items' ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg border border-amber-500' : 'bg-slate-950/50 text-slate-400 border border-slate-700 hover:bg-slate-800'}`}><BookOpen size={20}/> Oggetti e Cure</button>
-                         <button onClick={() => setShopTab('chars')} className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${shopTab === 'chars' ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg border border-amber-500' : 'bg-slate-950/50 text-slate-400 border border-slate-700 hover:bg-slate-800'}`}><Users size={20}/> Personaggi Sbloccabili</button>
-                         <button onClick={() => setShopTab('held')} className={`flex-1 py-3 px-2 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${shopTab === 'held' ? 'bg-gradient-to-r from-violet-600 to-cyan-700 text-white shadow-lg border border-violet-400' : 'bg-slate-950/50 text-slate-400 border border-slate-700 hover:bg-slate-800'}`}><span aria-hidden="true">💎</span> Strumenti da Lotta</button>
+                    <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 shrink-0">
+                         <button onClick={() => setShopTab('items')} className={`flex-1 min-w-[135px] py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${shopTab === 'items' ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg border border-amber-500' : 'bg-slate-950/50 text-slate-400 border border-slate-700 hover:bg-slate-800'}`}><BookOpen size={20}/> Oggetti e Cure</button>
+                         <button onClick={() => setShopTab('chars')} className={`flex-1 min-w-[135px] py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${shopTab === 'chars' ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg border border-amber-500' : 'bg-slate-950/50 text-slate-400 border border-slate-700 hover:bg-slate-800'}`}><Users size={20}/> Personaggi Sbloccabili</button>
+                         <button onClick={() => setShopTab('held')} className={`flex-1 min-w-[135px] py-3 px-2 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${shopTab === 'held' ? 'bg-gradient-to-r from-violet-600 to-cyan-700 text-white shadow-lg border border-violet-400' : 'bg-slate-950/50 text-slate-400 border border-slate-700 hover:bg-slate-800'}`}><span aria-hidden="true">💎</span> Strumenti da Lotta</button>
+                         <button onClick={() => setShopTab('cosmetics')} className={`flex-1 min-w-[135px] py-3 px-2 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${shopTab === 'cosmetics' ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-lg border border-pink-400' : 'bg-slate-950/50 text-slate-400 border border-slate-700 hover:bg-slate-800'}`}>
+                           <span aria-hidden="true">🎬</span> Cosmetici
+                         </button>
                     </div>
 
                     {(shopTab === 'items'||shopTab === 'held') && (
@@ -86,6 +103,51 @@ if (appMode === 'shop') {
                                 );
                             })}
                         </div>
+                    )}
+
+                    {shopTab === 'cosmetics'&&(
+                      <section className="flex-1 min-h-0 flex flex-col gap-3">
+                        <div className="shrink-0 rounded-2xl border border-fuchsia-400/50 bg-gradient-to-r from-purple-950 via-indigo-950 to-pink-950 p-4 sm:p-5">
+                          <div className="flex items-center justify-between gap-3 flex-wrap">
+                            <div>
+                              <h3 className="font-black text-xl sm:text-2xl text-fuchsia-100">🎬 Entrate ad effetto Ultimon</h3>
+                              <p className="text-xs sm:text-sm text-indigo-100 mt-1">Acquista le tue entrate! Ogni effetto costa <b>100 monete</b> ed è permanente. Nessun bonus in battaglia.</p>
+                            </div>
+                            <span className="rounded-full border border-fuchsia-400 px-3 py-2 bg-black/50 text-xs font-black text-fuchsia-100">
+                              ✨ {ownedEntrances.size}/{ULTIMON_ENTRANCE_EFFECTS.length} sbloccate
+                            </span>
+                          </div>
+                          <p className="text-emerald-200 text-xs font-bold mt-2">🎤 Senza cosmetici entri normalmente: l'ingresso classico è sempre GRATIS.</p>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto custom-scrollbar p-2">
+                          {ULTIMON_ENTRANCE_EFFECTS.map(effect=>{
+                            const owned=ownedEntrances.has(effect.id);
+                            const affordable=playerData.coins>=ULTIMON_ENTRANCE_PRICE;
+                            return <article key={effect.id} className="relative rounded-2xl overflow-hidden border-2 p-4 flex flex-col gap-2 shadow-xl transition-transform hover:-translate-y-1"
+                              style={{borderColor:effect.accent,background:`radial-gradient(circle at 50% 0%,${effect.accent}66,#0b1024 76%)`}}>
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-4xl drop-shadow-xl" aria-hidden="true">{effect.icon}</span>
+                                <span className={`text-[10px] font-black px-2 py-1 rounded-full border ${owned?'bg-emerald-900/90 text-emerald-100 border-emerald-400':'bg-slate-950 text-slate-200 border-slate-400/60'}`}>
+                                  {owned?'✓ POSSEDUTO':'🔒 DA SBLOCCARE'}
+                                </span>
+                              </div>
+                              <h4 className="text-lg font-black" style={{color:effect.color}}>{effect.name}</h4>
+                              <p className="text-xs leading-relaxed text-slate-200 flex-1">{effect.hint}</p>
+                              <div className="rounded-xl bg-black/45 border border-white/20 px-3 py-2 text-[10px] font-black tracking-wide text-white">
+                                {effect.tagline}
+                              </div>
+                              <button type="button" onClick={()=>handleBuyEntrance(effect)}
+                                disabled={owned||!affordable}
+                                className={`mt-2 py-3 rounded-xl font-black text-xs border transition-colors ${owned
+                                  ?'bg-emerald-900/60 text-emerald-200 border-emerald-500/60 cursor-default'
+                                  :affordable?'bg-gradient-to-r from-fuchsia-600 to-violet-600 border-fuchsia-400 text-white hover:brightness-125'
+                                  :'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed'}`}>
+                                {owned?'✓ Tuo per sempre':affordable?'🪙 Acquista · 100 monete':'🔒 Servono 100 monete'}
+                              </button>
+                            </article>;
+                          })}
+                        </div>
+                      </section>
                     )}
 
                     {shopTab === 'chars' && (

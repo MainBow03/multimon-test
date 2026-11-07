@@ -6,6 +6,7 @@ import { awardCampaignChest, openCampaignChest, acknowledgeChestReveal } from '.
 import { grantRoguelikeMilestone, grantRoguelikeCompletion, openPowerChest, acknowledgePowerChest, completeFinnTutorial } from './roguelikePowerRewards.js';
 import {claimCoopPersonalRewards} from './coopPersonalRewards.js';
 import {claimUltimonPrize} from './ultimonRewards.js';
+import {purchaseUltimonEntrance} from './ultimonCosmetics.js';
 
 const masteryEligibleIds = new Set(CHARACTERS.filter(isMasteryEligible).map(char => char.id));
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
@@ -37,6 +38,15 @@ const { getPlayerData } = ctx;
               // Roguelike: una cassa per traguardo di 5 piani della stessa run.
               // La registrazione e il saldo sono nello stesso salvataggio, per
               // impedire doppie ricompense al refresh o al doppio click.
+              if(updates.buyUltimonEntrance){
+                  // Una sola transazione del profilo: sblocca il cosmetico,
+                  // scala 100 monete e salva tutto insieme, senza doppi acquisti.
+                  const result=purchaseUltimonEntrance(current,updates.buyUltimonEntrance);
+                  if(!result.ok)return result;
+                  current=result.profile;
+                  localStorage.setItem(key,JSON.stringify(current));
+                  return {ok:true,effect:result.effect,coins:current.coins};
+              }
               if(updates.ultimonPrize){
                   // Accredito esatto in base al piazzamento, UNA sola volta per run+giocatore.
                   // Il premio è indipendente dai bonus squadra delle battaglie classiche.

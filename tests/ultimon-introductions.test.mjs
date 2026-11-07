@@ -116,15 +116,15 @@ test('Il monologo umano è scelto solo dal capitano chiamato e confermato prima 
    if(!state.isBot[role]){
     assert.equal(ultimonIntroEntrance(state,role),null);
     assert.throws(()=>advanceUltimonIntroduction(state),/ingresso ad effetto/);
-    assert.throws(()=>ultimonIntroEntrancePatch(state,role,'inventato'),/sei ingressi/);
+    assert.throws(()=>ultimonIntroEntrancePatch(state,role,'inventato'),/ingresso esistente/);
     const other=role==='p1'?'p2':'p1';
     assert.throws(()=>ultimonIntroEntrancePatch(state,other,'starfall'),/Non puoi scegliere/);
     const index=role==='p1'?0:5;
-    state=apply(state,ultimonIntroEntrancePatch(state,role,ULTIMON_ENTRANCE_EFFECTS[index].id));
+    state=apply(state,ultimonIntroEntrancePatch(state,role,ULTIMON_ENTRANCE_EFFECTS[index].id,[ULTIMON_ENTRANCE_EFFECTS[index].id]));
     assert.equal(ultimonIntroEntrance(state,role),ULTIMON_ENTRANCE_EFFECTS[index].id);
     assert.throws(()=>ultimonIntroEntrancePatch(state,role,'portal'),/già stato confermato/);
    }else{
-    assert.ok(ULTIMON_ENTRANCE_EFFECTS.some(x=>x.id===ultimonIntroEntrance(state,role)));
+    assert.equal(ultimonIntroEntrance(state,role),'basic');
     assert.throws(()=>ultimonIntroEntrancePatch(state,role,'starfall'),/Non puoi scegliere/);
    }
   }
@@ -159,7 +159,7 @@ test('La UI collega scrittura personale, quattro stili, attesa online e passi si
  assert.match(app,/introNext:\{allowed:\['ultimon_intro'\]/);
  assert.match(app,/onSpeech=\{ultimonSpeech\}/);
  assert.match(app,/onEntrance=\{ultimonEntrance\}/);
- assert.match(ui,/ULTIMON_ENTRANCE_EFFECTS\.map/);
+ assert.match(ui,/usableEffects\.map/);
  assert.match(ui,/onEntrance\(role,effect\.id\)/);
  assert.match(screen,/stage==='ultimon_intro'/);
  assert.match(screen,/Inizia la presentazione delle squadre/);

@@ -1,21 +1,27 @@
-import React,{useEffect,useState} from 'react';
+import React,{useEffect,useRef,useState} from 'react';
 import {ULTIMON_MONOLOGUE_STYLES,ULTIMON_ENTRANCE_EFFECTS,ultimonIntroEntrance,
- ultimonSuggestedMonologue,currentUltimonIntroRole,ultimonIntroCast,ultimonIntroSpeech}
+ ultimonIntroFullTeam,ultimonSuggestedMonologue,currentUltimonIntroRole,ultimonIntroCast,ultimonIntroSpeech}
  from '../../systems/ultimonIntro.js';
+import {ULTIMON_BASIC_ENTRANCE} from '../../systems/ultimonCosmetics.js';
 import './UltimonIntroView.css';
 
-export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntrance,onHost}){
+export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntrance,onHost,ownedEffects=[]}){
  const intro=room.ultimon?.intro||{};
  const order=intro.order||[];
  const role=currentUltimonIntroRole(room);
  const team=room.ultimon?.identities?.[role]||{};
  const name=team.name||room.players?.[role]||role;
  const cast=ultimonIntroCast(room,role);
+ const fullTeam=ultimonIntroFullTeam(room,role);
+ const ownedSet=new Set(ownedEffects);
+ const usableEffects=ULTIMON_ENTRANCE_EFFECTS.filter(e=>ownedSet.has(e.id));
  const step=intro.step||'call';
  const speech=ultimonIntroSpeech(room,role);
  const spoken=Boolean(speech);
  const entranceId=ultimonIntroEntrance(room,role);
- const entrance=ULTIMON_ENTRANCE_EFFECTS.find(effect=>effect.id===entranceId)||null;
+ const entrance=entranceId===ULTIMON_BASIC_ENTRANCE.id
+   ?ULTIMON_BASIC_ENTRANCE
+   :ULTIMON_ENTRANCE_EFFECTS.find(effect=>effect.id===entranceId)||null;
  const entranceReady=Boolean(entrance);
  const canEnter=step==='entrance_select'&&!room.isBot?.[role]&&
    (appMode==='local_room'||playerRole===role)&&!intro.entrances?.[role];
@@ -25,6 +31,7 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
  const [draft,setDraft]=useState('');
  const [sending,setSending]=useState(false);
  const [entranceSending,setEntranceSending]=useState(false);
+ const autoEntranceRef=useRef('');
  const selected=cast[Math.max(0,intro.lineIndex||0)];
  const rival=selected?.duplicate?.rival;
  const duelStat=selected?.duplicate?.comparison;
@@ -37,6 +44,18 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
  },[role,name]);
  useEffect(()=>{if(spoken)setSending(false);},[spoken]);
  useEffect(()=>{if(entranceReady)setEntranceSending(false);},[entranceReady,role]);
+ // Nessun cosmetico posseduto? Salta la scelta e usa automaticamente
+ // l'entrata classica. Un ref impedisce doppie richieste Firestore.
+ useEffect(()=>{
+  if(!canEnter||usableEffects.length||entranceReady)return;
+  const key=role+':'+intro.index;
+  if(autoEntranceRef.current===key)return;
+  autoEntranceRef.current=key;
+  setEntranceSending(true);
+  Promise.resolve(onEntrance(role,ULTIMON_BASIC_ENTRANCE.id))
+   .catch(()=>{autoEntranceRef.current='';})
+   .finally(()=>setEntranceSending(false));
+ },[canEnter,role,intro.index,ownedEffects.join('|'),entranceReady]);
 
  // Il presentatore host fa avanzare la sequenza sullo stato Firestore,
  // mai sui singoli client: tutti vedono lo stesso personaggio e la stessa riga.
@@ -68,7 +87,7 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
    <header className="ultimon-intro-heading">
     <span className="ultimon-intro-kicker">🎤 DIRETTAMENTE DALL'ARENA DEL MULTIVERSO</span>
     <h2>LA GRANDE PRESENTAZIONE</h2>
-    <p>Prima il monologo del capitano, poi un ingresso ad effetto scelto fra sei spettacoli… e infine le battute dei Multimon!</p>
+    <p>Prima il monologo del capitano, poi un ingresso personalizzato fra 16 spettacoli da collezionare… e infine quattro Multimon prendono la parola!</p>
     <div className="ultimon-intro-progress" role="progressbar" aria-label="Squadre presentate"
       aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
       <span style={{width:progress+'%'}}/>
@@ -99,7 +118,7 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
 
      {step==='call'&&<div key={role+'call'} className="ultimon-intro-call ultimon-intro-appear">
        <div className="ultimon-intro-call-silhouette" aria-hidden="true">
-        {cast.slice(0,4).map((c,i)=><img key={i} src={c.img} alt=""
+        {fullTeam.map((c,i)=><img key={i} src={c.img} alt=""
           style={{animationDelay:i*.14+'s'}}/>)}
        </div>
        <h3>Signore e signori… fate spazio!</h3>
@@ -144,9 +163,9 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
      {step==='entrance_select'&&<div key={role+'entrance-select'} className="ultimon-intro-entrance-picker ultimon-intro-appear">
       <div className="ultimon-intro-entrance-crown">✦ IL TUO MOMENTO DI GLORIA ✦</div>
       <h3>🎬 Scegli la tua entrata ad effetto!</h3>
-      <p>Il monologo è stato pronunciato. Ora scegli come apparire davanti a tutta l'arena!</p>
-      {canEnter?<div className="ultimon-intro-entrance-grid">
-       {ULTIMON_ENTRANCE_EFFECTS.map(effect=><button type="button"
+      <p>Il monologo è stato pronunciato! Gli ingressi speciali vanno acquistati nel Negozio → Cosmetici (100 monete, permanenti).</p>
+      {canEnter&&usableEffects.length>0?<div className="ultimon-intro-entrance-grid">
+       {usableEffects.map(effect=><button type="button"
           key={effect.id} className={'ultimon-intro-entrance-option ultimon-intro-entrance-option--'+effect.id}
           style={{'--entrance-accent':effect.accent,'--entrance-ink':effect.color}}
           disabled={entranceSending} aria-label={'Entra con '+effect.name}
@@ -157,11 +176,21 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
            <small>{effect.hint}</small>
            <b>{entranceSending?'Conferma in corso…':'SCEGLI QUESTO EFFETTO ✨'}</b>
          </button>)}
+         <button type="button" className="ultimon-intro-entrance-option ultimon-intro-entrance-option--basic"
+           disabled={entranceSending} onClick={()=>{setEntranceSending(true);
+             Promise.resolve(onEntrance(role,ULTIMON_BASIC_ENTRANCE.id))
+             .finally(()=>setEntranceSending(false));}}>
+           <span className="ultimon-intro-entrance-option-icon">🎤</span>
+           <strong>Ingresso Classico</strong>
+           <small>Entrata normale, gratis per tutti. I tuoi Multimon si presentano senza effetti speciali.</small>
+           <b>ENTRA NORMALMENTE</b>
+         </button>
       </div>:entrance?<div className="ultimon-intro-entrance-confirmed" role="status">
        <div>{entrance.icon}</div><h4>{entrance.name}</h4>
-       <p>Il presentatore prepara l'effetto scelto. L'intera arena lo vedrà!</p>
+       <p>{entranceId==='basic'?'La squadra entra normalmente.':'Il presentatore prepara lo spettacolo scelto. L’intera arena lo vedrà!'}</p>
       </div>:<div className="ultimon-intro-waiting">
-       ⌛ In attesa che {room.players?.[role]||name} scelga la propria entrata ad effetto…
+       {canEnter?'🎤 Nessun cosmetico acquistato: ingresso classico automatico…':
+        '⌛ In attesa che '+(room.players?.[role]||name)+' prepari la sua entrata…'}
       </div>}
      </div>}
 
@@ -180,12 +209,23 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
        <div className="ultimon-intro-entrance-flames" aria-hidden="true">🔥 🔥 🔥</div>
        <div className="ultimon-intro-entrance-red-carpet" aria-hidden="true"/>
        <div className="ultimon-intro-entrance-burst" aria-hidden="true">✦</div>
+       <div className="ultimon-cinema-moon" aria-hidden="true"/>
+       <div className="ultimon-cinema-waves" aria-hidden="true"><span/><span/><span/></div>
+       <div className="ultimon-cinema-jungle" aria-hidden="true">❧　❧　❧</div>
+       <div className="ultimon-cinema-neon-grid" aria-hidden="true"/>
+       <div className="ultimon-cinema-aurora" aria-hidden="true"/>
+       <div className="ultimon-cinema-paper" aria-hidden="true">✦　◆　✧　◈</div>
+       <div className="ultimon-cinema-nebula" aria-hidden="true"/>
+       <div className="ultimon-cinema-clock" aria-hidden="true"><span>Ⅻ</span><span>Ⅲ</span><span>Ⅵ</span><span>Ⅸ</span></div>
+       <div className="ultimon-cinema-candy" aria-hidden="true">🍬　✦　🍭　✦　🍬</div>
+       <div className="ultimon-cinema-meteor" aria-hidden="true"/>
        <div className="ultimon-intro-entrance-vip">
         <div className="ultimon-intro-entrance-type">{entrance?.icon} {entrance?.name}</div>
         {room.playerAvatars?.[role]&&<img className="ultimon-intro-entrance-player-avatar"
           src={room.playerAvatars[role]} alt={'Avatar di '+(room.players?.[role]||role)}/>}
-        <div className="ultimon-intro-entrance-fighters">
-         {cast.slice(0,4).map((c,i)=><div key={i} className="ultimon-intro-entrance-fighter"
+        <div className="ultimon-intro-entrance-fighters ultimon-intro-entrance-fighters--all"
+          style={{'--team-count':fullTeam.length}}>
+         {fullTeam.map((c,i)=><div key={i} className="ultimon-intro-entrance-fighter"
            style={{'--fighter-index':i}}>
            <img src={c.img} alt={c.name}/><span>{c.name}</span>
           </div>)}
@@ -248,11 +288,11 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
      {step==='exit'&&<div key={role+'exit'} className="ultimon-intro-exit ultimon-intro-appear">
        <h3>UN INGRESSO DA RICORDARE!</h3>
        <div className="ultimon-intro-exit-roster">
-        {cast.map((c,i)=><figure key={i}>
+        {fullTeam.map((c,i)=><figure key={i}>
          <img src={c.img} alt={c.name}/><figcaption>{c.name}</figcaption>
         </figure>)}
        </div>
-       <p><b>{name}</b> prende posto. L'arena attende la prossima squadra!</p>
+       <p><b>{name}</b> prende posto con tutti i suoi {fullTeam.length} Multimon. L'arena attende la prossima squadra!</p>
       </div>}
 
     <div className="ultimon-intro-footnote">

@@ -9,11 +9,13 @@ const read=p=>readFileSync(new URL(p,import.meta.url),'utf8');
 
 test('Menu Festival: la scena usa tre PNG realmente presenti nel roster Multimon',()=>{
  const ui=read('../src/screens/hub/MenuDashboard.jsx');
- const mascots=['sonic','kirby','marceline'];
- for(const id of mascots){
-  assert.ok(CHARACTERS.some(c=>c.id===id&&typeof c.img==='string'),id+' non disponibile nel roster');
-  assert.ok(ui.includes("id:'"+id+"'"),id+' non compare nella home');
- }
+ const all=CHARACTERS.filter(c=>c.img&&!c.isSummonOnly&&!c.isSecretUnlock);
+ assert.ok(all.length>3);
+ assert.match(ui,/const \[heroCast\]=useState\(\(\)=>/);
+ assert.match(ui,/Math\.random\(\)/);
+ assert.match(ui,/pool\.slice\(0,3\)/);
+ assert.match(ui,/isSummonOnly/);
+ assert.doesNotMatch(ui, /id:'sonic',label:'Sonic'/);
  assert.match(ui,/mm-dash-hero-stage/);
  assert.match(ui,/mm-dash-hero-fighter/);
  assert.match(ui,/SCEGLI\. SCHIERA\. VINCI!/);

@@ -128,7 +128,7 @@ function EliminationCeremony({room,standings,step}){
   </section>;
 }
 
-export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onSpeech,onEntrance,onHost,onExit,canHost=false}){
+export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onSpeech,onEntrance,onHost,onExit,ownedEntrances=[],canHost=false}){
  const stage=room.status,u=room.ultimon||{},pair=u.pair||[];
  const isLocal=appMode==='local_room',isHost=!!canHost;
  const available=ultimonPlayers(room);
@@ -227,7 +227,7 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onSpeech,
        {!!unnamed.length&&!isLocal&&identity.ready&&<p className="ultimon-center">✓ Squadra confermata. In attesa degli altri giocatori…</p>}
      </>}
      {stage==='ultimon_intro'&&<UltimonIntroView room={room} appMode={appMode}
-       playerRole={playerRole} isHost={isHost} onSpeech={onSpeech} onEntrance={onEntrance} onHost={onHost}/>}
+       playerRole={playerRole} isHost={isHost} onSpeech={onSpeech} onEntrance={onEntrance} ownedEffects={ownedEntrances} onHost={onHost}/>}
      {showdown&&['ultimon_recap','ultimon_pair','ultimon_format','ultimon_pick'].includes(stage)&&
         <div className="ultimon-grand-final-banner" role="status">
          <span>⚡ LE ULTIME DUE SQUADRE ⚡</span>

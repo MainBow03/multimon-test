@@ -471,3 +471,226 @@
  .ultimon-intro-effect-particle{opacity:.35;top:20%}
  .ultimon-intro-entrance-thunder{opacity:.6}
 }
+
+
+/* ───── ULTIMON COSMETICI · 16 INGRESSI + IL CLASSICO ─────────────────────
+   Quattro ambasciatori parlano, ma tutte le miniature entrano sul palco.
+   Responsive anche con roster numerosi; nessun personaggio viene tagliato. */
+.ultimon-intro-call-silhouette{height:auto;min-height:145px;flex-wrap:wrap;max-width:1020px;margin:12px auto 17px;align-content:center}
+.ultimon-intro-call-silhouette img,.ultimon-intro-call-silhouette img:nth-child(even){
+ width:clamp(42px,7vw,85px);height:clamp(58px,9vw,100px);flex:0 0 auto}
+.ultimon-intro-entrance-fighters--all{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));
+ justify-items:center;align-items:end;gap:9px 7px;max-width:980px;
+ width:100%;min-height:0;margin:15px auto 12px;padding:2px 6px}
+.ultimon-intro-entrance-fighters--all .ultimon-intro-entrance-fighter{
+ width:100%;max-width:156px;flex:auto}
+.ultimon-intro-entrance-fighters--all .ultimon-intro-entrance-fighter img{
+ height:clamp(68px,10vw,123px);object-fit:contain}
+.ultimon-intro-entrance-fighters--all .ultimon-intro-entrance-fighter span{
+ max-width:100%;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ultimon-intro-exit-roster{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));
+ max-width:1040px;gap:10px}
+.ultimon-intro-exit-roster figure{width:100%;min-width:0}
+.ultimon-intro-exit-roster img{height:clamp(75px,11vw,115px)}
+.ultimon-intro-entrance-show{min-height:0}
+.ultimon-intro-entrance-vip{min-height:380px;gap:3px}
+.ultimon-intro-entrance-show--basic{border-color:#94a3b8;box-shadow:0 12px 30px #0009;
+ background:linear-gradient(160deg,#1e293b,#111827)}
+.ultimon-intro-entrance-show--basic .ultimon-intro-entrance-backdrop{background:
+ radial-gradient(ellipse at 50% 0%,#64748b4d,transparent 68%),#101727}
+.ultimon-intro-entrance-show--basic .ultimon-intro-effect-particle,
+.ultimon-intro-entrance-show--basic .ultimon-intro-entrance-burst{display:none}
+.ultimon-intro-entrance-show--basic .ultimon-intro-entrance-fighter{
+ animation:ultimon-cinema-fighters .55s ease-out forwards;
+ animation-delay:calc(.15s + var(--fighter-index)*.09s)}
+.ultimon-intro-entrance-option--basic{--entrance-accent:#64748b;--entrance-ink:#fff;
+ background:linear-gradient(130deg,#334155,#0f172a)}
+
+/* Decorative scene layers, generated in CSS. */
+.ultimon-cinema-moon,.ultimon-cinema-waves,.ultimon-cinema-jungle,
+.ultimon-cinema-neon-grid,.ultimon-cinema-aurora,.ultimon-cinema-paper,
+.ultimon-cinema-nebula,.ultimon-cinema-clock,.ultimon-cinema-candy,
+.ultimon-cinema-meteor{display:none;position:absolute;pointer-events:none;z-index:-1}
+
+/* ECLISSI: solar corona, black moon, violet shadows */
+.ultimon-intro-entrance-show--eclipse .ultimon-intro-entrance-backdrop{
+ background:radial-gradient(circle at 50% 28%,#b794f488,transparent 37%),
+ radial-gradient(ellipse at 50% 78%,#312e81,transparent 67%),#050718}
+.ultimon-intro-entrance-show--eclipse .ultimon-cinema-moon{display:block;
+ width:clamp(140px,33vw,285px);aspect-ratio:1;border-radius:50%;top:3%;left:50%;
+ transform:translateX(-50%);background:#08091d;
+ box-shadow:0 0 0 13px #ede9fe65,0 0 44px 27px #a78bfa88,0 0 88px 55px #7c3aed55;
+ animation:ultimon-new-eclipse 5.2s ease-in-out infinite alternate}
+.ultimon-intro-entrance-show--eclipse .ultimon-intro-effect-particle{background:#ddd6fe;
+ width:3px;height:3px;border-radius:50%;animation-duration:4.4s}
+
+/* ABISSI: layered translucent waves and ascending bubbles */
+.ultimon-intro-entrance-show--abyss .ultimon-intro-entrance-backdrop{background:
+ linear-gradient(180deg,#031e39,#03667b 51%,#07162c)}
+.ultimon-intro-entrance-show--abyss .ultimon-cinema-waves{display:block;inset:27% -10% -12%}
+.ultimon-cinema-waves span{display:block;position:absolute;left:-20%;width:140%;height:44%;
+ border:3px solid #99f6e466;background:#06b6d42d;border-radius:50%;
+ animation:ultimon-new-wave 3.8s ease-in-out infinite alternate}
+.ultimon-cinema-waves span:nth-child(1){top:24%;transform:rotate(4deg)}
+.ultimon-cinema-waves span:nth-child(2){top:42%;animation-delay:-1.8s;transform:rotate(-4deg)}
+.ultimon-cinema-waves span:nth-child(3){top:65%;animation-delay:-3s}
+.ultimon-intro-entrance-show--abyss .ultimon-intro-effect-particle{
+ background:transparent;border:2px solid #a5f3fc;border-radius:50%;
+ animation-name:ultimon-cinema-embers;animation-duration:3s}
+
+/* GIUNGLA: giant leaves, growing vines, emerald sunlight */
+.ultimon-intro-entrance-show--jungle .ultimon-intro-entrance-backdrop{background:
+ radial-gradient(ellipse at 50% 0%,#bef2646e,transparent 55%),
+ linear-gradient(160deg,#052e16,#064e3b 63%,#06261b)}
+.ultimon-intro-entrance-show--jungle .ultimon-cinema-jungle{display:block;inset:-11% -8% auto;
+ font-size:clamp(100px,17vw,200px);letter-spacing:clamp(15px,9vw,100px);
+ text-align:center;color:#a3e6358c;filter:drop-shadow(0 18px 20px #052e16);
+ transform-origin:center top;animation:ultimon-new-vines 5s ease-in-out infinite alternate}
+.ultimon-intro-entrance-show--jungle .ultimon-intro-effect-particle{
+ clip-path:polygon(50% 0,100% 35%,72% 100%,0 65%);
+ background:#bef264;animation-duration:4s}
+
+/* NEON: laser horizon and holographic gridded floor */
+.ultimon-intro-entrance-show--neon .ultimon-intro-entrance-backdrop{background:
+ repeating-linear-gradient(0deg,#f0abfc12 0 2px,transparent 3px 14px),
+ radial-gradient(ellipse at 50% 30%,#d946ef77,transparent 65%),#100b30}
+.ultimon-intro-entrance-show--neon .ultimon-cinema-neon-grid{display:block;
+ inset:48% -40% -35%;background:
+ repeating-linear-gradient(0deg,transparent 0 37px,#f0abfc96 38px 40px),
+ repeating-linear-gradient(90deg,transparent 0 64px,#22d3ee99 65px 67px);
+ transform:perspective(260px) rotateX(62deg);filter:drop-shadow(0 0 15px #f0abfc);
+ animation:ultimon-new-grid 2.7s linear infinite}
+.ultimon-intro-entrance-show--neon .ultimon-intro-entrance-fighter img{
+ filter:drop-shadow(3px 0 #d946ef) drop-shadow(-3px 0 #22d3ee)}
+.ultimon-intro-entrance-show--neon .ultimon-intro-effect-particle{border-radius:0;
+ background:#f0abfc;width:3px;height:24px;animation-duration:2.2s}
+
+/* AURORA: frozen crystal shards and flowing polar lights */
+.ultimon-intro-entrance-show--blizzard .ultimon-intro-entrance-backdrop{
+ background:radial-gradient(ellipse at 50% 0%,#a5f3fc69,transparent 50%),#0c2250}
+.ultimon-intro-entrance-show--blizzard .ultimon-cinema-aurora{display:block;
+ inset:-34% -17% 30%;border-radius:40%;transform:rotate(-12deg);
+ background:conic-gradient(from 90deg at 50% 12%,transparent,#22d3ee99,#a7f3d0aa,
+ transparent,#93c5fdaa,transparent);filter:blur(37px);
+ animation:ultimon-new-aurora 6s ease-in-out infinite alternate}
+.ultimon-intro-entrance-show--blizzard .ultimon-intro-effect-particle{
+ background:#e0f2fe;clip-path:polygon(50% 0,57% 39%,100% 50%,57% 61%,50% 100%,43% 61%,0 50%,43% 39%);
+ animation-duration:4.5s}
+
+/* ORIGAMI: folded polygons on a peach-pink sky */
+.ultimon-intro-entrance-show--origami .ultimon-intro-entrance-backdrop{background:
+ repeating-linear-gradient(135deg,#fda4af12 0 3px,transparent 4px 35px),
+ linear-gradient(150deg,#831843,#6b21a8 55%,#1e1b4b)}
+.ultimon-intro-entrance-show--origami .ultimon-cinema-paper{display:block;
+ inset:13% -4% auto;font-size:clamp(44px,8vw,107px);text-align:center;
+ letter-spacing:4vw;color:#fecdd3b8;text-shadow:0 0 19px #fb7185;
+ animation:ultimon-new-origami 4s ease-in-out infinite alternate}
+.ultimon-intro-entrance-show--origami .ultimon-intro-effect-particle{
+ background:#fecdd3;clip-path:polygon(0 0,100% 35%,44% 100%);
+ border-radius:0;animation-duration:3.8s}
+
+/* GALAXY: slow spinning nebula and multiple planetary halos */
+.ultimon-intro-entrance-show--nebula .ultimon-intro-entrance-backdrop{background:
+ radial-gradient(ellipse at 50% 36%,#818cf86a,transparent 63%),#06061c}
+.ultimon-intro-entrance-show--nebula .ultimon-cinema-nebula{display:block;
+ width:min(80%,660px);aspect-ratio:1;top:-28%;left:50%;border-radius:50%;
+ background:conic-gradient(from 0deg,transparent,#e879f977,transparent,#67e8f999,
+ transparent,#fef08a7a,transparent);
+ filter:blur(20px);transform:translateX(-50%);
+ animation:ultimon-new-nebula 13s linear infinite}
+.ultimon-intro-entrance-show--nebula .ultimon-intro-effect-particle{width:4px;height:4px;
+ border-radius:50%;background:#fef08a;animation-duration:3.4s}
+
+/* CLOCKWORK: Roman numerals and two counterrotating gear wheels */
+.ultimon-intro-entrance-show--clockwork .ultimon-intro-entrance-backdrop{background:
+ repeating-linear-gradient(45deg,#fde68a13 0 2px,transparent 3px 32px),
+ linear-gradient(135deg,#3b2818,#3c1b53 65%,#1e1b4b)}
+.ultimon-intro-entrance-show--clockwork .ultimon-cinema-clock{display:block;
+ width:clamp(190px,44vw,390px);aspect-ratio:1;top:-11%;left:50%;transform:translateX(-50%);
+ border:14px dashed #fde68a88;box-shadow:0 0 0 10px #b4530949,inset 0 0 33px #fde68a8c;
+ border-radius:50%;animation:ultimon-new-gear 12s linear infinite}
+.ultimon-cinema-clock>span{position:absolute;color:#fff4bd;font-size:24px;font-weight:1000;
+ text-shadow:0 0 8px #fde68a}
+.ultimon-cinema-clock>span:nth-child(1){top:0;left:50%}
+.ultimon-cinema-clock>span:nth-child(2){right:2%;top:46%}
+.ultimon-cinema-clock>span:nth-child(3){bottom:0;left:48%}
+.ultimon-cinema-clock>span:nth-child(4){left:2%;top:46%}
+.ultimon-intro-entrance-show--clockwork .ultimon-intro-effect-particle{background:#fde68a;
+ width:4px;height:13px;border-radius:0;animation-duration:4s}
+
+/* CANDY: playful pastel carnival and cascading confetti */
+.ultimon-intro-entrance-show--candy .ultimon-intro-entrance-backdrop{background:
+ radial-gradient(circle at 13% 12%,#f9a8d4bb,transparent 35%),
+ radial-gradient(circle at 87% 17%,#fde68abb,transparent 39%),
+ linear-gradient(150deg,#831843,#c026d3 58%,#7c3aed)}
+.ultimon-intro-entrance-show--candy .ultimon-cinema-candy{display:block;
+ inset:10% -4% auto;text-align:center;font-size:clamp(28px,7vw,85px);
+ letter-spacing:2vw;animation:ultimon-new-candy 3s ease-in-out infinite alternate}
+.ultimon-intro-entrance-show--candy .ultimon-intro-effect-particle{
+ background:linear-gradient(45deg,#f9a8d4,#fef08a);border-radius:7px 2px;
+ animation-duration:2.5s}
+
+/* METEOR: diagonal flaming comet tail and impact flash */
+.ultimon-intro-entrance-show--meteor .ultimon-intro-entrance-backdrop{background:
+ radial-gradient(ellipse at 50% 65%,#fb923c77,transparent 55%),
+ linear-gradient(150deg,#431407,#450a0a 65%,#100a24)}
+.ultimon-intro-entrance-show--meteor .ultimon-cinema-meteor{display:block;
+ width:30%;height:65px;left:-22%;top:1%;border-radius:999px;
+ transform:rotate(-24deg);
+ background:linear-gradient(90deg,transparent,#fbbf24a6 65%,#fff);
+ box-shadow:0 0 40px #f97316,inset -15px 0 20px #fff;
+ animation:ultimon-new-meteor 3.7s ease-in-out infinite}
+.ultimon-intro-entrance-show--meteor .ultimon-intro-effect-particle{
+ background:#fdba74;border-radius:70% 30% 70% 30%;animation-name:ultimon-cinema-embers}
+
+/* Every card in the shop has a matching intro scene and a distinct preview. */
+.ultimon-intro-entrance-option--eclipse{background:radial-gradient(circle at 50% 0%,#6d28d9,#0c102a 78%)}
+.ultimon-intro-entrance-option--abyss{background:radial-gradient(circle at 50% 0%,#0891b2,#0a1837 80%)}
+.ultimon-intro-entrance-option--jungle{background:radial-gradient(circle at 50% 0%,#15803d,#082c22 85%)}
+.ultimon-intro-entrance-option--neon{background:radial-gradient(circle at 50% 0%,#d946ef,#0e1737 85%)}
+.ultimon-intro-entrance-option--blizzard{background:radial-gradient(circle at 50% 0%,#38bdf8,#101b50 85%)}
+.ultimon-intro-entrance-option--origami{background:radial-gradient(circle at 50% 0%,#f472b6,#3a1542 82%)}
+.ultimon-intro-entrance-option--nebula{background:radial-gradient(circle at 50% 0%,#6366f1,#110d38 82%)}
+.ultimon-intro-entrance-option--clockwork{background:radial-gradient(circle at 50% 0%,#b45309,#291b31 85%)}
+.ultimon-intro-entrance-option--candy{background:radial-gradient(circle at 50% 0%,#f472b6,#6b21a8 82%)}
+.ultimon-intro-entrance-option--meteor{background:radial-gradient(circle at 50% 0%,#ea580c,#461426 85%)}
+@keyframes ultimon-new-eclipse{from{opacity:.75;filter:brightness(.75)}
+ to{opacity:1;filter:brightness(1.45)}}
+@keyframes ultimon-new-wave{from{translate:0 -10px}to{translate:18px 12px}}
+@keyframes ultimon-new-vines{from{transform:rotate(-5deg) scale(.9)}to{transform:rotate(6deg) scale(1.08)}}
+@keyframes ultimon-new-grid{to{background-position:0 41px,65px 0}}
+@keyframes ultimon-new-aurora{from{transform:rotate(-22deg) scale(.92)}
+ to{transform:rotate(10deg) scale(1.15)}}
+@keyframes ultimon-new-origami{from{transform:translateY(0) rotate(-8deg)}
+ to{transform:translateY(14px) rotate(8deg)}}
+@keyframes ultimon-new-nebula{from{transform:translateX(-50%) rotate(0)}
+ to{transform:translateX(-50%) rotate(360deg)}}
+@keyframes ultimon-new-gear{from{transform:translateX(-50%) rotate(0)}
+ to{transform:translateX(-50%) rotate(-360deg)}}
+@keyframes ultimon-new-candy{from{transform:translateY(-4px) rotate(-4deg)}
+ to{transform:translateY(14px) rotate(5deg)}}
+@keyframes ultimon-new-meteor{0%{left:-35%;top:-16%;opacity:0}
+ 12%{opacity:1}65%{left:110%;top:65%;opacity:1}100%{left:110%;top:65%;opacity:0}}
+
+@media(max-width:700px){
+ .ultimon-intro-entrance-fighters--all{grid-template-columns:repeat(auto-fit,minmax(64px,1fr));
+  gap:6px 3px;max-width:100%;padding:0 3px;min-height:0;margin:13px auto}
+ .ultimon-intro-entrance-fighters--all .ultimon-intro-entrance-fighter img{height:76px}
+ .ultimon-intro-entrance-fighters--all .ultimon-intro-entrance-fighter span{font-size:8px}
+ .ultimon-intro-entrance-vip{min-height:0}
+ .ultimon-intro-entrance-player-avatar{position:relative;top:auto;left:auto;
+  transform:none;margin:8px auto}
+ .ultimon-intro-exit-roster{grid-template-columns:repeat(auto-fit,minmax(75px,1fr));gap:6px}
+ .ultimon-intro-exit-roster figure{padding:5px}
+ .ultimon-intro-exit-roster img{height:77px}
+ .ultimon-intro-exit-roster figcaption{font-size:9px}
+ .ultimon-intro-call-silhouette img,.ultimon-intro-call-silhouette img:nth-child(even){width:52px;height:67px}
+}
+@media(prefers-reduced-motion:reduce){
+ .ultimon-cinema-moon,.ultimon-cinema-waves span,.ultimon-cinema-jungle,
+ .ultimon-cinema-neon-grid,.ultimon-cinema-aurora,.ultimon-cinema-paper,
+ .ultimon-cinema-nebula,.ultimon-cinema-clock,.ultimon-cinema-candy,
+ .ultimon-cinema-meteor{animation:none!important;transition:none!important}
+ .ultimon-intro-entrance-show--basic .ultimon-intro-entrance-fighter{animation:none;opacity:1}
+}
