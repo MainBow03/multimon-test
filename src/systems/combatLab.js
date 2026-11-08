@@ -32,7 +32,7 @@ export const COMBAT_LAB_DEFAULT={
  upgrades:false
 };
 const bounded=(value,min,max,fallback)=>Number.isFinite(Number(value))
- ?Math.max(min,Math.min(max,Math.trunc(Number(value))))):fallback;
+ ?Math.max(min,Math.min(max,Math.trunc(Number(value)))):fallback;
 const validIds=characters=>new Set((characters||[])
  .filter(c=>c?.id&&!c.isSecretUnlock&&!c.isSummonOnly&&!c.isCampaignMonster&&!c.fusionOf)
  .map(c=>c.id));
