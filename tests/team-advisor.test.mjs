@@ -8,7 +8,7 @@ const fighter = (id, types, moves, extra = {}) => ({
   id, name: id, types, moves, atk: 90, def: 75, maxHp: 90, spd: 85, ...extra
 });
 
-test('l'analisi usa la stessa chart di tipo della battaglia, anche sui doppi tipi', () => {
+test("l'analisi usa la stessa chart di tipo della battaglia, anche sui doppi tipi", () => {
   const a = fighter('a', ['Acqua', 'Aria'], [{ type: 'Acqua', power: 70 }]);
   const b = fighter('b', ['Aria'], [{ type: 'Lotta', power: 70 }]);
   const report = analyzeTeam([a, b], [], 3);
