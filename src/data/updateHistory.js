@@ -13,6 +13,16 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov8-five-approved-passives',category:'champions',date:'08/11/2026',
+    title:'🐞🔥 Cinque nuove abilità passive: Ladybug, Charizard, Dante, Finn e Garnet',items:[
+      'LADYBUG — Il Potere dei Miraculous: quando usa una mossa di supporto su un alleato ferito, lo cura del 10% dei suoi PS massimi; massimo 3 attivazioni per battaglia. Le autocure non contano.',
+      'CHARIZARD — Fiamme Inestinguibili: con meno del 50% dei PS, i suoi attacchi di tipo Fuoco infliggono il 20% di danni aggiuntivi.',
+      'DANTE — Jackpot!: quando un colpo critico infligge davvero danni, recupera il 15% dei PS massimi e ottiene +10% Velocità; massimo 2 attivazioni per battaglia.',
+      'FINN — Avventuriero Nato: infligge il 15% di danni extra contro avversari con Attacco base superiore al proprio, indipendentemente dai buff temporanei.',
+      'GARNET — Futuro Infrangibile: se Visione del Futuro blocca un attacco offensivo, il prossimo attacco di Garnet infligge il 25% di danni in più; massimo 2 attivazioni per battaglia, bonus non cumulabile.',
+      'Le abilità sono collegate direttamente al motore delle battaglie e mostrano la loro attivazione nel registro eventi. Nessuna mossa o statistica base è stata modificata.'
+    ]},
+
 
   {id:'nov8-combat-laboratory-simulator',category:'features',date:'08/11/2026',
     title:'🧪 NUOVO: Laboratorio di Combattimento, simulatore reale senza ricompense!',items:[
