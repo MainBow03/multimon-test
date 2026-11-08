@@ -11,13 +11,14 @@ export function damagingMoveTypes(character) {
 }
 
 // Una cura personale non viene presentata come cura utilizzabile sugli alleati.
-export function canHealAllies(character) {
+export function canHealAllies(character, team = null) {
   const passive = character?.passive || {};
   if (passive.healLowestAllyPercent || passive.healTeamPercent) return true;
   return (character?.moves || []).some(move => {
     if (!move) return false;
+    if (move.specificAlly && Array.isArray(team) && !team.some(ally => ally?.name === move.specificAlly || ally?.id === move.specificAlly)) return false;
     if (move.healLowestAllyPercent || move.teamHeal || move.reviveAlly || move.targetMode === 'revive' || move.targetMode === 'team_smart_heal') return true;
-    const heals = move.heal || move.healFlat || move.selfHeal;
+    const heals = move.heal || move.healFlat || move.healLastTurnDamage;
     return Boolean(heals && ['ally', 'team', 'all_allies'].includes(move.targetMode || move.target));
   });
 }
@@ -28,7 +29,7 @@ function teamRoles(team) {
     for (const role of getCharacterRoles(character)) {
       if (Object.hasOwn(counts, role)) counts[role]++;
     }
-    if (canHealAllies(character)) counts.allyHealer++;
+    if (canHealAllies(character, team)) counts.allyHealer++;
     if (Number(character?.spd) >= 105) counts.fast++;
   }
   return counts;
@@ -73,7 +74,7 @@ function scoreCandidate(character, report) {
       score -= 3;
     }
   }
-  if (report.needs.allyHealer && canHealAllies(character)) {
+  if (report.needs.allyHealer && canHealAllies(character, [...report.pickedCharacters, character])) {
     score += 7;
     reasons.push('può curare gli alleati');
   }
@@ -145,11 +146,11 @@ export function analyzeTeam(team = [], availableChars = [], teamSize = 6) {
       seen.add(character.id);
       return !character.isSummonOnly;
     });
-  const report = { roles, threats, coverageGaps, needs, warnings, strengths };
+  const report = { roles, threats, coverageGaps, needs, warnings, strengths, pickedCharacters: picked };
   const suggestions = picked.length === 0 ? [] : candidates
     .map(character => scoreCandidate(character, report))
     .filter(item => item.score > 0 && item.reasons.length > 0)
     .sort((a, b) => b.score - a.score || a.character.name.localeCompare(b.character.name, 'it'))
     .slice(0, 3);
-  return { ...report, suggestions, picked: picked.length, teamSize: size };
+  return { roles, threats, coverageGaps, needs, warnings, strengths, suggestions, picked: picked.length, teamSize: size };
 }
