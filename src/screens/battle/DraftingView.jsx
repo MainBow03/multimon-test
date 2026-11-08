@@ -1,4 +1,5 @@
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
+import { TeamAdvisor } from '../../components/TeamAdvisor.jsx';
 import { HeldEquipmentCard, HeldEquipmentGuide } from '../../components/HeldEquipmentPicker.jsx';
 import { ZodiacSpiritPicker } from '../../components/ZodiacSpiritPicker.jsx';
 import { canEquipHeldItem } from '../../systems/heldEquipment.js';
@@ -58,6 +59,12 @@ if (gameState.status === 'drafting') {
             price:draftPrice,favoritesOnly:draftFavoritesOnly,favorites:draftFavorites
         });
 
+        const advisorChoices = gameState.settings.sharedDraft
+          ? (gameState.sharedDraftPool || []).filter(item => item && item.pickedBy == null).map(item => item.char).filter(Boolean)
+          : gameState.settings.draftBattle
+            ? (gameState.draftChoices?.[playerRole] || [])
+            : draftableChars;
+
         return (
             <div className="h-[100dvh] min-h-[520px] bg-slate-900 text-white p-3 sm:p-5 flex flex-col relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black pointer-events-none opacity-40"></div>
@@ -91,6 +98,8 @@ if (gameState.status === 'drafting') {
                          );
                      })}
                 </div>
+
+                <TeamAdvisor team={myDraft} availableChars={advisorChoices} teamSize={myTeamSize} />
 
                 {isReady ? (
                     <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col items-center justify-start bg-slate-950/60 rounded-3xl z-10 border border-slate-800/50 backdrop-blur-sm py-3">
