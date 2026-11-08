@@ -3,8 +3,10 @@ import { FIVE_NEW_MOVES } from './fiveNewChampions.js';
 import {STRAW_HAT_MOVES} from './strawHatCrewMoves.js';
 import {GEM_FLAME_MOVES} from './gemFlameMoves.js';
 import {BERRY_FRILLISH_MOVES} from './berryFrillishMoves.js';
+import {NEW_TRIO_MOVES} from './flinsGanyuCoraline.js';
 
 export const MOVES_DB = {
+  ...NEW_TRIO_MOVES,
   ...BERRY_FRILLISH_MOVES,
   ...GEM_FLAME_MOVES,
   ...STRAW_HAT_MOVES,
@@ -184,7 +186,7 @@ export const MOVES_DB = {
           'Frammenti di Neve': { name: 'Frammenti di Neve', type: 'Ghiaccio', power: 25, multiHit: { min: 2, max: 5 }, desc: 'Scaglia schegge di ghiaccio che colpiscono il bersaglio in rapida successione (da 2 a 5 volte).' },
           'Canto dell Inverno': { name: 'Canto dell\'Inverno', type: 'Ghiaccio', power: 0, targetMode: 'ally', heal: 0.4, removeNegativeStatuses: true, desc: 'Guarisce un alleato (o se stessa) del 40% dei PS massimi e rimuove gli status negativi.' },
           'Luce Cristallina': { name: 'Luce Cristallina', type: 'Magico', power: 80, ignoreDefBuffs: true, desc: 'Raggio di luce magica. Colpisce ignorando completamente i potenziamenti alla Difesa del nemico.' },
-          'Gelo Definitivo': { name: 'Gelo Definitivo', type: 'Ghiaccio', power: 100, targetCount: 4, maxUses: 1, statusEffect: { type: 'Congelato', chance: 0.60 }, desc: 'Un vortice di gelo assoluto. Colpisce tutti i nemici in campo con il 60% di probabilità di congelarli. (1 utilizzo)' },
+          'Gelo Definitivo': { name: 'Gelo Definitivo', type: 'Ghiaccio', power: 100, targetCount: 4, maxUses: 1, statusEffect: { type: 'Assiderato', chance: 0.25, turns: 2 }, desc: 'Un vortice di gelo assoluto. Colpisce fino a 4 nemici: 25% per bersaglio di Assideramento per 2 turni (Velocità -50%, danni inflitti -30%). (1 utilizzo)' },
           
           // NUOVE MOSSE RE GHIACCIO
           'Raggio Congelante': { name: 'Raggio Congelante', type: 'Ghiaccio', power: 75, statusEffect: { type: 'Congelato', chance: 0.25 }, desc: 'Un raggio gelido scaturito dalla corona. 25% di probabilità di congelare.' },
@@ -270,7 +272,7 @@ export const MOVES_DB = {
 
           // NUOVE MOSSE JACK FROST
           'Vento Invernale': { name: 'Vento Invernale', type: 'Ghiaccio', power: 70, targetCount: 2, selfStatBuff: { spd: 1.5 }, desc: 'Potenza 70. Colpisce fino a due nemici e aumenta la propria Velocità del 50%.' },
-          'Scherzetto di Neve': { name: 'Scherzetto di Neve', type: 'Ghiaccio', power: 40, targetCount: 2, statusEffect: { type: 'Congelato', chance: 0.4 }, desc: 'Lancia palle di neve magiche su 2 nemici infliggendo danni. 40% di probabilità di congelarli.' },
+          'Scherzetto di Neve': { name: 'Scherzetto di Neve', type: 'Ghiaccio', power: 50, targetCount: 2, statusEffect: { type: 'Congelato', chance: 0.4 }, desc: 'Lancia palle di neve magiche (potenza 50) su 2 nemici. 40% di probabilità di congelarli.' },
           'Bastone Magico': { name: 'Bastone Magico', type: 'Magico', power: 70, statusEffect: { type: 'Confuso', chance: 0.2 }, desc: 'Colpisce con il bastone magico. 20% di probabilità di confondere il bersaglio.' },
           'Aura Glaciale': { name: 'Aura Glaciale', type: 'Ghiaccio', power: 0, target: 'self', tailwindTurns: 5, maxUses: 2, strictUses: true, desc: 'Attiva Tailwind per tutta la squadra per 5 turni: velocità effettiva +30%, anche per chi entra dopo. Non modifica permanentemente la statistica.' },
 
@@ -359,7 +361,7 @@ export const MOVES_DB = {
           // NUOVE MOSSE GARNET
           'Pugno Razzo': { name: 'Pugno Razzo', type: 'Lotta', power: 85, statusEffect: { type: 'Stordito', chance: 0.2 }, desc: 'Lancia i suoi guantoni con estrema violenza. 20% di probabilità di stordire.' },
           'Visione del Futuro': { name: 'Visione del Futuro', type: 'Magico', power: 0, target: 'self', isProtect: true, priority: 5, maxUses: 4, desc: 'Prevede l\'attacco nemico e lo evita, garantendo protezione per il turno.' },
-          'Schianto Sismico': { name: 'Schianto Sismico', type: 'Roccia', power: 65, targetCount: 4, desc: 'Un colpo al suolo che fa tremare l\'arena, colpendo tutti i nemici in campo.' },
+          'Schianto Sismico': { name: 'Schianto Sismico', type: 'Roccia', power: 72, targetCount: 4, desc: 'Un colpo al suolo che fa tremare l\'arena, colpendo tutti i nemici in campo.' },
           'Forza dell\'Amore': { name: 'Forza dell\'Amore', type: 'Normale', power: 0, target: 'self', statBuff: { atk: 1.5, def: 1.5 }, desc: 'Trae forza dall\'essere una fusione perfetta. Aumenta Attacco e Difesa del 50.' },
 
           // NUOVE MOSSE LAPIS LAZULI

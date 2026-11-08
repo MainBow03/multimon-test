@@ -1,6 +1,6 @@
 import {blockedEnemyPassive} from './newHeldAndPassiveEffects.js';
 
-export const CURSED_BODY_CHANCE=0.20;
+export const CURSED_BODY_CHANCE=0.25;
 export const CURSED_BODY_TURNS=3;
 export const CURSED_BODY_STATUS='Mossa Disabilitata';
 export const BERRY_CHILL_CHANCE=0.25;

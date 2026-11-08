@@ -105,15 +105,15 @@ test('Zampillo aumenta solo sotto il 50% dei PS, per ogni bersaglio individualme
  assert.equal(frillishSpoutPower({hp:80,maxHp:100},spout),70);
 });
 
-test('Corpo Funesto: 20% di bloccare la mossa usata, con 3 turni effettivi',()=>{
+test('Corpo Funesto: 25% di bloccare la mossa usata, con 3 turni effettivi',()=>{
  const defender=clone('frillish'),attacker=clone('berry');
  attacker.statuses=[];
  attacker.moves=attacker.moves.map(m=>({...m,remainingUses:null}));
- assert.equal(CURSED_BODY_CHANCE,.2);
+ assert.equal(CURSED_BODY_CHANCE,.25);
  assert.equal(CURSED_BODY_TURNS,3);
  const used=attacker.moves[0];
- assert.equal(tryCursedBody(defender,attacker,used,()=>.2),false,'20% è la soglia esclusiva');
- assert.equal(tryCursedBody(defender,attacker,used,()=>.1999),true);
+ assert.equal(tryCursedBody(defender,attacker,used,()=>.25),false,'25% è la soglia esclusiva');
+ assert.equal(tryCursedBody(defender,attacker,used,()=>.2499),true);
  assert.equal(attacker.statuses.length,1);
  assert.equal(attacker.statuses[0].type,CURSED_BODY_STATUS);
  assert.equal(attacker.statuses[0].moveName,used.name);

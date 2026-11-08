@@ -44,6 +44,11 @@ export function BattleStatusBadges({character}) {
     {character.passive?.name&&<span className="battle-passive-pill" title={character.passive.desc||character.passive.name}>
       ✨ {character.passive.name}
     </span>}
+    {character.passive?.type==='qilin_dew'&&<span className="battle-passive-pill"
+      title="Rugiada Qilin: ogni attacco Ghiaccio a segno carica un sigillo. A 2 sigilli il prossimo attacco Ghiaccio guadagna +35% danni e cura Ganyu del 10%.">
+      💠 Sigilli Qilin: {Math.min(2,Math.max(0,Number(character.qilinCharges)||0))}/2
+      {(character.qilinCharges||0)>=2?' · FIORITURA PRONTA!':''}
+    </span>}
     {changes.length>0&&<div className="battle-stat-effects">
       {changes.map(x=><span key={x.key} className={x.percent>0?'battle-effect-buff':'battle-effect-debuff'}
         title={x.label+': '+x.current+' (base '+x.base+')'} aria-label={x.label+' '+(x.percent>0?'+':'')+x.percent+' percento'}>

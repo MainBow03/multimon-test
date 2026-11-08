@@ -23,6 +23,8 @@ import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { hyperPreviewMoves } from './hyperPreview.js';
+import {assideramentoSpeedFactor,assideramentoDamageFactor,tickAssideramento,
+  prepareQilinAttack,qilinDamageFactor,resolveQilinAttack} from './assideramentoQilin.js';
 import {ZODIAC_TRAP,ZODIAC_DODGE,normalizeZodiacSpirit,activeZodiacSpirit,summonZodiacSpirit,
   addZodiacTrap,zodiacTrapSpeedFactor,zodiacTrapMisses,addZodiacDodge,consumeZodiacDodge,
   zodiacFlatStatBoost,cleanLucyDebuffs,zodiacSecondaryRoll} from './zodiacSpirits.js';
@@ -307,7 +309,7 @@ const { CHARACTERS } = ctx;
                           const rTarget = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
                           const sType = char.passive.applyStatusToRandomEnemy.type;
                           
-                          const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'].includes(sType);
+                          const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'].includes(sType);
                           if (isNegative && (rTarget.char.passive?.immuneToNegativeStatuses || blockedEnemyPassive(rTarget.char))) {
                               eventsArr.push({ type: 'text', text: `🛡️ ${char.name} attiva ${char.passive.name}, ma ${rTarget.char.name} è immune a ${sType} grazie a ${rTarget.char.passive?.name||'Scudo Anti-Magia'}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                           } else {
@@ -791,6 +793,7 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
 
             let pwr = move.power * getHeldPowerFactor(attacker, move) * offensiveHeldFactor(attacker,defender,move);
             if (attacker.passive?.type === 'ghost_rockstar' && move.type === 'Suono') pwr *= 1.25;
+            pwr *= qilinDamageFactor(attacker,move);
             if (move.speedScaling) pwr += Math.floor(attacker.spd / 3);
             
             // --- GESTIONE PASSIVE: POTENZIAMENTO MOSSE ---
@@ -822,7 +825,7 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             // In questo modo si evitano i "one-shot" e gli scontri diventano più lunghi e strategici
             const baseDamage = ((2 * 50 / 5 + 2) * pwr * (attackValue / defValue)) / 85 + 2;
             const randomFactor = (Math.floor(random() * 16) + 85) / 100;
-            const weakenFactor = attacker.statuses?.some(s => s.type === 'Indebolito') ? 0.75 : 1;
+            const weakenFactor = (attacker.statuses?.some(s => s.type === 'Indebolito') ? 0.75 : 1) * assideramentoDamageFactor(attacker);
             const teamDefFactor = !ignoresShields(attacker,move) && defender.statuses?.some(s => s.type === 'Scudo Team') ? 0.33 : 1;
 
             // STAB (Same-Type Attack Bonus): Danno aumentato del 50% se il tipo mossa coincide con il tipo attaccante
@@ -1145,7 +1148,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
 
                         // AGGIUNTO: GESTIONE PURIFICAZIONE STATUS (es. Zazan - Corazza Mutante)
                         if (target.passive.removeNegativeStatuses) {
-                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'];
+                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'];
                             const originalLength = target.statuses.length;
                             target.statuses = target.statuses.filter(s => !negatives.includes(s.type));
                             
@@ -1442,7 +1445,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 
                 const action = currentActions[player][charTeamIdxStr];
                 
-                let effSpd = Math.floor(char.spd*zodiacTrapSpeedFactor(char)*tailwindSpeedFactor(workingTailwind,player));
+                let effSpd = Math.floor(char.spd*zodiacTrapSpeedFactor(char)*tailwindSpeedFactor(workingTailwind,player)*assideramentoSpeedFactor(char));
                 if (!immuneToStatDrops(char) && char.statuses && char.statuses.some(s => s.type === 'Elettrizzato')) effSpd = Math.floor(effSpd / 2);
                 
                 const move = action.type === 'attack' ? char.moves[action.moveIdx] : null;
@@ -2048,6 +2051,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     ' consuma 2 Cariche Calore! '+move.name+' infligge +25% danni!'});
                 }
                 let attackSucceeded = false;
+                if(prepareQilinAttack(attacker,move)){
+                  events.push({type:'text',text:'❄️ '+attacker.name+
+                    ' attiva Fioritura del Qilin! Il prossimo attacco Ghiaccio infligge +35% danni!',
+                    isPassive:true,passiveChar:attacker.name,passiveName:'Rugiada Qilin'});
+                }
 
                 for (let t of resolvedTargets) {
                     if (t.char.hp <= 0 && move.targetMode !== 'revive') continue;
@@ -2669,7 +2677,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                         }
 
                         if (move.removeNegativeStatuses) {
-                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'];
+                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'];
                             const originalLength = t.char.statuses.length;
                             t.char.statuses = t.char.statuses.filter(s => !negatives.includes(s.type));
                             if (t.char.statuses.length < originalLength) {
@@ -2738,7 +2746,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
 
                         let effects = move.statusEffects || (move.statusEffect ? [move.statusEffect] : []);
                         for (let effect of effects) {
-                            const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'].includes(effect.type);
+                            const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'].includes(effect.type);
                             
                             // FIX CRITICO: Se la mossa non ha una "chance" specificata, assumiamo che sia 1.0 (100% garantita)!
                             const chanceToApply = boostedStatusChance(attacker,effect.chance !== undefined ? effect.chance : 1.0);
@@ -2756,7 +2764,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 if (effect.type === 'Addormentato' && !effect.turns) turns = Math.floor(Math.random() * 3) + 2;
                                 if (effect.type === 'Infatuato' && !effect.turns) turns = Math.floor(Math.random() * 2) + 4;
                                 
-                                let newStatus = { type: effect.type, turns: turns, ...(effect.type==='Incantato'?{justApplied:true}:{}) };
+                                let newStatus = { type: effect.type, turns: turns, ...(['Incantato','Assiderato'].includes(effect.type)?{justApplied:true}:{}) };
                                 if(shortenHakiDebuff(t.char,newStatus))
                                   events.push({type:'text',text:'🛡️ Haki dell’Armatura: '+t.char.name+' dimezza la durata di '+effect.type+'!'});
                                 if(shortenNegativeStatus(t.char,newStatus))
@@ -3123,6 +3131,21 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                   healBerrySlideAllies(attacker,move,player,workingTeams,workingField,
                     {gameMode:gameState.gameMode,settings:gameState.settings,
                       isRoguelikeCoop:gameState.isRoguelikeCoop},events,activeMatchPlayers);
+                const qilin=resolveQilinAttack(attacker,move,attackSucceeded);
+                if(qilin){
+                  if(qilin.burst){
+                    events.push({type:'text',text:'❄️ '+attacker.name+
+                      ' consuma 2 Sigilli Qilin e riporta la Rugiada al livello 0!',
+                      isPassive:true,passiveChar:attacker.name,passiveName:'Rugiada Qilin'});
+                    if(qilin.healed>0)events.push({type:'damage',targetPlayer:player,
+                      targetIdx:charTeamIdx,newHp:attacker.hp,
+                      text:'💚 '+attacker.name+' recupera '+qilin.healed+' PS dalla Rugiada Qilin!',
+                      isPassive:true,passiveChar:attacker.name,passiveName:'Rugiada Qilin'});
+                  } else {
+                    events.push({type:'text',text:'💠 '+attacker.name+' accumula un Sigillo Qilin! ('+
+                      qilin.charges+'/2)',isPassive:true,passiveChar:attacker.name,passiveName:'Rugiada Qilin'});
+                  }
+                }
                 if(attackSucceeded && addHeatCharge(attacker)){
                   events.push({type:'text',text:'🔥 '+attacker.name+' accumula una Carica Calore! ('+
                     attacker.heatCharges+'/2)'});
@@ -3297,7 +3320,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                     if (enemy && enemy.hp > 0 && Math.random() < char.passive.enemyStatusEffect.chance) {
                                         const sType = char.passive.enemyStatusEffect.type;
                                         
-                                        const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'].includes(sType);
+                                        const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'].includes(sType);
                                         if (isNegative && (enemy.passive?.immuneToNegativeStatuses || blockedEnemyPassive(enemy))) {
                                             return; 
                                         }
@@ -3370,7 +3393,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 char.juggTurnCount = (char.juggTurnCount || 0) + 1;
                 if (char.juggTurnCount >= 2) {
                     char.juggTurnCount = 0; // Reset contatore
-                    const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta'];
+                    const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'];
                     const hasNegative = char.statuses.some(s => negatives.includes(s.type));
                     if (hasNegative) {
                         char.statuses = char.statuses.filter(s => !negatives.includes(s.type));
@@ -3452,6 +3475,12 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 }
               }
             }
+            if(tickAssideramento(char)){
+              updateStatusUI(target.player,target.charTeamIdx);
+              events.push({type:'text',text:'🌤️ '+char.name+
+                ' si riprende dall’Assideramento: Velocità e danni tornano normali!'});
+            }
+
             let indebIdx = char.statuses.findIndex(s => s.type === 'Indebolito');
             if (indebIdx !== -1) {
                 char.statuses[indebIdx].turns -= 1;

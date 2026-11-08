@@ -10,6 +10,7 @@ const NEGATIVE_DESCRIPTIONS = {
   Scottato:'Ustione: causa danni nel tempo; controlla i turni residui del bersaglio.',
   Elettrizzato:'Velocità dimezzata e probabilità del 30% di non riuscire ad agire.',
   Congelato:'A ogni azione può bloccarsi e perdere 3 PS oppure liberarsi dal ghiaccio.',
+  Assiderato:'Status da Gelo Definitivo di Elsa: per 2 turni completi la Velocità effettiva è dimezzata (−50%) e tutti i danni inflitti sono ridotti del 30%. Non blocca le azioni. Curabile come status negativo.',
   Addormentato:'Impedisce di attaccare finché il bersaglio non si sveglia. Senza durata specifica si applicano 2–4 turni.',
   Confuso:'Può guarire spontaneamente oppure colpirsi da solo. Il tiro avviene quando prova ad agire.',
   Indebolito:'Riduce del 25% i danni inflitti dalle mosse, salvo eccezioni specifiche.',
@@ -20,7 +21,7 @@ const NEGATIVE_DESCRIPTIONS = {
   Infatuato:'Può impedire di attaccare (50% durante il controllo). La Freccia di Cupido lo applica per 4 turni.',
   Ricarica:'Salta un turno dopo una mossa che richiede ricarica. Lo Spray Neutralizzante può rimuoverlo.',
   Magnetico:'Alterazione speciale: gli effetti precisi dipendono dalla mossa che la causa.',
-  'Mossa Disabilitata':'Corpo Funesto di Frillish: 20% di probabilità di bloccare la mossa che lo ha colpito per 3 turni. La mossa resta nel moveset ma non si può scegliere né eseguire; il blocco termina automaticamente e può essere rimosso da uno strumento curativo per gli status negativi.'
+  'Mossa Disabilitata':'Corpo Funesto di Frillish: 25% di probabilità di bloccare la mossa che lo ha colpito per 3 turni. La mossa resta nel moveset ma non si può scegliere né eseguire; il blocco termina automaticamente e può essere rimosso da uno strumento curativo per gli status negativi.'
 };
 // Durate ricavate dalle mosse realmente presenti nel database.
 const STATUS_DURATIONS = (() => {

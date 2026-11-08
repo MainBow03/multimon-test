@@ -3,7 +3,7 @@
 // non dentro il profilo permanente dello shop.
 export const NEGATIVE_STATUS_TYPES=Object.freeze([
  'Avvelenato','Scottato','Elettrizzato','Congelato','Addormentato',
- 'Confuso','Indebolito','Stordito','Accecato','Incantato',
+ 'Confuso','Indebolito','Stordito','Accecato','Incantato','Assiderato',
  'Anima Distorta','Infatuato','Ricarica','Magnetico','Mossa Disabilitata'
 ]);
 const negative=new Set(NEGATIVE_STATUS_TYPES);

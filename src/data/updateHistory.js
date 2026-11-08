@@ -14,6 +14,22 @@ export const UPDATE_CATEGORIES = [
 ];
 export const GAME_UPDATES = [
 
+  {id:'nov8-elsa-assideramento-ganyu-flins-coraline',category:'balance',date:'08/11/2026',
+   title:'❄️⚡ Bilanciamento Elsa, Garnet, Frillish, Jack Frost e Jury + 3 nuovi Multimon!',items:[
+    'ELSA NERF: Gelo Definitivo (Iper) non congela più; ha il 25% per bersaglio di applicare Assideramento per 2 turni completi. Lo status dimezza la Velocità effettiva e riduce del 30% i danni inflitti, senza impedire di agire.',
+    'Il nuovo Assideramento funziona realmente nella coda di iniziativa e nei calcoli dei danni, appare tra gli status negativi con durata residua, scade automaticamente e può essere rimosso da cure e strumenti anti-status.',
+    'GARNET BUFF: Schianto Sismico passa da 65 a 72 potenza, mantenendo l’attacco ad area.',
+    'FRILLISH BUFF: Corpo Funesto passa dal 20% al 25% di probabilità di disabilitare la mossa avversaria per 3 turni, continuando a prevenire il blocco completo delle azioni.',
+    'JACK FROST BUFF: Scherzetto di Neve passa da 40 a 50 potenza; resta il 40% di congelare fino a due bersagli.',
+    'JURI (JURY) NERF: Tifo del Pubblico si attiva al massimo 2 volte anziché 3 per battaglia; ogni attivazione mantiene +15% Attacco/Difesa/Velocità.',
+    'NUOVO FLINS Elettro/Luce: Lancia del Faro, Raggio della Lanterna, Guardia del Crepuscolo, Sinfonia del Fulmine Lunare; passiva Lanterna del Guardiano (+10% danno offensivo).',
+    'NUOVA GANYU Ghiaccio/Magico: Freccia del Qilin, Fiore di Ghiaccio, Pioggia Celestiale Qilin, Passo della Rugiada. Passiva esclusiva Rugiada Qilin: dopo 2 attacchi Ghiaccio riusciti, il successivo infligge +35% danni e cura Ganyu del 10% dei PS massimi, poi azzera i sigilli. Un sigillo per mossa, non per bersaglio; barra cariche visibile in campo.',
+    'NUOVA CORALINE Psico/Spettro: Chiave dei Mondi, Balzo del Gatto Nero, Occhi di Bottone, Porticina Segreta; passiva Non ho paura dei bottoni, che riduce del 70% il primo danno diretto e impedisce i suoi effetti negativi.',
+    'Flins, Ganyu e Coraline sono personaggi normali acquistabili nel negozio per 250, 300 e 200 monete, anche tramite le Chiavi Multimon, e hanno titoli di Padronanza personalizzati.',
+    'Le tre immagini PNG sono quelle indicate dai giocatori e tutti i personaggi usano il normale motore delle lotte classiche, online, campagne e roguelike.'
+   ]},
+
+
   {id:'nov8-multimon-five-veteran-keys',category:'features',date:'08/11/2026',
     title:'🔑 Regalo Veterani: 5 Chiavi Multimon per tutti i giocatori!',items:[
       'Tutti i profili che hanno già giocato almeno una partita registrata ricevono automaticamente 5 Chiavi Multimon al prossimo accesso, anche se hanno creato l’account prima di questo aggiornamento.',

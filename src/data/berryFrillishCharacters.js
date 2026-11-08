@@ -13,8 +13,8 @@ export const BERRY_FRILLISH_CHARACTERS=[
     id:'frillish',name:'Frillish',types:['Acqua','Spettro'],
     hp:104,maxHp:104,atk:78,spAtk:111,def:89,spDef:111,spd:78,
     img:'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/592.png',
-    passive:{name:'Corpo Funesto',type:'cursed_body',chance:0.20,disableTurns:3,
-      desc:'Quando un nemico colpisce Frillish con una mossa, 20% di probabilità di disabilitare proprio quella mossa dell’attaccante per 3 turni. Le mosse disabilitate non possono essere selezionate o eseguite.'},
+    passive:{name:'Corpo Funesto',type:'cursed_body',chance:0.25,disableTurns:3,
+      desc:'Quando un nemico colpisce Frillish con una mossa, 25% di probabilità di disabilitare proprio quella mossa dell’attaccante per 3 turni. Le mosse disabilitate non possono essere selezionate o eseguite.'},
     moveNames:['Idrovampata','Energipalla (Frillish)','Zampillo (Frillish)','Palla Ombra (Frillish)']
   }
 ];
