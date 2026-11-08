@@ -1,5 +1,6 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
 import {canUseBagItems} from './bagItemPolicy.js';
+import {selectedPassiveDamageFactor,triggerMiraculousAllyHeal,triggerJackpot,triggerFutureBlock,consumeFutureStrike} from './selectedCharacterPassives.js';
 import {legalSupportTargets,isLegalSupportTarget} from './supportTargeting.js';
 import {healFromVampiricBite} from './vampiricBite.js';
 import {activateTitansRobin,createNightwingBuffWatcher,healBerrySlideAllies} from './titansBerryEffects.js';
@@ -834,7 +835,7 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             const enchantedDamageFactor = incomingRockEnchantmentFactor(attacker);
             const fasterTargetBonus = move.bonusAgainstFaster && defender.spd > attacker.spd ? move.bonusAgainstFaster : 1;
 
-            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * teamDefFactor * stabFactor * enchantedDamageFactor * getMahitoMultiplier(attacker, defender, move) * fasterTargetBonus * (defender.passive?.type === 'petrosapien_armor' ? 0.8 : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1) * outgoingPassiveDamageFactor(attacker,defender,move) * rogueDamageFactor(attacker,multiplier)));
+            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * teamDefFactor * stabFactor * enchantedDamageFactor * getMahitoMultiplier(attacker, defender, move) * fasterTargetBonus * (defender.passive?.type === 'petrosapien_armor' ? 0.8 : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1) * outgoingPassiveDamageFactor(attacker,defender,move) * selectedPassiveDamageFactor(attacker,defender,move) * rogueDamageFactor(attacker,multiplier)));
           
 };
 
@@ -1827,7 +1828,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     let successChance = 1 / Math.pow(2, consec); 
                     if (Math.random() < successChance) {
                         let pStatus = move.protectStatus || 'Protetto';
-                        attacker.statuses.push({ type: pStatus, turns: 1 });
+                        attacker.statuses.push({ type: pStatus, turns: 1, sourceMove: move.name });
                         events.push({ type: 'text', text: `${attacker.name} assume una posizione difensiva e si protegge!` });
                         updateStatusUI(player, charTeamIdx);
                         attacker.consecutiveProtect = consec + 1;
@@ -2052,6 +2053,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     ' consuma 2 Cariche Calore! '+move.name+' infligge +25% danni!'});
                 }
                 let attackSucceeded = false;
+                let futureStrikeDealtDamage = false;
                 if(prepareQilinAttack(attacker,move)){
                   events.push({type:'text',text:'❄️ '+attacker.name+
                     ' attiva Fioritura del Qilin! Il prossimo attacco Ghiaccio infligge +35% danni!',
@@ -2200,6 +2202,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     if (!bypassEnemyShields && (isProtectedFromEnemy || isInvincibleShield || isPerfectBarrier)) {
                         if (isProtectedFromEnemy) {
                             events.push({ type: 'text', text: `🛡️ ${t.char.name} si è protetto dall'attacco di ${attacker.name}!` });
+                            if (triggerFutureBlock(t.char, move)) {
+                                events.push({ type: 'text', text: `🔮 ${t.char.name} attiva Futuro Infrangibile! Il prossimo attacco offensivo infliggerà +25% danni! (${t.char.futureBlockUses}/2)`, isPassive: true, passiveChar: t.char.name, passiveName: t.char.passive.name });
+                            }
                             if (t.char.statuses.some(s => s.type === 'Rashield') && attacker.hp > 0 && move.power > 0) {
                                 let hitDmg = calculateDamage(attacker, t.char, move, multiplier, isFirstAttackOfTurn);
                                 let recoil = Math.max(1, Math.floor(hitDmg * 0.25));
@@ -2319,6 +2324,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                         let totalDmg = 0;
                         let actualHits = 0;
                         let juggHitsAbsorbed = 0;
+                        let landedCriticalHit = false;
 
                         for (let i = 0; i < hits; i++) {
                             // Ogni singolo colpo andato a segno consuma esattamente
@@ -2360,6 +2366,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 critMultiplier = 1.5; // +50% danno
                             }
 
+                            if (isCritical) landedCriticalHit = true;
                             if (isCritical && i === 0) {
                                 events.push({ type: 'text', text: `💥 BOOM! Colpo Critico di ${attacker.name}!` });
                                 if (attacker.passive && attacker.passive.type === 'perfezione_assoluta' && attacker.hp > 0) {
@@ -2369,6 +2376,10 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             }
 
                             let hitDmg = calculateDamage(attacker, t.char, currentMoveForDmg, multiplier, isFirstAttackOfTurn);
+                            if (i === 0 && selectedPassiveDamageFactor(attacker, t.char, currentMoveForDmg) > 1 &&
+                                ['flames_unextinguished','born_adventurer'].includes(attacker.passive?.type)) {
+                                events.push({ type: 'text', text: `✨ ${attacker.name} attiva ${attacker.passive.name}: danni potenziati!`, isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
+                            }
                             
                             // Applica il moltiplicatore critico base se attivato
                             if (critMultiplier > 1.0) {
@@ -2492,6 +2503,20 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             markCompassOnHit(attacker,t.char,victimHpBeforeHit,totalDmg);
                         }
                         
+                        if (isEnemyTarget && t.char.hp < victimHpBeforeHit && move.power > 0) {
+                            if (attacker.passive?.type === 'unbreakable_future' && attacker.futureStrikeCharged) {
+                                futureStrikeDealtDamage = true;
+                            }
+                            if (landedCriticalHit) {
+                                const jackpot = triggerJackpot(attacker, applyBattleStatModifier);
+                                if (jackpot) {
+                                    events.push({ type: 'damage', targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp,
+                                        text: `🎰 ${attacker.name} attiva Jackpot! Recupera ${jackpot.healed} PS e guadagna +10% Velocità! (${jackpot.uses}/2)`,
+                                        isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
+                                }
+                            }
+                        }
+
                         if(isEnemyTarget && totalDmg>0 && t.char.hp===0 && activateVictoryBoots(attacker))
                             events.push({type:'text',text:`👢 Stivali dello Slancio: ${attacker.name} guadagna +15% Velocità per il prossimo turno!`});
                         // Daffy beneficia dei KO realizzati dagli ALTRI alleati in campo:
@@ -2677,6 +2702,15 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             events.push({ type: 'damage', text: `⏱️ ${t.char.name} riavvolge i danni del turno precedente! Recupera ${healAmount} PS!`, targetPlayer: t.player, targetIdx: t.idx, newHp: t.char.hp });
                         }
 
+                        if (!isEnemyTarget && t.char !== attacker && t.char.hp > 0) {
+                            const extraHeal = triggerMiraculousAllyHeal(attacker, t.char, move);
+                            if (extraHeal > 0) {
+                                events.push({ type: 'damage', targetPlayer: t.player, targetIdx: t.idx, newHp: t.char.hp,
+                                    text: `🐞 ${attacker.name} attiva Il Potere dei Miraculous! ${t.char.name} recupera ${extraHeal} PS! (${attacker.passiveUses}/3)`,
+                                    isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
+                            }
+                        }
+
                         if (move.removeNegativeStatuses) {
                             const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'];
                             const originalLength = t.char.statuses.length;
@@ -2809,6 +2843,10 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                         }
                     }
                 } // FINE CICLO SUI BERSAGLI (resolvedTargets)
+                if (futureStrikeDealtDamage && consumeFutureStrike(attacker)) {
+                    events.push({ type: 'text', text: `🔮 ${attacker.name} sfrutta Futuro Infrangibile: il suo attacco ha inflitto +25% danni!`,
+                        isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
+                }
                 
                 if(attackSucceeded && move.zodiacTrapTurns){
                   for(const t of resolvedTargets){
