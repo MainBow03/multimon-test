@@ -2,6 +2,9 @@
 // che ha già parlato nella presentazione di un'altra squadra.
 // Una risposta esclusiva per ogni personaggio (incluse le fusioni).
 export const ULTIMON_DUPLICATE_REACTIONS=Object.freeze({
+  "flins": "Un altro custode del faro? Spero tu abbia portato una lanterna: qui il buio è competitivo.",
+  "ganyu": "Un'altra Ganyu con la mia stessa freccia? Allora vediamo quale Qilin sa scegliere la traiettoria migliore.",
+  "coraline": "Un'altra Coraline? Sei uscita dalla porticina o hai lasciato la chiave dall'altra parte?",
   "echomax": "Un'altra legione di anime con il mio volto? Interessante. Nemmeno il vuoto sa più chi comandare.",
   "embermclain": "Ehi, copia! Due rockstar sullo stesso palco? Bene, ma il bis lo concedo soltanto io!",
   "kitty": "C'è un'altra me dietro quelle luci? Allora qualcuno ha rubato persino il mio travestimento.",

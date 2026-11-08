@@ -67,11 +67,11 @@ test('Ainz, Peridot, Meliodas: passive ridotte ma conservate',()=>{
  assert.equal(meliodas.passive.threshold,.3);
 });
 
-test('Juri: Tifo del Pubblico +15% e massimo tre KO per combattimento',()=>{
+test('Juri: Tifo del Pubblico +15% e massimo due KO per combattimento',()=>{
  const j=byId('juri');
  assert.equal(j.passive.type,'on_ko');
  assert.deepEqual(j.passive.statBuff,{atk:1.15,def:1.15,spd:1.15});
- assert.equal(j.passive.maxUses,3);
+ assert.equal(j.passive.maxUses,2);
  const battle=source('src/systems/battleSystem.js');
  assert.match(battle,/attacker\.passive\.maxUses === undefined \|\| \(attacker\.passiveUses\|\|0\) < attacker\.passive\.maxUses/);
  assert.match(battle,/attacker\.passiveUses = \(attacker\.passiveUses\|\|0\)\+1/);

@@ -2,6 +2,9 @@
 // Le linee sono scritte per il carattere, i poteri o la storia del personaggio.
 // Una riga per ciascun ID registrato: il test controlla la copertura del roster.
 export const ULTIMON_ENTRANCE_LINES = Object.freeze({
+  "flins": "Questa lanterna illumina il cammino. Non preoccupatevi: conosco anche la strada per vincere.",
+  "ganyu": "Ho visto tante montagne innevate, ma nessuna sfida come quella che mi aspetta qui.",
+  "coraline": "L'altra porta era più inquietante. Non avete idea di quanto sia diventata coraggiosa.",
   "echomax": "Ogni anima perduta conosce il mio nome. Oggi lo imparerà anche questa arena.",
   "embermclain": "Accendete i riflettori: il mio assolo farà tremare persino i fantasmi!",
   "kitty": "La vostra sicurezza è adorabile. Peccato che io conosca già tutte le uscite.",
