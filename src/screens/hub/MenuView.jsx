@@ -176,6 +176,13 @@ if (appMode === 'menu') {
                           </span>
                           <span>Casse Potenza <span className="block text-xs text-cyan-100/85 font-semibold">{playerData.roguelikePower?.pending?.length||0} disponibili · 3–18 Punti Forza in base al piano</span></span>
                         </button>
+                        <button type="button" onClick={()=>setAppMode('combat_lab')}
+                         className="w-full mt-3 bg-gradient-to-r from-sky-800 via-cyan-800 to-violet-800 hover:brightness-110 text-white font-black py-4 rounded-xl border border-cyan-400/70 shadow-[0_0_24px_rgba(34,211,238,.18)] flex items-center justify-center gap-3 transition-all">
+                         <span className="text-2xl">🧪</span>
+                         <span>Laboratorio di Combattimento
+                           <span className="block text-xs font-semibold text-cyan-100/85">Prova gratis squadre, status, CPU, danni e passive · Nessun premio</span>
+                         </span>
+                        </button>
                         <button onClick={()=>startWithModeGuide('strength_lab',()=>{ if(!playerName.trim()) setSystemAlert("Inserisci il tuo nome per accedere al Laboratorio!"); else setAppMode('strength_lab'); })}
                             className="w-full mt-3 bg-gradient-to-r from-cyan-700 via-indigo-700 to-violet-800 hover:from-cyan-600 hover:to-violet-700 text-white font-black py-4 rounded-xl border border-cyan-400/60 shadow-[0_0_24px_rgba(34,211,238,.20)] flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5">
                             <span className="text-2xl">⚡</span>

@@ -34,6 +34,8 @@ export const isLiveCampaignBattle=(appMode,state)=>
 
 export function activityForPresence(appMode,state,roomId){
  if(isLiveCampaignBattle(appMode,state))return '⚔️ Lotta Campagna';
+ if(state?.isTrainingBattle)return '🧪 Laboratorio di Combattimento';
+ if(appMode==='combat_lab')return '🧪 Nel Laboratorio';
  if(appMode==='campaign_spectate')return '👁️ Osserva una Campagna';
  if(String(appMode||'').startsWith('campaign_'))return '📖 In Campagna';
  if(appMode==='roguelike_coop_lobby')return '🤝 In Co-op';

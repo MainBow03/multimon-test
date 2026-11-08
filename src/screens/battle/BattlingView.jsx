@@ -544,8 +544,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     {grandFinale && <div className="ultimon-final-arena-glow" aria-hidden="true" />}
                     <BattleWeatherParticles weather={gameState.battleWeather} tailwind={gameState.battleTailwind} />
                     
-                    {!isEventBattle&&<button onClick={() => playerRole === 'spectator' ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-4 left-4 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
-                         <LogOut size={16} /> {playerRole === 'spectator' ? 'Esci' : 'Resa'}
+                    {!isEventBattle&&<button onClick={() => (playerRole === 'spectator'||gameState.isTrainingBattle) ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-4 left-4 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
+                         <LogOut size={16} /> {gameState.isTrainingBattle?'← Laboratorio':playerRole === 'spectator' ? 'Esci' : 'Resa'}
                     </button>}
 
                     {/* PULSANTE TOGGLE REGISTRO BATTAGLIA */}

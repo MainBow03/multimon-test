@@ -25,6 +25,9 @@ import {reorderCoopTeam,requestCoopTrade,respondCoopTrade,cancelCoopTrade} from 
 import {canSubmitCoopAction,canCommitCoopTurn,coopValidatedActionDelta} from './systems/coopTurnGuards.js';
 import { renderShopView } from './screens/hub/ShopView.jsx';
 import { StrengthLabView } from './screens/hub/StrengthLabView.jsx';
+import {CombatLabView,CombatLabTelemetry,CombatLabResult} from './screens/hub/CombatLabView.jsx';
+import {createCombatLabRoom,combatLabWeather,editCombatLabFighter,
+  canEditCombatLabBattle} from './systems/combatLab.js';
 import { migrateCampaignChests } from './systems/campaignChests.js';
 import {grantMultimonWelcomeKeys} from './systems/multimonKeys.js';
 import { CampaignChestsView } from './screens/hub/CampaignChestsView.jsx';
@@ -799,7 +802,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               if (gameState.status === 'pre_battle') {
                   setHasRewarded(false);
               }
-              if (gameState.status === 'gameover' && !hasRewarded && playerName.trim()) {
+              if (gameState.status === 'gameover' && !gameState.isTrainingBattle && !hasRewarded && playerName.trim()) {
                   setHasRewarded(true);
                   
                   // --- FIX BUG MONETE: CREIAMO UN UNICO OGGETTO PER SALVARE TUTTO IN UNA VOLTA ---
@@ -1160,6 +1163,9 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           }
 
           const updateLocalStats = (...__args) => {
+              // La simulazione NON modifica alcun dato del profilo:
+              // neppure le chiamate indirette del motore (mosse, vittorie, PS).
+              if(gameState.isTrainingBattle)return {ok:false,reason:'Simulazione: progressi disattivati'};
               const result=updateLocalStatsImpl({ getPlayerData }, ...__args);
               setProfileRevision(previous => previous + 1);
               return result;
@@ -1463,6 +1469,57 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           // -------------------------------------
 
           const applyOnEnterPassive = (...__args) => applyOnEnterPassiveImpl({ CHARACTERS }, ...__args);
+
+          // Avvio isolato: stessa startBattleImpl delle lotte classiche,
+          // ma tutti i salvataggi e le ricompense vengono inibiti.
+          const startCombatLab=config=>{
+              try{
+                  const lab=createCombatLabRoom(config,CHARACTERS,initialGameState,playerName||'Allenatore');
+                  const patched=delta=>{
+                      setGameState({...lab,...delta,
+                        // StartBattleImpl inizializza il meteo neutro.
+                        // Il sandbox applica il meteo selezionato DOPO l'avvio.
+                        battleWeather:combatLabWeather(lab.trainingLab.weather)});
+                      return Promise.resolve();
+                  };
+                  setRoomId(null);
+                  setIsPlayingEvents(false);
+                  setEventPlaybackText('');
+                  setEventPlaybackPassive(null);
+                  setActionMenuMode('moves');
+                  setTargetingMoveIdx(null);
+                  setSelectedMultiTargets([]);
+                  setPendingHyper(false);
+                  setHasRewarded(false);
+                  setAppMode('local_room');
+                  setPlayerRole('p1');
+                  startBattleImpl({
+                      appMode:'local_room',applyOnEnterPassive,
+                      gameState:lab,getRequiredPlayers,matchStartTimeRef,
+                      playerName:lab.players.p1,setCombatLog,setCommandingIdx,
+                      setIsLogOpen,setPlayerRole,updateLocalStats:()=>{},updateState:patched
+                  });
+              }catch(error){setSystemAlert('Laboratorio: '+(error?.message||error));}
+          };
+          const leaveCombatLab=()=>{
+              setIsPlayingEvents(false);
+              setEventPlaybackText('');
+              setCombatLog([]);
+              setActionMenuMode('moves');
+              setPendingHyper(false);
+              setCommandingIdx(-1);
+              setTargetingMoveIdx(null);
+              setSelectedMultiTargets([]);
+              setGameState(initialGameState());
+              setPlayerRole(null);
+              setRoomId(null);
+              setAppMode('combat_lab');
+          };
+          const editCombatLab=(role,index,changes)=>{
+              if(!canEditCombatLabBattle(gameState,isPlayingEvents))return;
+              const patch=editCombatLabFighter(gameState,role,index,changes);
+              if(patch)updateState(patch);
+          };
 
           const startBattle = (...__args) => {
             if (gameState.gameMode === 'ultimon') {
@@ -1941,6 +1998,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
     onBack={()=>setAppMode('menu')}/>;
 }
 
+    if (appMode === 'combat_lab') {
+  return <CombatLabView characters={CHARACTERS}
+    onStart={startCombatLab} onBack={()=>setAppMode('menu')}/>;
+}
+
     if (appMode === 'strength_lab') {
   return <StrengthLabView characters={CHARACTERS} profile={getPlayerData()}
     onUpgrade={(charId,stat)=>updateLocalStats({strengthUpgrade:{charId,stat}})}
@@ -1995,7 +2057,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (gameState.status === 'battling' || gameState.status === 'executing') {
-  const __screen = renderBattlingView({ coopPendingAction, roomId, ownMasteryLevels: masteryVisibleLevels(getPlayerData()), ChevronRight, ITEMS_DB, appMode, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip: safeForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });
+  const __screen = renderBattlingView({ coopPendingAction, roomId, ownMasteryLevels: masteryVisibleLevels(getPlayerData()), ChevronRight, ITEMS_DB, appMode, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip: safeForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom:gameState.isTrainingBattle?leaveCombatLab:leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });
   if (__screen !== undefined) return __screen;
 }
 
@@ -2010,6 +2072,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
         onFinalizeEvent={closeCoopEventVote} onExit={leaveRoom} personalProfile={getPlayerData()}/>;
     }
 
+    if (gameState.status === 'gameover'&&gameState.isTrainingBattle){
+      return <CombatLabResult room={gameState} onReplay={()=>startCombatLab(gameState.trainingLab?.config)}
+        onEdit={leaveCombatLab}
+        onMenu={()=>{leaveCombatLab();setAppMode('menu');}}/>;
+    }
     if (gameState.status === 'gameover') {
   const __screen = renderGameoverView({ CHARACTERS, ChevronRight, Coins, RotateCcw, Trophy, activeCampaign, activeCampaignId, campaignState, gameState, getDefaultAvatar, leaveRoom, playerName, roguelikeState, setAppMode, setCampaignDialogueIdx, setCampaignSelectedTeam, setCampaignState, setRoguelikeState, setSystemAlert, updateLocalStats });
   if (__screen !== undefined) return __screen;
@@ -2030,7 +2097,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
     // La scelta dell'animazione appartiene al VINCITORE e resta una
     // proprietà condivisa della stanza. Nessuna modifica a KO o premi.
-    const victoryPresentation=(appMode==='online_room'||appMode==='local_room')
+    const victoryPresentation=!gameState.isTrainingBattle&&(appMode==='online_room'||appMode==='local_room')
       ?victoryCelebrationForRoom(gameState,getPlayerData(),appMode):null;
 
     return (
@@ -2194,6 +2261,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
             )}
             
             {renderView()}
+            {gameState.isTrainingBattle&&appMode==='local_room'&&
+              ['battling','executing'].includes(gameState.status)&&
+              <CombatLabTelemetry room={gameState} combatLog={combatLog}
+                onEdit={editCombatLab} getMultiplier={getMultiplier}
+                onQuit={leaveCombatLab}/>}
             {victoryPresentation&&<VictoryCelebration
               key={victoryPresentation.id}
               presentation={victoryPresentation}/>}

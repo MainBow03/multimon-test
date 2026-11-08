@@ -14,6 +14,20 @@ export const UPDATE_CATEGORIES = [
 ];
 export const GAME_UPDATES = [
 
+  {id:'nov8-combat-laboratory-simulator',category:'features',date:'08/11/2026',
+    title:'🧪 NUOVO: Laboratorio di Combattimento, simulatore reale senza ricompense!',items:[
+      'È disponibile una nuova modalità Laboratorio di Combattimento, separata dal Laboratorio Punti Forza e accessibile sia dal menu nuovo sia da quello classico.',
+      'Nel Laboratorio puoi scegliere liberamente fino a 6 Multimon normali per ciascuna squadra, anche se non acquistati, senza sbloccarli nel profilo.',
+      'Si può scegliere il formato 1v1, 2v2, 3v3 o 4v4, la CPU manichino/standard/tattica, il meteo iniziale, i PS iniziali di entrambe le squadre e uno status negativo iniziale per lato.',
+      'Il pulsante Avvia la Simulazione utilizza il motore autentico delle battaglie classiche di Multimon: mosse, iniziativa, protezioni, passive, status, switch, Iper, KO e registrazione statistica funzionano normalmente.',
+      'Il Manichino Immobile passa sempre il turno; le CPU normale e tattica sfruttano la vera intelligenza artificiale di Multimon, senza bonus artificiali alle statistiche.',
+      'In battaglia un pannello diagnostico mostra danni inflitti REALI, KO, cure, attivazioni passive, efficacia dei tipi e ultimi eventi. Tra un turno e l’altro permette di applicare o rimuovere status e impostare i PS di un combattente senza alterare altri team.',
+      'A fine test compare un resoconto completo con MVP e statistiche per Multimon e pulsanti per riprovare la stessa configurazione o modificarla.',
+      'Il Laboratorio può salvare fino a 5 configurazioni sul dispositivo; nessuna viene inviata al cloud, nessun personaggio viene sbloccato e nessuna simulazione assegna monete, vittorie, Padronanza, Punti Forza o utilizza l’inventario globale.',
+      'Tutte le griglie di scelta e i ritratti sono responsive su PC, tablet e telefono; il Laboratorio non modifica Palestre, Draft o le altre modalità.'
+    ]},
+
+
   {id:'nov8-elsa-assideramento-ganyu-flins-coraline',category:'balance',date:'08/11/2026',
    title:'❄️⚡ Bilanciamento Elsa, Garnet, Frillish, Jack Frost e Jury + 3 nuovi Multimon!',items:[
     'ELSA NERF: Gelo Definitivo (Iper) non congela più; ha il 25% per bersaglio di applicare Assideramento per 2 turni completi. Lo status dimezza la Velocità effettiva e riduce del 30% i danni inflitti, senza impedire di agire.',

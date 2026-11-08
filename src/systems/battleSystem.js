@@ -5,6 +5,7 @@ import {healFromVampiricBite} from './vampiricBite.js';
 import {activateTitansRobin,createNightwingBuffWatcher,healBerrySlideAllies} from './titansBerryEffects.js';
 import {newcomerDamageFactor,recordSpyExposure,cloverExtraEvasion,triggerCloverDodge,triggerStarWand,resolveBlueberryAction,resetNewcomerTurnFlags} from './newcomerEffects.js';
 import {generateStrategicCpuActions,rememberPublicCpuMoves} from './strategicCpu.js';
+import {dummyCombatLabActions} from './combatLab.js';
 import {rogueDamageFactor} from './roguelikeEvents.js';
 import { applyBattleStatModifier,setBattleStatGainObserver } from './statBalance.js';
 import {createImperfectGemObserver,addHeatCharge,consumeHeatBurst,
@@ -589,7 +590,7 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
 };
 
 export const generateCPUActionsForPlayerImpl = (ctx,cpuPlayer,currentActions) =>
-  generateStrategicCpuActions({
+  dummyCombatLabActions(ctx.gameState,cpuPlayer) ?? generateStrategicCpuActions({
     room:ctx.gameState,player:cpuPlayer,currentActions,
     activePlayers:ctx.getActivePlayers(),
     getMultiplier:ctx.getMultiplier,

@@ -226,6 +226,7 @@ export function MenuDashboard({ctx}){
       {card('♾️','Sopravvivenza','Resisti il più a lungo possibile.',()=>launch('survival',handleSurvivalStart),'violet',
        data.maxSurvivalRound?'Record '+data.maxSurvivalRound:'')}
       {card('🤖','Sfida vs CPU','Affronta un avversario strategico.',()=>launch('vs_cpu',handleVsCpuStart),'red')}
+      {card('🧪','Laboratorio di Combattimento','Prova mosse, status e battaglie reali senza premi o costi.',()=>setAppMode('combat_lab'),'cyan')}
      </div>
     </>}
     {tab==='local'&&<>
@@ -241,6 +242,7 @@ export function MenuDashboard({ctx}){
       {card('📚','Catalogo','Esplora i Multimon e le loro mosse.',()=>launch('catalog',()=>setAppMode('catalog')),'blue')}
       {card('💎','Prestigi e Padronanza','Livelli, titoli, ricompense estetiche.',()=>guarded('stats','mastery','ai prestigi'),'purple')}
       {card('⚡','Laboratorio','Allena Attacco, Difesa e Velocità.',()=>guarded('strength_lab','strength_lab','al laboratorio'),'cyan',(data.strengthPoints||0)+' Punti Forza')}
+      {card('🔬','Simulatore di Combattimento','Sandbox gratuito con analisi danni, CPU e 5 preset.',()=>setAppMode('combat_lab'),'blue')}
       {card('🛒','Negozio','Scopri campioni, strumenti e oggetti.',()=>guarded('shop','shop','al negozio'),'amber')}
       {card('🎁','Bauli Campagna','Apri i premi delle tue missioni.',()=>guarded('chests','chests','ai bauli'),'amber',(data.chests?.pending?.length||0)+' da aprire')}
       {card('🔮','Casse Potenza','Ricompense per le tue spedizioni.',()=>guarded('power_chests','power_chests','alle casse'),'cyan',(data.roguelikePower?.pending?.length||0)+' disponibili')}

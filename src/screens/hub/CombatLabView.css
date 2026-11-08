@@ -1,0 +1,197 @@
+/* Multimon · Laboratorio di Combattimento
+   Layout autonomo, senza interferire con il Laboratorio Punti Forza. */
+.combat-lab-page{position:relative;min-height:100vh;overflow:hidden;color:#f8fafc;
+ background:#060b19;padding:clamp(12px,2.7vw,38px) clamp(12px,2.7vw,34px) 50px;font-family:inherit}
+.combat-lab-background{position:absolute;inset:0;pointer-events:none;background:
+ radial-gradient(ellipse at 21% 0%,#0e749067,transparent 37%),
+ radial-gradient(ellipse at 89% 18%,#6d28d971,transparent 38%),
+ radial-gradient(ellipse at 46% 70%,#1e3a8a50,transparent 55%),
+ repeating-linear-gradient(0deg,transparent 0px,transparent 39px,#67e8f909 40px,#67e8f909 41px),
+ repeating-linear-gradient(90deg,transparent 0px,transparent 39px,#67e8f909 40px,#67e8f909 41px)}
+.combat-lab-shell{position:relative;z-index:2;max-width:1530px;margin:auto;min-width:0}
+.combat-lab-header{position:relative;display:flex;align-items:center;gap:24px;justify-content:space-between;
+ border-radius:25px;background:linear-gradient(110deg,#0b2139ee,#18112cdd 55%,#0f1e37dd);
+ border:1px solid #67e8f963;padding:25px 26px;margin-bottom:20px;box-shadow:0 18px 38px #0005,inset 0 0 25px #38bdf815;flex-wrap:wrap}
+.combat-lab-headline{flex:1;min-width:min(100%,285px)}
+.combat-lab-eyebrow{display:block;color:#67e8f9;font-weight:900;letter-spacing:.17em;font-size:10px;margin-bottom:7px}
+.combat-lab-headline h1{font-size:clamp(23px,3.5vw,43px);font-weight:1000;line-height:1.05;letter-spacing:-.035em;margin:0}
+.combat-lab-headline h1 span{background:linear-gradient(90deg,#67e8f9,#c084fc,#f0abfc);
+ background-clip:text;-webkit-background-clip:text;color:transparent}
+.combat-lab-headline p{color:#b8c8e2;font-size:13px;margin:10px 0 0}
+.combat-lab-back{align-self:flex-start;color:#cffafe;flex-shrink:0;min-height:40px;padding:8px 13px;
+ border:1px solid #22d3ee75;background:#0c263b;border-radius:11px;font-weight:900;font-size:12px}
+.combat-lab-back:hover{background:#164e63}
+.combat-lab-no-rewards{padding:11px 15px;border-radius:12px;background:#14532d77;border:1px solid #4ade8075;
+ color:#bbf7d0;font-size:11px;font-weight:1000;line-height:1.5;text-align:center}
+.combat-lab-no-rewards small{display:block;font-size:9px;font-weight:750}
+.combat-lab-layout{display:grid;grid-template-columns:minmax(0,1.23fr) minmax(320px,1fr);
+ gap:18px;align-items:start}
+.combat-lab-panel{background:linear-gradient(155deg,#111d33ed,#0d162bea);border:1px solid #47556992;
+ border-radius:23px;padding:clamp(14px,2vw,24px);box-shadow:0 16px 36px #0006;min-width:0}
+.combat-lab-section-header{display:flex;justify-content:space-between;align-items:center;gap:8px;
+ flex-wrap:wrap;margin-bottom:15px}
+.combat-lab-section-header h2{font-size:clamp(15px,2vw,19px);color:#e0f2fe;font-weight:1000}
+.combat-lab-section-header>span{font-size:10px;color:#a5f3fc;background:#164e634a;
+ border:1px solid #155e7588;border-radius:30px;padding:6px 10px;font-weight:950}
+.combat-lab-sides{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px}
+.combat-lab-side-tab{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:45px;
+ text-align:left;background:#0b1226;border:1px solid #334155;border-radius:13px;
+ color:#94a3b8;padding:8px 12px;font-size:12px;font-weight:950}
+.combat-lab-side-tab.is-active{background:linear-gradient(110deg,#164e63ad,#312e81a8);border-color:#22d3ee;color:#fff}
+.combat-lab-side-tab b{color:#e0f2fe;font-size:11px}
+.combat-lab-selected{display:flex;gap:9px;overflow-x:auto;min-height:95px;padding:9px 4px 13px;
+ scrollbar-width:thin;scrollbar-color:#22d3ee #0b1120}
+.combat-lab-picked{position:relative;flex:0 0 84px;width:84px;display:flex;flex-direction:column;
+ align-items:center;gap:2px;background:#0b172a;border:1px solid #38bdf880;border-radius:12px;
+ padding:6px 5px 5px}
+.combat-lab-picked img{height:54px;max-width:64px;object-fit:contain}
+.combat-lab-picked span{font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ max-width:100%;font-weight:900;color:#c7d2fe}
+.combat-lab-picked button{position:absolute;top:-7px;right:-5px;width:23px;height:23px;border-radius:50%;
+ background:#be123c;color:#fff;line-height:1;font-size:17px;border:1px solid #fda4af}
+.combat-lab-search{display:flex;align-items:center;gap:9px;border:1px solid #22d3ee76;
+ background:#040d1f;border-radius:12px;padding:0 11px;height:46px;margin-bottom:12px}
+.combat-lab-search>span:first-child{font-size:22px;color:#67e8f9}
+.combat-lab-search>span:last-child{font-size:10px;white-space:nowrap;color:#a5b4fc;font-weight:900}
+.combat-lab-search input{min-width:0;flex:1;outline:none;color:white;background:transparent;font-size:14px}
+.combat-lab-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-content:start;
+ overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#22d3ee #081326;
+ height:min(48vh,500px);min-height:330px;padding:3px 6px 12px 2px}
+.combat-lab-portrait{position:relative;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+ gap:5px;background:linear-gradient(145deg,#18233b,#0b1121);border:1px solid #475569;
+ border-radius:13px;min-height:161px;padding:7px 6px 9px;color:#e2e8f0;transition:transform .16s,border-color .16s}
+.combat-lab-portrait:hover:not(:disabled){transform:translateY(-3px);border-color:#22d3ee}
+.combat-lab-portrait.is-selected{border:2px solid #22d3ee;background:linear-gradient(145deg,#164e6399,#0f1830);
+ box-shadow:0 0 15px #06b6d433}
+.combat-lab-portrait-art{width:100%;height:99px;display:grid;place-items:center;background:#0003;
+ border:1px solid #ffffff12;border-radius:9px;padding:3px}
+.combat-lab-portrait-art img{max-width:100%;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 5px 8px #000a)}
+.combat-lab-portrait-name{font-size:11px;font-weight:1000;line-height:1.14;text-align:center;
+ max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.combat-lab-portrait-types{font-size:9px;color:#a5b4fc;text-align:center;line-height:1.1}
+.combat-lab-portrait-indicator{position:absolute;top:6px;right:6px;background:#0891b2;border-radius:50%;
+ color:white;width:22px;height:22px;display:grid;place-items:center;border:1px solid #67e8f9;font-weight:1000}
+.combat-lab-footnote{font-size:11px;line-height:1.5;color:#94a3b8;margin:12px 0 0}
+.combat-lab-settings{display:flex;flex-direction:column;gap:16px}
+.combat-lab-settings .combat-lab-section-header{margin:0}
+.combat-lab-setting-group{display:flex;flex-direction:column;gap:8px}
+.combat-lab-setting-caption{font-size:12px;font-weight:950;color:#cbd5e1}
+.combat-lab-segments{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.combat-lab-segments button{border-radius:12px;background:#060f23;border:1px solid #334155;
+ color:#94a3b8;min-height:47px;font-size:14px;font-weight:1000}
+.combat-lab-segments button.is-active{color:#fff;border-color:#22d3ee;background:#155e75;
+ box-shadow:0 0 13px #0891b244}
+.combat-lab-hint{font-size:11px;color:#fcd34d}
+.combat-lab-cpu-options{display:grid;grid-template-columns:1fr;gap:8px}
+.combat-lab-cpu-options button{text-align:left;display:flex;flex-direction:column;gap:3px;
+ border:1px solid #475569;border-radius:12px;background:#101c33;color:#cbd5e1;padding:10px 12px}
+.combat-lab-cpu-options button.is-active{border-color:#67e8f9;background:linear-gradient(100deg,#164e63aa,#312e81aa)}
+.combat-lab-cpu-options strong{font-size:12px;font-weight:1000}
+.combat-lab-cpu-options small{font-size:10px;color:#a5b4c6;line-height:1.4}
+.combat-lab-select{display:flex;flex-direction:column;gap:6px;min-width:0}
+.combat-lab-select>span{font-size:11px;color:#cbd5e1;font-weight:900}
+.combat-lab-select select,.combat-lab-hud select{width:100%;min-width:0;min-height:43px;
+ border-radius:11px;border:1px solid #475569;background:#091427;color:#f8fafc;
+ padding:9px 11px;outline:none;font-weight:850;font-size:12px}
+.combat-lab-select select:focus{border-color:#22d3ee}
+.combat-lab-two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.combat-lab-notice{padding:13px 14px;background:#064e3b59;border:1px solid #34d39966;border-radius:12px}
+.combat-lab-notice strong{color:#a7f3d0;font-size:12px}
+.combat-lab-notice p{font-size:11px;color:#cbd5e1;margin-top:4px;line-height:1.5}
+.combat-lab-primary{border:1px solid #67e8f9;min-height:58px;padding:12px 20px;border-radius:14px;
+ background:linear-gradient(105deg,#0891b2,#4f46e5 53%,#9333ea);color:white;font-weight:1000;
+ font-size:clamp(13px,1.6vw,16px);letter-spacing:.02em;box-shadow:0 0 24px #06b6d444;
+ display:flex;justify-content:center;align-items:center;gap:16px;transition:filter .2s,transform .2s}
+.combat-lab-primary:hover{filter:brightness(1.15);transform:translateY(-2px)}
+.combat-lab-primary span{font-size:23px}
+.combat-lab-feedback{color:#fde68a;font-size:12px;font-weight:900;line-height:1.5}
+.combat-lab-preset-section{margin-top:18px}
+.combat-lab-presets-bar,.combat-lab-preset-list{display:flex;flex-wrap:wrap;gap:9px}
+.combat-lab-presets-bar button,.combat-lab-preset button,.combat-lab-result-actions>button:not(.combat-lab-primary){
+ border:1px solid #64748b;background:#18243a;color:white;border-radius:11px;
+ padding:10px 14px;font-size:12px;min-height:42px;font-weight:950}
+.combat-lab-presets-bar button:hover,.combat-lab-preset button:hover{background:#27354d}
+.combat-lab-presets-bar button:disabled{opacity:.35}
+.combat-lab-preset-list{margin-top:15px}
+.combat-lab-preset{display:flex;align-items:center;gap:8px;border:1px solid #334155;
+ padding:8px;border-radius:12px;background:#081326}
+.combat-lab-preset span{font-size:12px;font-weight:850;padding:0 5px;color:#67e8f9}
+.combat-lab-preset button{padding:7px 10px;min-height:32px}
+/* Live HUD takes a small space until the user explicitly opens it. */
+.combat-lab-telemetry{position:fixed;right:14px;bottom:18px;z-index:105;color:white}
+.combat-lab-hud-toggle{position:relative;background:linear-gradient(110deg,#0e7490,#5b21b6);color:white;
+ border:2px solid #67e8f9;box-shadow:0 6px 23px #0009,0 0 22px #06b6d4aa;
+ padding:14px 20px;border-radius:100px;font-weight:1000;font-size:13px}
+.combat-lab-hud-pulse{display:inline-block;width:8px;height:8px;border-radius:50%;
+ background:#6ee7b7;margin-left:8px;box-shadow:0 0 12px #6ee7b7}
+.combat-lab-hud{width:min(410px,calc(100vw - 20px));height:min(610px,calc(100dvh - 40px));
+ background:#071225f7;border:1px solid #22d3ee8e;border-radius:21px;box-shadow:0 0 36px #000c;
+ overflow:hidden;display:flex;flex-direction:column;backdrop-filter:blur(20px)}
+.combat-lab-hud header{display:flex;align-items:center;justify-content:space-between;
+ padding:14px 16px;background:linear-gradient(120deg,#164e63,#312e81)}
+.combat-lab-hud header h3{font-size:16px;font-weight:1000}
+.combat-lab-hud header small{color:#a5f3fc;letter-spacing:.13em;font-size:9px;font-weight:850}
+.combat-lab-hud header>button{font-size:26px;line-height:1;padding:3px 8px;color:white}
+.combat-lab-hud-scroll{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;
+ overscroll-behavior:contain;scrollbar-width:thin}
+.combat-lab-live-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.combat-lab-live-grid>div{border:1px solid #334155;background:#13223a;border-radius:11px;
+ padding:9px;display:flex;flex-direction:column;gap:2px}
+.combat-lab-live-grid span,.combat-lab-live-grid small{font-size:10px;color:#94a3b8}
+.combat-lab-live-grid strong{font-size:22px;color:#67e8f9}
+.combat-lab-inspector{border:1px solid #a78bfa6a;background:#312e8155;border-radius:11px;padding:11px}
+.combat-lab-inspector h4,.combat-lab-hud-scroll>h4{color:#c4b5fd;font-size:12px;font-weight:950}
+.combat-lab-inspector p{font-size:12px;margin-top:5px}
+.combat-lab-inspector strong{color:#a5f3fc}
+.combat-lab-inspector small{display:block;font-size:10px;color:#a5b4fc;margin-top:7px;line-height:1.4}
+.combat-lab-hud-divider{height:1px;background:#334155;margin:4px 0}
+.combat-lab-hud-buttons{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.combat-lab-hud-buttons button{min-height:37px;background:#1e293b;color:#cbd5e1;border:1px solid #475569;
+ font-size:11px;font-weight:950;border-radius:9px;padding:6px}
+.combat-lab-hud-buttons button.is-active{background:#155e75;color:#fff;border-color:#67e8f9}
+.combat-lab-hud-buttons button:disabled{opacity:.35;cursor:not-allowed}
+.combat-lab-hud-char{display:flex;gap:10px;align-items:center;background:#0f172a;
+ padding:8px;border:1px solid #334155;border-radius:10px}
+.combat-lab-hud-char img{width:52px;height:56px;object-fit:contain;flex:none}
+.combat-lab-hud-char span{display:flex;flex-direction:column;min-width:0;gap:3px}
+.combat-lab-hud-char b{font-size:12px;color:white}
+.combat-lab-hud-char small{font-size:10px;color:#a5b4fc;line-height:1.4}
+.combat-lab-hud-warning{font-size:10px;color:#fcd34d}
+.combat-lab-hud-log{display:flex;flex-direction:column;gap:7px;max-height:210px;overflow-y:auto;
+ padding:7px;background:#020617;border:1px solid #334155;border-radius:10px}
+.combat-lab-hud-log p{font-size:10px;padding:5px;color:#cbd5e1;border-bottom:1px solid #334155}
+.combat-lab-hud-log small{font-size:11px;color:#94a3b8}
+.combat-lab-hud-exit{background:#9f1239;color:#fff;font-weight:1000;
+ min-height:46px;font-size:12px}
+.combat-lab-hud-exit:hover{background:#be123c}
+.combat-lab-result-page{min-height:100vh}
+.combat-lab-result-hero{text-align:center;margin:0 auto 20px;max-width:1030px}
+.combat-lab-result-hero h1{font-size:clamp(30px,5vw,60px);font-weight:1000;margin:9px 0;
+ background:linear-gradient(100deg,#67e8f9,#c4b5fd,#fde68a);background-clip:text;color:transparent}
+.combat-lab-result-hero>p{font-size:15px;color:#cbd5e1;margin:10px}
+.combat-lab-result-hero>.combat-lab-no-rewards{display:inline-block;margin:13px auto}
+.combat-lab-result-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:20px}
+@media(max-width:1050px){
+ .combat-lab-layout{grid-template-columns:1fr}
+ .combat-lab-grid{grid-template-columns:repeat(5,minmax(0,1fr));height:380px}
+}
+@media(max-width:650px){
+ .combat-lab-page{padding:10px 10px 30px}
+ .combat-lab-header{padding:15px;gap:12px;border-radius:17px}
+ .combat-lab-headline{order:3;flex-basis:100%}
+ .combat-lab-headline h1{font-size:25px}
+ .combat-lab-layout{gap:12px}
+ .combat-lab-panel{padding:14px;border-radius:17px}
+ .combat-lab-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;height:420px}
+ .combat-lab-portrait{min-height:148px;padding:5px}
+ .combat-lab-portrait-art{height:91px}
+ .combat-lab-portrait-name{font-size:10px}
+ .combat-lab-selected{min-height:86px}
+ .combat-lab-two-col{grid-template-columns:1fr}
+ .combat-lab-telemetry{right:6px;bottom:10px}
+ .combat-lab-hud{width:calc(100vw - 12px);height:min(620px,calc(100dvh - 20px))}
+ .combat-lab-hud-toggle{padding:12px 15px;font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+ .combat-lab-primary,.combat-lab-portrait{transition:none}
+}
