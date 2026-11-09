@@ -8,6 +8,7 @@ import { CHARACTERS } from '../data/characters.js';
 import {SOUNDTRACKS,DEFAULT_BATTLE_SOUNDTRACK} from '../data/soundtracks.js';
 import { getMultiplier } from './typeSystem.js';
 import { calculateDamageImpl } from './battleSystem.js';
+import { triggerJackpot,triggerMiraculousAllyHeal,consumeFutureStrike } from './selectedCharacterPassives.js';
 import { getHeldEvasion,getHeldEndTurnHeal,useHeldGem } from './heldEquipment.js';
 import { activateHealingSprout,activateNeutralizingSpray,activateCupidArrow,blockedEnemyPassive,
  rapidTransmutationPriority,markRapidTransmutationEntry,endRapidTransmutationTurn,
@@ -80,7 +81,7 @@ function fighter(id,owner,item,upgrades){
  const c=CHARACTERS.find(x=>x.id===id);if(!c)throw Error('Multimon mancante: '+id);
  const baseline={key:owner+'-'+id,id,owner,name:c.name,img:c.img,types:c.types||[],hp:c.maxHp,maxHp:c.maxHp,
  atk:c.atk,baseAtk:c.atk,def:c.def,baseDef:c.def,spDef:c.spDef||c.def,baseSpDef:c.spDef||c.def,spd:c.spd,baseSpd:c.spd,spAtk:c.spAtk||c.atk,baseSpAtk:c.spAtk||c.atk,passive:c.passive||null,heldItem:item||null,gemSpent:false,healingSproutUsed:false,neutralizingSprayUsed:false,rapidTransmutationReady:false,hyper:false,statuses:[],
- moves:c.moves.map(m=>({name:m.name,type:m.type,power:m.power||0,accuracy:m.accuracy??100,
+ moves:c.moves.map(m=>({...m,name:m.name,type:m.type,power:m.power||0,accuracy:m.accuracy??100,
  targetCount:m.targetCount||1,uses:m.maxUses??null,contact:!!m.contact,
  special:!!m.special,recharge:!!m.recharge,transform:!!m.transformMahito,effect:m.statusEffect||null,buff:m.selfStatBuff||m.statBuff||null,drain:m.drain||0,
  heal:m.heal||0,enemyDebuff:m.targetStatDebuff||null,snowstormTurns:m.snowstormTurns||0,
@@ -88,7 +89,12 @@ function fighter(id,owner,item,upgrades){
  refractionTurns:m.refractionTurns||0,bonusAgainstFaster:m.bonusAgainstFaster||0,
  priority:m.priority||0,ignoreShields:!!m.ignoreShields,ignoreTaunt:!!m.ignoreTaunt,
  placeStickyTrap:!!m.placeStickyTrap,scalingEnemyCount:!!m.scalingEnemyCount,bonusIfSlowed:m.bonusIfSlowed||0,
- ignoreDefBuffs:!!m.ignoreDefBuffs,speedScaling:!!m.speedScaling}))};
+ ignoreDefBuffs:!!m.ignoreDefBuffs,speedScaling:!!m.speedScaling,
+    critChance:m.critChance??null,critPower:m.critPower??null,multiHit:m.multiHit||null,
+    targetMode:m.targetMode||null,target:m.target||null,targetStatBuff:m.targetStatBuff||null,
+    isProtect:!!m.isProtect,protectStatus:m.protectStatus||null,
+    healTeam:m.healTeam??null,healAlone:m.healAlone??null,
+    removeNegativeStatuses:!!m.removeNegativeStatuses}))};
  return upgrades?applyStrengthToFighter(baseline,upgrades):baseline;
 }
 export function buildEventBattle(match,people,s){
