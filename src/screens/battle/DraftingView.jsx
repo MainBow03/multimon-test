@@ -4,6 +4,7 @@ import { HeldEquipmentCard, HeldEquipmentGuide } from '../../components/HeldEqui
 import { ZodiacSpiritPicker } from '../../components/ZodiacSpiritPicker.jsx';
 import { canEquipHeldItem } from '../../systems/heldEquipment.js';
 import { TEAM_ROLES, getCharacterRoles, filterTeamRoster, characterPrice } from '../../systems/teamBuilderFilters.js';
+import {isUltimonBanned,ultimonBannedIds} from '../../systems/ultimonBans.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderDraftingView(ctx) {
 const { ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftRole, setDraftRole, draftPrice, setDraftPrice, draftFavorites, draftFavoritesOnly, setDraftFavoritesOnly, toggleDraftFavorite, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState } = ctx;
@@ -52,8 +53,9 @@ if (gameState.status === 'drafting') {
         const currentPlayerName = gameState.players[playerRole] || "Player";
         const baseRoster = gameState.settings.fusionMode ? FUSION_CHARACTERS : CHARACTERS;
         const myUnlocked = IS_PREVIEW ? baseRoster.map(c => c.id) : (getPlayerData().unlockedChars || []);
-        const draftableChars = baseRoster.filter(c => !c.isSummonOnly && ((!c.price && !c.isSecretUnlock) || myUnlocked.includes(c.id)));
+        const draftableChars = baseRoster.filter(c => !c.isSummonOnly && !isUltimonBanned(gameState,c.id) && ((!c.price && !c.isSecretUnlock) || myUnlocked.includes(c.id)));
 
+        const ultimonBans=gameState.gameMode==='ultimon'?ultimonBannedIds(gameState):[];
         const filteredDraftableChars = filterTeamRoster(draftableChars,{
             type:draftFilterType,search:draftSearch,sort:draftSort,role:draftRole,
             price:draftPrice,favoritesOnly:draftFavoritesOnly,favorites:draftFavorites
@@ -99,6 +101,10 @@ if (gameState.status === 'drafting') {
                      })}
                 </div>
 
+                {ultimonBans.length>0&&<div className="mb-3 rounded-xl border border-rose-500/50 bg-rose-950/30 p-3 text-xs font-bold text-rose-200">
+                    🚫 BAN ULTIMON: {ultimonBans.map(id=>baseRoster.find(c=>c.id===id)?.name||id).join(' · ')}
+                    <span className="block mt-1 text-rose-100/75">Questi Multimon non possono essere scelti da nessuno, nemmeno dai bot.</span>
+                </div>}
                 <TeamAdvisor team={myDraft} availableChars={advisorChoices} teamSize={myTeamSize} />
 
                 {isReady ? (
