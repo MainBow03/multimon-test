@@ -69,14 +69,23 @@ function alliedPlayers(room,player,activePlayers){
   }
   return [player];
 }
-const strength=(attacker,move,target,multiplier)=>{
-  // Non leggere la difesa o le mosse nascoste dell'avversario:
-  // solo potenza della propria mossa, tipo avversario e PS visibili.
-  const power=Math.max(0,finite(move.power));
-  const boost=bounded(finite(attacker.atk,60)/75,.55,2.3);
-  const accuracy=bounded(finite(move.accuracy,100)/100,.3,1);
-  return power*multiplier*boost*accuracy;
-};
+// Le mosse nuove usano precisione 0..1 (es. .95), alcune storiche 0..100.
+// Prima il punteggio CPU divideva TUTTE le precisioni decimali per 100,
+// trattando perfino accuracy:1 come una mossa al 30% (clamp minimo).
+export function normalizedCpuAccuracy(rawAccuracy=1){
+  const raw=Number(rawAccuracy);
+  if(!Number.isFinite(raw))return 1;
+  if(raw<=0)return 0;
+  return bounded(raw>1?raw/100:raw,0,1);
+}
+export function estimatedCpuAttackStrength(attacker,move,multiplier){
+  // Stima: niente accesso a Difesa nascosta o mosse segrete del nemico.
+  const power=Math.max(0,finite(move?.power));
+  const boost=bounded(finite(attacker?.atk,60)/75,.55,2.3);
+  return power*multiplier*boost*normalizedCpuAccuracy(move?.accuracy??1);
+}
+const strength=(attacker,move,target,multiplier)=>
+  estimatedCpuAttackStrength(attacker,move,multiplier);
 function multiplierOf(getMultiplier,type,types){
   try{return bounded(finite(getMultiplier(type,types),1),0,4)}
   catch{return 1}
