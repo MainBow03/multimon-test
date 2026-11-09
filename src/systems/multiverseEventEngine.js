@@ -353,8 +353,41 @@ export function eventTurn(b,submissions,s,random=Math.random){
     actor.transformed=true;log.push(actor.name+' si trasfigura!');continue;
   }
   if(!m.power){
+   if(m.isProtect){
+     const protective=m.protectStatus||'Protetto';
+     if(!actor.statuses.includes(protective))actor.statuses.push(protective);
+     actor.protectTicks=2;actor.protectSource=m.name;
+     log.push('🛡️ '+actor.name+' si protegge con '+m.name+'!');
+   }
+   // Bersagli e cure come nelle lotte classiche: le mosse di supporto
+   // non curano automaticamente il lanciatore se il bersaglio è un alleato.
+   const allies=activeEventFighters(x,side,s).filter(u=>u.hp>0);
+   const selected=allies.find(u=>u.key===command.target)||actor;
+   const helpTeam=m.targetMode==='team'||m.targetMode==='team_smart_heal';
+   const recipients=helpTeam?allies:m.targetMode==='ally'?[selected]:[actor];
+   const healRatio=m.targetMode==='team_smart_heal'
+     ?(allies.length===1?(m.healAlone??m.heal??0):(m.healTeam??m.heal??0))
+     :(m.heal||m.selfHeal||m.healFlat||0);
+   if(m.targetStatBuff)for(const ally of recipients)applyBuff(ally,m.targetStatBuff);
+   if(m.targetMode==='team'&&m.effect)for(const ally of recipients){
+     if(!ally.statuses.includes(m.effect.type))ally.statuses.push(m.effect.type);
+     if(m.effect.type==='Scudo Team')ally.teamShieldTicks=m.effect.turns||3;
+   }
+   for(const ally of recipients){
+     if(healRatio>0){
+       const healed=m.healFlat?Math.min(ally.maxHp-ally.hp,Math.floor(m.healFlat))
+         :Math.min(ally.maxHp-ally.hp,Math.max(1,Math.floor(ally.maxHp*healRatio)));
+       if(healed>0){ally.hp+=healed;log.push(ally.name+' recupera '+healed+' PS grazie a '+m.name+'!');}
+     }
+     if(m.removeNegativeStatuses){
+       const prev=ally.statuses.length;
+       ally.statuses=ally.statuses.filter(value=>!isNegativeStatus(value));
+       if(ally.statuses.length<prev)log.push(ally.name+' viene purificato da '+m.name+'!');
+     }
+     const ladybugHeal=triggerMiraculousAllyHeal(actor,ally,m);
+     if(ladybugHeal>0)log.push('🐞 Il Potere dei Miraculous: '+ally.name+' recupera '+ladybugHeal+' PS!');
+   }
    applyBuff(actor,m.buff);
-   if(m.heal){const h=Math.max(1,Math.floor(actor.maxHp*m.heal));actor.hp=Math.min(actor.maxHp,actor.hp+h);log.push(actor.name+' recupera '+h+' PS!');}
    if(m.evasionGain){addEvasion(actor);log.push(actor.name+' aumenta l’elusione!');}
    if(m.crystalShieldPercent){crystalShield(actor);log.push(actor.name+' innalza un Muro Cristallino!');}
    if(m.refractionTurns){beginRefraction(actor);log.push(actor.name+' attiva Rifrazione!');}
