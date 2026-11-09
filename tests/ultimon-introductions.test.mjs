@@ -165,7 +165,7 @@ test('La UI collega scrittura personale, quattro stili, attesa online e passi si
  assert.match(screen,/Inizia la presentazione delle squadre/);
  assert.match(ui,/ULTIMON_MONOLOGUE_STYLES\.map/);
  assert.match(ui,/onSpeech\(role,draft\)/);
- assert.match(ui,/setTimeout\(\(\)=>onHost\('introNext'\),delay\)/);
+ assert.match(ui,/setTimeout\(\(\)=>onHost\('introNext'\),Math\.max\(0,sceneDeadline-Date\.now\(\)\)\)/);
  assert.match(ui,/intro\.lineIndex/);
  assert.match(ui,/aria-label="Cerimonia d'ingresso Ultimon"/);
  assert.match(css,/ultimon-intro-character-portrait/);
