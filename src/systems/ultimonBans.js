@@ -58,7 +58,7 @@ export function beginUltimonDraftAfterBans(room,random=Math.random){
  if(room.settings.rentalMode){
   for(const role of roles)draft[role]=shuffled(pool,random).slice(0,size).map(fighter);
   // Una partita in Nolo non ha schermata draft; entra direttamente nel showcase.
-  return {...createUltimonShowcase({...room,draft},draft),draft};
+  return createUltimonShowcase({...room,draft},draft);
  }
  if(room.settings.sharedDraft){
   const order=shuffled(roles,random);
