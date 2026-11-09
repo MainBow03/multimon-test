@@ -92,7 +92,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,play
  if(!mine)await joinEvent(activeId,{uid,name:playerName.trim(),avatar:playerAvatarUrl||'',title:playerTitle||'',mastery:masteryVisibleLevels(getPlayerData()),strengthUpgrades:getPlayerData().strengthUpgrades||{}});});
  const create=()=>operate(async()=>{if(!user||!playerName.trim())throw Error('Connettiti e inserisci un nome nel menu');
  if(live.length)throw Error('È già attivo un torneo: unisciti a quello.');
- const id=await createEvent({uid,name:playerName.trim(),title:playerTitle||'',mastery:masteryVisibleLevels(getPlayerData()),strengthUpgrades:getPlayerData().strengthUpgrades||{}},normalizeEventSettings(settings));setId(id);showCreate(false)});
+ const id=await createEvent({uid,name:playerName.trim(),avatar:playerAvatarUrl||'',title:playerTitle||'',mastery:masteryVisibleLevels(getPlayerData()),strengthUpgrades:getPlayerData().strengthUpgrades||{}},normalizeEventSettings(settings));setId(id);showCreate(false)});
  const save=()=>operate(async()=>{
  if(!mine||!validTeam(draft,event.settings))throw Error('Seleziona esattamente '+event.settings.teamSize+' personaggi diversi.');
  const eq={},inv=getPlayerData().inventory||{},used={};
