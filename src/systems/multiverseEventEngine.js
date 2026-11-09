@@ -213,6 +213,7 @@ export function eventTurn(b,submissions,s,random=Math.random){
  };
  const status=(target,effect,source=null)=>{
   if(!effect||target.hp<=0)return;
+  if(['Protetto','Rashield'].some(z=>target.statuses.includes(z))&&isNegativeStatus(effect.type))return;
   const chance=source?boostedStatusChance(source,effect.chance??1):effect.chance??1;
   if(random()>=chance)return;
   const name=effect.type;
@@ -228,14 +229,30 @@ export function eventTurn(b,submissions,s,random=Math.random){
   if(cleared.length)log.push('Spray Neutralizzante di '+target.name+': rimuove '+cleared.join(', ')+'!');
  };
  const hurt=(attacker,target,m)=>{
+  if((target.statuses.includes('Protetto')||target.statuses.includes('Rashield'))&&!ignoresShields(attacker,m)){
+   log.push('🛡️ '+target.name+' blocca '+m.name+' con la protezione!');
+   if(target.statuses.includes('Rashield')){
+    const recoil=Math.max(1,Math.floor(attacker.maxHp*.05));
+    attacker.hp=Math.max(0,attacker.hp-recoil);
+    log.push('Rashield riflette '+recoil+' PS su '+attacker.name+'!');
+   }
+   if(target.passive?.type==='unbreakable_future'&&target.protectSource==='Visione del Futuro'&&
+     !target.futureStrikeCharged&&(target.futureBlockUses||0)<(target.passive.maxUses||2)){
+     target.futureBlockUses=(target.futureBlockUses||0)+1;
+     target.futureStrikeCharged=true;
+     log.push('🔮 '+target.name+' attiva Futuro Infrangibile: prossimo attacco +25%!');
+   }
+   return 0;
+  }
   const multiplier=getMultiplier(m.type,target.types);
   if(multiplier===0){log.push('Nessun effetto su '+target.name+'!');return 0;}
   // Il calcolo classic include Iperband, passiva petrosapien e Rifrazione.
   const wrap=u=>({...u,statuses:(u.statuses||[]).map(type=>({type})),
     heldItem:s.allowItems?u.heldItem:null});
-  const raw=calculateDamageImpl({},wrap(attacker),wrap(target),m,multiplier,false,random);
-  const crit=!immuneToCritical(target)&&random()<.05;
-  const bonusDamage=crit?Math.max(1,Math.floor(raw*1.5)):raw;
+  const crit=!immuneToCritical(target)&&random()<(m.critChance??.05);
+  const critMove=crit&&m.critPower?{...m,power:m.critPower}:m;
+  const raw=calculateDamageImpl({},wrap(attacker),wrap(target),critMove,multiplier,false,random);
+  const bonusDamage=crit&&!m.critPower?Math.max(1,Math.floor(raw*1.5)):raw;
   const defense=ignoresShields(attacker,m)?{damage:bonusDamage,absorbed:0,refracted:false}:directHitAfterCrystalDefense(target,bonusDamage);
   const prepared=reduceIncomingHeldDamage(target,defense.damage,{directAttack:true,superEffective:multiplier>1});
   defense.damage=prepared.damage;
@@ -246,6 +263,10 @@ export function eventTurn(b,submissions,s,random=Math.random){
   if(useHeroSash(target,defense.damage,{directAttack:true})){
     log.push('Fascia dell’Eroe: '+target.name+' sopravvive con 1 PS!');
   }else target.hp=Math.max(0,target.hp-defense.damage);
+  if(crit&&target.hp<hpBefore){
+   const prize=triggerJackpot(attacker,applyBattleStatModifier);
+   if(prize)log.push('🎰 '+attacker.name+' attiva Jackpot! +'+prize.healed+' PS e +10% Velocità!');
+  }
   if(activateHourglass(target))log.push('Clessidra della Rapidità: '+target.name+' Velocità +20% fino alla fine dello scontro!');
   if(hpBefore>=target.maxHp*.25 && target.hp>0 && target.hp<target.maxHp*.25){
     const owners=x.teams.A.includes(target)?'A':'B';
@@ -425,7 +446,12 @@ export function eventTurn(b,submissions,s,random=Math.random){
    hitAny=true;
    const actualMove=m.scalingEnemyCount?{...m,power:powerForAccordo(visible.length)}:
      m.bonusIfSlowed?{...m,power:effectiveTaserPower(t)}:m;
-   const damage=hurt(actor,t,actualMove);
+   const count=m.multiHit?Math.max(1,Math.floor(random()*(m.multiHit.max-m.multiHit.min+1))+m.multiHit.min):1;
+   let damage=0;
+   for(let hit=0;hit<count&&t.hp>0&&actor.hp>0;hit++)damage+=hurt(actor,t,actualMove);
+   if(count>1&&damage>0)log.push(m.name+' colpisce '+count+' volte!');
+   if(damage>0&&actor.futureStrikeCharged&&consumeFutureStrike(actor))
+     log.push('🔮 Futuro Infrangibile di '+actor.name+' potenzia la mossa del 25%!');
    if(damage>0 && m.drain && actor.hp>0){
      const gained=Math.max(1,Math.floor(damage*m.drain));
      const restored=Math.min(gained,actor.maxHp-actor.hp);
@@ -509,7 +535,14 @@ export function eventTurn(b,submissions,s,random=Math.random){
   }
   x.weather.turns--;if(x.weather.turns===0)x.weather=null;
  }
- for(const team of ['A','B'])for(const u of x.teams[team])endRefractionTurn(u);
+ for(const team of ['A','B'])for(const u of x.teams[team]){
+  if(u.protectTicks>0&&--u.protectTicks===0){
+   u.statuses=u.statuses.filter(z=>z!=='Protetto'&&z!=='Rashield');u.protectSource=null;
+  }
+  if(u.teamShieldTicks>0&&--u.teamShieldTicks===0)
+   u.statuses=u.statuses.filter(z=>z!=='Scudo Team');
+  endRefractionTurn(u);
+ }
  const a=x.teams.A.some(c=>c.hp>0),z=x.teams.B.some(c=>c.hp>0);
  if(!a||!z||x.turn>=300){
   x.finished=true;x.winner=a&&!z?'A':z&&!a?'B':
