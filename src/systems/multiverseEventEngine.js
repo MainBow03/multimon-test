@@ -104,7 +104,7 @@ export function buildEventBattle(match,people,s){
  const activeKeys=Object.fromEntries([...owners.A,...owners.B].map(uid=>[
      uid,[...teams.A,...teams.B].filter(u=>u.owner===uid).slice(0,s.fieldSize).map(u=>u.key)
  ]));
- const battle={matchId:match.id,side:'A',turn:1,teams,owners,activeKeys,hyperUsed:{},finished:false,winner:null,
+ const battle={matchId:match.id,side:s.standardEngine?'both':'A',turn:1,teams,owners,activeKeys,hyperUsed:{},finished:false,winner:null,
  weather:null,traps:{},log:['Inizia '+match.sideA.name+' contro '+match.sideB.name+'!']};
  for(const side of ['A','B']){
   for(const unit of activeEventFighters(battle,side,s)){
