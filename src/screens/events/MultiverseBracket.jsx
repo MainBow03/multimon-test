@@ -1,3 +1,4 @@
+import {onMultimonImageError} from '../../systems/imageFallback.js';
 import React, {useEffect,useMemo,useState} from 'react';
 import {CHARACTERS} from '../../data/characters.js';
 import {mirroredBracketLayout,bracketParticipantRoster,tournamentMatchState} from '../../systems/eventBracketLayout.js';
@@ -10,7 +11,7 @@ const playerId=p=>p?.uid||p?.id;
 function Avatar({person,size='small'}){
   const portrait=person?.avatar||roster[person?.teamIds?.[0]]?.img;
   return portrait?<img className={'mv-bracket-avatar mv-bracket-avatar--'+size}
-    src={portrait} alt="" loading="lazy" referrerPolicy="no-referrer"/>:
+    src={portrait} onError={onMultimonImageError} alt="" loading="lazy" referrerPolicy="no-referrer"/>:
     <span className={'mv-bracket-avatar mv-bracket-avatar--'+size+' mv-bracket-avatar--letter'}>{(person?.name||'?').slice(0,1).toUpperCase()}</span>;
 }
 function Entrant({entrant,winner,loser,people,onOpen}){
@@ -119,7 +120,7 @@ export function MultiverseBracket({matches=[],current=null,participants=[]}){
       <div className="mv-bracket-team-grid">
        {team.map((id,i)=>{
         const c=roster[id];return <div className="mv-bracket-fighter" key={id+'-'+i}>
-         {c?.img&&<img src={c.img} alt="" loading="lazy"/>}
+         {c?.img&&<img src={c.img} onError={onMultimonImageError} alt="" loading="lazy"/>}
          <span className="mv-bracket-fighter-index">{String(i+1).padStart(2,'0')}</span>
          <b>{c?.name||id}</b>
          <small>{c?.types?.join(' · ')||'Multimon'}</small>
