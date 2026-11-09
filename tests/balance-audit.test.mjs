@@ -25,7 +25,7 @@ test('Audit segnala solo anomalie verificabili, mai vittorie fittizie',()=>{
  const characters=[
   dummy('a','Alpha',200,180,150,140,[{name:'Stordimento',statusEffect:{type:'Stordito',chance:.5}}],{type:'on_enter'}),
   dummy('b','Beta',75,55,40,50,[{name:'Debole'}]),
-  dummy('b','Beta duplicato',60,40,40,40,[null]),
+  dummy('b','Beta duplicato',25,30,25,30,[null]),
   {...dummy('c','Gamma',70,80,70,90,[{name:'Congela',statusEffect:{type:'Congelato',chance:45}}]),img:''}
  ];
  const data=analyzeBalanceData(characters);
