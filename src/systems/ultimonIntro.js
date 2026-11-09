@@ -5,6 +5,19 @@ import {ULTIMON_ENTRANCE_EFFECTS,ULTIMON_BASIC_ENTRANCE,ownsUltimonEntrance} fro
 
 // Una presentazione condivisa tra tutti i client Firestore. La sorte dei
 // quattro ambasciatori viene decisa una volta dall'host e salvata nella stanza.
+// Ogni scena pronta rimane leggibile per 20 secondi. L'attesa del capitano
+// non ha timeout: il timer parte solo dopo il suo invio.
+export const ULTIMON_INTRO_AUTO_ADVANCE_MS=20000;
+export const ultimonIntroSceneReady=room=>{
+ const intro=room?.ultimon?.intro,role=currentUltimonIntroRole(room);
+ if(!intro||intro.step==='complete')return false;
+ if(intro.step==='speech')return !!ultimonIntroSpeech(room,role);
+ if(intro.step==='entrance_select')return !!ultimonIntroEntrance(room,role);
+ return ULTIMON_INTRO_STEPS.includes(intro.step);
+};
+export const ultimonIntroSceneDeadline=room=>
+ ultimonIntroSceneReady(room)?(Number(room.phaseStartedAt)||Date.now())+ULTIMON_INTRO_AUTO_ADVANCE_MS:null;
+
 export const ULTIMON_INTRO_STEPS=Object.freeze([
  'call','speech','entrance_select','entrance','line','exit','complete'
 ]);
@@ -123,7 +136,7 @@ export function ultimonIntroEntrancePatch(room,role,effectId,ownedEffects=[]){
   throw new Error('Seleziona un ingresso esistente.');
  if(!ownsUltimonEntrance({ultimonEntrances:ownedEffects},effectId))
   throw new Error('Questo ingresso non è stato acquistato nel Negozio Cosmetici.');
- return {['ultimon.intro.entrances.'+role]:effectId};
+ return {['ultimon.intro.entrances.'+role]:effectId,phaseStartedAt:Date.now()};
 }
 // La presentazione scenica usa TUTTO il roster, non solo i quattro
 // ambasciatori che pronunciano le loro battute individuali.
@@ -166,7 +179,7 @@ export function ultimonIntroMonologuePatch(room,role,raw){
  const line=raw.replace(/[\u0000-\u001f\u007f]+/g,' ').replace(/\s+/g,' ').trim();
  if(line.length<12||line.length>260)
   throw new Error('Il monologo deve contenere da 12 a 260 caratteri.');
- return {['ultimon.intro.monologues.'+role]:line};
+ return {['ultimon.intro.monologues.'+role]:line,phaseStartedAt:Date.now()};
 }
 export function advanceUltimonIntroduction(room){
  if(room.gameMode!=='ultimon'||room.status!=='ultimon_intro')
@@ -204,6 +217,23 @@ export function advanceUltimonIntroduction(room){
  }
  throw new Error('La presentazione è già conclusa. Si può iniziare il torneo.');
 }
+// La verifica dell'identità dell'host è effettuata dalla transazione online.
+export function skipUltimonCurrentPresentation(room){
+ if(room.gameMode!=='ultimon'||room.status!=='ultimon_intro')
+  throw new Error('La presentazione non è attiva.');
+ const intro=room.ultimon?.intro,current=currentUltimonIntroRole(room);
+ if(!intro||intro.step==='complete'||!current)
+  throw new Error('Non ci sono scene da saltare.');
+ if(!ultimonIntroSpeech(room,current))
+  throw new Error('Attendi che il capitano finisca di scrivere il suo monologo.');
+ if(!ultimonIntroEntrance(room,current))
+  throw new Error('Attendi che il capitano scelga il proprio ingresso.');
+ if(intro.index+1<intro.order.length)
+  return {'ultimon.intro.index':intro.index+1,'ultimon.intro.step':'call',
+    'ultimon.intro.lineIndex':0,phaseStartedAt:Date.now()};
+ return {'ultimon.intro.step':'complete',phaseStartedAt:Date.now()};
+}
+
 export function ultimonIntroductionReady(room){
  const intro=room.ultimon?.intro;
  return room.gameMode==='ultimon'&&room.status==='ultimon_intro' &&
