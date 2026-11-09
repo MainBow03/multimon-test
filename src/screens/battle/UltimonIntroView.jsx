@@ -1,6 +1,7 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {ULTIMON_MONOLOGUE_STYLES,ULTIMON_ENTRANCE_EFFECTS,ultimonIntroEntrance,
- ultimonIntroFullTeam,ultimonSuggestedMonologue,currentUltimonIntroRole,ultimonIntroCast,ultimonIntroSpeech}
+ ultimonIntroFullTeam,ultimonSuggestedMonologue,currentUltimonIntroRole,ultimonIntroCast,ultimonIntroSpeech,
+ ultimonIntroSceneReady,ultimonIntroSceneDeadline,ULTIMON_INTRO_AUTO_ADVANCE_MS}
  from '../../systems/ultimonIntro.js';
 import {ULTIMON_BASIC_ENTRANCE} from '../../systems/ultimonCosmetics.js';
 import './UltimonIntroView.css';
@@ -31,6 +32,8 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
  const [draft,setDraft]=useState('');
  const [sending,setSending]=useState(false);
  const [entranceSending,setEntranceSending]=useState(false);
+ const [remainingSeconds,setRemainingSeconds]=useState(null);
+ const [hostActionPending,setHostActionPending]=useState(false);
  const autoEntranceRef=useRef('');
  const selected=cast[Math.max(0,intro.lineIndex||0)];
  const rival=selected?.duplicate?.rival;
@@ -57,19 +60,29 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
    .finally(()=>setEntranceSending(false));
  },[canEnter,role,intro.index,ownedEffects.join('|'),entranceReady]);
 
- // Il presentatore host fa avanzare la sequenza sullo stato Firestore,
- // mai sui singoli client: tutti vedono lo stesso personaggio e la stessa riga.
- // Durante monologo e scelta dell'effetto aspetta SEMPRE il capitano umano.
- // Nessun client decide da solo la scena: il timer dell'host avanza Firestore.
+ // Tutti i dispositivi usano la stessa scadenza sincronizzata via Firestore.
+ // Nessun timer parte mentre il capitano sta SCRIVENDO il monologo o scegliendo
+ // l'effetto. Solo l'host può anticipare il cambio di scena.
+ const sceneReady=ultimonIntroSceneReady(room);
+ const sceneDeadline=ultimonIntroSceneDeadline(room);
  useEffect(()=>{
-  if(!isHost||step==='complete'||(step==='speech'&&!spoken)||
-    (step==='entrance_select'&&!entranceReady))return;
-  const delay=step==='line'&&rival?6800:
-    ({call:3100,speech:4300,entrance_select:1400,
-      entrance:6700,line:3500,exit:2500}[step]||3200);
-  const timer=setTimeout(()=>onHost('introNext'),delay);
+  if(!sceneReady||!sceneDeadline){setRemainingSeconds(null);return;}
+  const tick=()=>setRemainingSeconds(Math.max(0,Math.ceil((sceneDeadline-Date.now())/1000)));
+  tick();
+  const ticker=setInterval(tick,250);
+  return()=>clearInterval(ticker);
+ },[sceneReady,sceneDeadline]);
+ useEffect(()=>{
+  if(!isHost||!sceneReady||!sceneDeadline)return;
+  const timer=setTimeout(()=>onHost('introNext'),Math.max(0,sceneDeadline-Date.now()));
   return()=>clearTimeout(timer);
- },[isHost,step,intro.index,intro.lineIndex,spoken,entranceReady,Boolean(rival)]);
+ },[isHost,sceneReady,sceneDeadline,intro.index,intro.lineIndex,step]);
+ const hostAdvance=action=>{
+  if(!isHost||hostActionPending)return;
+  setHostActionPending(true);
+  Promise.resolve(onHost(action)).catch(error=>console.error('Presentazione Ultimon:',error))
+   .finally(()=>setHostActionPending(false));
+ };
 
  const progress=order.length?Math.round((Math.max(0,intro.index)+(step==='complete'?1:0))/order.length*100):0;
  const caption={
@@ -296,12 +309,26 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
       </div>}
 
     <div className="ultimon-intro-footnote">
-      {isHost&&canNext&&<button type="button" className="ultimon-intro-skip"
-       onClick={()=>onHost('introNext')}>Prosegui con la presentazione ›</button>}
-      {isHost&&canNext&&<small>Avanzamento automatico tra pochi istanti</small>}
-      {step==='speech'&&!spoken&&!canSpeak&&<small>Il capitano deve parlare prima dei quattro Multimon.</small>}
-      {step==='entrance_select'&&!entranceReady&&!canEnter&&
-       <small>L'ingresso partirà appena il capitano avrà scelto un effetto.</small>}
+      {sceneReady&&<div className="ultimon-intro-auto-clock" role="status">
+       <span>⏱️ Avanzamento automatico tra</span>
+       <strong>{remainingSeconds??Math.ceil(ULTIMON_INTRO_AUTO_ADVANCE_MS/1000)} s</strong>
+       <div className="ultimon-intro-auto-track" aria-hidden="true">
+        <span style={{width:Math.max(0,Math.min(100,(remainingSeconds??20)*100/(ULTIMON_INTRO_AUTO_ADVANCE_MS/1000)))+'%'}}/>
+       </div>
+      </div>}
+      {isHost&&<div className="ultimon-intro-host-controls" aria-label="Comandi delle presentazioni riservati all'host">
+       <span className="ultimon-intro-host-label">👑 COMANDI HOST</span>
+       <button type="button" className="ultimon-intro-skip" disabled={!canNext||hostActionPending}
+        onClick={()=>hostAdvance('introNext')}>⏩ Velocizza · Prossima scena</button>
+       <button type="button" className="ultimon-intro-skip ultimon-intro-skip-team"
+        disabled={!spoken||!entranceReady||hostActionPending}
+        title="Disponibile dopo il monologo e la scelta dell'ingresso"
+        onClick={()=>hostAdvance('introSkipTeam')}>⏭ Salta il resto della squadra</button>
+       </div>}
+      {!isHost&&sceneReady&&<small>La presentazione avanza dopo 20 secondi; solo l'host può saltarla.</small>}
+      {step==='speech'&&!spoken&&<small>⌛ Il timer resta fermo finché il capitano non ha pronunciato il suo monologo.</small>}
+      {step==='entrance_select'&&!entranceReady&&
+       <small>⌛ Nessun avanzamento finché il capitano non conferma il proprio ingresso.</small>}
     </div>
    </div>:
    <div className="ultimon-intro-end ultimon-intro-appear">
