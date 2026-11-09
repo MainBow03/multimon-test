@@ -2,10 +2,10 @@
 // Il Torneo del Multiverso NON calcola più autonomamente mosse, danni o passive:
 // questa funzione chiama calculateTurnImpl, la stessa della battaglia classica.
 // Soltanto conversioni di ruoli, comandi e salvataggio Firestore restano locali.
-import {calculateTurnImpl,calculateDamageImpl} from './battleSystem.js';
+import {calculateTurnImpl,calculateDamageImpl,applyOnEnterPassiveImpl} from './battleSystem.js';
 import {getMultiplier} from './typeSystem.js';
 import {CHARACTERS,FUSION_CHARACTERS,MOVES_DB,ITEMS_DB} from '../data/gameData.js';
-import {activeEventFighters} from './multiverseEventEngine.js';
+import {activeEventFighters,buildEventBattle} from './multiverseEventEngine.js';
 
 const base=Object.fromEntries(CHARACTERS.map(char=>[char.id,char]));
 const idOf=(uid,idx)=>'p'+(idx+1);
@@ -164,4 +164,33 @@ export function resolveEventWithStandardEngine(b,submissions,settings){
   next.log.push('🏆 Vittoria della squadra '+next.winner+'!');
  }else next.side=b.side==='both'?'both':b.side==='A'?'B':'A';
  return next;
+}
+
+// Preparazione partita: anche le passive che scattano all'ingresso vengono
+// eseguite DAL MOTORE STANDARD, non dall'implementazione precedente dell'evento.
+export function buildStandardEventBattle(match,people,settings){
+ const b=buildEventBattle(match,people,{...settings,standardEngine:true});
+ const converted=adaptTournamentToClassic(b,settings);
+ const lines=[];
+ const standardMode=settings.doubles?'multipla':'classica';
+ for(const [role] of Object.entries(converted.byRole)){
+  for(const index of [...converted.field[role]]){
+   const character=converted.teams[role]?.[index];
+   if(!character?.passive||character.hp<=0)continue;
+   applyOnEnterPassiveImpl({CHARACTERS},character,role,index,
+     converted.teams,converted.field,lines,standardMode,settings,false);
+  }
+ }
+ for(const [role,uid] of Object.entries(converted.byRole)){
+  const side=b.owners.A.includes(uid)?'A':'B';
+  const team=converted.teams[role].map((char,index)=>({
+   ...char,owner:uid,key:char.key||uid+'-'+char.id+'-'+index,
+   moves:(char.moves||[]).map(m=>({...m,uses:m.remainingUses??null}))
+  }));
+  const originalOthers=b.teams[side].filter(u=>u.owner!==uid);
+  b.teams[side]=[...originalOthers,...team];
+  b.activeKeys[uid]=converted.field[role].map(index=>team[index]?.key).filter(Boolean);
+ }
+ b.log.push(...lines.map(cleanLog).filter(Boolean));
+ return b;
 }
