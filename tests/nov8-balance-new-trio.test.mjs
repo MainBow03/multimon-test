@@ -66,7 +66,7 @@ test('Buff Garnet, Frillish, Jack Frost e nerf Juri esatti',()=>{
  assert.equal(move('Schianto Sismico').power,72);
  assert.equal(move('Schianto Sismico').targetCount,4);
  assert.equal(move('Scherzetto di Neve').power,50);
- assert.equal(move('Scherzetto di Neve').statusEffect.chance,.4,'Il 40% di congelamento non era il parametro da cambiare');
+ assert.equal(move('Scherzetto di Neve').statusEffect.chance,.3,'Nerf successivo approvato: congelamento 40% → 30%');
  assert.equal(CURSED_BODY_CHANCE,.25);
  assert.equal(char('frillish').passive.chance,.25);
  const defender=structuredClone(char('frillish'));
