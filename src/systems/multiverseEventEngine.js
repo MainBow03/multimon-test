@@ -110,7 +110,8 @@ export function buildEventBattle(match,people,s){
   for(const unit of activeEventFighters(battle,side,s)){
    unit.eventEntered=true;
    markRapidTransmutationEntry(unit);
-   applyEventEntryPassive(battle,side,unit,s,Math.random,battle.log);
+   // Il motore standard applica anche le passive all'ingresso: evita doppie attivazioni.
+   if(!s.standardEngine)applyEventEntryPassive(battle,side,unit,s,Math.random,battle.log);
   }
  }
  return battle;
