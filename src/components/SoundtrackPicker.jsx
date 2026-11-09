@@ -1,11 +1,11 @@
-import React,{useEffect,useState} from 'react';
+import React,{useState} from 'react';
 import {SOUNDTRACKS,DEFAULT_BATTLE_SOUNDTRACK,soundtrackVideoUrl} from '../data/soundtracks.js';
 
 /** YouTube's own embedded player. No audio is hosted, downloaded or re-distributed. */
 export function SoundtrackPicker({value=DEFAULT_BATTLE_SOUNDTRACK,onChange,compact=false,title='🎵 Colonna sonora della battaglia'}){
  const [previewId,setPreviewId]=useState('');
  const selected=SOUNDTRACKS.find(s=>s.id===value)||SOUNDTRACKS[0];
- useEffect(()=>()=>setPreviewId(''),[]);
+
  const preview=track=>setPreviewId(current=>current===track.id?'':track.id);
  return <section className={'soundtrack-picker '+(compact?'soundtrack-picker--compact':'')} aria-label="Selezione soundtrack e anteprima OST">
   <div className="soundtrack-picker-heading"><span>{title}</span><small>Anteprima tramite player ufficiale YouTube</small></div>
