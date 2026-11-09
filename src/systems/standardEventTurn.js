@@ -102,8 +102,15 @@ export function translateTournamentCommands(b,submissions,converted){
      (b.owners.A.includes(target.uid)===b.owners.A.includes(uid)):
      (b.owners.A.includes(target.uid)!==b.owners.A.includes(uid)));
    const recipient=legal?target:isSupport?actor:enemy;
+   const selectedTargets=(Array.isArray(command.selectedTargets)?command.selectedTargets:[])
+     .map(key=>location.get(key))
+     .filter(item=>item &&(b.owners.A.includes(item.uid)!==b.owners.A.includes(uid)))
+     .map(item=>({player:item.role,idx:item.index,
+       fieldIdx:converted.field[item.role].indexOf(item.index)}))
+     .filter(item=>item.fieldIdx>=0);
    result[role][actor.index]={type:'attack',moveIdx,
      targetPlayer:recipient?.role||role,targetIdx:recipient?.index??actor.index,
+     ...(selectedTargets.length?{selectedTargets}:{}),
      hyperize:!!command.hyper&&!!converted.gameState.settings.allowHyper};
   }
  }
@@ -154,6 +161,13 @@ export function resolveEventWithStandardEngine(b,submissions,settings){
  const emitted=(patch.events||[]).map(cleanLog).filter(Boolean);
  next.log=[...(b.log||[]),...emitted].slice(-60);
  next.turn=(b.turn||1)+1;
+ // Mostra in diretta gli stessi eventi visivi prodotti dal motore standard.
+ next.playback=JSON.parse(JSON.stringify({
+  turn:next.turn,
+  startTeams:patch.startOfTurnTeams||converted.teams,
+  startField:patch.startOfTurnField||converted.field,
+  events:patch.events||[]
+ }));
  const aAlive=rebuilt.A.some(unit=>unit.hp>0&&!unit.isSummonOnly);
  const bAlive=rebuilt.B.some(unit=>unit.hp>0&&!unit.isSummonOnly);
  if(!aAlive||!bAlive||next.turn>300){
