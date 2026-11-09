@@ -1,3 +1,4 @@
+import {onMultimonImageError} from '../../systems/imageFallback.js';
 import React,{useEffect,useState} from 'react';
 import {ULTIMON_COLORS,ultimonPlayers,ultimonAlive,ultimonActive,ultimonLeaderboard,ultimonDuelOutcome,ultimonPicksReady,ultimonIsFinalShowdown} from '../../systems/ultimonSystem.js';
 import {ultimonRewardForPlace} from '../../systems/ultimonRewards.js';
@@ -24,7 +25,7 @@ function TeamCard({room,role,selected=false,rank=null}){
     </div>
     <div className="ultimon-fighter-grid">
      {team.map((c,i)=><div key={i} className={'ultimon-fighter '+(!alive(c)?'ultimon-fighter--out':'')} title={c.name+' · '+Math.max(0,c.hp)+'/'+c.maxHp+' PS'}>
-       <img src={c.img} alt={c.name} loading="lazy"/>
+       <img src={c.img} onError={onMultimonImageError} alt={c.name} loading="lazy"/>
        <span>{c.name}</span>
        <small>{alive(c)?Math.ceil(c.hp)+' PS':'KO'}</small>
       </div>)}
@@ -67,7 +68,7 @@ function SurvivorBoard({room,standings}){
     {(room.ultimon?.rosters?.[p.role]||[]).map((c,i)=>(
      <div className={'ultimon-board-avatar '+(!alive(c)?'ultimon-board-avatar--ko':'')}
        key={i} title={c.name+' · '+(alive(c)?Math.ceil(c.hp)+' PS':'KO')}>
-      <img src={c.img} alt={c.name} loading="lazy"/>
+      <img src={c.img} onError={onMultimonImageError} alt={c.name} loading="lazy"/>
       {!alive(c)&&<span aria-label="KO">✕</span>}
      </div>
     ))}
@@ -113,7 +114,7 @@ function EliminationCeremony({room,standings,step}){
           <h3>{info?.team||role}</h3><small>{info?.name||room.players?.[role]}</small>
           <div className="ultimon-ceremony-fighters">
            {fighters.map((c,i)=><div key={i} className="ultimon-ceremony-fighter">
-             <img src={c.img} alt={c.name} loading="lazy"/>
+             <img src={c.img} onError={onMultimonImageError} alt={c.name} loading="lazy"/>
              <strong>{c.name}</strong><span>KO DEFINITIVO</span>
            </div>)}
           </div>
@@ -222,7 +223,7 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onS
          <h3>🚫 MULTIMON ESCLUSI DAL TORNEO</h3>
          <div className="ultimon-ban-board-grid">
            {bannedRoster.map(c=><div className="ultimon-ban-excluded" key={c.id}>
-             {c.img&&<img src={c.img} alt=""/>}
+             {c.img&&<img src={c.img} onError={onMultimonImageError} alt=""/>}
              <strong>{c.name}</strong><span>BANNATO</span>
            </div>)}
          </div>
@@ -238,7 +239,7 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onS
            {banCandidates.map(c=><button type="button" key={c.id}
              onClick={()=>setBanSelected(c.id)} aria-pressed={banSelected===c.id}
              className={'ultimon-ban-card '+(banSelected===c.id?'ultimon-ban-card--selected':'')}>
-             <div className="ultimon-ban-image">{c.img&&<img src={c.img} alt="" loading="lazy"/>}</div>
+             <div className="ultimon-ban-image">{c.img&&<img src={c.img} onError={onMultimonImageError} alt="" loading="lazy"/>}</div>
              <strong>{c.name}</strong>
              <small>{(c.types||[]).join(' · ')}</small>
              <span>{banSelected===c.id?'✓ SCELTO':'Seleziona'}</span>
@@ -261,7 +262,7 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onS
        <div className="ultimon-ban-compact" aria-label="Multimon bannati per questa partita">
          <span>🚫 BAN GLOBALI</span>
          {bannedRoster.map(c=><div key={c.id}>
-           {c.img&&<img src={c.img} alt=""/>}<b>{c.name}</b>
+           {c.img&&<img src={c.img} onError={onMultimonImageError} alt=""/>}<b>{c.name}</b>
          </div>)}
        </div>}
      {stage==='ultimon_showcase'&&<>
@@ -314,7 +315,7 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onS
            {i===1&&<div className="ultimon-grand-final-vs" aria-hidden="true">VS</div>}
            <div className="ultimon-grand-final-contender"
              style={{'--ultimon-team-color':u.identities?.[role]?.color||'#94a3b8'}}>
-             {finaleHero(role)&&<img src={finaleHero(role).img} alt=""/>}
+             {finaleHero(role)&&<img src={finaleHero(role).img} onError={onMultimonImageError} alt=""/>}
              <strong>{finaleName(role)}</strong>
              <small>{room.players?.[role]||role}</small>
            </div>
@@ -358,7 +359,7 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onS
               className={'ultimon-pick-fighter '+(chosen.includes(i)?'ultimon-pick-fighter--chosen':'')}
               onClick={()=>setChosen(prev=>prev.includes(i)?prev.filter(x=>x!==i):
                  prev.length<u.format?[...prev,i]:prev)}>
-              <img src={c.img} alt={c.name}/><strong>{c.name}</strong>
+              <img src={c.img} onError={onMultimonImageError} alt={c.name}/><strong>{c.name}</strong>
               <small>{alive(c)?Math.ceil(c.hp)+'/'+c.maxHp+' PS':'KO DEFINITIVO'}</small>
               {chosen.includes(i)&&<b>✓ SCHIERATO</b>}
             </button>)}</div>
@@ -407,7 +408,7 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onS
             <div className="ultimon-score-record">{p.wins} vittorie · {p.matches} duelli · {p.knockouts} KO di squadra · {p.lost} persi</div>
             {mvp?<section className="ultimon-mvp-card" aria-label={'MVP della squadra '+p.team}>
               <div className="ultimon-mvp-portrait">
-               {mvp.img&&<img src={mvp.img} alt={mvp.name} loading="lazy"/>}
+               {mvp.img&&<img src={mvp.img} onError={onMultimonImageError} alt={mvp.name} loading="lazy"/>}
                <div className="ultimon-mvp-crown" aria-hidden="true">👑</div>
               </div>
               <div className="ultimon-mvp-info">
