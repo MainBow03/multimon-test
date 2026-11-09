@@ -164,8 +164,9 @@ export function applyEventEntryPassive(b,side,entrant,s,random=Math.random,log=b
  return true;
 }
 export function botActions(b,uid,s){
- const targets=activeEventFighters(b,b.side==='A'?'B':'A',s);
- return activeEventFighters(b,b.side,s).filter(x=>x.owner===uid).map(c=>{
+ const actingSide=b.side==='both'?(b.owners.A.includes(uid)?'A':'B'):b.side;
+ const targets=activeEventFighters(b,actingSide==='A'?'B':'A',s);
+ return activeEventFighters(b,actingSide,s).filter(x=>x.owner===uid).map(c=>{
  const ranks=c.moves.map((m,i)=>({m,i})).filter(x=>x.m.uses===null||x.m.uses>0).sort((a,d)=>d.m.power-a.m.power);
  return{actor:c.key,moveIndex:ranks[0]?.i||0,target:targets[0]?.key||null}});
 }
