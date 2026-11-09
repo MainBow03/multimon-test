@@ -70,7 +70,7 @@ test('Un titolo legacy dei mostri non può essere indossato dal profilo',()=>{
 
 test('Le ricompense si vedono sul PNG schierato anche nel torneo e il codex è accessibile in battaglia',()=>{
   const battle=readFileSync(new URL('../src/screens/battle/BattlingView.jsx',import.meta.url),'utf8');
-  const event=readFileSync(new URL('../src/screens/events/EventClassicBattleView.jsx',import.meta.url),'utf8');
+  const event=readFileSync(new URL('../src/screens/events/StandardTournamentBattle.jsx',import.meta.url),'utf8');
   const encyclopedia=readFileSync(new URL('../src/components/BattleCodex.jsx',import.meta.url),'utf8');
   const styles=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
   const stats=readFileSync(new URL('../src/screens/hub/StatsView.jsx',import.meta.url),'utf8');
