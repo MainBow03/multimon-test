@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {CHARACTERS} from '../src/data/characters.js';
 import {normalizeEventSettings,makeEventBracket,nextEventMatch,buildEventBattle,activeEventFighters} from '../src/systems/multiverseEventEngine.js';
-import {adaptTournamentToClassic,translateTournamentCommands,resolveEventWithStandardEngine} from '../src/systems/standardEventTurn.js';
+import {adaptTournamentToClassic,translateTournamentCommands,resolveEventWithStandardEngine,buildStandardEventBattle} from '../src/systems/standardEventTurn.js';
 
 const roster=CHARACTERS.filter(c=>!c.isSummonOnly&&!c.isSecretUnlock).slice(0,4).map(c=>c.id);
 const person=uid=>({id:uid,uid,name:uid,teamIds:roster,ready:true,heldItems:{}});
@@ -68,7 +68,8 @@ test('Il server eventi richiama il motore classico, non quello parallelo',()=>{
  assert.match(hub,/resolveEventWithStandardEngine\(old\.activeBattle,all,old\.settings\)/);
  assert.match(hub,/resolveEventWithStandardEngine\(b,submissions,old\.settings\)/);
  assert.doesNotMatch(hub,/const after=eventTurn\(/);
- assert.match(hub,/standardEngine:true/);
+ assert.match(hub,/buildStandardEventBattle\(nextEventMatch\(matches\),map,old\.settings\)/);
+ assert.match(standard,/applyOnEnterPassiveImpl\(\{CHARACTERS\}/);
  assert.match(screen,/battle\.side==='both'/);
  assert.match(screen,/setSubmitted\(true\)/);
 });
@@ -100,4 +101,17 @@ test('Lato bot: entrambi i partecipanti agiscono nello stesso turno condiviso',(
  assert.equal(next.side,'both');
  assert.equal(Object.keys(next.activeKeys).length,4);
  for(const uid of ['u1','u2','u3','u4'])assert.ok(Array.isArray(next.activeKeys[uid]));
+});
+
+test('Le passive all’ingresso sono realmente applicate con l’handler standard',()=>{
+ const settings=normalizeEventSettings({entrants:4,teamSize:4,fieldSize:1});
+ const char=CHARACTERS.find(c=>c.id==='nicole');
+ assert.ok(char?.passive,'Serve una passiva all ingresso');
+ const teamIds=['nicole',...roster.filter(id=>id!=='nicole')].slice(0,4);
+ const people=[{...person('u1'),teamIds},person('u2')];
+ const match={id:'entry',sideA:{id:'a',name:'A',members:['u1']},sideB:{id:'b',name:'B',members:['u2']}};
+ const b=buildStandardEventBattle(match,Object.fromEntries(people.map(p=>[p.uid,p])),settings);
+ assert.equal(b.side,'both');
+ assert.ok(b.log.some(text=>text.includes(char.passive.name)||text.includes('statistiche dei nemici')),
+   'Il registro dovrebbe mostrare la passiva in ingresso');
 });
