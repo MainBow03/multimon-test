@@ -1,3 +1,4 @@
+import {onMultimonImageError} from '../../systems/imageFallback.js';
 import React,{useState} from 'react';
 import {roomModeLabel} from '../../systems/roomInvitations.js';
 import './MenuDashboard.css';
@@ -91,7 +92,7 @@ export function MenuDashboard({ctx}){
    <span className="mm-dash-mode-emoji">{emoji}</span>
    <span className="mm-dash-mode-copy"><strong>{title}</strong><small>{caption}</small></span>
    {cardImages[cardMascots[title]]&&<img className="mm-dash-mode-art"
-     loading="lazy" src={cardImages[cardMascots[title]]} alt="" aria-hidden="true"/>}
+     loading="lazy" src={cardImages[cardMascots[title]]} onError={onMultimonImageError} alt="" aria-hidden="true"/>}
    <span className="mm-dash-mode-arrow">↗</span>
    {hint&&<span className="mm-dash-mode-hint">{hint}</span>}
   </button>
@@ -136,7 +137,7 @@ export function MenuDashboard({ctx}){
        className={'mm-dash-hero-fighter mm-dash-hero-fighter--'+item.color}
        style={{'--fighter-index':index}}>
        <div className="mm-dash-hero-fighter-light"/>
-       <img src={item.character.img} alt={item.label}/>
+       <img src={item.character.img} onError={onMultimonImageError} alt={item.label}/>
        <span>{item.label}</span>
       </div>)}
      <div className="mm-dash-hero-slogan">✨ SCEGLI. SCHIERA. VINCI! ✨</div>
