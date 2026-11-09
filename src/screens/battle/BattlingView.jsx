@@ -544,8 +544,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     {grandFinale && <div className="ultimon-final-arena-glow" aria-hidden="true" />}
                     <BattleWeatherParticles weather={gameState.battleWeather} tailwind={gameState.battleTailwind} />
                     
-                    {!isEventBattle&&<button onClick={() => (playerRole === 'spectator'||gameState.isTrainingBattle) ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-4 left-4 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
-                         <LogOut size={16} /> {gameState.isTrainingBattle?'← Laboratorio':playerRole === 'spectator' ? 'Esci' : 'Resa'}
+                    {(!isEventBattle||gameState.isTournamentEvent)&&<button onClick={() => gameState.isTournamentEvent ? leaveRoom() : (playerRole === 'spectator'||gameState.isTrainingBattle) ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-4 left-4 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
+                         <LogOut size={16} /> {gameState.isTournamentEvent?'← Torneo':gameState.isTrainingBattle?'← Laboratorio':playerRole === 'spectator' ? 'Esci' : 'Resa'}
                     </button>}
 
                     {/* PULSANTE TOGGLE REGISTRO BATTAGLIA */}
@@ -678,7 +678,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                         </aside>
                     )}
                     {/* --- TIMER DI BATTAGLIA 90 SECONDI --- */}
-                    {gameState.status === 'battling' && !isPlayingEvents && !isSpectator && (
+                    {gameState.status === 'battling' && !isPlayingEvents && !isSpectator && Number.isFinite(timeLeft) && (
                         <div className={`absolute top-16 left-1/2 -translate-x-1/2 z-[45] bg-slate-900/90 backdrop-blur-md px-5 py-1.5 rounded-full border shadow-[0_0_15px_rgba(0,0,0,0.6)] font-black tracking-widest flex items-center gap-2 transition-colors ${timeLeft <= 15 ? 'border-rose-500 text-rose-500 animate-pulse scale-110' : 'border-cyan-500/50 text-cyan-400'}`}>
                             ⏱️ {timeLeft}s
                         </div>
