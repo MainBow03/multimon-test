@@ -2,6 +2,7 @@ import React, {useState,useEffect,useRef,useMemo} from 'react';
 import { CHARACTERS } from '../../data/characters.js';
 import { masteryVisibleLevels } from '../../systems/masterySystem.js';
 import { EventClassicBattleView } from './EventClassicBattleView.jsx';
+import {resolveEventWithStandardEngine} from '../../systems/standardEventTurn.js';
 import { MultiverseBracket } from './MultiverseBracket.jsx';
 import { EventSetupPanel } from './EventSetupPanel.jsx';
 import { ITEMS_DB } from '../../data/items.js';
@@ -140,7 +141,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,play
  const force=()=>operate(()=>hostUpdate(activeId,uid,old=>{
  const b=old.activeBattle;if(old.status!=='running'||!b||b.finished)return null;
  const submissions={};for(const id of b.owners[b.side])submissions[id]=old.bots.some(bot=>bot.id===id)?botActions(b,id,old.settings):[];
- const after=eventTurn(b,submissions,old.settings),matches=after.finished?completeEventMatch(old.matches,b.matchId,after.winner):old.matches;
+ const after=resolveEventWithStandardEngine(b,submissions,old.settings),matches=after.finished?completeEventMatch(old.matches,b.matchId,after.winner):old.matches;
  const placements=eventPlacements(matches,old.entrants);
  return{activeBattle:after,matches,...(placements?{status:'finished',placements}: {})};
  }));
@@ -165,7 +166,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,play
     await hostUpdate(activeId,uid,old=>{
      if(old.status!=='running'||old.activeBattle?.turn!==b.turn||old.activeBattle?.matchId!==b.matchId)return null;
      const all={...commands};for(const id of b.owners[b.side])if(bots.has(id))all[id]=botActions(b,id,old.settings);
-     const after=eventTurn(old.activeBattle,all,old.settings);
+     const after=resolveEventWithStandardEngine(old.activeBattle,all,old.settings);
      const matches=after.finished?completeEventMatch(old.matches,b.matchId,after.winner):old.matches;
      const placements=eventPlacements(matches,old.entrants);
      return{activeBattle:after,matches,...(placements?{status:'finished',placements}: {})};
