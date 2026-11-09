@@ -222,7 +222,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,play
    <MultiverseBracket matches={event.matches} current={event.activeBattle?.matchId} participants={[...players,...event.bots]}/></div>}
  {event.activeBattle&&event.displayPhase!=='bracket'&&
    <Arena key={event.activeBattle.matchId}
-     participants={[...players,...event.bots.map(b=>({uid:b.id,name:b.name}))]}
+     participants={[...players,...event.bots.map(b=>({...b,uid:b.id,avatar:b.avatar||index[b.teamIds?.[0]]?.img||''}))]}
      battle={event.activeBattle} settings={event.settings} uid={uid}
      view={perspective} setView={setPerspective} orders={orders} setOrders={setOrders}
      submit={send} force={force} isHost={isHost} busy={busy} onContinue={showBracket} onMinimize={()=>open(false)}/>}
