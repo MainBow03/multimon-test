@@ -79,7 +79,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,play
  useEffect(()=>{if(!user)return;return watchEvents(setEvents,e=>setError('Eventi online: '+e.message));},[user?.uid]);
  useEffect(()=>{if(!activeId||!user)return;const off1=watchEvent(activeId,setEvent,e=>setError('Evento: '+e.message));
  const off2=watchPlayers(activeId,setPlayers,e=>setError('Partecipanti: '+e.message));return()=>{off1();off2()};},[activeId,user?.uid]);
- const operate=async fn=>{if(busy)return;setBusy(true);setError('');try{await fn()}catch(e){setError(e.message||String(e))}finally{setBusy(false)}};
+ const operate=async fn=>{if(busy)return false;setBusy(true);setError('');try{await fn();return true}catch(e){setError(e.message||String(e));return false}finally{setBusy(false)}};
  const updateHost=fn=>hostUpdate(activeId,uid,old=>old.status==='lobby'?fn(old):null);
  const closeEvent=()=>{
   if(isHost&&event&&['lobby','running'].includes(event.status)){
