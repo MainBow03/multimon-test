@@ -13,6 +13,28 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov9-approved-roster-balance',category:'balance',date:'09/11/2026',
+    title:'⚖️ 10 buff e 7 nerf approvati dai giocatori',items:[
+      'BUFF Carlos Oliveira: Assalto Frontale da 70 a 85 potenza.',
+      'BUFF Yuki-Onna: Difesa da 65 a 75.',
+      'BUFF Katara: PS massimi da 85 a 95.',
+      'BUFF Tony Tony Chopper: Velocità da 80 a 88.',
+      'BUFF Gardevoir: PS massimi da 85 a 95.',
+      'BUFF Rias Gremory: Difesa da 75 a 82.',
+      'BUFF Re Ghiaccio: Velocità da 80 a 88.',
+      'BUFF Pyra: Lame Scarlatte da 65 a 75 potenza.',
+      'BUFF Marceline: Difesa da 75 a 82.',
+      'BUFF Spyro: Pioggia di Gemme da 32 a 36 potenza per colpo; rimane multicolpo 2–4.',
+      'NERF Superman: PS massimi da 145 a 132.',
+      'NERF Darwin: Regime del Sorriso, probabilità del bonus Difesa da 50% a 30%; restano +30% Difesa e 20% confusione.',
+      'NERF Neon: Relay Bolt, stordimento dal 100% al 65%; mantiene la riduzione Velocità del 30%.',
+      'NERF Ladybug: Miraculous Ladybug cura il team del 40% anziché 50%; da sola continua a curarsi del 50%.',
+      'NERF Jack Frost: Scherzetto di Neve, congelamento dal 40% al 30%; mantiene potenza 50 e due bersagli.',
+      'NERF Diamante: Corpo Petrosapien riduce il danno del 15% anziché 20%, anche nella formula effettiva del combattimento.',
+      'NERF Meliodas: Fiamme del Purgatorio, probabilità di scottatura dal 50% al 35%.',
+      'Sonic, Nicole e Dante non sono stati modificati da questo intervento. I valori sono stati verificati con test del roster, delle mosse e del motore di combattimento.'
+    ]},
+
   {id:'nov8-five-approved-passives',category:'champions',date:'08/11/2026',
     title:'🐞🔥 Cinque nuove abilità passive: Ladybug, Charizard, Dante, Finn e Garnet',items:[
       'LADYBUG — Il Potere dei Miraculous: quando usa una mossa di supporto su un alleato ferito, lo cura del 10% dei suoi PS massimi; massimo 3 attivazioni per battaglia. Le autocure non contano.',
