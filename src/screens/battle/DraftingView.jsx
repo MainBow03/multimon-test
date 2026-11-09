@@ -1,3 +1,4 @@
+import {onMultimonImageError} from '../../systems/imageFallback.js';
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { TeamAdvisor } from '../../components/TeamAdvisor.jsx';
 import { HeldEquipmentCard, HeldEquipmentGuide } from '../../components/HeldEquipmentPicker.jsx';
@@ -91,7 +92,7 @@ if (gameState.status === 'drafting') {
                          const canRemoveFromDraft = !gameState.settings.draftBattle && !gameState.settings.sharedDraft;
                          return (
                              <div key={i} className={`relative flex-shrink-0 animate-fade-in ${canRemoveFromDraft ? 'group cursor-pointer' : ''}`} onClick={() => { if(canRemoveFromDraft) updateState({ [`draft.${playerRole}`]: myDraft.filter((_, idx) => idx !== i) }) }}>
-                                 <img src={char.img} alt={char.name} className="w-20 h-20 rounded-full object-cover border-4 border-emerald-400" />
+                                 <img src={char.img} onError={onMultimonImageError} alt={char.name} className="w-20 h-20 rounded-full object-cover border-4 border-emerald-400" />
                                  {gameState.isRoguelikeCoop && <span className="absolute -bottom-1 left-0 right-0 rounded-md bg-slate-950/90 px-1 py-0.5 text-center text-[10px] font-black text-pink-200">{i===0?'IN CAMPO':'RISERVA'}</span>}
                                  {canRemoveFromDraft && (
                                      <div className="absolute inset-0 bg-red-600/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm"><span className="font-black text-xl">X</span></div>
@@ -212,7 +213,7 @@ if (gameState.status === 'drafting') {
                                                 className={`multimon-roster-card relative min-w-0 min-h-[240px] sm:min-h-[260px] overflow-hidden bg-slate-900/80 backdrop-blur-md border rounded-2xl p-3 sm:p-4 text-center transition-all duration-300 flex flex-col items-center justify-start ${isPicked ? 'border-slate-700 opacity-60 grayscale' : (isMyTurn ? 'border-indigo-400/50 hover:border-indigo-300 cursor-pointer shadow-[0_0_15px_rgba(99,102,241,0.2)] hover:shadow-[0_0_20px_rgba(99,102,241,0.5)] hover:-translate-y-1' : 'border-slate-700/50 shadow-md')}`}
                                             >
                                                 <div className={`multimon-roster-portrait w-full h-24 sm:h-28 md:h-32 flex items-center justify-center rounded-xl bg-slate-950/60 border mb-3 p-2 ${isPicked ? 'border-slate-600' : 'border-indigo-500/50'}`}>
-                                                    <img src={item.char.img} alt={item.char.name} loading="lazy" className="w-full h-full object-contain drop-shadow-lg" />
+                                                    <img src={item.char.img} onError={onMultimonImageError} alt={item.char.name} loading="lazy" className="w-full h-full object-contain drop-shadow-lg" />
                                                 </div>
                                                 <h4 className="font-bold text-xs sm:text-sm mb-2 leading-snug text-slate-100 w-full line-clamp-2 min-h-[2.1em] break-words">{item.char.name}</h4>
                                                 
@@ -258,7 +259,7 @@ if (gameState.status === 'drafting') {
                                             className="min-w-0 bg-slate-900/90 backdrop-blur-xl border border-cyan-500/50 hover:border-cyan-300 rounded-3xl p-4 sm:p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 shadow-[0_0_30px_rgba(6,182,212,0.2)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] flex flex-col items-center group"
                                         >
                                             <div className="w-full h-36 sm:h-40 md:h-44 rounded-xl bg-slate-950/70 border-2 border-slate-600 group-hover:border-cyan-400 mb-4 p-2 flex items-center justify-center transition-colors">
-                                                <img src={char.img} alt={char.name} className="w-full h-full object-contain drop-shadow-lg" />
+                                                <img src={char.img} onError={onMultimonImageError} alt={char.name} className="w-full h-full object-contain drop-shadow-lg" />
                                             </div>
                                             <h3 className="text-lg sm:text-xl font-black text-white mb-2 leading-snug line-clamp-2 break-words">{char.name}</h3>
                                             <div className="flex flex-wrap gap-2 justify-center mb-6">
@@ -394,7 +395,7 @@ if (gameState.status === 'drafting') {
                                                     {isFavorite?'★':'☆'}
                                                 </button>
                                                 <div className={`multimon-roster-portrait w-full h-28 sm:h-32 md:h-36 flex items-center justify-center rounded-xl bg-slate-950/65 border-2 mb-3 p-2 ${isSelected ? 'border-emerald-400' : 'border-slate-600/50'}`}>
-                                                    <img src={char.img} alt={char.name} loading="lazy" className="w-full h-full object-contain drop-shadow-lg" />
+                                                    <img src={char.img} onError={onMultimonImageError} alt={char.name} loading="lazy" className="w-full h-full object-contain drop-shadow-lg" />
                                                 </div>
                                                 <h4 className="font-bold text-sm sm:text-base mb-1 leading-snug line-clamp-2 min-h-[2.25em] break-words text-slate-100">{char.name}</h4>
                                                 <div className="text-[10px] font-bold text-amber-300 mb-1">{characterPrice(char)} monete</div>
