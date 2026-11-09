@@ -105,7 +105,7 @@ test('La UI contiene tabellone in diretta, KO oscurati, cerimonia e Gran Finale'
  assert.match(css,/\.ultimon-final-arena-glow/);
  assert.match(app,/finishUltimonElimination/);
  assert.match(app,/ceremony:\{allowed:\['ultimon_elimination'\]/);
- assert.match(app,/ultimonFinalTheme\?'bUG_NS0xqSY'/);
+ assert.match(app,/ultimonFinalTheme\?ULTIMON_FINAL_SOUNDTRACK/);
  assert.match(battle,/ultimonIsFinalShowdown\(gameState\)/);
  assert.match(battle,/ULTIMO DUELLO/);
 });
