@@ -126,7 +126,7 @@ export const FIVE_NEW_CHARACTERS = [
   },
   {
     id:'superman',name:'Superman',types:['Luce','Lotta'],
-    hp:145,maxHp:145,atk:137,spAtk:125,def:119,spDef:112,spd:106,
+    hp:132,maxHp:132,atk:137,spAtk:125,def:119,spDef:112,spd:106,
     img:'https://i.pinimg.com/1200x/fa/a1/6f/faa16fca17e71cec4ecc74fcde1e8a8d.jpg',
     passive:{name:'Corpo Kryptoniano',type:'kryptonian_body',
       desc:'Subisce il 20% in meno dalle mosse con potenza base fino a 100, eccetto le mosse Magico: quelle gli infliggono il 25% di danni extra. Gli attacchi più potenti ignorano la riduzione.'},
