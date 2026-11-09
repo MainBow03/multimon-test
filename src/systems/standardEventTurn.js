@@ -83,7 +83,8 @@ export function translateTournamentCommands(b,submissions,converted){
     const replacement=location.get(command.switchTo);
     if(replacement?.uid===uid && replacement.role===role&&
        converted.teams[role][replacement.index]?.hp>0&&!converted.field[role].includes(replacement.index))
-      result[role][actor.index]={type:'switch',toIdx:replacement.index};
+      result[role][actor.index]={type:'switch',toIdx:replacement.index,
+        zodiacSpiritId:command.zodiacSpiritId||undefined};
     continue;
    }
    // L'inventario di battaglia del torneo è sempre vuoto: nessun uso dello zaino.
