@@ -3,6 +3,7 @@ import {ULTIMON_COLORS,ultimonPlayers,ultimonAlive,ultimonActive,ultimonLeaderbo
 import {ultimonRewardForPlace} from '../../systems/ultimonRewards.js';
 import {ultimonTeamMvp} from '../../systems/ultimonMvp.js';
 import {UltimonIntroView} from './UltimonIntroView.jsx';
+import {ultimonBanRoster,ultimonBanRoles,ultimonBannedIds,allUltimonBansReady} from '../../systems/ultimonBans.js';
 import './UltimonView.css';
 
 const alive=c=>c?.hp>0&&!c.isSummonOnly;
@@ -128,7 +129,7 @@ function EliminationCeremony({room,standings,step}){
   </section>;
 }
 
-export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onSpeech,onEntrance,onHost,onExit,ownedEntrances=[],canHost=false}){
+export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onSpeech,onEntrance,onHost,onExit,ownedEntrances=[],canHost=false}){
  const stage=room.status,u=room.ultimon||{},pair=u.pair||[];
  const isLocal=appMode==='local_room',isHost=!!canHost;
  const available=ultimonPlayers(room);
@@ -138,6 +139,8 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onSpeech,
  const [name,setName]=useState(identity.name||'');
  const [color,setColor]=useState(identity.color||ULTIMON_COLORS[0].hex);
  const [chosen,setChosen]=useState([]);
+ const [banSearch,setBanSearch]=useState('');
+ const [banSelected,setBanSelected]=useState('');
  const [revealed,setRevealed]=useState(false);
  const [ceremonyStep,setCeremonyStep]=useState(0);
  const selectionRole=isLocal
@@ -162,6 +165,17 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onSpeech,
    ];
    return()=>timers.forEach(clearTimeout);
  },[stage,u.round,u.history?.length]);
+ const banVotes=room.ultimonBans?.votes||{};
+ const humanBanRoles=ultimonBanRoles(room);
+ const currentBanRole=isLocal?humanBanRoles.find(p=>!banVotes[p]):playerRole;
+ const canBan=stage==='ultimon_ban'&&humanBanRoles.includes(currentBanRole)&&!banVotes[currentBanRole];
+ const banRoster=ultimonBanRoster(room);
+ const bannedIds=ultimonBannedIds(room);
+ const bannedSet=new Set(bannedIds);
+ const bannedRoster=bannedIds.map(id=>banRoster.find(c=>c.id===id)).filter(Boolean);
+ const banCandidates=banRoster.filter(c=>!bannedSet.has(c.id)&&
+   (c.name||'').toLocaleLowerCase('it').includes(banSearch.trim().toLocaleLowerCase('it')));
+ const banReady=stage==='ultimon_ban'&&allUltimonBansReady(room);
  const standings=ultimonLeaderboard(room);
  const prizes=standings.map((_,i)=>ultimonRewardForPlace(standings.length,i+1));
  const showdown=ultimonIsFinalShowdown(room);
@@ -188,6 +202,68 @@ export function UltimonView({room,appMode,playerRole,onIdentity,onPick,onSpeech,
        <div><span>IL TORNEO DEI SUPERSTITI</span><h1>ULTIMON <em>MULTIMON</em></h1></div>
        <div className="ultimon-round">ROUND {u.round||'—'}</div>
      </header>
+     {stage==='ultimon_ban'&&<section className="ultimon-ban-stage">
+       <div className="ultimon-ban-hero">
+         <div className="ultimon-ban-eyebrow">✦ IL CONSIGLIO DEL MULTIVERSO ✦</div>
+         <h2>🚫 BAN STRATEGICO</h2>
+         <p>Ogni giocatore umano banna <strong>1 Multimon</strong>. Nessuno potrà usarlo in questa partita, nemmeno i bot. I ban sono globali e non si possono duplicare.</p>
+         <div className="ultimon-ban-progress"><span>Ban confermati</span>
+           <strong>{humanBanRoles.filter(p=>banVotes[p]).length} / {humanBanRoles.length}</strong>
+         </div>
+         <div className="ultimon-ban-participants">
+           {humanBanRoles.map(role=><div key={role} className={'ultimon-ban-human '+(banVotes[role]?'ultimon-ban-human--ready':'')}>
+             {room.playerAvatars?.[role]?<img src={room.playerAvatars[role]} alt=""/>:
+               <span aria-hidden="true">👤</span>}
+             <div><b>{room.players?.[role]||role}</b><small>{banVotes[role]?'✓ Ban scelto':'⌛ Deve scegliere'}</small></div>
+           </div>)}
+         </div>
+       </div>
+       {bannedRoster.length>0&&<div className="ultimon-ban-board">
+         <h3>🚫 MULTIMON ESCLUSI DAL TORNEO</h3>
+         <div className="ultimon-ban-board-grid">
+           {bannedRoster.map(c=><div className="ultimon-ban-excluded" key={c.id}>
+             {c.img&&<img src={c.img} alt=""/>}
+             <strong>{c.name}</strong><span>BANNATO</span>
+           </div>)}
+         </div>
+       </div>}
+       {canBan?<section className="ultimon-ban-picker">
+         <h3>⚡ {room.players[currentBanRole]}: scegli chi escludere</h3>
+         <p>La tua scelta impedirà a tutti i concorrenti di utilizzare quel Multimon per questa partita Ultimon.</p>
+         <label htmlFor="ultimon-ban-search">Cerca un Multimon da bannare</label>
+         <input id="ultimon-ban-search" className="ultimon-ban-search" type="search"
+           value={banSearch} onChange={e=>setBanSearch(e.target.value)}
+           placeholder="Cerca per nome..." autoComplete="off"/>
+         <div className="ultimon-ban-grid">
+           {banCandidates.map(c=><button type="button" key={c.id}
+             onClick={()=>setBanSelected(c.id)} aria-pressed={banSelected===c.id}
+             className={'ultimon-ban-card '+(banSelected===c.id?'ultimon-ban-card--selected':'')}>
+             <div className="ultimon-ban-image">{c.img&&<img src={c.img} alt="" loading="lazy"/>}</div>
+             <strong>{c.name}</strong>
+             <small>{(c.types||[]).join(' · ')}</small>
+             <span>{banSelected===c.id?'✓ SCELTO':'Seleziona'}</span>
+           </button>)}
+           {!banCandidates.length&&<p className="ultimon-ban-noresults">Nessun Multimon corrisponde alla ricerca.</p>}
+         </div>
+         <div className="ultimon-ban-confirm">
+           <p>{banSelected?<>Vuoi escludere <strong>{banRoster.find(c=>c.id===banSelected)?.name||banSelected}</strong>? Questo ban sarà definitivo per tutta la partita.</>:'Seleziona un Multimon prima di confermare il ban.'}</p>
+           <button type="button" disabled={!banSelected||bannedSet.has(banSelected)}
+             onClick={()=>{onBan(currentBanRole,banSelected);setBanSelected('');setBanSearch('');}}
+             className="ultimon-action">🚫 CONFERMA IL BAN</button>
+         </div>
+       </section>:<div className="ultimon-center">
+         {banReady?<h3>✅ Tutti i ban sono stati scelti!</h3>:<h3>⌛ In attesa dei ban degli altri giocatori…</h3>}
+         {banReady&&isHost&&button('⚔️ Apri la scelta delle squadre','banContinue')}
+         {banReady&&!isHost&&<p>L'host avvierà la scelta delle squadre.</p>}
+       </div>}
+     </section>}
+     {stage!=='ultimon_ban'&&bannedRoster.length>0&&
+       <div className="ultimon-ban-compact" aria-label="Multimon bannati per questa partita">
+         <span>🚫 BAN GLOBALI</span>
+         {bannedRoster.map(c=><div key={c.id}>
+           {c.img&&<img src={c.img} alt=""/>}<b>{c.name}</b>
+         </div>)}
+       </div>}
      {stage==='ultimon_showcase'&&<>
        <section className="ultimon-hero"><div className="ultimon-stage-label">LA PRESENTAZIONE</div>
         <h2>Otto squadre possibili. Un solo superstite.</h2>
