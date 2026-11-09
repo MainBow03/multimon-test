@@ -3,6 +3,7 @@ import { buildOnlineForfeitPatch } from './onlineForfeit.js';
 import {normalizeZodiacSpirit} from './zodiacSpirits.js';
 import { masteryVisibleLevels } from './masterySystem.js';
 import {equippedVictoryEffect} from './victoryCosmetics.js';
+import {isUltimonBanned} from './ultimonBans.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleAvatarUploadImpl = (ctx, e) => {
 const { setPlayerAvatarUrl } = ctx;
@@ -457,7 +458,7 @@ const { CHARACTERS, FUSION_CHARACTERS, gameState, playerRole, setDraftTimeLeft, 
 
             const currentDraft = gameState.draft[playerRole] || [];
             const myTeamSize = ((gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') && playerRole === (gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1'))) ? 1 : gameState.settings.teamSize;
-            if (currentDraft.length >= myTeamSize) return;
+            if (currentDraft.length >= myTeamSize || isUltimonBanned(gameState,char?.id)) return;
             // Non permettere due volte lo stesso Multimon fra le riserve iniziali Co-op.
             if(gameState.isRoguelikeCoop && currentDraft.some(c=>c.id===char.id))return;
             
@@ -477,6 +478,7 @@ const { CHARACTERS, FUSION_CHARACTERS, gameState, playerRole, setDraftTimeLeft, 
             if (gameState.settings.draftBattle && currentDraft.length + 1 < myTeamSize) {
                 const baseRoster = gameState.settings.fusionMode ? FUSION_CHARACTERS : CHARACTERS;
                 const draftable = baseRoster.filter(c => !c.isSummonOnly && !c.isSecretUnlock &&
+                   !isUltimonBanned(gameState,c.id) &&
                    (!gameState.isRoguelikeCoop || !c.isCampaignMonster));
                 
                 // Esclude chi hai già scelto dalle future scelte
@@ -501,6 +503,7 @@ const { CHARACTERS, FUSION_CHARACTERS, gameState, playerRole, setDraftTimeLeft, 
               const currentDraft = gameState.draft[playerRole] || [];
               const baseRoster = gameState.settings.fusionMode ? FUSION_CHARACTERS : CHARACTERS;
               const draftable = baseRoster.filter(c => !c.isSummonOnly && !c.isSecretUnlock &&
+                   !isUltimonBanned(gameState,c.id) &&
                    (!gameState.isRoguelikeCoop || !c.isCampaignMonster));
               
               const pickedIds = currentDraft.map(c => c.id);
@@ -530,7 +533,7 @@ const { gameState, updateState } = ctx;
               if (pRole !== activeTurnPlayer) return; // FIX ANTI-LAG: Impedisce doppie scelte simultanee
 
               const item = gameState.sharedDraftPool[poolIdx];
-              if (!item || item.pickedBy) return; // Già scelto
+              if (!item || item.pickedBy || isUltimonBanned(gameState,item.char?.id)) return; // Già scelto oppure bannato
 
               const charInstance = { 
                   ...item.char, 
