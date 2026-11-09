@@ -1,3 +1,4 @@
+import {onMultimonImageError} from '../../systems/imageFallback.js';
 import React,{useEffect,useRef,useState} from 'react';
 import {ULTIMON_MONOLOGUE_STYLES,ULTIMON_ENTRANCE_EFFECTS,ultimonIntroEntrance,
  ultimonIntroFullTeam,ultimonSuggestedMonologue,currentUltimonIntroRole,ultimonIntroCast,ultimonIntroSpeech,
@@ -131,7 +132,7 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
 
      {step==='call'&&<div key={role+'call'} className="ultimon-intro-call ultimon-intro-appear">
        <div className="ultimon-intro-call-silhouette" aria-hidden="true">
-        {fullTeam.map((c,i)=><img key={i} src={c.img} alt=""
+        {fullTeam.map((c,i)=><img key={i} src={c.img} onError={onMultimonImageError} alt=""
           style={{animationDelay:i*.14+'s'}}/>)}
        </div>
        <h3>Signore e signori… fate spazio!</h3>
@@ -141,7 +142,7 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
 
      {step==='speech'&&<div key={role+'speech'} className="ultimon-intro-speech ultimon-intro-appear">
        <div className="ultimon-intro-avatar-collage" aria-hidden="true">
-        {cast.map((c,i)=><img key={i} src={c.img} alt=""/>)}
+        {cast.map((c,i)=><img key={i} src={c.img} onError={onMultimonImageError} alt=""/>)}
        </div>
        <h3>🎤 {room.players?.[role]||role}, il pubblico ti ascolta!</h3>
        {spoken?
@@ -240,7 +241,7 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
           style={{'--team-count':fullTeam.length}}>
          {fullTeam.map((c,i)=><div key={i} className="ultimon-intro-entrance-fighter"
            style={{'--fighter-index':i}}>
-           <img src={c.img} alt={c.name}/><span>{c.name}</span>
+           <img src={c.img} onError={onMultimonImageError} alt={c.name}/><span>{c.name}</span>
           </div>)}
         </div>
         <h3>{entrance?.tagline||'UN INGRESSO INDIMENTICABILE!'}</h3>
@@ -253,7 +254,7 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
        <div className="ultimon-intro-character-count">MULTIMON {intro.lineIndex+1} / {cast.length}</div>
        {selected&&<div className="ultimon-intro-character-portrait">
         <div className="ultimon-intro-character-halo" aria-hidden="true"/>
-        <img src={selected.img} alt={selected.name}/>
+        <img src={selected.img} onError={onMultimonImageError} alt={selected.name}/>
        </div>}
        <h3>{selected?.name||'Il prossimo Multimon'}</h3>
        {rival&&<section className="ultimon-intro-duplicate" aria-label="Incontro fra doppioni">
@@ -265,7 +266,7 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
          <div className="ultimon-intro-duplicate-fighter"
            style={{'--dup-color':rival.color}}>
           <span>GIÀ PRESENTATO</span>
-          <img src={rival.img} alt={rival.name+' della squadra '+rival.team}/>
+          <img src={rival.img} onError={onMultimonImageError} alt={rival.name+' della squadra '+rival.team}/>
           <strong>{rival.name}</strong>
           <small>{rival.team} · {rival.owner}</small>
          </div>
@@ -273,7 +274,7 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
          <div className="ultimon-intro-duplicate-fighter ultimon-intro-duplicate-fighter--new"
            style={{'--dup-color':team.color||'#a78bfa'}}>
           <span>NUOVO ARRIVATO</span>
-          <img src={selected.img} alt={selected.name+' della squadra '+name}/>
+          <img src={selected.img} onError={onMultimonImageError} alt={selected.name+' della squadra '+name}/>
           <strong>{selected.name}</strong>
           <small>{name} · {room.players?.[role]||role}</small>
          </div>
@@ -293,7 +294,7 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
         {cast.map((c,i)=><div key={i}
           className={'ultimon-intro-lineup-item '+(i===intro.lineIndex?'ultimon-intro-lineup-item--speaking':'')}
           title={c.name}>
-          <img src={c.img} alt={c.name}/><small>{c.name}</small>
+          <img src={c.img} onError={onMultimonImageError} alt={c.name}/><small>{c.name}</small>
          </div>)}
        </div>
       </div>}
@@ -302,7 +303,7 @@ export function UltimonIntroView({room,appMode,playerRole,isHost,onSpeech,onEntr
        <h3>UN INGRESSO DA RICORDARE!</h3>
        <div className="ultimon-intro-exit-roster">
         {fullTeam.map((c,i)=><figure key={i}>
-         <img src={c.img} alt={c.name}/><figcaption>{c.name}</figcaption>
+         <img src={c.img} onError={onMultimonImageError} alt={c.name}/><figcaption>{c.name}</figcaption>
         </figure>)}
        </div>
        <p><b>{name}</b> prende posto con tutti i suoi {fullTeam.length} Multimon. L'arena attende la prossima squadra!</p>
