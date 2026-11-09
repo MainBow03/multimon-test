@@ -32,6 +32,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Esegui i test
         run: npm test
+      - name: Analisi automatica roster e bilanciamenti
+        run: npm run audit:balance
       - name: Compila Multimon
         run: npm run build
       - name: Configura Pages
