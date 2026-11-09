@@ -1,7 +1,7 @@
 import React, {useState,useEffect,useRef,useMemo} from 'react';
 import { CHARACTERS } from '../../data/characters.js';
 import { masteryVisibleLevels } from '../../systems/masterySystem.js';
-import { EventClassicBattleView } from './EventClassicBattleView.jsx';
+import { StandardTournamentBattle } from './StandardTournamentBattle.jsx';
 import {resolveEventWithStandardEngine,buildStandardEventBattle} from '../../systems/standardEventTurn.js';
 import { MultiverseBracket } from './MultiverseBracket.jsx';
 import { EventSetupPanel } from './EventSetupPanel.jsx';
@@ -17,20 +17,6 @@ const btn='rounded-xl px-4 py-2.5 font-black bg-violet-600 hover:bg-violet-500 d
 const gray='rounded-xl px-4 py-2.5 font-bold bg-slate-800 border border-slate-700 hover:bg-slate-700';
 const inp='w-full rounded-xl border border-slate-700 bg-slate-950 p-2.5 text-white';
 const card='rounded-2xl border border-slate-700 bg-slate-900/90 p-4';
-
-function Arena({battle,settings,uid,view,setView,orders,setOrders,submit,force,isHost,busy,participants,onContinue,onMinimize}){
- // Il torneo usa i dati sincronizzati dell'evento, ma la presentazione
- // riprende il campo, i PNG e i comandi a pulsanti delle battaglie normali.
- const asUnit=u=>({...u,isHyper:u.hyper||u.isHyper,transformed:u.transformed||u.mahitoTransformed,
-    moves:u.moves.map(m=>({...m,remainingUses:m.uses??m.remainingUses??null}))});
- const normalized={...battle,
-    squads:{A:battle.teams.A.map(asUnit),B:battle.teams.B.map(asUnit)},
-    members:battle.owners,winningSide:battle.winner};
- return <EventClassicBattleView battle={normalized} settings={settings}
-   participants={participants||[]} currentUid={uid} perspective={view}
-   setPerspective={setView} moveDraft={orders} setMoveDraft={setOrders}
-   submit={submit} hostForce={force} busy={busy} isHost={isHost} onContinue={onContinue} onMinimize={onMinimize}/>;
-}
 
 export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,playerTitle,getPlayerData,updateLocalStats}){
  const [opened,open]=useState(false),[createScreen,showCreate]=useState(false),[activeId,setId]=useState('');
@@ -222,11 +208,13 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,play
    <div className={card}><h2 className="text-xl font-black mb-3">Bracket del Multiverso</h2>
    <MultiverseBracket matches={event.matches} current={event.activeBattle?.matchId} participants={[...players,...event.bots]}/></div>}
  {event.activeBattle&&event.displayPhase!=='bracket'&&
-   <Arena key={event.activeBattle.matchId}
+   <StandardTournamentBattle key={event.activeBattle.matchId}
      participants={[...players,...event.bots.map(b=>({...b,uid:b.id,avatar:b.avatar||index[b.teamIds?.[0]]?.img||''}))]}
-     battle={event.activeBattle} settings={event.settings} uid={uid}
-     view={perspective} setView={setPerspective} orders={orders} setOrders={setOrders}
-     submit={send} force={force} isHost={isHost} busy={busy} onContinue={showBracket} onMinimize={()=>open(false)}/>}
+     battle={event.activeBattle} settings={event.settings} currentUid={uid}
+     moveDraft={orders} setMoveDraft={setOrders}
+     submit={send} hostForce={force} isHost={isHost} busy={busy}
+     ownMasteryLevels={masteryVisibleLevels(getPlayerData())}
+     onContinue={showBracket} onMinimize={()=>open(false)}/>}
  {isHost&&event.status==='running'&&event.activeBattle?.finished&&event.displayPhase==='bracket'&&
    <button className={btn} onClick={next} disabled={busy}>Avvia il prossimo incontro →</button>}
  {event.status==='finished'&&event.displayPhase==='bracket'&&event.placements&&<div className={`${card} border-amber-400/50 text-center`}><h2 className="text-3xl text-amber-300 font-black mb-3">🏆 Il Torneo è finito!</h2>
