@@ -13,6 +13,17 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov9-ultimon-presentations-timing',category:'features',date:'09/11/2026',
+    title:'🎤 Ultimon Multimon: presentazioni più lunghe e skip riservato all’host',items:[
+      'Le presentazioni Ultimon non scorrono più automaticamente dopo 1–7 secondi: ogni scena pronta rimane visibile per 20 secondi.',
+      'Durante la scrittura del monologo o la scelta dell’ingresso di un giocatore umano il conto alla rovescia resta sospeso; riparte solo dopo la sua conferma.',
+      'Tutti i giocatori vedono un contatore di 20 secondi sincronizzato tramite la stanza online e una barra del tempo residuo.',
+      'L’host può velocizzare con il pulsante “Prossima scena” oppure saltare il resto della presentazione della squadra.',
+      'La funzione per saltare l’intera squadra resta bloccata finché il capitano non ha confermato sia il monologo sia l’ingresso: nessuno perde il proprio contributo mentre lo sta preparando.',
+      'Solo l’host principale può usare questi due comandi, anche in presenza di un eventuale recupero host da parte di altri giocatori.',
+      'Firestore ignora comandi arrivati in ritardo su una scena già cambiata; le normali battaglie e le altre modalità restano invariate.'
+    ]},
+
   {id:'nov9-ultimon-strategic-global-bans',category:'features',date:'09/11/2026',
     title:'🚫 Ultimon Multimon · Ban strategico globale per tutti gli umani',items:[
       'Prima della selezione delle squadre c’è una nuova fase BAN: ogni giocatore umano sceglie un Multimon da escludere per tutta la partita.',
