@@ -65,6 +65,7 @@ import { getCampaignStoryCharacters } from './systems/campaignSystem.js';
 import { TYPE_STYLES, TYPE_CHART, PLAYER_THEMES, getMultiplier, getDefaultAvatar } from './systems/typeSystem.js';
 import { initialGameState } from './systems/gameState.js';
 import { UltimonView } from './screens/battle/UltimonView.jsx';
+import {ultimonBanPatch,beginUltimonDraftAfterBans} from './systems/ultimonBans.js';
 import {ultimonLeaderboard} from './systems/ultimonSystem.js';
 import {beginUltimonIntroduction,ultimonIntroMonologuePatch,ultimonIntroEntrancePatch,advanceUltimonIntroduction} from './systems/ultimonIntro.js';
 import {ownedUltimonEntrances} from './systems/ultimonCosmetics.js';
@@ -1579,6 +1580,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               });
             }catch(error){setSystemAlert('Ultimon: '+(error.message||error));}
           };
+          const ultimonBan=(role,charId)=>ultimonMutation(['ultimon_ban'],
+            room=>ultimonBanPatch(room,role,charId),role);
           const ultimonIdentity=(role,name,color)=>ultimonMutation(['ultimon_showcase'],
             room=>identityPatch(room,role,name,color),role);
           const ultimonPick=(role,indices)=>ultimonMutation(['ultimon_pick'],
@@ -1589,6 +1592,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
             room=>ultimonIntroEntrancePatch(room,role,effectId,ownedUltimonEntrances(getPlayerData())),role);
           const ultimonHostAction=action=>{
             const steps={
+              banContinue:{allowed:['ultimon_ban'],build:room=>beginUltimonDraftAfterBans(room)},
               introStart:{allowed:['ultimon_showcase'],build:room=>beginUltimonIntroduction(room)},
               introNext:{allowed:['ultimon_intro'],build:room=>{
                 const expected=gameState.ultimon?.intro,actual=room.ultimon?.intro;
@@ -2040,7 +2044,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
       return <UltimonView key={gameState.status+':'+(gameState.ultimon?.round||0)}
         room={gameState} appMode={appMode} playerRole={playerRole}
         canHost={appMode==='local_room'||playerRole==='p1'||canRecoverRoom(gameState,playerRole)}
-        onIdentity={ultimonIdentity} onPick={ultimonPick} onSpeech={ultimonSpeech}
+        onBan={ultimonBan} onIdentity={ultimonIdentity} onPick={ultimonPick} onSpeech={ultimonSpeech}
         onEntrance={ultimonEntrance} ownedEntrances={ownedUltimonEntrances(getPlayerData())}
         onHost={ultimonHostAction} onExit={leaveRoom}/>;
     }
