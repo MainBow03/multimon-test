@@ -13,6 +13,16 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov9-critical-stability-balance-audit',category:'improvements',date:'09/11/2026',
+    title:'🛠️ Multimon più affidabile · IA, sincronizzazione, immagini e audit bilanciamento',items:[
+      'IA CPU: corretto il calcolo della precisione, che ora riconosce sia valori decimali 0–1 sia percentuali 0–100. Le mosse affidabili sono valutate correttamente rispetto a quelle più forti ma rischiose.',
+      'Stanze online: un indicatore segnala disconnessione, dati Firestore in cache o assenza di aggiornamenti recenti, senza cancellare la partita o assegnare un altro posto.',
+      'PNG dei personaggi: quando un’immagine esterna non è disponibile, viene mostrata una grafica sostitutiva locale in battaglie, catalogo, selezione team, Ultimon e bracket.',
+      'Nuovo audit automatico del bilanciamento in GitHub Actions: evidenzia statistiche fuori scala, personaggi senza passive, probabilità di status elevate, immagini mancanti e difetti strutturali delle mosse.',
+      'L’audit non inventa percentuali di vittoria e non modifica statistiche o passive automaticamente: indica quali personaggi testare con maggiore attenzione.',
+      'Aggiunti test specifici su precisione CPU, diagnosi di connessione, fallback PNG e analisi statica del roster.'
+    ]},
+
   {id:'nov9-ultimon-presentations-timing',category:'features',date:'09/11/2026',
     title:'🎤 Ultimon Multimon: presentazioni più lunghe e skip riservato all’host',items:[
       'Le presentazioni Ultimon non scorrono più automaticamente dopo 1–7 secondi: ogni scena pronta rimane visibile per 20 secondi.',
