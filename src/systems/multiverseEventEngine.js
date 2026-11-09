@@ -5,6 +5,7 @@ import { reduceIncomingHeldDamage, useHeroSash, activateHourglass, boostedStatus
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { CHARACTERS } from '../data/characters.js';
+import {SOUNDTRACKS,DEFAULT_BATTLE_SOUNDTRACK} from '../data/soundtracks.js';
 import { getMultiplier } from './typeSystem.js';
 import { calculateDamageImpl } from './battleSystem.js';
 import { getHeldEvasion,getHeldEndTurnHeal,useHeldGem } from './heldEquipment.js';
@@ -19,7 +20,8 @@ export const EVENT_PRIZES={1:400,2:200,3:140,other:50};
 export function normalizeEventSettings(s={}){
  const n=+s.entrants,team=+s.teamSize,field=+s.fieldSize,doubles=!!s.doubles;
  return {entrants:[4,8,16,32].includes(n)?n:8,teamSize:Math.max(4,Math.min(8,team||4)),
- doubles,fieldSize:Math.max(1,Math.min(doubles?2:4,field||1)),allowItems:!!s.allowItems,allowHyper:!!s.allowHyper};
+ doubles,fieldSize:Math.max(1,Math.min(doubles?2:4,field||1)),allowItems:!!s.allowItems,allowHyper:!!s.allowHyper,
+ soundtrack:SOUNDTRACKS.some(track=>track.id===s.soundtrack)?s.soundtrack:DEFAULT_BATTLE_SOUNDTRACK};
 }
 export const validTeam=(team,s)=>Array.isArray(team)&&team.length===s.teamSize
  && new Set(team).size===team.length && team.every(id=>CHARACTERS.some(c=>c.id===id&&!c.isSummonOnly&&!c.isSecretUnlock));
