@@ -12,7 +12,7 @@ export const watchPlayers=(id,ok,fail)=>onSnapshot(players(id),s=>ok(s.docs.map(
 export const watchCommands=(id,key,ok,fail)=>onSnapshot(query(commands(id),where('turnKey','==',key)),s=>ok(Object.fromEntries(s.docs.map(d=>[d.data().uid,d.data().actions]))),fail);
 export async function createEvent(host,settings){
  const ref=doc(root());await setDoc(ref,{hostId:host.uid,hostName:host.name,createdAt:Date.now(),updatedAt:Date.now(),hostHeartbeatAt:serverTimestamp(),status:'lobby',settings,bots:[],pairOrder:[],entrants:[],matches:[],activeBattle:null,placements:null});
- await setDoc(player(ref.id,host.uid),{uid:host.uid,name:host.name,title:host.title||'',mastery:host.mastery||{},strengthUpgrades:host.strengthUpgrades||{},teamIds:[],heldItems:{},ready:false,joinedAt:Date.now()});return ref.id;
+ await setDoc(player(ref.id,host.uid),{uid:host.uid,name:host.name,avatar:host.avatar||'',title:host.title||'',mastery:host.mastery||{},strengthUpgrades:host.strengthUpgrades||{},teamIds:[],heldItems:{},ready:false,joinedAt:Date.now()});return ref.id;
 }
 export const joinEvent=(id,person)=>setDoc(player(id,person.uid),{...person,teamIds:[],heldItems:{},ready:false,joinedAt:Date.now()});
 export const saveTeam=(id,uid,teamIds,heldItems)=>updateDoc(player(id,uid),{teamIds,heldItems,ready:true});
