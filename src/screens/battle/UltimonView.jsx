@@ -303,7 +303,7 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onS
        {!!unnamed.length&&!isLocal&&identity.ready&&<p className="ultimon-center">✓ Squadra confermata. In attesa degli altri giocatori…</p>}
      </>}
      {stage==='ultimon_intro'&&<UltimonIntroView room={room} appMode={appMode}
-       playerRole={playerRole} isHost={isHost} onSpeech={onSpeech} onEntrance={onEntrance} ownedEffects={ownedEntrances} onHost={onHost}/>}
+       playerRole={playerRole} isHost={appMode==='local_room'||playerRole==='p1'} onSpeech={onSpeech} onEntrance={onEntrance} ownedEffects={ownedEntrances} onHost={onHost}/>}
      {showdown&&['ultimon_recap','ultimon_pair','ultimon_format','ultimon_pick'].includes(stage)&&
         <div className="ultimon-grand-final-banner" role="status">
          <span>⚡ LE ULTIME DUE SQUADRE ⚡</span>
