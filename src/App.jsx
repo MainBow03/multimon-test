@@ -1,6 +1,7 @@
 import { renderMenuView } from './screens/hub/MenuView.jsx';
 import {FirstVisitModeGuide} from './components/FirstVisitModeGuide.jsx';
 import { MultiverseEventHub } from './screens/events/MultiverseEventHub.jsx';
+import {ULTIMON_FINAL_SOUNDTRACK} from './data/soundtracks.js';
 import { AccountGate } from './components/AccountGate.jsx';
 import { AppErrorBoundary } from './components/AppErrorBoundary.jsx';
 import { UpdateHistoryPanel } from './components/UpdateHistoryPanel.jsx';
@@ -264,7 +265,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           // Il tema speciale della finalissima usa una traccia GIA' disponibile
           // nella colonna sonora; mute e volume continuano a funzionare.
           const ultimonFinalTheme=gameState.gameMode==='ultimon' && ultimonIsFinalShowdown(gameState);
-          const activeBgmId=ultimonFinalTheme?'bUG_NS0xqSY':
+          const activeBgmId=ultimonFinalTheme?ULTIMON_FINAL_SOUNDTRACK:
             (gameState.settings?.soundtrack||'wpEBouFcwqI');
 
           useEffect(() => {
