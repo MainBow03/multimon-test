@@ -64,7 +64,7 @@ test('Tre OST aggiunte con IDs originali e Ultra Instinct Remix finale ufficiale
 test('Musica e stili: stessa battle view, anteprima nelle due lobby, nessun remount per turno',()=>{
  const event=file('../src/screens/events/MultiverseEventHub.jsx');
  const lobby=file('../src/screens/battle/LobbyView.jsx');
- const arena=file('../src/screens/events/EventClassicBattleView.jsx');
+ const arena=file('../src/screens/events/StandardTournamentBattle.jsx');
  const music=file('../src/components/SoundtrackPicker.jsx');
  const setup=file('../src/screens/events/EventSetupPanel.jsx');
  assert.match(event,/<MultiverseBracket/);
