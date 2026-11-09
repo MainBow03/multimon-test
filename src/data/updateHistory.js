@@ -13,6 +13,17 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov9-standard-tournament-engine',category:'features',date:'09/11/2026',
+    title:'⚔️ Torneo del Multiverso: unificato il motore di combattimento',items:[
+      'Il Torneo del Multiverso non calcola più i combattimenti con un resolver separato: l’arbitro online usa direttamente calculateTurnImpl, lo stesso motore delle battaglie classiche.',
+      'I partecipanti dei due lati scelgono le mosse contemporaneamente e l’ordine è deciso da priorità e Velocità, come nelle altre modalità.',
+      'Mosse, status, passive, cure, protezioni, sostituzioni, forma Iper, abilità speciali e danni vengono elaborati dal motore standard; Firebase continua a sincronizzare la stanza.',
+      'Anche le passive all’ingresso del match vengono applicate con lo stesso handler standard delle altre battaglie.',
+      'Le partite di squadra sono convertite correttamente nei ruoli 1v1 e 2v2/4v4; in caso di KO i Multimon disponibili subentrano automaticamente.',
+      'Dopo aver inviato le mosse, ogni giocatore attende gli altri senza poterle inviare ripetutamente; in caso di errore di rete può riprovare.',
+      'Il bracket, gli avatar, il sistema di premi e le OST restano invariati.'
+    ]},
+
   {id:'nov9-multiverse-tournament-redesign',category:'features',date:'09/11/2026',
     title:'🏆 Torneo del Multiverso · Nuova arena di configurazione, bracket neon e OST!',items:[
       'La configurazione del torneo è stata ricreata con pannelli luminosi, anteprima tabellone, contatori di squadre/giocatori, opzioni e pulsante di avvio scenografico.',
