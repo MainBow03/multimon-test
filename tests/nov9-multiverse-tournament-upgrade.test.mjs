@@ -40,7 +40,7 @@ test('Click giocatori e squadra: dati reali dei membri, non nomi inventati',()=>
  const jsx=file('../src/screens/events/MultiverseBracket.jsx');
  assert.match(jsx,/setSelected\(playerId\(person\)\)/);
  assert.match(jsx,/mv-bracket-fighter/);
- assert.match(jsx,/person\.teamIds/);
+ assert.match(jsx,/selectedPerson\?\.teamIds/);
  assert.match(jsx,/mv-bracket-modal/);
 });
 
