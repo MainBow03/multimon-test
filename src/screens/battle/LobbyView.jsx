@@ -1,4 +1,6 @@
 import {RecentArrivalsGrid} from '../../components/RecentArrivalsGrid.jsx';
+import {SoundtrackPicker} from '../../components/SoundtrackPicker.jsx';
+import '../../components/SoundtrackPicker.css';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderLobbyView(ctx) {
 const { ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Loader2, SOUNDTRACKS, Swords, TYPE_STYLES, Users, Volume2, appMode, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleAddBot, handleRemovePlayer, isAllPlayersJoined, leaveRoom, playerRole, roomId, setDraftTimeLeft, startBattle, updateState } = ctx;
@@ -122,14 +124,9 @@ if (gameState.status === 'lobby') {
                         <div className="space-y-4 text-left">
                             <h3 className="text-slate-400 font-bold uppercase tracking-widest text-sm mb-4">Regole</h3>
 
-                            <div className="flex justify-between items-center bg-slate-950/50 p-4 rounded-xl border border-slate-700/30 mb-4">
-                                <span className="font-semibold text-slate-300 flex items-center gap-2"><Volume2 size={16}/> Soundtrack:</span>
-                                <select value={gameState.settings.soundtrack || 'wpEBouFcwqI'} onChange={e => updateState({ settings: { ...gameState.settings, soundtrack: e.target.value } })} className="bg-slate-800 text-white font-bold p-2 rounded-lg outline-none border border-slate-600 focus:border-cyan-500 max-w-[150px] sm:max-w-[200px] truncate text-xs sm:text-sm">
-                                    {SOUNDTRACKS.map(st => (
-                                        <option key={st.id} value={st.id}>{st.name}</option>
-                                    ))}
-                                </select>
-                            </div>
+                            <SoundtrackPicker compact
+                                value={gameState.settings.soundtrack || 'wpEBouFcwqI'}
+                                onChange={id=>updateState({settings:{...gameState.settings,soundtrack:id}})}/>
 
                             {(gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') && (
                                 <div className={`flex justify-between items-center bg-slate-950/50 p-4 rounded-xl border ${gameState.gameMode === 'survival' ? 'border-violet-500/30 shadow-[0_0_10px_rgba(139,92,246,0.1)]' : 'border-rose-500/30 shadow-[0_0_10px_rgba(225,29,72,0.1)]'} mb-4 animate-fade-in`}>
