@@ -240,6 +240,12 @@ if (gameState.status === 'lobby') {
                             </div>
 
                             <button disabled={!canStartDraft} onClick={() => {
+                                if(gameState.gameMode==='ultimon'){
+                                    // Il ban globale avviene PRIMA del draft: non esistono team da riparare.
+                                    updateState({status:'ultimon_ban',phaseStartedAt:Date.now(),
+                                      ultimonBans:{votes:{}}});
+                                    return;
+                                }
                                 let hasBots = false;
                                 const baseRoster = gameState.settings.fusionMode ? FUSION_CHARACTERS : CHARACTERS;
                                 const draftable = baseRoster.filter(c => !c.isSummonOnly && !c.isSecretUnlock);
@@ -318,7 +324,7 @@ if (gameState.status === 'lobby') {
                                     }
                                 }
                             }} className={`w-full disabled:opacity-50 disabled:grayscale text-white font-bold py-4 rounded-xl mt-6 shadow-lg text-lg ${gameState.settings.rentalMode ? 'bg-gradient-to-r from-amber-500 to-orange-600' : (gameState.settings.sharedDraft ? 'bg-gradient-to-r from-indigo-600 to-purple-600' : (gameState.settings.draftBattle ? 'bg-gradient-to-r from-cyan-600 to-blue-600' : 'bg-gradient-to-r from-emerald-500 to-green-600'))}`}>
-                                {gameState.settings.rentalMode ? 'Avvia Multimon in Nolo (Casuale)' : (gameState.settings.sharedDraft ? 'Avvia Draft Condiviso!' : (gameState.settings.draftBattle ? 'Avvia Draft Battle!' : 'Procedi alla Scelta Personaggi'))}
+                                {gameState.gameMode==='ultimon'?'🚫 Inizia la fase BAN · Ultimon':{gameState.settings.rentalMode ? 'Avvia Multimon in Nolo (Casuale)' : (gameState.settings.sharedDraft ? 'Avvia Draft Condiviso!' : (gameState.settings.draftBattle ? 'Avvia Draft Battle!' : 'Procedi alla Scelta Personaggi'))}}
                             </button>
                         </div>
                     ) : (
