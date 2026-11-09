@@ -156,7 +156,7 @@ export function StandardTournamentBattle({
   },targetPlayer,fieldIdx);
 
  // Il normale click sulle mosse è già una conferma: niente secondo pulsante
- // "CONFERMA LE MOSSE", che esisteva soltanto nel vecchio stile del torneo.
+ // di conferma aggiuntivo: ogni mossa viene registrata dal comando standard.
  useEffect(()=>{
   if(!canCommand||!allSelected||lastSubmissionRef.current===roundKey)return;
   lastSubmissionRef.current=roundKey;setSubmitted(true);
