@@ -67,7 +67,7 @@ import { initialGameState } from './systems/gameState.js';
 import { UltimonView } from './screens/battle/UltimonView.jsx';
 import {ultimonBanPatch,beginUltimonDraftAfterBans} from './systems/ultimonBans.js';
 import {ultimonLeaderboard} from './systems/ultimonSystem.js';
-import {beginUltimonIntroduction,ultimonIntroMonologuePatch,ultimonIntroEntrancePatch,advanceUltimonIntroduction} from './systems/ultimonIntro.js';
+import {beginUltimonIntroduction,ultimonIntroMonologuePatch,ultimonIntroEntrancePatch,advanceUltimonIntroduction,skipUltimonCurrentPresentation} from './systems/ultimonIntro.js';
 import {ownedUltimonEntrances} from './systems/ultimonCosmetics.js';
 import {ULTIMON_STAGES,createUltimonShowcase,identityPatch,nextUltimonPair,
   revealUltimonFormat,pickPatch,startUltimonDuel,finishUltimonDuel,finishUltimonElimination,
@@ -1556,7 +1556,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           };
 
           // Ultimon: transizioni atomiche per la stanza online.
-          const ultimonMutation = async (allowed,build,actor=null) => {
+          const ultimonMutation = async (allowed,build,actor=null,strictHost=false) => {
             if(!['local_room','online_room'].includes(appMode)||gameState.gameMode!=='ultimon')return;
             try {
               const apply=room=>{
@@ -1574,6 +1574,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                 if(actor){
                   if(playerRole!==actor||live.playerUids?.[actor]!==user.uid||live.isBot?.[actor])
                     throw new Error('Non puoi scegliere per questa squadra.');
+                }else if(strictHost){
+                  // Lo skip delle presentazioni è esclusivo dell'host originale.
+                  // Gli ospiti non possono saltare le scene neppure tramite il recupero stanza.
+                  if(playerRole!=='p1'||live.playerUids?.p1!==user.uid)
+                    throw new Error('Solo l’host può velocizzare o saltare le presentazioni.');
                 }else if(playerRole!=='p1'&&!canRecoverRoom(live,playerRole))
                   throw new Error('Solo l’host può avanzare il torneo.');
                 tx.update(ref,apply(live));
@@ -1596,11 +1601,21 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               introStart:{allowed:['ultimon_showcase'],build:room=>beginUltimonIntroduction(room)},
               introNext:{allowed:['ultimon_intro'],build:room=>{
                 const expected=gameState.ultimon?.intro,actual=room.ultimon?.intro;
-                // Ignora avanzamenti doppi dovuti a timer/client in ritardo.
+                // Mai avanzare una scena già sostituita, neppure quando la conferma
+                // del monologo o dell'ingresso ha appena azzerato i 20 secondi.
                 if(!expected||!actual||expected.index!==actual.index||
-                  expected.step!==actual.step||expected.lineIndex!==actual.lineIndex)
+                  expected.step!==actual.step||expected.lineIndex!==actual.lineIndex||
+                  gameState.phaseStartedAt!==room.phaseStartedAt)
                   throw new Error('Il presentatore ha già proseguito.');
                 return advanceUltimonIntroduction(room);
+              }},
+              introSkipTeam:{allowed:['ultimon_intro'],build:room=>{
+                const expected=gameState.ultimon?.intro,actual=room.ultimon?.intro;
+                if(!expected||!actual||expected.index!==actual.index||
+                  expected.step!==actual.step||expected.lineIndex!==actual.lineIndex||
+                  gameState.phaseStartedAt!==room.phaseStartedAt)
+                  throw new Error('La presentazione è già cambiata.');
+                return skipUltimonCurrentPresentation(room);
               }},
               pair:{allowed:['ultimon_intro','ultimon_recap'],build:room=>nextUltimonPair(room)},
               format:{allowed:['ultimon_pair'],build:room=>revealUltimonFormat(room)},
@@ -1611,7 +1626,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
             };
             const step=steps[action];
             if(!step)return;
-            return ultimonMutation(step.allowed,step.build).then(()=>{
+            return ultimonMutation(step.allowed,step.build,null,action==='introNext'||action==='introSkipTeam').then(()=>{
               if(action==='battle'&&appMode==='local_room'){
                 const humans=(gameState.ultimon?.pair||[]).filter(p=>!gameState.isBot[p]);
                 setPlayerRole(humans[0]||gameState.ultimon?.pair?.[0]||'p1');
