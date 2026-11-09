@@ -1,5 +1,6 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import { renderBattlingView } from '../battle/BattlingView.jsx';
+import {EventBattleMusic} from './EventBattleMusic.jsx';
 import { activeEventFighters } from '../../systems/multiverseEventEngine.js';
 import { PLAYER_THEMES,TYPE_STYLES,getMultiplier,getDefaultAvatar } from '../../systems/typeSystem.js';
 import { ITEMS_DB } from '../../data/items.js';
@@ -146,6 +147,7 @@ export function EventClassicBattleView({battle,settings,participants=[],currentU
      className="fixed top-2 right-3 z-[180] bg-slate-950/95 border border-cyan-400/70
        rounded-xl px-3 py-2 text-xs font-black text-cyan-200 shadow-xl hover:bg-slate-800"
      title="Riduci solo la visualizzazione: il torneo continua">↘ Riduci vista</button>
+   <EventBattleMusic soundtrack={settings.soundtrack} matchId={battle.matchId}/>
    {renderBattlingView({
       ChevronRight,ITEMS_DB,Loader2,LogOut,PLAYER_THEMES,ScrollText,Shield,
       TYPE_STYLES,Target,Trophy,XIcon,actionMenuMode,combatLog:log,
