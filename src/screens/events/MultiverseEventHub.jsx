@@ -124,7 +124,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,play
  if(old.status!=='lobby')return null;
  const entrants=makeEventEntrants(players,old.bots,old.settings,old.pairOrder),matches=makeEventBracket(entrants);
  const map=Object.fromEntries([...players,...old.bots].map(p=>[p.id||p.uid,p]));
- const battle=buildEventBattle(nextEventMatch(matches),map,old.settings);
+ const battle=buildEventBattle(nextEventMatch(matches),map,{...old.settings,standardEngine:true});
  return{status:'running',entrants,matches:battle.finished?completeEventMatch(matches,battle.matchId,battle.winner):matches,activeBattle:battle,displayPhase:'battle'};
  }));
  const showBracket=()=>operate(()=>hostUpdate(activeId,uid,old=>
@@ -133,14 +133,14 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,play
  if(old.status!=='running'||!old.activeBattle?.finished||old.displayPhase!=='bracket')return null;
  const match=nextEventMatch(old.matches);if(!match)return null;
  const map=Object.fromEntries([...players,...old.bots].map(p=>[p.id||p.uid,p]));
- const battle=buildEventBattle(match,map,old.settings);
+ const battle=buildEventBattle(match,map,{...old.settings,standardEngine:true});
  const matches=battle.finished?completeEventMatch(old.matches,match.id,battle.winner):old.matches;
  const placements=eventPlacements(matches,old.entrants);
  return{activeBattle:battle,matches,displayPhase:'battle',...(placements?{status:'finished',placements}: {})};
  }));
  const force=()=>operate(()=>hostUpdate(activeId,uid,old=>{
  const b=old.activeBattle;if(old.status!=='running'||!b||b.finished)return null;
- const submissions={};for(const id of b.owners[b.side])submissions[id]=old.bots.some(bot=>bot.id===id)?botActions(b,id,old.settings):[];
+ const submissions={};for(const id of b.side==='both'?[...b.owners.A,...b.owners.B]:b.owners[b.side])submissions[id]=old.bots.some(bot=>bot.id===id)?botActions(b,id,old.settings):[];
  const after=resolveEventWithStandardEngine(b,submissions,old.settings),matches=after.finished?completeEventMatch(old.matches,b.matchId,after.winner):old.matches;
  const placements=eventPlacements(matches,old.entrants);
  return{activeBattle:after,matches,...(placements?{status:'finished',placements}: {})};
@@ -155,8 +155,8 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,play
    const bots=new Set((snapshot.bots||[]).map(x=>x.id));
    // Dopo un KO un membro di una coppia può non avere più Multimon
    // attivi: non aspettare comandi impossibili da inviare.
-   const activeOwners=new Set(activeEventFighters(b,b.side,snapshot.settings).map(x=>x.owner));
-   if(!b.owners[b.side].filter(id=>activeOwners.has(id)).every(id=>bots.has(id)||commands[id]))return;
+   const activeOwners=new Set((b.side==='both'?['A','B']:[b.side]).flatMap(side=>activeEventFighters(b,side,snapshot.settings)).filter(x=>x.hp>0).map(x=>x.owner));
+   if(!(b.side==='both'?[...b.owners.A,...b.owners.B]:b.owners[b.side]).filter(id=>activeOwners.has(id)).every(id=>bots.has(id)||commands[id]))return;
    resolving.current=true;
    try{
     // Mostra ogni turno delle lotte CPU, invece di saltare direttamente
@@ -165,7 +165,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,play
       await new Promise(resolve=>setTimeout(resolve,1800));
     await hostUpdate(activeId,uid,old=>{
      if(old.status!=='running'||old.activeBattle?.turn!==b.turn||old.activeBattle?.matchId!==b.matchId)return null;
-     const all={...commands};for(const id of b.owners[b.side])if(bots.has(id))all[id]=botActions(b,id,old.settings);
+     const all={...commands};for(const id of b.side==='both'?[...b.owners.A,...b.owners.B]:b.owners[b.side])if(bots.has(id))all[id]=botActions(b,id,old.settings);
      const after=resolveEventWithStandardEngine(old.activeBattle,all,old.settings);
      const matches=after.finished?completeEventMatch(old.matches,b.matchId,after.winner):old.matches;
      const placements=eventPlacements(matches,old.entrants);
