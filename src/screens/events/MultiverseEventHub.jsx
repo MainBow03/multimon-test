@@ -2,6 +2,8 @@ import React, {useState,useEffect,useRef,useMemo} from 'react';
 import { CHARACTERS } from '../../data/characters.js';
 import { masteryVisibleLevels } from '../../systems/masterySystem.js';
 import { EventClassicBattleView } from './EventClassicBattleView.jsx';
+import { MultiverseBracket } from './MultiverseBracket.jsx';
+import { EventSetupPanel } from './EventSetupPanel.jsx';
 import { ITEMS_DB } from '../../data/items.js';
 import { HELD_ITEM_IDS } from '../../systems/heldEquipment.js';
 import { normalizeEventSettings,validTeam,makeEventEntrants,makeEventBracket,nextEventMatch,buildEventBattle,activeEventFighters,
@@ -14,41 +16,6 @@ const btn='rounded-xl px-4 py-2.5 font-black bg-violet-600 hover:bg-violet-500 d
 const gray='rounded-xl px-4 py-2.5 font-bold bg-slate-800 border border-slate-700 hover:bg-slate-700';
 const inp='w-full rounded-xl border border-slate-700 bg-slate-950 p-2.5 text-white';
 const card='rounded-2xl border border-slate-700 bg-slate-900/90 p-4';
-
-// Bracket con abbinamenti ben visibili, avanzamento e collegamenti fra turni.
-function Bracket({matches,current}){
- const levels=[...new Set(matches.map(m=>m.round))].sort((a,b)=>a-b);
- const cardFor=(m,round)=> <div key={m.id}
-   className={`relative w-60 shrink-0 overflow-visible rounded-2xl border-2 p-3 shadow-xl transition-all ${current===m.id?'border-fuchsia-400 bg-fuchsia-950/90 ring-2 ring-fuchsia-400/40':'border-slate-700 bg-slate-950/95'}`}>
-   <div className="flex justify-between gap-2 text-[10px] font-black uppercase tracking-widest text-amber-300 mb-2">
-     <span>{m.stage==='bronze'?'🥉 TERZO POSTO':m.stage==='final'?'🏆 FINALISSIMA':'⚔️ '+m.id}</span>
-     {current===m.id&&<span className="text-fuchsia-300 animate-pulse">IN DIRETTA</span>}
-     {m.winner&&<span className="text-emerald-400">FINITO</span>}
-   </div>
-   {['sideA','sideB'].map((key,i)=><div key={key}
-     className={`flex items-center gap-2 rounded-lg p-2 mb-1.5 border ${m.winner?.id===m[key]?.id?'bg-emerald-900/35 border-emerald-400/60':'bg-slate-900/80 border-slate-700/40'}`}>
-      <div className={`rounded-lg w-7 h-7 grid place-items-center font-black text-xs ${i?'bg-rose-700':'bg-cyan-700'}`}>{m[key]?.name?.[0]?.toUpperCase()||'?'}</div>
-      <span className="truncate flex-1 text-sm font-bold">{m[key]?.name||'Da determinare'}</span>
-      {m.winner?.id===m[key]?.id&&<span className="text-amber-300">★</span>}
-   </div>)}
-   {round<levels.length-1&&m.stage!=='bronze'&&<span className="absolute -right-4 top-1/2 w-4 border-t-2 border-violet-400/65"/>}
- </div>;
- return <div className="relative overflow-x-auto overflow-y-visible custom-scrollbar p-3 rounded-xl border border-violet-500/30 bg-[radial-gradient(ellipse_at_top,#24143b_0%,#0b1022_65%)]">
-  <div className="flex gap-7 items-stretch min-w-max py-3">
-   {levels.map(round=>{
-    const curr=matches.filter(m=>m.round===round);
-    return <div key={round} className="w-60 shrink-0 flex flex-col">
-      <div className="mb-5 p-2 border-b border-violet-400/50 text-center font-black uppercase tracking-[.15em] text-sm text-fuchsia-300">
-        {round===levels.length-1?'🏆 FINALE':'ROUND '+(round+1)}
-      </div>
-      <div className="flex-1 flex flex-col justify-around gap-4" style={{minHeight:`${Math.max(185,curr.length*164)}px`}}>
-        {curr.map(m=>cardFor(m,round))}
-      </div>
-    </div>;
-   })}
-  </div>
- </div>;
-}
 
 function Arena({battle,settings,uid,view,setView,orders,setOrders,submit,force,isHost,busy,participants,onContinue,onMinimize}){
  // Il torneo usa i dati sincronizzati dell'evento, ma la presentazione
@@ -221,22 +188,13 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,play
  return <>
  {live.length>0&&!opened&&playerName.trim()&&<button className="fixed z-[90] bottom-5 right-5 bg-gradient-to-r from-fuchsia-700 to-violet-700 border border-fuchsia-300 shadow-2xl rounded-xl p-4 font-black text-white animate-pulse" onClick={()=>openEvent(live[0])}>🏆 TORNEO DEL MULTIVERSO · {live[0].status==='lobby'?'UNISCITI':'GUARDA'}</button>}
  {!opened&&appMode==='menu'&&<button className="fixed z-[80] bottom-5 left-5 bg-slate-950 border border-amber-400 rounded-xl px-4 py-3 font-black text-amber-300" onClick={()=>{open(true);showCreate(true);setId('')}}>🏆 Torneo del Multiverso</button>}
- {opened&&<div className="fixed inset-0 z-[100] overflow-y-auto custom-scrollbar bg-black/95 text-white" role="dialog" aria-modal="true" aria-label="Torneo del Multiverso"><div className="max-w-[1800px] mx-auto p-4 sm:p-8 space-y-5">
- <header className="flex flex-wrap justify-between gap-3 border-b border-fuchsia-500/40 pb-4"><div><div className="text-amber-300 text-xs tracking-widest font-black">EVENTO GLOBALE</div><h1 className="text-3xl sm:text-5xl font-black text-fuchsia-300">IL TORNEO DEL MULTIVERSO</h1></div><button className={gray} onClick={closeEvent}>{isHost&&['lobby','running'].includes(event?.status)?'Esci e termina torneo':'Chiudi'}</button></header>
+ {opened&&<div className="fixed inset-0 z-[100] overflow-y-auto custom-scrollbar bg-[radial-gradient(ellipse_at_top,#28104b_0%,#080d1f_48%,#040914_100%)] text-white" role="dialog" aria-modal="true" aria-label="Torneo del Multiverso"><div className="max-w-[1800px] mx-auto p-4 sm:p-8 space-y-5">
+ <header className="flex flex-wrap justify-between gap-3 items-center rounded-3xl bg-gradient-to-r from-slate-950/90 via-indigo-950/85 to-purple-950/85 border border-fuchsia-400/30 shadow-xl p-4 sm:p-6"><div><div className="text-amber-300 text-xs tracking-[.23em] font-black">✦ EVENTO GLOBALE · CHAMPIONSHIP ✦</div><h1 className="text-3xl sm:text-5xl font-black bg-gradient-to-r from-cyan-200 via-fuchsia-300 to-amber-200 bg-clip-text text-transparent">🏆 TORNEO DEL MULTIVERSO</h1></div><button className={gray} onClick={closeEvent}>{isHost&&['lobby','running'].includes(event?.status)?'Esci e termina torneo':'Chiudi'}</button></header>
  {error&&<div className="rounded-xl p-4 bg-red-950 text-rose-200 border border-red-500/50 text-sm">{error}<div className="text-xs mt-2">Se vedi «Missing or insufficient permissions», integra prima le regole Firebase del torneo.</div></div>}
  {!user&&<p>Connessione a Firebase in corso…</p>}
- {(!event||createScreen)&&<div className={card}><h2 className="font-black text-xl mb-3">Crea un torneo globale</h2><div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
- <label>Squadre<select className={inp} value={settings.entrants} onChange={e=>setSettings(s=>normalizeEventSettings({...s,entrants:+e.target.value}))}>{[4,8,16,32].map(n=><option key={n}>{n}</option>)}</select></label>
- <label>Multimon per giocatore<select className={inp} value={settings.teamSize} onChange={e=>setSettings(s=>normalizeEventSettings({...s,teamSize:+e.target.value}))}>{[4,5,6,7,8].map(n=><option key={n}>{n}</option>)}</select></label>
- <label>Modalità<select className={inp} value={settings.doubles?'doubles':'singles'} onChange={e=>setSettings(s=>normalizeEventSettings({...s,doubles:e.target.value==='doubles'}))}><option value="singles">Individuale</option><option value="doubles">Lotta multipla (2 giocatori per squadra)</option></select></label>
- <label>Multimon simultanei per giocatore<select className={inp} value={settings.fieldSize} onChange={e=>setSettings(s=>normalizeEventSettings({...s,fieldSize:+e.target.value}))}>{Array.from({length:settings.doubles?2:4},(_,i)=>i+1).map(n=><option key={n} value={n}>{settings.doubles?2*n:n} contro {settings.doubles?2*n:n}</option>)}</select></label>
- <label className="flex gap-2 items-center"><input type="checkbox" checked={settings.allowItems} onChange={e=>setSettings(s=>({...s,allowItems:e.target.checked}))}/> Permetti strumenti</label>
- <label className="flex gap-2 items-center"><input type="checkbox" checked={settings.allowHyper} onChange={e=>setSettings(s=>({...s,allowHyper:e.target.checked}))}/> Permetti le Iper</label></div>
- <p className="text-xs text-slate-400 mt-3">Servono {settings.entrants*(settings.doubles?2:1)} persone o bot. L’host deve restare online durante gli scontri.</p>
- <button className={`${btn} mt-4`} disabled={busy||!user||!playerName.trim()} onClick={create}>Crea evento</button>
- {live.map(e=><button key={e.id} className={`${gray} block w-full mt-3 text-left`} onClick={()=>openEvent(e)}>Entra nel torneo di {e.hostName} · {e.status}</button>)}
- </div>}
- {event&&!createScreen&&<>
+ {(!event||createScreen)&&<EventSetupPanel settings={settings} setSettings={setSettings}
+    create={create} live={live} onOpen={openEvent} busy={busy} user={user} playerName={playerName}/>}
+  {event&&!createScreen&&<>
  <div className="flex flex-wrap justify-between gap-2"><span className="text-fuchsia-300 font-black">Host: {event.hostName} · {event.status} · {count}/{capacity} giocatori</span><span className="text-amber-300 text-sm font-bold">Premi: 1º 400 · 2º 200 · 3º 140 · partecipazione 50 monete</span></div>
  {event.status==='lobby'&&<>
  {!mine&&<div className={card}><p className="mb-3">Unisciti al torneo e crea la tua squadra.</p><button className={btn} disabled={busy||count>=capacity} onClick={join}>Unisciti!</button></div>}
@@ -261,7 +219,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,play
  {event.status!=='lobby'&&<>
  {(event.displayPhase==='bracket'||!event.activeBattle)&&
    <div className={card}><h2 className="text-xl font-black mb-3">Bracket del Multiverso</h2>
-   <Bracket matches={event.matches} current={event.activeBattle?.matchId}/></div>}
+   <MultiverseBracket matches={event.matches} current={event.activeBattle?.matchId} participants={[...players,...event.bots]}/></div>}
  {event.activeBattle&&event.displayPhase!=='bracket'&&
    <Arena key={event.activeBattle.matchId+'-'+event.activeBattle.turn}
      participants={[...players,...event.bots.map(b=>({uid:b.id,name:b.name}))]}
