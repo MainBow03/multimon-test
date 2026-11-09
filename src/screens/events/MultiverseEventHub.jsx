@@ -221,7 +221,7 @@ export function MultiverseEventHub({appMode,user,playerName,playerAvatarUrl,play
    <div className={card}><h2 className="text-xl font-black mb-3">Bracket del Multiverso</h2>
    <MultiverseBracket matches={event.matches} current={event.activeBattle?.matchId} participants={[...players,...event.bots]}/></div>}
  {event.activeBattle&&event.displayPhase!=='bracket'&&
-   <Arena key={event.activeBattle.matchId+'-'+event.activeBattle.turn}
+   <Arena key={event.activeBattle.matchId}
      participants={[...players,...event.bots.map(b=>({uid:b.id,name:b.name}))]}
      battle={event.activeBattle} settings={event.settings} uid={uid}
      view={perspective} setView={setPerspective} orders={orders} setOrders={setOrders}
