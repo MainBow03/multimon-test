@@ -82,7 +82,7 @@ test('Event battle mantiene la gemma equipaggiata e può cambiarla con una riser
  assert.equal(activeEventFighters(next,'A',s).find(u=>u.owner===first.owner).key,nextUnit.key);
 });
 test('L’arena evento importa la stessa vista delle battaglie normali, non la copia precedente',()=>{
- const arena=readFileSync(new URL('../src/screens/events/EventClassicBattleView.jsx',import.meta.url),'utf8');
+ const arena=readFileSync(new URL('../src/screens/events/StandardTournamentBattle.jsx',import.meta.url),'utf8');
  const hub=readFileSync(new URL('../src/screens/events/MultiverseEventHub.jsx',import.meta.url),'utf8');
  const shop=readFileSync(new URL('../src/screens/hub/ShopView.jsx',import.meta.url),'utf8');
  assert.ok(arena.includes("import { renderBattlingView } from '../battle/BattlingView.jsx'"));
