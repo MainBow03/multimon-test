@@ -46,7 +46,7 @@ function adaptEventBattle(battle,settings,participants,currentUid,perspective){
    actions[role]={};inventory[role]={};
  }
  const role=mapping[currentUid]||'spectator';
- const sameSide=battle.owners[battle.side].includes(currentUid);
+ const sameSide=battle.owners.A.includes(currentUid)||battle.owners.B.includes(currentUid);
  return {role,mapping,roles,teams,field,gameState:{
    status:'battling',gameMode:settings.doubles?'multipla':'classica',
    players,playerAvatars:avatars,isBot,field,teams,actions,inventory,playerMastery,
@@ -77,21 +77,26 @@ export function EventClassicBattleView({battle,settings,participants=[],currentU
  const [passiveInfoPopup,setPassiveInfoPopup]=useState(null);
  const [announcement,setAnnouncement]=useState('');
  const [isPlayingEvents,setIsPlayingEvents]=useState(false);
+ const [submitted,setSubmitted]=useState(false);
  const logEndRef=useRef(null),isLongPressRef=useRef(false),pressTimerRef=useRef(null);
  const mapping=useMemo(()=>adaptEventBattle(battle,settings,participants,currentUid,perspective),
    [battle,settings,participants,currentUid,perspective]);
  const {role,mapping:roleByUid,gameState}=mapping;
- const owner=battle.owners[battle.side].includes(currentUid);
+ const owner=battle.side==='both'
+  ?(battle.owners.A.includes(currentUid)||battle.owners.B.includes(currentUid))
+  :battle.owners[battle.side].includes(currentUid);
+ const mySide=battle.owners.A.includes(currentUid)?'A':battle.owners.B.includes(currentUid)?'B':null;
  const currentRole=roleByUid[currentUid];
- const active=owner?activeEventFighters(battle,battle.side,settings).filter(x=>x.owner===currentUid):[];
+ const active=owner&&mySide?activeEventFighters(battle,mySide,settings).filter(x=>x.owner===currentUid):[];
  const nextActor=active.find(u=>!moveDraft[u.key]);
  const commandingIdx=nextActor&&currentRole!=null?gameState.field[currentRole].findIndex(
    i=>gameState.teams[currentRole][i]?.key===nextActor.key):-1;
- const isMyTurn=owner&&!battle.finished&&commandingIdx>=0;
+ const isMyTurn=owner&&!submitted&&!battle.finished&&commandingIdx>=0;
  const totalDone=active.length>0&&active.every(u=>moveDraft[u.key]);
  const labelA=battle.owners.A.map(u=>participants.find(p=>(p.uid||p.id)===u)?.name||u.slice(0,8)).join(' & ');
  const labelB=battle.owners.B.map(u=>participants.find(p=>(p.uid||p.id)===u)?.name||u.slice(0,8)).join(' & ');
  useEffect(()=>{
+   setSubmitted(false);
    setMoveDraft({});
    setTargetingMoveIdx(null);
    setPendingHyper(false);
@@ -115,7 +120,7 @@ export function EventClassicBattleView({battle,settings,participants=[],currentU
    }else if(action.type==='attack'){
      const tRole=action.targetPlayer;
      const tUnit=gameState.teams[tRole]?.[action.targetIdx];
-     const opposite=battle.side==='A'?'B':'A';
+     const opposite=mySide==='A'?'B':'A';
      const target=tUnit?.key||activeEventFighters(battle,opposite,settings)[0]?.key||null;
      setMoveDraft(v=>({...v,[nextActor.key]:{
        actor:nextActor.key,moveIndex:Number(action.moveIdx)||0,
@@ -131,7 +136,8 @@ export function EventClassicBattleView({battle,settings,participants=[],currentU
    moveSelection({type:'attack',moveIdx:targetingMoveIdx,targetPlayer:targetRole,targetIdx:index});
  };
  const send=()=>{
-   if(!totalDone||busy)return;
+   if(!totalDone||busy||submitted)return;
+   setSubmitted(true);
    submit(active.map(u=>moveDraft[u.key]));
  };
  const log=(battle.log||[]).map(text=>({text,type:text.includes(' KO')?'faint':
@@ -182,9 +188,9 @@ export function EventClassicBattleView({battle,settings,participants=[],currentU
           disabled={busy} onClick={send}>⚔️ CONFERMA LE MOSSE</button>
      </div>
    </div>}
-   {!owner&&!battle.finished&&<div className="fixed z-[165] bottom-4 left-1/2 -translate-x-1/2
+   {(submitted||!owner)&&!battle.finished&&<div className="fixed z-[165] bottom-4 left-1/2 -translate-x-1/2
      bg-slate-950/95 border border-slate-700 rounded-2xl p-3 text-center max-w-[94vw] text-xs">
-       👁️ {role==='spectator'?'Modalità spettatore':'In attesa del turno avversario'}
+       👁️ {role==='spectator'?'Modalità spettatore':submitted?'Mosse inviate: attendi gli altri sfidanti':'In attesa del turno avversario'}
        {role==='spectator'&&<div className="flex gap-2 mt-2">
          <button className="rounded-lg bg-cyan-800 px-3 py-1.5" onClick={()=>setPerspective('A')}>Vista squadra A</button>
          <button className="rounded-lg bg-rose-800 px-3 py-1.5" onClick={()=>setPerspective('B')}>Vista squadra B</button>
