@@ -53,6 +53,7 @@ import { handleAvatarUploadImpl, leaveRoomImpl, handleConfirmLeaveImpl, updateSt
 import { updateLocalStatsImpl } from './systems/profileSystem.js';
 import { equippedMasteryTitle, masteryVisibleLevels } from './systems/masterySystem.js';
 import { renderHealthBarImpl } from './components/uiHelpers.jsx';
+import { RoomSyncBanner } from './components/RoomSyncBanner.jsx';
 import {Shield,Target,ScrollText,Loader2,Trophy,ChevronRight,LogOut,XIcon} from './components/BattleIcons.jsx';
 import { handleCreateRoguelikeCoopImpl, handleSurvivalStartImpl } from './systems/roguelikeSystem.js';
 import { getTournamentMatchOpponentsImpl, handleNextTournamentMatchImpl } from './systems/tournamentSystem.js';
@@ -143,6 +144,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const [roomId, setRoomId] = useState(sessionRef.current?.roomId || null);
           const [playerRole, setPlayerRole] = useState(sessionRef.current?.playerRole || null); 
           const [gameState, setGameState] = useState(sessionRef.current?.gameState || initialGameState());
+           const [roomSync,setRoomSync]=useState({fromCache:false,lastServerAt:0,error:false});
           
           const [displayTeams, setDisplayTeams] = useState({ p1: [], p2: [], p3: [], p4: [], p5: [], p6: [], p7: [], p8: [] }); 
           const [displayField, setDisplayField] = useState({ p1: [], p2: [], p3: [], p4: [], p5: [], p6: [], p7: [], p8: [] });
@@ -1241,7 +1243,14 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           useEffect(() => {
             if ((appMode !== 'online_room' && appMode !== 'roguelike_coop_lobby') || !roomId || !user?.uid) return;
             const roomRef=doc(db,'artifacts',appId,'public','data','rooms',roomId);
-            const unsubscribe=onSnapshot(roomRef,snapshot=>{
+            setRoomSync({fromCache:false,lastServerAt:0,error:false});
+            // I metadati includono i passaggi da cache offline a server online.
+            // Non azzerare mai la partita per una disconnessione temporanea.
+            const unsubscribe=onSnapshot(roomRef,{includeMetadataChanges:true},snapshot=>{
+              const fromCache=!!snapshot.metadata?.fromCache;
+              setRoomSync(previous=>({
+                fromCache,lastServerAt:fromCache?previous.lastServerAt:Date.now(),error:false
+              }));
               if(!snapshot.exists()){
                 setSystemAlert('La stanza non esiste più. Se è stata eliminata, non è possibile riprenderla.');
                 return;
@@ -1255,6 +1264,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               }
               setGameState(data);
             },err=>{
+              setRoomSync(previous=>({...previous,error:true,fromCache:true}));
               console.error('Problema di sincronizzazione stanza:',err);
               setSystemAlert('Connessione alla partita interrotta. Il tuo posto resta prenotato: verifica la rete e ricarica per rientrare. '+(err.message||''));
             });
@@ -2274,6 +2284,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
             )}
             
             {renderView()}
+            <RoomSyncBanner active={Boolean(roomId&&(appMode==='online_room'||appMode==='roguelike_coop_lobby'))}
+              fromCache={roomSync.fromCache} lastServerAt={roomSync.lastServerAt} error={roomSync.error}/>
             {gameState.isTrainingBattle&&appMode==='local_room'&&
               ['battling','executing'].includes(gameState.status)&&
               <CombatLabTelemetry room={gameState} combatLog={combatLog}
