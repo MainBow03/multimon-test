@@ -13,6 +13,18 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov9-ultimon-strategic-global-bans',category:'features',date:'09/11/2026',
+    title:'🚫 Ultimon Multimon · Ban strategico globale per tutti gli umani',items:[
+      'Prima della selezione delle squadre c’è una nuova fase BAN: ogni giocatore umano sceglie un Multimon da escludere per tutta la partita.',
+      'I bot non votano. Tutti i ban sono globali: nessun partecipante, nemmeno la CPU, può selezionare i Multimon esclusi.',
+      'La fase mostra PNG grandi, ricerca per nome, giocatori che hanno già votato e un tabellone dei Multimon bannati.',
+      'I ban non possono essere duplicati e non si possono cambiare dopo la conferma. In online vengono registrati con transazione Firestore.',
+      'L’host può aprire la scelta dei team soltanto quando tutti gli umani hanno votato; in locale i giocatori votano uno dopo l’altro.',
+      'I ban funzionano con draft classico, Draft Battle, Draft Condiviso e Multimon in Nolo: anche offerte e squadre generate dei bot escludono i personaggi vietati.',
+      'Il lancio di Ultimon ricontrolla che nessun Multimon bannato sia stato inserito nel roster, impedendo selezioni obsolete.',
+      'Le altre modalità di Multimon non vengono coinvolte dalla nuova meccanica.'
+    ]},
+
   {id:'nov9-standard-tournament-engine',category:'features',date:'09/11/2026',
     title:'⚔️ Torneo del Multiverso: unificato il motore di combattimento',items:[
       'Il Torneo del Multiverso non calcola più i combattimenti con un resolver separato: l’arbitro online usa direttamente calculateTurnImpl, lo stesso motore delle battaglie classiche.',
