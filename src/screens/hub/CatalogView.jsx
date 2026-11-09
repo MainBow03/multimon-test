@@ -1,3 +1,4 @@
+import {onMultimonImageError} from '../../systems/imageFallback.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCatalogView(ctx) {
 const { ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Lock, MOVES_DB, TYPES, TYPE_STYLES, appMode, catalogFilter, catalogSearch, catalogSort, setAppMode, setCatalogFilter, setCatalogSearch, setCatalogSort } = ctx;
@@ -157,7 +158,7 @@ if (appMode === 'catalog') {
                             {displayedChars.map(char => (
                                 <div key={char.id} tabIndex="0" className={`bg-slate-900/80 backdrop-blur-md border ${char.isHyperInCatalog ? 'border-yellow-400/50 shadow-[0_0_15px_rgba(250,204,21,0.2)]' : (char.isFusionInCatalog ? 'border-fuchsia-500/50 shadow-[0_0_15px_rgba(217,70,239,0.2)]' : 'border-slate-700/50')} rounded-2xl p-5 flex flex-col items-center hover:border-cyan-500/50 transition-colors shadow-lg relative group cursor-pointer focus:outline-none`}>
                                     <div className="relative">
-                                        <img src={char.img} alt={char.name} className={`w-24 h-24 rounded-full object-cover mb-4 border-2 ${char.isHyperInCatalog ? 'border-yellow-400' : (char.isFusionInCatalog ? 'border-fuchsia-500' : 'border-slate-600/50')} transition-transform group-hover:scale-105`} />
+                                        <img src={char.img} onError={onMultimonImageError} alt={char.name} className={`w-24 h-24 rounded-full object-cover mb-4 border-2 ${char.isHyperInCatalog ? 'border-yellow-400' : (char.isFusionInCatalog ? 'border-fuchsia-500' : 'border-slate-600/50')} transition-transform group-hover:scale-105`} />
                                         
                                         {char.fusionOf && (
                                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900/95 backdrop-blur-xl p-3 rounded-2xl border-2 border-fuchsia-500 shadow-[0_0_30px_rgba(217,70,239,0.6)] opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center gap-2 w-max min-w-[140px] z-20 pointer-events-none">
@@ -167,7 +168,7 @@ if (appMode === 'catalog') {
                                                         const base = CHARACTERS.find(c => c.id === id);
                                                         return base && (
                                                             <div key={id} className="flex flex-col items-center">
-                                                                <img src={base.img} className="w-12 h-12 rounded-full border-2 border-slate-500 object-cover bg-slate-900" />
+                                                                <img src={base.img} onError={onMultimonImageError} className="w-12 h-12 rounded-full border-2 border-slate-500 object-cover bg-slate-900" />
                                                                 <span className="text-[9px] font-bold text-slate-200 mt-1 max-w-[55px] truncate text-center">{base.name}</span>
                                                             </div>
                                                         );
