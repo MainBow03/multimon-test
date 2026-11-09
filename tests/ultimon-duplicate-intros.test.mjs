@@ -113,7 +113,8 @@ test('Tutto è limitato alla presentazione, senza cambiare il flusso dei duelli'
  assert.match(ui,/COLPO DI SCENA/);
  assert.match(ui,/rival\.team/);
  assert.match(ui,/duelStat\.label/);
- assert.match(ui,/step==='line'&&rival\?6800/);
+ assert.match(ui,/ultimonIntroSceneDeadline\(room\)/);
+ assert.match(ui,/ULTIMON_INTRO_AUTO_ADVANCE_MS/);
  assert.match(css,/ultimon-intro-duplicate-faceoff/);
  assert.match(css,/prefers-reduced-motion/);
 });
