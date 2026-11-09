@@ -85,7 +85,7 @@ test('L’arena evento importa la stessa vista delle battaglie normali, non la c
  const arena=readFileSync(new URL('../src/screens/events/StandardTournamentBattle.jsx',import.meta.url),'utf8');
  const hub=readFileSync(new URL('../src/screens/events/MultiverseEventHub.jsx',import.meta.url),'utf8');
  const shop=readFileSync(new URL('../src/screens/hub/ShopView.jsx',import.meta.url),'utf8');
- assert.ok(arena.includes("import { renderBattlingView } from '../battle/BattlingView.jsx'"));
+ assert.match(arena,/import \{\s*renderBattlingView\s*\} from '\.\.\/battle\/BattlingView\.jsx'/);
  assert.ok(arena.includes('renderBattlingView({'));
  assert.ok(hub.includes("displayPhase:'battle'"));
  assert.ok(hub.includes("displayPhase:'bracket'"));
