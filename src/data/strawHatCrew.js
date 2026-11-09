@@ -22,7 +22,7 @@ export const STRAW_HAT_CHARACTERS=[
    desc:'Con Pioggia o Tempesta: +10% elusione e +15% danni delle mosse Acqua e Aria. Si somma al meteo senza moltiplicazioni esagerate.'},
   moves:[MOVES_DB['Raffica del Clima'],MOVES_DB['Miraggio Ladresco'],MOVES_DB['Tempesta di Zeus'],MOVES_DB['Pioggia del Clima-Tact']]},
  {id:'chopper',name:'Tony Tony Chopper',types:['Normale','Lotta'],
-  hp:98,maxHp:98,atk:84,def:90,spd:80,
+  hp:98,maxHp:98,atk:84,def:90,spd:88,
   img:'https://i.pinimg.com/1200x/d2/30/34/d2303406abaeb828122b55ddacc8a2a9.jpg',
   passive:{name:'Medico di Bordo',type:'on_enter',crewMedicHeal:0.12,maxUses:1,
    desc:'Una volta per battaglia, entrando in campo cura del 12% dei PS massimi l’alleato attivo più ferito (anche se stesso), e rimuove un suo status negativo.'},
