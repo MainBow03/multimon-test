@@ -82,7 +82,7 @@ export const MOVES_DB = {
           
           'Presa Militare': { name: 'Presa Militare', type: 'Lotta', power: 50, statusEffect: { type: 'Elettrizzato', chance: 0.3 }, desc: 'Una presa tecnica corpo a corpo. Ha il 30% di probabilità di paralizzare.' },
           'Kit Medico': { name: 'Kit Medico', type: 'Normale', power: 0, heal: 0.5, maxUses: 2, target: 'self', desc: 'Usa cure di primo soccorso per recuperare il 50% dei PS massimi.' },
-          'Assalto Frontale': { name: 'Assalto Frontale', type: 'Lotta', power: 70, desc: 'Carica il nemico con una potente e inarrestabile raffica di colpi.' },
+          'Assalto Frontale': { name: 'Assalto Frontale', type: 'Lotta', power: 85, desc: 'Carica il nemico con una potente e inarrestabile raffica di colpi.' },
           'Tiro Rapido': { name: 'Tiro Rapido', type: 'Normale', power: 90, accuracy: 0.90, desc: 'Estrae un\'arma e attacca velocemente. Ha il 10% di probabilità di mancare.' },
 
           'Doruzonisu': { name: 'Doruzonisu', type: 'Oscuro', power: 60, targetCount: 2, desc: 'Colpisce fino a due bersagli contemporaneamente con dardi oscuri.' },
@@ -122,7 +122,7 @@ export const MOVES_DB = {
           // NUOVE MOSSE LADYBUG
           'Yo-Yo Devastante': { name: 'Yo-Yo Devastante', type: 'Insetto', power: 80, desc: 'Colpisce il nemico con il suo inseparabile yo-yo magico.' },
           'Lucky Charm': { name: 'Lucky Charm', type: 'Magico', power: 0, targetMode: 'ally', targetStatBuff: { atk: 1.5, def: 1.5 }, desc: 'Evoca l\'oggetto perfetto per la situazione! Aumenta Attacco e Difesa di un alleato del 50%.' },
-          'Miraculous Ladybug': { name: 'Miraculous Ladybug', type: 'Magico', power: 0, targetMode: 'team_smart_heal', healAlone: 0.5, healTeam: 0.5, maxUses: 2, desc: 'Lancia in aria il Lucky Charm riparando i danni! Cura tutto il team in campo del 50% dei PS.' },
+          'Miraculous Ladybug': { name: 'Miraculous Ladybug', type: 'Magico', power: 0, targetMode: 'team_smart_heal', healAlone: 0.5, healTeam: 0.4, maxUses: 2, desc: 'Lancia in aria il Lucky Charm riparando i danni! Se è sola si cura del 50% dei PS; con alleati in campo cura il team del 40% dei PS.' },
           'Miraculous Juviabug': { name: 'Miraculous Juviabug', type: 'Magico', power: 0, targetMode: 'team_smart_heal', healAlone: 0.5, healTeam: 0.5, maxUses: 2, desc: 'Lancia in aria il Lucky Charm riparando i danni! Cura tutto il team in campo del 50% dei PS.' },
           'Mi serve un aiutante!': { name: 'Mi serve un aiutante!', type: 'Magico', power: 0, maxUses: 2, strictUses: true, selfStatBuff: { def: 1.1 }, randomSummon: ['summon_chatnoir', 'summon_renarouge', 'viperion', 'summon_carapace', 'summon_ryuko', 'summon_kingmonkey'], desc: 'Aumenta la Difesa del 10% ed evoca un aiutante casuale tra gli eroi di Parigi. (2 utilizzi)' },
           'Lucky Charm Illusorio!': { name: 'Lucky Charm Illusorio!', type: 'Magico', power: 100, maxUses: 1, isCombo: ['ladybug', 'renarouge'], selfHeal: 1.0, statusEffect: { type: 'Scottato', chance: 1.0 }, desc: 'Mossa Combinata: 100 danni, brucia il bersaglio e cura al 100% Ladybug e Rena Rouge! Consuma il turno di entrambe.' },
@@ -235,7 +235,7 @@ export const MOVES_DB = {
           'Spada dell\'Egida': { name: 'Spada dell\'Egida', type: 'Fuoco', power: 90, desc: 'Un fendente potente e concentrato di fiamme sprigionato dalla spada leggendaria.' },
           'Sintesi Ardente': { name: 'Sintesi Ardente', type: 'Erba', power: 0, target: 'self', heal: 0.3, statBuff: { atk: 1.3 }, desc: 'Usa l\'energia della natura per curarsi del 30% e aumentare l\'Attacco del 30%.' },
           'Rovi di Fuoco': { name: 'Rovi di Fuoco', type: 'Erba', power: 75, statusEffect: { type: 'Scottato', chance: 0.3 }, desc: 'Evoca rovi infuocati che avvolgono il nemico. 30% di probabilità di scottare.' },
-          'Lame Scarlatte': { name: 'Lame Scarlatte', type: 'Fuoco', power: 65, targetCount: 2, desc: 'Scaglia ondate di fuoco a ventaglio colpendo fino a 2 bersagli.' },
+          'Lame Scarlatte': { name: 'Lame Scarlatte', type: 'Fuoco', power: 75, targetCount: 2, desc: 'Scaglia ondate di fuoco a ventaglio colpendo fino a 2 bersagli.' },
 
           // NUOVE MOSSE KATARA
           'Frusta d\'Acqua': { name: 'Frusta d\'Acqua', type: 'Acqua', power: 75, desc: 'Plasma l\'acqua in una frusta flessibile e letale che colpisce il nemico.' },
@@ -272,7 +272,7 @@ export const MOVES_DB = {
 
           // NUOVE MOSSE JACK FROST
           'Vento Invernale': { name: 'Vento Invernale', type: 'Ghiaccio', power: 70, targetCount: 2, selfStatBuff: { spd: 1.5 }, desc: 'Potenza 70. Colpisce fino a due nemici e aumenta la propria Velocità del 50%.' },
-          'Scherzetto di Neve': { name: 'Scherzetto di Neve', type: 'Ghiaccio', power: 50, targetCount: 2, statusEffect: { type: 'Congelato', chance: 0.4 }, desc: 'Lancia palle di neve magiche (potenza 50) su 2 nemici. 40% di probabilità di congelarli.' },
+          'Scherzetto di Neve': { name: 'Scherzetto di Neve', type: 'Ghiaccio', power: 50, targetCount: 2, statusEffect: { type: 'Congelato', chance: 0.3 }, desc: 'Lancia palle di neve magiche (potenza 50) su 2 nemici. 30% di probabilità di congelarli.' },
           'Bastone Magico': { name: 'Bastone Magico', type: 'Magico', power: 70, statusEffect: { type: 'Confuso', chance: 0.2 }, desc: 'Colpisce con il bastone magico. 20% di probabilità di confondere il bersaglio.' },
           'Aura Glaciale': { name: 'Aura Glaciale', type: 'Ghiaccio', power: 0, target: 'self', tailwindTurns: 5, maxUses: 2, strictUses: true, desc: 'Attiva Tailwind per tutta la squadra per 5 turni: velocità effettiva +30%, anche per chi entra dopo. Non modifica permanentemente la statistica.' },
 
@@ -304,7 +304,7 @@ export const MOVES_DB = {
           'Soffio di Fuoco': { name: 'Soffio di Fuoco', type: 'Fuoco', power: 70, statusEffect: { type: 'Scottato', chance: 0.5 }, desc: 'Una vampata fiammeggiante con il 50% di probabilità di scottare.' },
           'Carica a Cornate': { name: 'Carica a Cornate', type: 'Normale', power: 85, statusEffect: { type: 'Stordito', chance: 0.2 }, desc: 'Una testata a tutta velocità. Il 20% di probabilità di stordire il nemico.' },
           'L\'aiuto di Sparx': { name: 'L\'aiuto di Sparx', type: 'Insetto', power: 0, target: 'self', heal: 0.4, removeNegativeStatuses: true, desc: 'La libellula Sparx cura Spyro del 40% dei PS e rimuove le alterazioni di stato.' },
-          'Pioggia di Gemme': { name: 'Pioggia di Gemme', type: 'Roccia', power: 32, multiHit: { min: 2, max: 4 }, desc: 'Scaglia le gemme raccolte colpendo da 2 a 4 volte.' },
+          'Pioggia di Gemme': { name: 'Pioggia di Gemme', type: 'Roccia', power: 36, multiHit: { min: 2, max: 4 }, desc: 'Scaglia le gemme raccolte colpendo da 2 a 4 volte.' },
 
           // NUOVE MOSSE COSMO
           'Bacchetta Magica': { name: 'Bacchetta Magica', type: 'Magico', power: 80, statusEffect: { type: 'Confuso', chance: 0.4 }, desc: 'Agita la bacchetta a caso. 40% di probabilità di confondere il bersaglio.' },
@@ -829,7 +829,7 @@ export const MOVES_DB = {
           // NUOVE MOSSE NEON
           'Scia Elettrica!': { name: 'Scia Elettrica!', type: 'Elettro', power: 0, targetCount: 4, maxUses: 6, targetStatDebuff: { accFlat: 0.1 }, desc: 'Aumenta l\'evasione del team disorientando i nemici: riduce in modo permanente del 10% la precisione di tutti gli avversari in campo (accumulabile).' },
           'Shotgun': { name: 'Shotgun', type: 'Normale', power: 80, critChance: 0.3, critPower: 150, desc: 'Spara un colpo letale. Ha il 30% di probabilità di infliggere un colpo critico devastante da 150 di potenza!' },
-          'Relay Bolt': { name: 'Relay Bolt', type: 'Elettro', power: 60, maxUses: 2, statusEffect: { type: 'Stordito', chance: 1.0 }, targetStatDebuff: { spd: 0.7 }, desc: 'Un dardo elettrico stordente. Stordisce il bersaglio per un turno e ne diminuisce la Velocità del 30%.' },
+          'Relay Bolt': { name: 'Relay Bolt', type: 'Elettro', power: 60, maxUses: 2, statusEffect: { type: 'Stordito', chance: 0.65 }, targetStatDebuff: { spd: 0.7 }, desc: 'Un dardo elettrico stordente. Ha il 65% di probabilità di stordire il bersaglio per un turno e ne diminuisce la Velocità del 30%.' },
 
           // NUOVE MOSSE IL CAVALIERE
           'Radiant Slash': { name: 'Radiant Slash', type: 'Luce', power: 85, hitStatDebuff: { def: 0.7, chance: 0.4 }, desc: 'Fendente luminoso. Ha il 40% di probabilità di infrangere la Difesa nemica (approssima efficacia su Oscurità).' },
@@ -915,7 +915,7 @@ export const MOVES_DB = {
           
           // NUOVE MOSSE MELIODAS
           'Full Counter': { name: 'Full Counter', type: 'Magico', power: 0, target: 'self', isProtect: true, priority: 5, protectStatus: 'Rashield', maxUses: 4, desc: 'Respinge l\'attacco al mittente! Protegge e riflette il 25% del danno. Se usato di fila, la probabilità di successo si dimezza. (4 utilizzi)' },
-          'Fiamme del Purgatorio': { name: 'Fiamme del Purgatorio', type: 'Oscuro', power: 85, statusEffect: { type: 'Scottato', chance: 0.5 }, desc: 'Fiamme nere inestinguibili. 50% di probabilità di scottare il bersaglio.' },
+          'Fiamme del Purgatorio': { name: 'Fiamme del Purgatorio', type: 'Oscuro', power: 85, statusEffect: { type: 'Scottato', chance: 0.35 }, desc: 'Fiamme nere inestinguibili. 35% di probabilità di scottare il bersaglio.' },
           'Kami Chigiri': { name: 'Kami Chigiri', type: 'Lotta', power: 30, multiHit: { min: 3, max: 4 }, desc: 'I Mille Tagli Divini. Una raffica di fendenti velocissimi che colpisce da 3 a 4 volte.' },
           'Revenge Counter': { name: 'Revenge Counter', type: 'Oscuro', power: 150, maxUses: 1, ignoreDefBuffs: true, desc: 'Assorbe i danni subiti e li rilascia in un colpo devastante che ignora le difese. (1 utilizzo)' },
 
