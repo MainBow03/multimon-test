@@ -1,3 +1,4 @@
+import {onMultimonImageError} from '../../systems/imageFallback.js';
 import { onlineHealingRemaining, isLimitedHealingItem } from '../../systems/onlineHealingLimit.js';
 import { MOVES_DB } from '../../data/moves.js';
 import { hyperPreviewMoves } from '../../systems/hyperPreview.js';
@@ -418,7 +419,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                         </div>}
                         {masteryTier?.level >= 10 && <div className="mastery-radiance" aria-hidden="true" />}
                         {masteryTier?.level >= 15 && <div className="mastery-sparks" aria-hidden="true"><i>✦</i><i>✧</i><i>★</i><i>✦</i></div>}
-                        <img key={`img-${char.id}-form-${formLevel}`} src={displayImg} style={{ filter: char.imageFilter || 'none' }} className={`${isJuggernaut ? 'w-48 h-48 md:w-56 md:h-56' : char.isZodiacSpirit ? 'w-24 h-24 sm:w-28 sm:h-28' : 'w-28 h-28'} object-cover rounded-xl border-4 ${borderClass} transition-all ${extraAnimClass} ${masteryTier ? 'mastery-portrait-image mastery-border-'+masteryTier.level : ''}`} alt="" />
+                        <img key={`img-${char.id}-form-${formLevel}`} src={displayImg} onError={onMultimonImageError} style={{ filter: char.imageFilter || 'none' }} className={`${isJuggernaut ? 'w-48 h-48 md:w-56 md:h-56' : char.isZodiacSpirit ? 'w-24 h-24 sm:w-28 sm:h-28' : 'w-28 h-28'} object-cover rounded-xl border-4 ${borderClass} transition-all ${extraAnimClass} ${masteryTier ? 'mastery-portrait-image mastery-border-'+masteryTier.level : ''}`} alt="" />
                         {ITEMS_DB[char.heldItem]?.type === 'held' && <span
                             title={ITEMS_DB[char.heldItem].name+(char.gemSpent?' · gemma scaricata':' · equipaggiato')}
                             className={'absolute -top-2 -right-2 bg-violet-700 border border-violet-300 text-base rounded-full w-8 h-8 flex items-center justify-center z-20 shadow-lg '+(char.gemSpent?'opacity-45 grayscale':'')}>
@@ -477,7 +478,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                           {visibleSpirits.map((spirit,idx)=><span key={spirit.id+'-'+idx}
                                                             className="flex gap-1 items-center rounded-full border border-violet-400/60 bg-violet-950/75 px-2 py-0.5 text-[9px] font-bold text-violet-100"
                                                             title={spirit.name+' · Spirito di '+gameState.players[p]}>
-                                                            <img src={spirit.img} alt="" className="w-4 h-4 rounded-full object-cover" />
+                                                            <img src={spirit.img} onError={onMultimonImageError} alt="" className="w-4 h-4 rounded-full object-cover" />
                                                             ✦ {spirit.name.replace(/ \(Spirito Stellare\)$/, '')}
                                                           </span>)}
                                                         </div>}
@@ -494,7 +495,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                                         if (isRevealed) {
                                                                             return (
                                                                                 <div key={i} className={`w-5 h-5 rounded-full border ${isDead ? 'border-slate-600 grayscale opacity-50' : cBorderClass} overflow-hidden shrink-0`}>
-                                                                                    <img src={c.img} className="w-full h-full object-cover bg-slate-900" alt="" title={c.name} />
+                                                                                    <img src={c.img} onError={onMultimonImageError} className="w-full h-full object-cover bg-slate-900" alt="" title={c.name} />
                                                                                 </div>
                                                                             );
                                                                         } else {
@@ -693,7 +694,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                         {getInitiativeOrder().map((item, idx, arr) => (
                             <div key={`${item.player}-${item.char.id}-${idx}`} className="flex flex-col items-center shrink-0">
                                 <div className="relative">
-                                    <img src={item.char.img} className={`w-8 h-8 md:w-10 md:h-10 rounded-full border-2 ${PLAYER_THEMES[item.player]?.border || 'border-slate-500'} object-cover shadow-sm`} title={`${item.char.name} (Velocità: ${item.effSpd})`} />
+                                    <img src={item.char.img} onError={onMultimonImageError} className={`w-8 h-8 md:w-10 md:h-10 rounded-full border-2 ${PLAYER_THEMES[item.player]?.border || 'border-slate-500'} object-cover shadow-sm`} title={`${item.char.name} (Velocità: ${item.effSpd})`} />
                                     <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border border-black ${PLAYER_THEMES[item.player]?.bg.split('/')[0] || 'bg-slate-500'} flex items-center justify-center text-[8px] font-black text-white`}>
                                         {item.player.replace('p', '')}
                                     </div>
@@ -1086,7 +1087,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                               className="flex items-center gap-2 rounded-xl border border-amber-500/40
                                                                 bg-slate-800/80 p-2 text-left hover:bg-amber-900/30
                                                                 hover:border-amber-300 transition-all">
-                                                              <img src={t.char.img} alt={t.char.name}
+                                                              <img src={t.char.img} onError={onMultimonImageError} alt={t.char.name}
                                                                 className={'w-11 h-11 sm:w-14 sm:h-14 object-contain shrink-0 '+(t.char.hp<=0?'grayscale':'')}/>
                                                               <span className="min-w-0 flex-1">
                                                                 <span className="block font-bold text-white text-xs sm:text-sm truncate">{t.char.name}</span>
@@ -1124,7 +1125,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                         <button key={char.originalIdx} onClick={() => {
                                                             commitAction({ type: 'switch', fromIdx: activeCommandCharIdx, toIdx: char.originalIdx });
                                                         }} className="bg-slate-800/80 p-3 rounded-xl border border-emerald-500/50 flex items-center gap-3 hover:bg-slate-700 hover:border-emerald-400 transition-all shadow-md group">
-                                                            <img src={char.img} className="w-14 h-14 rounded-full object-cover border-2 border-emerald-500/30 group-hover:border-emerald-400 shrink-0" />
+                                                            <img src={char.img} onError={onMultimonImageError} className="w-14 h-14 rounded-full object-cover border-2 border-emerald-500/30 group-hover:border-emerald-400 shrink-0" />
                                                             <div className="text-left flex-1 min-w-0">
                                                                 <div className="font-bold text-sm truncate text-white mb-1">{char.name}</div>
                                                                 <div className="flex gap-1 mb-1.5 flex-wrap">
@@ -1156,7 +1157,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                                 targetIdx: target.idx
                                                             });
                                                         }} className="bg-slate-800/80 p-3 rounded-xl border border-amber-500/50 flex items-center gap-3 hover:bg-slate-700 hover:border-amber-400 transition-all shadow-md group text-left">
-                                                            <img src={target.char.img} className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover border-2 border-amber-500/30 group-hover:border-amber-400 shrink-0 grayscale" />
+                                                            <img src={target.char.img} onError={onMultimonImageError} className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover border-2 border-amber-500/30 group-hover:border-amber-400 shrink-0 grayscale" />
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="font-bold text-sm truncate text-white mb-1">{target.char.name} {target.player !== playerRole ? `(${gameState.players[target.player]})` : ''}</div>
                                                                 <div className="text-[10px] text-rose-400 font-bold uppercase tracking-widest">Esausto</div>
