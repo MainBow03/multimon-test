@@ -63,14 +63,14 @@ test('Il torneo invia esattamente gli stessi oggetti azione del motore classico'
 test('Il server eventi richiama il motore classico, non quello parallelo',()=>{
  const hub=readFileSync(new URL('../src/screens/events/MultiverseEventHub.jsx',import.meta.url),'utf8');
  const standard=readFileSync(new URL('../src/systems/standardEventTurn.js',import.meta.url),'utf8');
- const screen=readFileSync(new URL('../src/screens/events/EventClassicBattleView.jsx',import.meta.url),'utf8');
+ const screen=readFileSync(new URL('../src/screens/events/StandardTournamentBattle.jsx',import.meta.url),'utf8');
  assert.match(standard,/calculateTurnImpl\(\{/);
  assert.match(hub,/resolveEventWithStandardEngine\(old\.activeBattle,all,old\.settings\)/);
  assert.match(hub,/resolveEventWithStandardEngine\(b,submissions,old\.settings\)/);
  assert.doesNotMatch(hub,/const after=eventTurn\(/);
  assert.match(hub,/buildStandardEventBattle\(nextEventMatch\(matches\),map,old\.settings\)/);
  assert.match(standard,/applyOnEnterPassiveImpl\(\{CHARACTERS\}/);
- assert.match(screen,/battle\.side==='both'/);
+ assert.match(screen,/adaptTournamentToClassic\(battle,settings\)/);
  assert.match(screen,/setSubmitted\(true\)/);
 });
 
