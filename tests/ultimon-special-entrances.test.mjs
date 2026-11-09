@@ -120,7 +120,8 @@ test('La scena e i sei effetti appaiono a TUTTI, con supporto tablet e movimento
  assert.match(intro,/usableEffects\.map/);
  assert.match(intro,/onEntrance\(role,effect\.id\)/);
  assert.match(intro,/entranceReady/);
- assert.match(intro,/entrance:6700/);
+ assert.match(intro,/ultimonIntroSceneDeadline\(room\)/);
+ assert.match(intro,/ULTIMON_INTRO_AUTO_ADVANCE_MS/);
  assert.match(intro,/ultimon-intro-entrance-fighter/);
  for(const name of ['starfall','thunder','portal','inferno','royal','glitch'])
   assert.match(css,new RegExp('entrance-show--'+name));
