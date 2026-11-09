@@ -98,13 +98,13 @@ test('Salvataggi e altre campagne senza varianti vietate non vengono modificati'
 });
 
 const balance=[
- ['reghiaccio','Re Ghiaccio',[95,90,75,70],[108,103,84,80],'Vai Gunter!',30],
+ ['reghiaccio','Re Ghiaccio',[95,90,75,70],[108,103,84,88],'Vai Gunter!',30],
  ['juvia','Juvia',[90,100,70,80],[105,108,84,90],'Colpo impetuoso',95],
  ['jakedc','Jake (DC)',[90,90,75,85],[105,106,86,95],'Tom difendimi!',95],
  ['roserade','Roserade',[80,115,65,90],[100,118,80,100],'Gigassorbimento',95],
  ['mantide','Mantide',[70,110,60,115],[90,118,75,125],'Colpo della Mantide',82],
  ['spike','Spike',[85,115,65,90],[105,120,80,100],'Campo di Cactus',55],
- ['spyro','Spyro',[95,95,75,95],[110,112,85,105],'Pioggia di Gemme',32],
+ ['spyro','Spyro',[95,95,75,95],[110,112,85,105],'Pioggia di Gemme',36],
  ['poisonivy','Poison Ivy',[95,100,80,75],[105,110,92,90],'Radici Avvolgenti',82],
  ['kevin','Kevin',[110,100,100,50],[125,112,112,60],'Pugno Minerale',92],
  ['topolino','Topolino',[105,85,75,105],[115,100,85,110],'Colpo Cartoon',68]
