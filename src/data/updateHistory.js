@@ -13,6 +13,20 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov9-multiverse-tournament-redesign',category:'features',date:'09/11/2026',
+    title:'🏆 Torneo del Multiverso · Nuova arena di configurazione, bracket neon e OST!',items:[
+      'La configurazione del torneo è stata ricreata con pannelli luminosi, anteprima tabellone, contatori di squadre/giocatori, opzioni e pulsante di avvio scenografico.',
+      'Tipologia di lotta: Classica (un giocatore per squadra) oppure Multipla (due per squadra). Stile di lotta: 1v1–4v4 in Classica, 2v2 o 4v4 in Multipla, usando le stesse denominazioni del gioco.',
+      'Il tabellone è diviso in due ali speculari: turni iniziali a sinistra e destra, avanzamenti luminosi verso la finale e trofeo dorato al centro.',
+      'Nel bracket appaiono avatar e nomi dei giocatori, anche in coppia, con risultati evidenziati, zoom e scorrimento su schermi piccoli.',
+      'Cliccando un partecipante si apre la sua squadra completa: PNG di ogni Multimon, nome, tipi e passiva.',
+      'Nuove soundtrack selezionabili: Champion and Red, Ultra Instinct Remix e Beast Gohan. Il selettore della musica mostra le anteprime via video YouTube ufficiale, senza copiare file audio.',
+      'Ultra Instinct Remix è impostato automaticamente come tema dello scontro finale Ultimon Multimon.',
+      'Le anteprime OST sono disponibili anche nella lobby delle battaglie normali; il Torneo ha un controllo musicale proprio che si può attivare durante il combattimento.',
+      'La modalità evento continua a riutilizzare il renderer della battaglia classica; conservazione delle proprietà complete delle mosse, cure agli alleati, protezioni, colpi critici e multi-hit migliorate.',
+      'L’arena del torneo non viene più smontata ogni turno, così scelte, animazioni e player musicale sono più stabili. Il sorteggio e i premi precedenti rimangono invariati.'
+    ]},
+
   {id:'nov9-approved-roster-balance',category:'balance',date:'09/11/2026',
     title:'⚖️ 10 buff e 7 nerf approvati dai giocatori',items:[
       'BUFF Carlos Oliveira: Assalto Frontale da 70 a 85 potenza.',
