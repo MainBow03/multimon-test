@@ -835,7 +835,7 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             const enchantedDamageFactor = incomingRockEnchantmentFactor(attacker);
             const fasterTargetBonus = move.bonusAgainstFaster && defender.spd > attacker.spd ? move.bonusAgainstFaster : 1;
 
-            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * teamDefFactor * stabFactor * enchantedDamageFactor * getMahitoMultiplier(attacker, defender, move) * fasterTargetBonus * (defender.passive?.type === 'petrosapien_armor' ? 0.8 : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1) * outgoingPassiveDamageFactor(attacker,defender,move) * selectedPassiveDamageFactor(attacker,defender,move) * rogueDamageFactor(attacker,multiplier)));
+            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * teamDefFactor * stabFactor * enchantedDamageFactor * getMahitoMultiplier(attacker, defender, move) * fasterTargetBonus * (defender.passive?.type === 'petrosapien_armor' ? 1 - (defender.passive.damageReduction ?? 0.2) : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1) * outgoingPassiveDamageFactor(attacker,defender,move) * selectedPassiveDamageFactor(attacker,defender,move) * rogueDamageFactor(attacker,multiplier)));
           
 };
 
