@@ -419,3 +419,75 @@
  .ultimon-showdown-ring,.ultimon-showdown-stars,
  .ultimon-grand-final-contender img,.ultimon-grand-final-vs{animation:none!important}
 }
+
+/* Ultimon — Ban strategico globale, prima del draft. PNG leggibili anche su tablet. */
+.ultimon-ban-stage{display:grid;gap:18px;padding-bottom:28px}
+.ultimon-ban-hero{position:relative;text-align:center;overflow:hidden;padding:clamp(20px,3.6vw,36px);
+ background:radial-gradient(ellipse at 50% -10%,#d946ef55,transparent 65%),linear-gradient(135deg,#271044,#0b1833 62%,#3a143e);
+ border:1px solid #fa8ee7a8;border-radius:24px;box-shadow:0 15px 60px #0008,0 0 37px #c026d328}
+.ultimon-ban-eyebrow{font-size:11px;color:#fcd34d;letter-spacing:.2em;font-weight:1000}
+.ultimon-ban-hero h2{font-size:clamp(29px,5vw,52px);font-weight:1000;letter-spacing:.04em;
+ margin:8px 0;color:#fbcfe8;text-shadow:0 0 22px #ec489999}
+.ultimon-ban-hero p{color:#d9e4fc;font-size:14px;max-width:760px;margin:0 auto;line-height:1.65}
+.ultimon-ban-progress{margin:18px auto 17px;max-width:360px;padding:11px 17px;
+ display:flex;justify-content:space-between;align-items:center;border-radius:100px;
+ background:#160d2d;border:1px solid #a78bfaaa;color:#c5d2f0;font-weight:900}
+.ultimon-ban-progress strong{font-size:23px;color:#fbd98f}
+.ultimon-ban-participants{display:flex;gap:9px;flex-wrap:wrap;align-items:center;justify-content:center}
+.ultimon-ban-human{display:flex;gap:8px;align-items:center;text-align:left;padding:8px 11px;
+ border:1px solid #8694ca80;background:#0d1333c9;border-radius:13px;min-width:125px;max-width:185px}
+.ultimon-ban-human--ready{border-color:#46e7b3;background:#06574460}
+.ultimon-ban-human img{width:39px;height:39px;object-fit:contain;border-radius:9px;flex-shrink:0;background:#172142}
+.ultimon-ban-human>span{font-size:25px}
+.ultimon-ban-human div{display:grid;gap:3px;min-width:0}
+.ultimon-ban-human b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ultimon-ban-human small{font-size:10px;color:#bdc5de}
+.ultimon-ban-human--ready small{color:#8dffcd}
+.ultimon-ban-board{border:1px solid #fb7185a6;background:linear-gradient(130deg,#360e25,#130e29);
+ border-radius:22px;padding:18px;box-shadow:inset 0 0 25px #be123c24}
+.ultimon-ban-board h3{font-size:14px;letter-spacing:.1em;color:#fda4af;font-weight:1000;text-align:center;margin-bottom:12px}
+.ultimon-ban-board-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
+.ultimon-ban-excluded{position:relative;display:flex;flex-direction:column;align-items:center;min-width:105px;width:133px;gap:5px;
+ border:1px solid #fb718590;border-radius:13px;padding:8px;background:#1f142d;text-align:center}
+.ultimon-ban-excluded img{height:75px;width:100%;object-fit:contain;filter:grayscale(.9) brightness(.62)}
+.ultimon-ban-excluded strong{font-size:11px;color:#ffe5e5}
+.ultimon-ban-excluded span{font-size:10px;color:#fda4af;font-weight:1000;letter-spacing:.09em}
+.ultimon-ban-picker{border-radius:22px;border:1px solid #67e8f9a1;padding:18px;background:linear-gradient(145deg,#111a3bee,#1b1036eb)}
+.ultimon-ban-picker h3{color:#c9f7ff;font-weight:1000;font-size:clamp(18px,3vw,25px)}
+.ultimon-ban-picker>p{color:#b8cbe6;margin:7px 0 14px;font-size:13px}
+.ultimon-ban-picker>label{display:block;margin:11px 0 6px;color:#f8e5ff;font-size:12px;font-weight:900}
+.ultimon-ban-search{display:block;width:100%;max-width:430px;background:#030a1c;border:1px solid #7d99d9;
+ color:#fff;border-radius:12px;font-size:15px;padding:12px 13px}
+.ultimon-ban-search:focus-visible{outline:3px solid #f0abfc}
+.ultimon-ban-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(137px,1fr));
+ gap:12px;max-height:min(54vh,600px);overflow-y:auto;overscroll-behavior:contain;
+ padding:9px 3px;scrollbar-color:#b77af5 #111329}
+.ultimon-ban-card{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;padding:10px;
+ border:2px solid #6679a38f;border-radius:16px;background:linear-gradient(145deg,#161e3b,#111328);
+ text-align:center;transition:transform .18s,border-color .18s,box-shadow .18s}
+.ultimon-ban-card:hover{border-color:#e9a3ff;transform:translateY(-3px)}
+.ultimon-ban-card--selected{border-color:#fbbf24;background:linear-gradient(135deg,#663c75,#331839);
+ box-shadow:0 0 22px #facc1566}
+.ultimon-ban-image{width:100%;height:117px;display:grid;place-items:center}
+.ultimon-ban-image img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 9px #0008)}
+.ultimon-ban-card strong{font-size:13px;color:#fff;line-height:1.2;min-height:30px;overflow-wrap:anywhere}
+.ultimon-ban-card small{color:#b4c9ed;font-size:10px}
+.ultimon-ban-card span{margin-top:auto;font-size:10px;font-weight:900;color:#e9a6fa}
+.ultimon-ban-card--selected span{color:#fcd34d}
+.ultimon-ban-noresults{grid-column:1/-1;color:#b9c5da;padding:22px;text-align:center}
+.ultimon-ban-confirm{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+ border-top:1px solid #747cbd7a;margin-top:13px;padding-top:15px}
+.ultimon-ban-confirm p{color:#e5ddff;font-size:13px;max-width:470px}
+.ultimon-ban-confirm .ultimon-action{margin:0}
+.ultimon-ban-compact{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;
+ background:#390e248c;border:1px solid #f43f5e71;border-radius:14px;padding:9px 13px;margin-bottom:12px}
+.ultimon-ban-compact>span{color:#fda4af;font-weight:1000;font-size:11px;letter-spacing:.1em}
+.ultimon-ban-compact>div{display:flex;align-items:center;gap:6px;border:1px solid #fb718588;border-radius:9px;padding:4px 8px;
+ background:#090b24;color:#e8cad5;font-size:11px}
+.ultimon-ban-compact img{width:26px;height:26px;object-fit:contain;filter:grayscale(.7)}
+@media(max-width:680px){.ultimon-ban-hero{padding:19px 12px}.ultimon-ban-picker{padding:12px}
+ .ultimon-ban-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .ultimon-ban-image{height:105px}.ultimon-ban-card{padding:7px}
+ .ultimon-ban-confirm{justify-content:center;text-align:center}
+ .ultimon-ban-human{min-width:140px}.ultimon-ban-excluded{width:100px;min-width:100px}}
+@media(prefers-reduced-motion:reduce){.ultimon-ban-card{transition:none}}
