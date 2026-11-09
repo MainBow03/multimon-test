@@ -135,10 +135,11 @@ export function EventClassicBattleView({battle,settings,participants=[],currentU
    if(index===undefined||targetingMoveIdx===null)return;
    moveSelection({type:'attack',moveIdx:targetingMoveIdx,targetPlayer:targetRole,targetIdx:index});
  };
- const send=()=>{
+ const send=async()=>{
    if(!totalDone||busy||submitted)return;
    setSubmitted(true);
-   submit(active.map(u=>moveDraft[u.key]));
+   try{const ok=await submit(active.map(u=>moveDraft[u.key]));if(ok===false)setSubmitted(false)}
+   catch(error){setSubmitted(false);console.error('Invio comandi torneo:',error)}
  };
  const log=(battle.log||[]).map(text=>({text,type:text.includes(' KO')?'faint':
     text.includes('recupera')?'heal':text.includes('danni')?'damage':'normal'}));
