@@ -16,7 +16,7 @@ export const ULTIMON_COLORS = [
  {name:'Grigio argento',hex:'#94a3b8'},{name:'Indaco',hex:'#4f46e5'}
 ];
 export const ULTIMON_STAGES = [
- 'ultimon_showcase','ultimon_intro','ultimon_pair','ultimon_format','ultimon_pick',
+ 'ultimon_ban','ultimon_showcase','ultimon_intro','ultimon_pair','ultimon_format','ultimon_pick',
  'ultimon_result','ultimon_elimination','ultimon_recap','ultimon_final'
 ];
 const ROLES=['p1','p2','p3','p4','p5','p6','p7','p8'];
@@ -53,9 +53,14 @@ export function createUltimonShowcase(room,draft=room.draft){
  const players=ultimonPlayers(room);
  if(players.length<4||players.length>8)throw new Error('Ultimon richiede da 4 a 8 partecipanti.');
  const roster={},identities={},stats={};
+ const forbidden=new Set(Object.values(room.ultimonBans?.votes||{}).filter(Boolean));
+ if(room.ultimonBans && players.some(role=>!room.isBot?.[role]&&!room.ultimonBans?.votes?.[role]))
+  throw new Error('La fase di ban non è completa.');
  players.forEach((role,index)=>{
   const team=draft?.[role]||[];
   if(team.length!==room.settings.teamSize)throw new Error('Squadra incompleta: '+(room.players[role]||role));
+  if(team.some(char=>forbidden.has(char?.id)))
+   throw new Error('Squadra contenente un Multimon bannato: '+(room.players[role]||role));
   roster[role]=team.map(c=>prepareUltimonFighter(c,room,role));
   identities[role]={name:room.isBot?.[role]?BOT_NAMES[index]:'',
     color:ULTIMON_COLORS[index].hex,ready:!!room.isBot?.[role]};
