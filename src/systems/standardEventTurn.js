@@ -162,6 +162,6 @@ export function resolveEventWithStandardEngine(b,submissions,settings){
    rebuilt.A.reduce((sum,u)=>sum+Math.max(0,u.hp||0),0)>=
    rebuilt.B.reduce((sum,u)=>sum+Math.max(0,u.hp||0),0)?'A':'B';
   next.log.push('🏆 Vittoria della squadra '+next.winner+'!');
- }else next.side=b.side==='A'?'B':'A';
+ }else next.side=b.side==='both'?'both':b.side==='A'?'B':'A';
  return next;
 }
