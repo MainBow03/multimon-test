@@ -98,10 +98,12 @@ export function translateTournamentCommands(b,submissions,converted){
      .find(t=>t.hp>0);
    const enemy=fallback?location.get(fallback.key):null;
    const isSupport=move.targetMode==='ally'||move.targetMode==='revive';
+   const isSelfOrTeam=move.target==='self'||['team','team_smart_heal'].includes(move.targetMode)
+     ||!!move.isProtect||!!move.isSummon||!!move.randomSummon;
    const legal=target &&(isSupport?
      (b.owners.A.includes(target.uid)===b.owners.A.includes(uid)):
      (b.owners.A.includes(target.uid)!==b.owners.A.includes(uid)));
-   const recipient=legal?target:isSupport?actor:enemy;
+   const recipient=isSelfOrTeam?actor:legal?target:isSupport?actor:enemy;
    const selectedTargets=(Array.isArray(command.selectedTargets)?command.selectedTargets:[])
      .map(key=>location.get(key))
      .filter(item=>item &&(b.owners.A.includes(item.uid)!==b.owners.A.includes(uid)))
