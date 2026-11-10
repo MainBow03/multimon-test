@@ -163,7 +163,7 @@ test('Al refresh stesso account conserva la sessione e non sovrascrive il turno 
  const acct=readFileSync(new URL('../src/components/AccountGate.jsx',import.meta.url),'utf8');
  const app=readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8');
  const battle=readFileSync(new URL('../src/systems/battleSystem.js',import.meta.url),'utf8');
- assert.ok(acct.includes('stored.playerUid===uid'));
+ assert.ok(acct.includes('shouldKeepSessionOnAuthRestore(stored,uid,priorUid)'));
  assert.ok(app.includes('playerUid: user?.uid||null'));
  assert.ok(app.includes('roomRoleForUid')===false||app.includes('playerUids?.[playerRole]'));
  assert.ok(app.includes('playbackKeyRef.current===key'));
