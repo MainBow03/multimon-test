@@ -30,7 +30,6 @@ if (appMode === 'campaign_team_select') {
         let maxTeamSize = 4;
         if (isFinalRaid) maxTeamSize = 20;
         if (isSecondCampaign) maxTeamSize = 8;
-        if (activeCampaignId === 'eco_anime') maxTeamSize = 6;
         
         const sector = activeCampaign.sectors[campaignState.sectorIdx] || activeCampaign.sectors[0];
         const mission = sector.missions[campaignState.missionIdx] || sector.missions[0];
@@ -385,8 +384,9 @@ if (appMode === 'campaign_team_select') {
             if (campaignState.currentBossState && campaignState.currentBossState.length > 0 &&
                 // Dopo la revisione a sei nemici un vecchio checkpoint con 2-3
                 // nemici non deve svuotare la nuova squadra.
-                (!mission.echoMission || (campaignState.echoChallengeVersion===mission.echoChallengeVersion &&
-                  campaignState.echoChallengeMissionId===mission.id))) {
+                (!mission.echoMission || !['eco_34','eco_35'].includes(mission.id) ||
+                  (campaignState.echoChallengeVersion===mission.echoChallengeVersion &&
+                   campaignState.echoChallengeMissionId===mission.id))) {
                 // FIX CRITICO: Ignora il salvataggio vecchio se avevi già perso contro Groot e Snorlax PRIMA dell'aggiornamento
                 const isOldM24Save = mission.id === 'm24' && campaignState.currentBossState.length <= 2 && !campaignState.currentBossState.some(c => ['piantacarnivora', 'cespugliomaledetto', 'alberto', 'fioretenebroso'].includes(c.id));
                 
