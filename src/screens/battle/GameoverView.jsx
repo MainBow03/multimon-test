@@ -170,6 +170,10 @@ if (gameState.status === 'gameover') {
                                         if (aliveEnemies.length > 0) {
                                             currentEnemyState = aliveEnemies.map(c => ({
                                                 id: c.id,
+                                                name: c.name,
+                                                imageFilter: c.imageFilter || null,
+                                                isEchoPuppet: !!c.isEchoPuppet,
+                                                echoCloneLabel: c.echoCloneLabel || null,
                                                 hp: c.hp,
                                                 maxHp: c.maxHp,
                                                 atk: c.atk,
