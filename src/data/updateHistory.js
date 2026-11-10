@@ -13,6 +13,18 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov10-echomax-soul-trio-ensemble-dialogues',category:'features',date:'10/11/2026',
+    title:'🌌 Echomax: anime di Goku, Naruto e Luffy e finale corale',items:[
+      'Nella missione 36 Echomax affronta la Resistenza con tre aiutanti: Anima di Goku, Anima di Naruto e Anima di Luffy, ciascuno con PNG dall’aura viola, mosse originali e statistiche proprie.',
+      'Le anime sono alleate finite, non boss aggiuntivi: una volta sconfitte si liberano e non tornano. La vittoria resta legata al KO di Echomax anche se le anime sono ancora vive.',
+      'Restano invariati i 24 compagni della Resistenza, i 6 titolari in campo, le 18 riserve e la passiva Legione dei Caduti di Echomax.',
+      'Nuovi dialoghi di gruppo in molti atti: parlano tra loro Neon, Sage, Carlos, Leon, Perla, Garnet, Robin, Corvina, Bumblebee, Stellarubia, Ember, Nicole, Darwin, Meliodas, Ban, Cell, Bugs, Daffy, Penny, Brago, Zatch e altri.',
+      'La conversazione prima dello scontro finale è molto più lunga: Echomax risponde alle obiezioni degli eroi e le tre anime prigioniere hanno proprie battute.',
+      'Durante la battaglia finale si attivano scambi di dialogo al 75%, 50% e 25% dei PS di Echomax, una volta per soglia; dopo la vittoria c’è un epilogo corale esteso.',
+      'Prima del raid appare un pannello con i PNG dei tre aiutanti e la regola dei KO definitivi. I checkpoint riconoscono il nuovo roster e conservano il progresso delle anime sconfitte e delle battute già ascoltate.',
+      'I due scontri pre-boss da sei nemici rimangono esclusivamente le missioni 34 e 35; le missioni 1–33 mantengono le squadre precedenti.'
+    ]},
+
   {id:'nov10-echo-only-two-preboss-squads',category:'improvements',date:'10/11/2026',
     title:'🌌 Terza campagna: due scontri pre-boss da sei e una trama più intensa',items:[
       'Solo le missioni 34 e 35, subito prima di Echomax, hanno squadre nemiche da sei Multimon. Le missioni 1–33 mantengono tutte le loro formazioni originali.',
