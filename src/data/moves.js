@@ -167,7 +167,7 @@ export const MOVES_DB = {
           'Settimo Kata': { name: 'Settimo Kata', type: 'Aria', power: 85, targetCount: 4, targetStatDebuff: { def: 0.7 }, desc: 'Raffiche devastanti su tutti i nemici. Riduce permanentemente la loro Difesa del 30%.' },
           'Colpo Karate': { name: 'Colpo Karate', type: 'Lotta', power: 60, desc: 'Un attacco marziale diretto, semplice e potente.' },
 
-          'Riflesso Team': { name: 'Riflesso', type: 'Magico', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 5 }, desc: 'Crea una barriera di luce magica. Moltiplica la Difesa di tutto il team x3 per 5 turni.' },
+          'Riflesso Team': { name: 'Riflesso', type: 'Magico', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 5 }, desc: 'Crea una barriera di luce magica. Riduce del 45% i danni subiti dal team per 5 turni.' },
           'Sorriso Luminoso': { name: 'Sorriso Luminoso', type: 'Normale', power: 0, targetMode: 'team', removeNegativeStatuses: true, desc: 'Un sorriso abbagliante che cura chi la usa e tutti gli alleati da qualsiasi alterazione di stato negativa.' },
           'Faccino carino!': { name: 'Faccino carino!', type: 'Normale', power: 0, maxUses: 3, targetStatDebuff: { atk: 0.5 }, desc: 'Sfrutta la tenerezza per abbassare la guardia del nemico, dimezzandone permanentemente l\'Attacco. (3 utilizzi)' },
           'Tsunami dolce': { name: 'Tsunami dolce', type: 'Acqua', power: 80, desc: 'Travolge il nemico con una massiccia e inaspettata onda zuccherata.' },
@@ -314,7 +314,7 @@ export const MOVES_DB = {
 
           // NUOVE MOSSE CORVINA
           'Azarath Metrion Zinthos': { name: 'Azarath Metrion Zinthos', type: 'Oscuro', power: 120, recharge: true, desc: 'Sprigiona il potere demoniaco. Danni estremi, ma necessita di ricarica il turno successivo.' },
-          'Scudo d\'Ombra': { name: 'Scudo d\'Ombra', type: 'Oscuro', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 4 }, desc: 'Avvolge il team nelle ombre moltiplicando la Difesa x3 per 4 turni.' },
+          'Scudo d\'Ombra': { name: 'Scudo d\'Ombra', type: 'Oscuro', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 4 }, desc: 'Avvolge il team nelle ombre, riducendo del 45% i danni subiti per 4 turni.' },
           'Telecinesi Oscura': { name: 'Telecinesi Oscura', type: 'Magico', power: 80, statusEffect: { type: 'Confuso', chance: 0.3 }, desc: 'Scaglia oggetti con la mente. 30% di probabilità di confondere.' },
           'Assorbimento Animico': { name: 'Assorbimento Animico', type: 'Oscuro', power: 70, drain: 0.5, desc: 'Attacca l\'anima del bersaglio, assorbendo il 50% dei danni inflitti per curarsi.' },
           'Luce di Azarath': { name: 'Luce di Azarath', type: 'Magico', power: 120, selfHeal: 0.5, removeNegativeStatuses: true, maxUses: 2, desc: 'Sprigiona il potere puro della Corvina Bianca. Infligge danni enormi, si cura del 50% e si purifica dagli status negativi. (2 utilizzi)' },
@@ -470,7 +470,7 @@ export const MOVES_DB = {
           // NUOVE MOSSE ASTRAL
           'Pesca del Destino': { name: 'Pesca del Destino', type: 'Magico', power: 0, target: 'self', statBuff: { atk: 1.5, spd: 1.5 }, heal: 0.2, desc: 'La carta perfetta! Si cura del 20% dei PS e aumenta Attacco e Velocità del 50%.' },
           'Potere dei Numeri': { name: 'Potere dei Numeri', type: 'Magico', power: 100, ignoreDefBuffs: true, desc: 'Sprigiona il potere cosmico di un mostro Numero, ignorando le difese.' },
-          'Rete di Sovrapposizione': { name: 'Rete di Sovrapposizione', type: 'Magico', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 4 }, targetStatBuff: { atk: 1.3 }, desc: 'Scudo tattico: protegge il team per 4 turni e aumenta l\'Attacco del 30% a tutti.' },
+          'Rete di Sovrapposizione': { name: 'Rete di Sovrapposizione', type: 'Magico', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 4 }, targetStatBuff: { atk: 1.3 }, desc: 'Scudo tattico: riduce del 45% i danni subiti dal team per 4 turni e aumenta l\'Attacco del 30% a tutti.' },
           'Analisi Tattica': { name: 'Analisi Tattica', type: 'Magico', power: 0, targetStatDebuff: { atk: 0.5, def: 0.5 }, desc: 'Studia freddamente l\'avversario: dimezza permanentemente il suo Attacco e la sua Difesa.' },
           'Assorbimento Tenebroso': { name: 'Assorbimento Tenebroso', type: 'Oscuro', power: 70, drain: 0.25, desc: 'Dark Mist ruba energia vitale. Recupera il 25% dei danni inflitti.' },
 
@@ -524,7 +524,7 @@ export const MOVES_DB = {
 
           // NUOVE MOSSE IRIS
           'Cristallo di Ephedia': { name: 'Cristallo di Ephedia', type: 'Magico', power: 85, desc: 'Scaglia una solida lancia di cristallo magico contro il bersaglio.' },
-          'Scudo Cristallino': { name: 'Scudo Cristallino', type: 'Magico', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 4 }, desc: 'Avvolge gli alleati in una barriera di cristallo, proteggendoli per 4 turni (moltiplica Difesa x3).' },
+          'Scudo Cristallino': { name: 'Scudo Cristallino', type: 'Magico', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 4 }, desc: 'Avvolge gli alleati in una barriera di cristallo: danni subiti ridotti del 45% per 4 turni.' },
           'Voce della Principessa': { name: 'Voce della Principessa', type: 'Magico', power: 0, targetMode: 'team_smart_heal', healAlone: 0.5, healTeam: 0.3, removeNegativeStatuses: true, desc: 'Canta una dolce melodia che cura il team del 30% (50% se sola) e purifica da ogni status negativo.' },
           'Trasformazione Shanila': { name: 'Trasformazione Shanila', type: 'Magico', power: 0, target: 'self', statBuff: { atk: 1.5, spd: 1.5 }, maxUses: 1, desc: 'Raggiunge lo stadio Shanila! Sprigiona il suo vero potere aumentando Attacco e Velocità del 50%. (1 utilizzo)' },
           
@@ -698,7 +698,7 @@ export const MOVES_DB = {
           'Fata protettiva': { name: 'Fata protettiva', type: 'Magico', power: 0, targetMode: 'team', statusEffect: { type: 'Protetto', turns: 1 }, priority: 5, maxUses: 1, strictUses: true, desc: 'Difende tutti i compagni in campo da ogni attacco. (Solo 1 utilizzo)' },
           'Spirito!': { name: 'Spirito!', type: 'Aria', power: 0, targetMode: 'team', targetStatBuff: { spd: 1.5 }, maxUses: 2, desc: 'Energia spirituale che aumenta la Velocità di tutti gli alleati del 50%. (2 utilizzi)' },
           'ha,ha,ha!': { name: 'ha,ha,ha!', type: 'Suono', power: 0, targetMode: 'team', removeNegativeStatuses: true, desc: 'Una risata magica che cura solo gli effetti di stato negativi degli alleati in campo (non cura i PS).' },
-          'Schermoluce': { name: 'Schermoluce', type: 'Magico', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 3 }, maxUses: 3, desc: 'Genera uno schermo di luce. Protegge il team dimezzando i danni subiti per 3 turni. (3 utilizzi)' },
+          'Schermoluce': { name: 'Schermoluce', type: 'Magico', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 3 }, maxUses: 3, desc: 'Genera uno schermo di luce. Protegge il team riducendo del 45% i danni subiti per 3 turni. (3 utilizzi)' },
 
           // NUOVE MOSSE BORT, SAILOR MERCURY E ALPHONSE
           'Capelli di Diamante': { name: 'Capelli di Diamante', type: 'Roccia', power: 90, desc: 'Usa i suoi capelli resistentissimi come fruste letali.' },
@@ -711,7 +711,7 @@ export const MOVES_DB = {
 
           'Alchimia Metallica': { name: 'Alchimia Metallica', type: 'Robot', power: 80, desc: 'Trasmuta l\'ambiente circostante in armi acuminate.' },
           'Pugno d\'Acciaio': { name: 'Pugno d\'Acciaio', type: 'Lotta', power: 90, statusEffect: { type: 'Stordito', chance: 0.2 }, desc: 'Un pugno pesantissimo sferrato con l\'armatura. 20% di stordire.' },
-          'Muro Terrestre': { name: 'Muro Terrestre', type: 'Roccia', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 3 }, desc: 'Trasmuta un muro di roccia che protegge il team per 3 turni.' },
+          'Muro Terrestre': { name: 'Muro Terrestre', type: 'Roccia', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 3 }, desc: 'Trasmuta un muro di roccia che riduce del 45% i danni subiti dal team per 3 turni.' },
           'Pilastro di Terra': { name: 'Pilastro di Terra', type: 'Terra', power: 85, desc: 'Sfrutta l\'alchimia per far scaturire un enorme pilastro di terra sotto il nemico.' },
 
           // NUOVE MOSSE SHREK
@@ -731,7 +731,7 @@ export const MOVES_DB = {
           // NUOVE MOSSE PERIDOT E SHINOBU
           'Dita Laser': { name: 'Dita Laser', type: 'Robot', power: 30, multiHit: { min: 2, max: 4 }, desc: 'Spara raffiche laser dai suoi potenziamenti. Colpisce da 2 a 4 volte.' },
           'Ferrocinesi': { name: 'Ferrocinesi', type: 'Psico', power: 85, statusEffect: { type: 'Stordito', chance: 0.3 }, desc: 'Usa la telecinesi per scagliare metallo pesante. 30% di prob. stordire.' },
-          'Campo Magnetico': { name: 'Campo Magnetico', type: 'Robot', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 4 }, desc: 'Genera un campo magnetico che protegge il team per 4 turni.' },
+          'Campo Magnetico': { name: 'Campo Magnetico', type: 'Robot', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 4 }, desc: 'Genera un campo magnetico che riduce del 45% i danni subiti dal team per 4 turni.' },
           'Siete dei Clod!': { name: 'Siete dei Clod!', type: 'Suono', power: 0, targetCount: 4, targetStatDebuff: { def: 0.6, spd: 0.6 }, desc: 'Un insulto alieno esilarante che riduce drasticamente Difesa e Velocità dei nemici.' },
 
           'Danza della Farfalla': { name: 'Danza della Farfalla', type: 'Insetto', power: 75, speedScaling: true, desc: 'Un fendente acrobatico ad altissima velocità. Il danno scala con la Velocità.' },
@@ -791,7 +791,7 @@ export const MOVES_DB = {
           // NUOVE MOSSE WEISS
           'Stoccata di Ghiaccio': { name: 'Stoccata di Ghiaccio', type: 'Ghiaccio', power: 75, statusEffect: { type: 'Congelato', chance: 0.20 }, desc: 'Un affondo rapido con Myrtenaster. 20% di probabilità di congelare il bersaglio.' },
           'Frammenti di Neve Weiss': { name: 'Frammenti di Neve', type: 'Ghiaccio', power: 20, multiHit: { min: 2, max: 8 }, desc: 'Lancia innumerevoli schegge di ghiaccio pungenti. Colpisce da 2 a 8 volte in rapida successione.' },
-          'Glifo di Barriera': { name: 'Glifo di Barriera', type: 'Magico', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 3 }, targetStatBuff: { def: 1.3 }, desc: 'Crea uno scudo magico che protegge tutto il team aumentando la Difesa del 30% per 3 turni.' },
+          'Glifo di Barriera': { name: 'Glifo di Barriera', type: 'Magico', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 3 }, targetStatBuff: { def: 1.3 }, desc: 'Crea uno scudo magico che riduce del 45% i danni subiti dal team per 3 turni, aumentando inoltre la Difesa del 30%.' },
           'Glifo di Accelerazione': { name: 'Glifo di Accelerazione', type: 'Magico', power: 0, target: 'self', statBuff: { spd: 2.0 }, priority: 1, desc: 'Crea un glifo sotto di sé. Raddoppia la Velocità (+100%) e colpisce sempre per prima in questo turno.' },
           'Overdrive': { name: 'Overdrive', type: 'Elettro', power: 120, targetCount: 4, maxUses: 2, desc: 'Scatena l\'energia accumulata per folgorare tutti i bersagli in campo! (2 utilizzi)' },
 
