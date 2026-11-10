@@ -1,5 +1,6 @@
 import {echoEncounterRoster,echoEnemyFieldSize,echoEncounterBriefing,ECHO_CHALLENGE_VERSION} from '../systems/echoChallenge.js';
 import {echoEnrichedDialogue} from './echoStoryDepth.js';
+import {ECHO_FINAL_ENEMY_IDS} from '../systems/echoFinalSouls.js';
 // MULTIMON III — L'Eco delle Anime. Terzo capitolo narrativo, 36 missioni.
 // I personaggi indicati in unlock entrano nella Resistenza SOLO dopo la vittoria.
 export const ECHO_STARTERS=['jake','marceline'];
@@ -314,15 +315,15 @@ const chapters=[
    ['Jake il Cane','Ventiquattro eroi. E due fondatori di nuovo liberi.'],
    ['Finn l\'Umano','Adesso andiamo a fermare quell’essere. Per tutti i mondi.']
   ]],
-  ['ECHOMAX — Il Dominatore del Multiverso',['echomax'],[],[
+  ['ECHOMAX — Il Dominatore del Multiverso',[...ECHO_FINAL_ENEMY_IDS],[],[
    ['Echomax','Cinque secoli ad ascoltare le vostre guerre. La libertà non ha prodotto altro che caos.'],
    ['Topolino','Non puoi chiamare pace un mondo in cui nessuno è libero.'],
    ['Finn l\'Umano','E questa volta non siamo soli! La Resistenza è tornata, più grande di prima!'],
    ['Jake il Cane','Guardati attorno, Echomax. Siamo tutti qui. Tutti e ventiquattro!'],
-   ['Marceline','Niente più copie, niente più burattini. Stavolta combatti contro le persone vere.'],
-   ['Echomax','Allora ventiquattro anime diventeranno il cuore della mia Legione.']
+   ['Marceline','Siamo qui con la nostra volontà. Qualunque anima ci opporrai, non dimenticheremo chi siamo.'],
+   ['Echomax','Allora ventiquattro anime diventeranno il cuore della mia Legione. E incontrerete tre volontà che credevate impossibili da piegare.']
   ],[
-   ['Echomax','I... m... p... o... s... s... i... b... i... l... e... L... a... v... o... l... o... n... t... à...'],
+   ['Echomax','La vostra volontà... ha resistito anche alle anime dei più forti...']
    ['Gaster','I... l... s... i... g... i... l... l... o... è... p... r... o... n... t... o...'],
    ['Cell','Non potrai più usare gli abitanti di questo universo come giocattoli. E sì, mi irrita dovertelo spiegare.'],
    ['Topolino','Amici, avete salvato ancora una volta il multiverso.'],
