@@ -174,6 +174,8 @@ if (gameState.status === 'gameover') {
                                                 imageFilter: c.imageFilter || null,
                                                 isEchoPuppet: !!c.isEchoPuppet,
                                                 echoCloneLabel: c.echoCloneLabel || null,
+                                                isEchoSoulGuardian: !!c.isEchoSoulGuardian,
+                                                echoFinalDialogueStages: c.echoFinalDialogueStages || [],
                                                 hp: c.hp,
                                                 maxHp: c.maxHp,
                                                 atk: c.atk,
