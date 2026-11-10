@@ -32,15 +32,19 @@ export function createEchoFinalSoul(base){
   isEchoSoulGuardian:true,isSummonOnly:false,isEchoCopy:false,
   soulMasterId:'echomax',echoSoulPermanentDefeat:true};
 }
-// Il boss è l'obiettivo del raid; aiutanti e copie non prolungano la battaglia
-// dopo il KO di Echomax, e la loro sconfitta non fa terminare il raid.
+// Nel terzo atto del finale contano le anime corrotte dei nostri compagni;
+// Goku, Naruto e Luffy restano aiutanti e non bloccano la vittoria.
 export function echoFinalBossAlive(enemies=[]){
  return enemies.some(e=>e?.id==='echomax'&&Number(e.hp)>0);
 }
-export function echoFinalVictory({isEchoFinalBattle=false,heroes=[],enemies=[]}={}){
+export function echoFinalVictory({isEchoFinalBattle=false,heroes=[],enemies=[],stage='raid'}={}){
  if(!isEchoFinalBattle)return null;
  const heroesAlive=heroes.some(c=>c&&c.hp>0&&!c.isSummonOnly);
- const bossAlive=echoFinalBossAlive(enemies);
+ const bossAlive=stage==='souls'
+  ?enemies.some(c=>c?.isEchoCorruptedSoul&&Number(c.hp)>0)
+  :stage==='normal'
+    ?enemies.some(c=>c?.id==='echomax'&&c.echoFinalForm==='normal'&&Number(c.hp)>0)
+    :echoFinalBossAlive(enemies);
  if(!heroesAlive&&!bossAlive)return 'draw';
  if(!heroesAlive)return 'boss';
  if(!bossAlive)return 'heroes';
