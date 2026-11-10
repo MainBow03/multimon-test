@@ -22,7 +22,7 @@ import { activateRoguelikeBossShield } from './roguelikeBossPower.js';
 import { createBattleReport, accumulateBattleReport } from './battleReport.js';
 import {createBattlePlaybackSnapshot,applySummonPlaybackEvent} from './battleSummonPlayback.js';
 import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
-import {echoFinalVictory} from './echoFinalSouls.js';
+import {echoFinalVictory,isEchoRaidAccuracyProtected} from './echoFinalSouls.js';
 import {emitEchoFinalStoryBeats,echoSoulReleaseDialogue} from './echoFinalStoryBeats.js';
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
@@ -314,7 +314,7 @@ const { CHARACTERS } = ctx;
                           const sType = char.passive.applyStatusToRandomEnemy.type;
                           
                           const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'].includes(sType);
-                          if (isNegative && (rTarget.char.passive?.immuneToNegativeStatuses || blockedEnemyPassive(rTarget.char))) {
+                          if (isNegative && (rTarget.char.passive?.immuneToNegativeStatuses || blockedEnemyPassive(rTarget.char) || (sType==='Accecato'&&isEchoRaidAccuracyProtected(rTarget.char)))) {
                               eventsArr.push({ type: 'text', text: `🛡️ ${char.name} attiva ${char.passive.name}, ma ${rTarget.char.name} è immune a ${sType} grazie a ${rTarget.char.passive?.name||'Scudo Anti-Magia'}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                           } else {
                               const existingIdx = rTarget.char.statuses.findIndex(s => s.type === sType);
@@ -1892,8 +1892,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     continue;
                 }
 
-                let finalAccuracy = (move.accuracy !== undefined ? move.accuracy : 1.0) * (attacker.acc || 1.0);
-                if (attacker.statuses?.some(s=>s.type==='Accecato')) finalAccuracy *= 0.8;
+                let finalAccuracy = (move.accuracy !== undefined ? move.accuracy : 1.0) * (isEchoRaidAccuracyProtected(attacker) ? 1 : (attacker.acc || 1.0));
+                if (!isEchoRaidAccuracyProtected(attacker) && attacker.statuses?.some(s=>s.type==='Accecato')) finalAccuracy *= 0.8;
                 if (finalAccuracy < 1.0 && Math.random() > finalAccuracy) {
                     events.push({ type: 'text', text: `${attacker.name} usa ${move.name}, ma manca clamorosamente il bersaglio!` });
                     
@@ -2447,8 +2447,9 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                     }
                                 }
                                 if (move.hitStatDebuff.spd) { applyBattleStatModifier(t.char, 'spd', move.hitStatDebuff.spd); statTexts.push("la Velocità"); }
-                                if (move.hitStatDebuff.acc) { t.char.acc = (t.char.acc || 1.0) * hakiStatDebuffMultiplier(t.char,move.hitStatDebuff.acc); statTexts.push("la Precisione"); }
-                                events.push({ type: 'text', text: `Il colpo riduce ${statTexts.join(" e ")} di ${t.char.name}!` });
+                                if (move.hitStatDebuff.acc && !isEchoRaidAccuracyProtected(t.char)) { t.char.acc = (t.char.acc || 1.0) * hakiStatDebuffMultiplier(t.char,move.hitStatDebuff.acc); statTexts.push("la Precisione"); }
+                                if (statTexts.length) events.push({ type: 'text', text: `Il colpo riduce ${statTexts.join(" e ")} di ${t.char.name}!` });
+                                else if(move.hitStatDebuff.acc && isEchoRaidAccuracyProtected(t.char)) events.push({type:'text',text:'🛡️ Aura Suprema: Echomax è immune alla riduzione di Precisione!'});
                             }
 
                             if (t.char.isRoguelikeBoss) {
@@ -2574,8 +2575,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             }
                             if (move.targetStatDebuff.def) { applyBattleStatModifier(t.char, 'def', move.targetStatDebuff.def); statTexts.push("Difesa"); }
                             if (move.targetStatDebuff.spd) { applyBattleStatModifier(t.char, 'spd', move.targetStatDebuff.spd); statTexts.push("Velocità"); }
-                            if (move.targetStatDebuff.acc) { t.char.acc = (t.char.acc || 1.0) * hakiStatDebuffMultiplier(t.char,move.targetStatDebuff.acc); statTexts.push("Precisione"); }
-                            if (move.targetStatDebuff.accFlat) { t.char.acc = Math.max(0.1, (t.char.acc || 1.0) - move.targetStatDebuff.accFlat * (t.char.id==='luffy' && t.char.hakiGuardTurns>0?0.5:1)); statTexts.push("Precisione"); }
+                            if (move.targetStatDebuff.acc && !isEchoRaidAccuracyProtected(t.char)) { t.char.acc = (t.char.acc || 1.0) * hakiStatDebuffMultiplier(t.char,move.targetStatDebuff.acc); statTexts.push("Precisione"); }
+                            if (move.targetStatDebuff.accFlat && !isEchoRaidAccuracyProtected(t.char)) { t.char.acc = Math.max(0.1, (t.char.acc || 1.0) - move.targetStatDebuff.accFlat * (t.char.id==='luffy' && t.char.hakiGuardTurns>0?0.5:1)); statTexts.push("Precisione"); }
                             if (statTexts.length > 0) {
                                 events.push({ type: 'text', text: `${statTexts.join(" e ")} di ${t.char.name} diminuisce!` });
                             }
@@ -2608,8 +2609,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             }
                             if (move.targetStatDebuff.def) { applyBattleStatModifier(t.char, 'def', move.targetStatDebuff.def); statTexts.push("Difesa"); }
                             if (move.targetStatDebuff.spd) { applyBattleStatModifier(t.char, 'spd', move.targetStatDebuff.spd); statTexts.push("Velocità"); }
-                            if (move.targetStatDebuff.acc) { t.char.acc = (t.char.acc || 1.0) * hakiStatDebuffMultiplier(t.char,move.targetStatDebuff.acc); statTexts.push("Precisione"); }
-                            if (move.targetStatDebuff.accFlat) { t.char.acc = Math.max(0.1, (t.char.acc || 1.0) - move.targetStatDebuff.accFlat * (t.char.id==='luffy' && t.char.hakiGuardTurns>0?0.5:1)); statTexts.push("Precisione"); }
+                            if (move.targetStatDebuff.acc && !isEchoRaidAccuracyProtected(t.char)) { t.char.acc = (t.char.acc || 1.0) * hakiStatDebuffMultiplier(t.char,move.targetStatDebuff.acc); statTexts.push("Precisione"); }
+                            if (move.targetStatDebuff.accFlat && !isEchoRaidAccuracyProtected(t.char)) { t.char.acc = Math.max(0.1, (t.char.acc || 1.0) - move.targetStatDebuff.accFlat * (t.char.id==='luffy' && t.char.hakiGuardTurns>0?0.5:1)); statTexts.push("Precisione"); }
                             if (statTexts.length > 0) {
                                 events.push({ type: 'text', text: `${statTexts.join(" e ")} di ${t.char.name} diminuisce!` });
                             }
@@ -2789,6 +2790,10 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
 
                         let effects = move.statusEffects || (move.statusEffect ? [move.statusEffect] : []);
                         for (let effect of effects) {
+                            if(effect.type==='Accecato'&&isEchoRaidAccuracyProtected(t.char)){
+                                events.push({type:'text',text:'🛡️ Aura Suprema: Echomax è immune all’accecamento e ai cali di Precisione!'});
+                                continue;
+                            }
                             const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'].includes(effect.type);
                             
                             // FIX CRITICO: Se la mossa non ha una "chance" specificata, assumiamo che sia 1.0 (100% garantita)!
@@ -3368,7 +3373,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                         const sType = char.passive.enemyStatusEffect.type;
                                         
                                         const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'].includes(sType);
-                                        if (isNegative && (enemy.passive?.immuneToNegativeStatuses || blockedEnemyPassive(enemy))) {
+                                        if (isNegative && (enemy.passive?.immuneToNegativeStatuses || blockedEnemyPassive(enemy) || (sType==='Accecato'&&isEchoRaidAccuracyProtected(enemy)))) {
                                             return; 
                                         }
 
