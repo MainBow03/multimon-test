@@ -323,7 +323,7 @@ const chapters=[
    ['Marceline','Siamo qui con la nostra volontà. Qualunque anima ci opporrai, non dimenticheremo chi siamo.'],
    ['Echomax','Allora ventiquattro anime diventeranno il cuore della mia Legione. E incontrerete tre volontà che credevate impossibili da piegare.']
   ],[
-   ['Echomax','La vostra volontà... ha resistito anche alle anime dei più forti...']
+   ['Echomax','La vostra volontà... ha resistito anche alle anime dei più forti...'],
    ['Gaster','I... l... s... i... g... i... l... l... o... è... p... r... o... n... t... o...'],
    ['Cell','Non potrai più usare gli abitanti di questo universo come giocattoli. E sì, mi irrita dovertelo spiegare.'],
    ['Topolino','Amici, avete salvato ancora una volta il multiverso.'],
