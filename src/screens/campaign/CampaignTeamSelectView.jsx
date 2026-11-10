@@ -7,6 +7,7 @@ import { applyStrengthToFighter, canTrainCharacter } from '../../systems/strengt
 import { finalRaidBossStats, rebalanceSavedFinalRaidBoss } from '../../systems/finalRaidBalance.js';
 import { accumulateBattleReport } from '../../systems/battleReport.js';
 import { applyEchoRouteToTeam } from '../../systems/echoRoutes.js';
+import {echoEnemyScaling,echoPuppetIdentity} from '../../systems/echoChallenge.js';
 import { echoRaidStarters, toggleEchoRaidStarter, orderEchoRaidRoster, isCompleteEchoRaidLineup, ECHO_ACTIVE_LIMIT } from '../../systems/echoRaidLineup.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
@@ -29,6 +30,7 @@ if (appMode === 'campaign_team_select') {
         let maxTeamSize = 4;
         if (isFinalRaid) maxTeamSize = 20;
         if (isSecondCampaign) maxTeamSize = 8;
+        if (activeCampaignId === 'eco_anime') maxTeamSize = 6;
         
         const sector = activeCampaign.sectors[campaignState.sectorIdx] || activeCampaign.sectors[0];
         const mission = sector.missions[campaignState.missionIdx] || sector.missions[0];
@@ -380,7 +382,11 @@ if (appMode === 'campaign_team_select') {
             let p2Team = [];
             let isValidSavedBoss = false;
 
-            if (campaignState.currentBossState && campaignState.currentBossState.length > 0) {
+            if (campaignState.currentBossState && campaignState.currentBossState.length > 0 &&
+                // Dopo la revisione a sei nemici un vecchio checkpoint con 2-3
+                // nemici non deve svuotare la nuova squadra.
+                (!mission.echoMission || (campaignState.echoChallengeVersion===mission.echoChallengeVersion &&
+                  campaignState.echoChallengeMissionId===mission.id))) {
                 // FIX CRITICO: Ignora il salvataggio vecchio se avevi già perso contro Groot e Snorlax PRIMA dell'aggiornamento
                 const isOldM24Save = mission.id === 'm24' && campaignState.currentBossState.length <= 2 && !campaignState.currentBossState.some(c => ['piantacarnivora', 'cespugliomaledetto', 'alberto', 'fioretenebroso'].includes(c.id));
                 
@@ -399,8 +405,10 @@ if (appMode === 'campaign_team_select') {
                     
                     let charInst = {
                         ...JSON.parse(JSON.stringify(baseChar)), 
-                        hp: savedC.hp, 
-                        maxHp: savedC.maxHp, 
+                        hp: savedC.hp,
+                        maxHp: savedC.maxHp,
+                        name: savedC.name || baseChar.name,
+                        ...(savedC.isEchoPuppet?{isEchoPuppet:true,echoCloneLabel:savedC.echoCloneLabel}:{}), 
                         statuses: savedC.statuses || [], 
                         consecutiveProtect: 0,
                         atk: savedC.atk, 
@@ -422,7 +430,7 @@ if (appMode === 'campaign_team_select') {
                              charInst.imageFilter = 'drop-shadow(0 0 20px rgba(220,38,38,1))'; 
                         }
                     } else {
-                        charInst.imageFilter = baseChar.imageFilter || 'none';
+                        charInst.imageFilter = savedC.imageFilter || baseChar.imageFilter || 'none';
                     }
                     
                     // RIPRISTINO ABILITA' DA SUPER-BOSS (JUGGERNAUT, SCUDO E PURIFICAZIONE PASSIVA)
@@ -445,8 +453,11 @@ if (appMode === 'campaign_team_select') {
             } else {
                 // Calcolo scaling progressivo (ogni settore aumenta HP del 5% e Stat del 3%)
                 let progressiveScale = 1 + (campaignState.sectorIdx * 0.05);
+                const echoScaling=mission.echoMission&&!isEchoFinalRaid
+                  ?echoEnemyScaling(mission.echoNumber,{insane:campaignState.difficulty==='Insane'})
+                  :null;
 
-                p2Team = activeBosses.map(id => {
+                p2Team = activeBosses.map((id,enemyIdx) => {
                     let baseChar = CHARACTERS.find(c => c.id === id);
                     
                     // FIX CRITICO: Se l'id del boss manca (es. anomalia non salvata bene), usa uno scheletro per evitare lo SCHERMO NERO
@@ -454,10 +465,10 @@ if (appMode === 'campaign_team_select') {
                         baseChar = CHARACTERS.find(c => c.id === 'scheletro');
                     }
                     
-                    let hpMultiplier = progressiveScale;
+                    let hpMultiplier = echoScaling?.hp ?? progressiveScale;
                     if (isEchoFinalRaid && baseChar.id === 'echomax') hpMultiplier = 1;
-                    if (isFinalRaid) hpMultiplier = 25; // Aumentato da 15 a 25 per resistere a 20 PG
-                    else if (campaignState.difficulty === 'Insane') hpMultiplier *= 1.5; 
+                    if (isFinalRaid) hpMultiplier = 25; // Raid originale della prima campagna
+                    else if (campaignState.difficulty === 'Insane' && !echoScaling) hpMultiplier *= 1.5; 
                     
                     const raidBossBalance=isFinalRaid?finalRaidBossStats(baseChar.id):null;
                     let hp = isEchoFinalRaid && baseChar.id === 'echomax' ? 6200 : raidBossBalance?.maxHp ?? Math.floor(baseChar.maxHp * hpMultiplier);
@@ -472,10 +483,14 @@ if (appMode === 'campaign_team_select') {
                     
                     // Buff Alle Statistiche (Attacco e Difesa scalano in base al settore)
                     if (!isFinalRaid) {
-                         charInst.atk = Math.floor(charInst.atk * (1 + (campaignState.sectorIdx * 0.03)));
+                         charInst.atk = Math.max(1,Math.floor(charInst.atk * (echoScaling?.atk ?? (1 + (campaignState.sectorIdx * 0.03)))));
                          charInst.baseAtk = charInst.atk;
-                         charInst.def = Math.floor(charInst.def * (1 + (campaignState.sectorIdx * 0.03)));
+                         charInst.def = Math.max(1,Math.floor(charInst.def * (echoScaling?.def ?? (1 + (campaignState.sectorIdx * 0.03)))));
                          charInst.baseDef = charInst.def;
+                         if(echoScaling){
+                           charInst.spd=Math.max(1,Math.floor(charInst.spd*echoScaling.spd));
+                           charInst.baseSpd=charInst.spd;
+                         }
                          if (activeCampaignId === 'crisi_varco') {
                              if (baseChar.imageFilter) {
                                  charInst.imageFilter = baseChar.imageFilter; // Mantieni il colore base per i Cell Jr
@@ -519,6 +534,11 @@ if (appMode === 'campaign_team_select') {
                          }
                     }
 
+                    if(mission.echoMission&&!isEchoFinalRaid){
+                        const disguise=echoPuppetIdentity(mission.id,enemyIdx,baseChar);
+                        if(disguise)Object.assign(charInst,disguise);
+                    }
+
                     if(isEchoFinalRaid && charInst.id==='echomax'){
                         // Echomax affronta sei campioni per volta e fino a 24 nell'intero raid.
                         charInst.isEchoRaidBoss=true;
@@ -556,13 +576,17 @@ if (appMode === 'campaign_team_select') {
             }
             
             state.settings = { teamSize: p1Team.length, fieldSize: fSize, echoRaid: isEchoFinalRaid };
+            if(mission.echoMission&&!isEchoFinalRaid && mission.echoAct>=3)
+              state.cpuStyles={...(state.cpuStyles||{}),p2:'tactical'};
             
             state.players.p1 = playerName || "Resistenza";
             state.playerAvatars.p1 = p1Team.length > 0 ? p1Team[0].img : '';
             state.isBot.p1 = false;
             state.inventory.p1 = getPlayerData().inventory; // FIX: Aggiunto caricamento cure in Campagna!
             
-            state.players.p2 = mission.isAnomaly && mission.id === 'm12_5' ? "Team Infetto" : activeBosses.map(id => {
+            state.players.p2 = mission.echoMission&&!isEchoFinalRaid
+              ?(mission.id==='eco_34'?'Legione dell’Eco · Finn':mission.id==='eco_35'?'Legione dell’Eco · Topolino':'Legione dell’Eco')
+              : mission.isAnomaly && mission.id === 'm12_5' ? "Team Infetto" : activeBosses.map(id => {
                  const b = CHARACTERS.find(c=>c.id===id);
                  return b ? b.name : "Sconosciuto";
             }).join(" & ");
@@ -600,6 +624,12 @@ if (appMode === 'campaign_team_select') {
             // ------------------------------------------------------
 
             state.status = 'pre_battle';
+            if(mission.echoMission){
+              setCampaignState(prev=>({...prev,
+                echoChallengeVersion:mission.echoChallengeVersion,
+                echoChallengeMissionId:mission.id
+              }));
+            }
             
             // Nuovo scontro dopo una sconfitta: elimina la UI/animazione
             // rimasta dal combattimento precedente. Non servono altri giocatori.
