@@ -4,6 +4,7 @@ import {EmailAuthProvider,linkWithCredential,onAuthStateChanged,sendPasswordRese
 import {auth,ensurePersistentAuth} from '../firebase/config.js';
 import {downloadCloudSave,uploadCloudSave} from '../firebase/cloudSaves.js';
 import {requiresAccountReauthentication,shouldPromptSaveConflict} from '../systems/authRecovery.js';
+import {shouldKeepSessionOnAuthRestore} from '../systems/sessionPersistence.js';
 import {verifyTournamentVoucher,restoreTournamentProgress} from '../systems/tournamentRecovery.js';
 import {ACTIVE_ACCOUNT_KEY,GUEST_BACKUP_KEY,LOCAL_ACCOUNT_BACKUP_PREFIX,
  collectProgress,progressFingerprint,readLocalBackup,
@@ -57,9 +58,9 @@ export function AccountGate({children}) {
   try{
     const stored=JSON.parse(localStorage.getItem('multiverse_rpg_session')||'null');
     const priorUid=localStorage.getItem(ACTIVE_ACCOUNT_KEY);
-    if(stored?.appMode==='online_room' &&
-       (stored.playerUid===uid || (!stored.playerUid && priorUid===uid))) {
-      // Sessione valida: App confermerà il posto sul documento Firestore.
+    if(shouldKeepSessionOnAuthRestore(stored,uid,priorUid)) {
+      // Battaglia locale: conserva il roster/HP/turno del browser.
+      // Stanza online: App riconfermerà il posto sul documento Firestore.
     }else{
       localStorage.removeItem('multiverse_rpg_session');
     }
