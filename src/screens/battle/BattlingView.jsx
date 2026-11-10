@@ -544,6 +544,13 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                 <div className={`flex-1 p-4 flex flex-col relative overflow-hidden transition-colors duration-700 ${gameState.battleWeather?.type === 'snowstorm' ? 'battlefield-snowstorm' : gameState.battleWeather?.type === 'rainstorm' ? 'battlefield-rainstorm' : gameState.battleWeather?.type === 'lush_grass' ? 'battlefield-lush-grass' : 'bg-slate-950'} ${isPlayingEvents && (feedbackKind === 'ko' || feedbackKind === 'critical') ? 'battle-impact-shake' : ''} ${grandFinale ? 'ultimon-final-battlefield' : ''}`}>
                     {grandFinale && <div className="ultimon-final-arena-glow" aria-hidden="true" />}
                     <BattleWeatherParticles weather={gameState.battleWeather} tailwind={gameState.battleTailwind} />
+                    {gameState.isEchoFinalBattle && (
+                        <div className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 z-30 max-w-[60vw] rounded-full border border-fuchsia-400/60 bg-slate-950/90 px-3 py-1.5 text-center text-[10px] sm:text-xs font-black uppercase tracking-wider text-fuchsia-200 shadow-[0_0_22px_rgba(192,132,252,0.25)]">
+                            {gameState.echoFinalStage==='souls' ? 'Ultimo atto · Libera le anime corrotte' :
+                              gameState.echoFinalStage==='normal' ? 'Ultima forma · Echomax giocabile' :
+                              'Boss finale · Echomax'}
+                        </div>
+                    )}
                     
                     {(!isEventBattle||gameState.isTournamentEvent)&&<button onClick={() => gameState.isTournamentEvent ? leaveRoom() : (playerRole === 'spectator'||gameState.isTrainingBattle) ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-4 left-4 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
                          <LogOut size={16} /> {gameState.isTournamentEvent?'← Torneo':gameState.isTrainingBattle?'← Laboratorio':playerRole === 'spectator' ? 'Esci' : 'Resa'}
