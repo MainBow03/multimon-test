@@ -34,19 +34,47 @@ test('il raid KO genera Echomax giocabile senza modificare il boss base',()=>{
   assert.equal(normal.def,115);
   assert.equal(normal.baseSpd,105);
   assert.equal(normal.spd,210,'La seconda forma riceve +100% Velocità');
-  assert.deepEqual(normal.statuses,[{type:'Riflesso',turns:2}],
-    'Riflesso è già attivo al momento dell’evocazione');
+  assert.deepEqual(normal.statuses,[{type:'Scudo Team',turns:5}],
+    'Scudo Team protegge Echomax per cinque turni già all’evocazione');
   assert.equal(normal.isJuggernaut,false);
   assert.equal(normal.isEchoRaidBoss,false);
   assert.equal(normal.moves[0].remainingUses,4);
   assert.ok(game.field.p2.includes(game.teams.p2.length-1));
   assert.ok(events.some(e=>e.type==='summon'));
-  assert.ok(events.some(e=>e.text?.includes('RIFLESSO')));
+  assert.ok(events.some(e=>e.text?.includes('SCUDO TEAM')));
+  assert.ok(!normal.statuses.some(s=>s.type==='Riflesso'),
+    'La seconda forma non restituisce danni con Riflesso');
+  assert.deepEqual(game.teams.p2[1].statuses,[{type:'Scudo Team',turns:5}],
+    'Anche l’alleato superstite riceve Scudo Team');
   assert.ok(events.some(e=>e.text?.includes('210')));
   assert.equal(echomaxPlayable.spd,105,'Il Multimon sbloccabile resta a Velocità 105');
   assert.equal(echomaxPlayable.hp,190);
   assert.equal(echoFinalVictory({isEchoFinalBattle:true,stage,heroes:game.teams.p1,
     enemies:game.teams.p2}),null);
+});
+
+test('una partita già nella seconda fase migra Riflesso in Scudo Team senza rifare il boss',()=>{
+  const legacy={
+    ...echomaxPlayable,hp:110,maxHp:190,spd:210,baseSpd:105,
+    statuses:[{type:'Riflesso',turns:1}],echoFinalForm:'normal'
+  };
+  const ally={...hero('goku',170,340),statuses:[]};
+  const game=room([hero('finn',90)],[
+    {...echomaxPlayable,hp:0,maxHp:4000,isEchoRaidBoss:true},
+    legacy,ally
+  ]);
+  const events=[];
+  assert.equal(advanceEchoFinalPhase({isEchoFinalBattle:true,stage:'normal',
+    teams:game.teams,field:game.field,characters:[echomaxPlayable],events}),'normal');
+  assert.equal(game.teams.p2.length,3,'Non evoca un secondo Echomax');
+  assert.equal(legacy.hp,110,'I PS della battaglia in corso restano invariati');
+  assert.equal(legacy.spd,210,'Il bonus Velocità resta attivo');
+  assert.deepEqual(legacy.statuses,[{type:'Scudo Team',turns:5}]);
+  assert.deepEqual(ally.statuses,[{type:'Scudo Team',turns:5}]);
+  const length=events.length;
+  advanceEchoFinalPhase({isEchoFinalBattle:true,stage:'normal',
+    teams:game.teams,field:game.field,characters:[echomaxPlayable],events});
+  assert.equal(events.length,length,'Scudo Team non viene riapplicato ogni turno');
 });
 
 test('alla sconfitta della forma normale ruba solo due eroi esausti e li porta al 100%',()=>{
