@@ -46,12 +46,17 @@ export function advanceEchoFinalPhase({isEchoFinalBattle=false,stage='raid',team
     say(events,'Finn','Allora affrontaci senza quel potere. Faccia a faccia.');
     const normal={
       ...structuredClone(base),hp:base.maxHp,maxHp:base.maxHp,
-      statuses:[],consecutiveProtect:0,echoFinalForm:'normal',
+      // Riflesso respinge il 30% dei danni subiti per due turni.
+      // Il +100% Velocità appartiene solo a questa seconda fase.
+      statuses:[{type:'Riflesso',turns:2}],
+      spd:base.spd*2,consecutiveProtect:0,echoFinalForm:'normal',
       isEchoRaidBoss:false,isJuggernaut:false,isSummonOnly:false,
       baseAtk:base.atk,baseDef:base.def,baseSpd:base.spd,
       moves:fullMoves(base.moves),echoSoulCharges:0,echoFaintProcessed:false
     };
     enterEnemy(teams,field,events,normal,'⚡ Echomax riappare nella sua forma giocabile, con '+normal.maxHp+' PS!');
+    events.push({type:'text',text:'🪞 RIFLESSO! Echomax respinge il 30% dei danni ricevuti per 2 turni.'});
+    events.push({type:'text',text:'💨 ULTIMO SCATTO! La Velocità di Echomax aumenta del 100% ('+base.spd+' → '+normal.spd+')!'});
     say(events,'Echomax','Non mi servono scudi o corone per piegare il vostro destino. Venite!');
     return ECHO_FINAL_PHASES.NORMAL;
   }
