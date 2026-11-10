@@ -23,6 +23,7 @@ import { createBattleReport, accumulateBattleReport } from './battleReport.js';
 import {createBattlePlaybackSnapshot,applySummonPlaybackEvent} from './battleSummonPlayback.js';
 import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
 import {echoFinalVictory} from './echoFinalSouls.js';
+import {emitEchoFinalStoryBeats,echoSoulReleaseDialogue} from './echoFinalStoryBeats.js';
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { hyperPreviewMoves } from './hyperPreview.js';
@@ -893,6 +894,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
               if(gameState.isEchoFinalBattle&&char.isEchoSoulGuardian){
                   events.push({type:'text',text:'💠 '+char.name+
                     ' è stata liberata dal controllo di Echomax e non tornerà in battaglia.'});
+                  for(const [speaker,line] of echoSoulReleaseDialogue(char.id))
+                      events.push({type:'text',text:'🎭 '+speaker+': «'+line+'»'});
               }
               // La Legione di Echomax si attiva una sola volta per KO nemico.
               collectEchoSoul(workingTeams,workingField,char,targetPlayer,events,
@@ -3677,6 +3680,10 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
              events.push({ type: 'summon', text: '', player: 'p1', newChar: returningChar, fieldIdx: newIdx, putOnField: putOnField });
         });
 
+        // Il dialogo finale segue le fasi reali degli HP del boss, una sola
+        // volta per soglia; sopravvive anche ai checkpoint della campagna.
+        if(gameState.isEchoFinalBattle)
+            emitEchoFinalStoryBeats(workingTeams.p2,events);
         // Le Copie Perfette svaniscono dopo tre turni combattuti; mai permanenti.
         expireEchoCopies(workingTeams,workingField,events);
 
