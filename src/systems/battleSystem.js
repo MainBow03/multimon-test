@@ -22,6 +22,7 @@ import { activateRoguelikeBossShield } from './roguelikeBossPower.js';
 import { createBattleReport, accumulateBattleReport } from './battleReport.js';
 import {createBattlePlaybackSnapshot,applySummonPlaybackEvent} from './battleSummonPlayback.js';
 import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
+import {echoFinalVictory} from './echoFinalSouls.js';
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
 import { hyperPreviewMoves } from './hyperPreview.js';
@@ -889,6 +890,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
               if(char.echoFaintProcessed)return;
               char.echoFaintProcessed=true;
               events.push({ text: `${char.name} è esausto!`, type: 'faint' });
+              if(gameState.isEchoFinalBattle&&char.isEchoSoulGuardian){
+                  events.push({type:'text',text:'💠 '+char.name+
+                    ' è stata liberata dal controllo di Echomax e non tornerà in battaglia.'});
+              }
               // La Legione di Echomax si attiva una sola volta per KO nemico.
               collectEchoSoul(workingTeams,workingField,char,targetPlayer,events,
                   {gameMode:gameState.gameMode,settings:gameState.settings});
@@ -2654,7 +2659,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                     }
                     // ------------------------------------------
 
-                    if (t.char.hp > 0 || move.targetMode === 'revive') {
+                    if (t.char.hp > 0 || (move.targetMode === 'revive' && !t.char.echoSoulPermanentDefeat)) {
                         
                         // --- FIX: APPLICAZIONE CURE E REVIVE ---
                         const wasDead = t.char.hp <= 0;
@@ -3703,9 +3708,18 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
         else if (gameState.gameMode === 'classica') {
             const p1Alive = workingTeams.p1.some(c=>c.hp>0 && !c.isSummonOnly);
             const p2Alive = workingTeams.p2.some(c=>c.hp>0 && !c.isSummonOnly);
-            if (!p1Alive && !p2Alive) { nextStatus = 'gameover'; winner = 'Pareggio'; }
-            else if (!p1Alive) { nextStatus = 'gameover'; winner = gameState.players.p2; }
-            else if (!p2Alive) { nextStatus = 'gameover'; winner = gameState.players.p1; }
+            // Nel raid finale conta Echomax, non le sue tre anime:
+            // la sconfitta di un aiutante non termina la battaglia;
+            // il KO del boss porta alla vittoria anche se gli aiutanti sono vivi.
+            const echoResult=echoFinalVictory({isEchoFinalBattle:gameState.isEchoFinalBattle,
+                heroes:workingTeams.p1,enemies:workingTeams.p2});
+            if(echoResult){
+                nextStatus='gameover';
+                winner=echoResult==='heroes'?gameState.players.p1:
+                    echoResult==='boss'?gameState.players.p2:'Pareggio';
+            }else if(!p1Alive&&!p2Alive){nextStatus='gameover';winner='Pareggio';}
+            else if(!p1Alive){nextStatus='gameover';winner=gameState.players.p2;}
+            else if(!p2Alive){nextStatus='gameover';winner=gameState.players.p1;}
         }
         // --- AGGIUNTO: LOGICA INFINITA SOPRAVVIVENZA ---
         else if (gameState.gameMode === 'survival') {
