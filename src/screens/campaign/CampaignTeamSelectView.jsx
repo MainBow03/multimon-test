@@ -11,6 +11,7 @@ import {echoEnemyScaling,echoPuppetIdentity} from '../../systems/echoChallenge.j
 import { echoRaidStarters, toggleEchoRaidStarter, orderEchoRaidRoster, isCompleteEchoRaidLineup, ECHO_ACTIVE_LIMIT } from '../../systems/echoRaidLineup.js';
 import {createEchoFinalSoul,isEchoFinalSoulId,ECHO_FINAL_SOUL_VERSION} from '../../systems/echoFinalSouls.js';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
+const ECHO_FINAL_BOSS_HP = 4000;
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
 const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, campaignZodiacChoices, setCampaignZodiacChoices, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
@@ -423,6 +424,15 @@ if (appMode === 'campaign_team_select') {
                         moves: baseChar.moves.filter(Boolean).map(m => ({ ...m, remainingUses: m.maxUses !== undefined ? m.maxUses : null }))
                     };
                     
+                    // Riporta anche i checkpoint precedenti al nuovo massimo,
+                    // mantenendo la percentuale di PS rimasta nel raid.
+                    if (isEchoFinalRaid && savedC.id === 'echomax') {
+                        const previousMaxHp = Math.max(1, Number(savedC.maxHp) || ECHO_FINAL_BOSS_HP);
+                        const previousHp = Math.max(0, Number(savedC.hp) || 0);
+                        charInst.maxHp = ECHO_FINAL_BOSS_HP;
+                        charInst.hp = Math.max(1, Math.min(ECHO_FINAL_BOSS_HP, Math.round(previousHp / previousMaxHp * ECHO_FINAL_BOSS_HP)));
+                    }
+
                     charInst.isSummonOnly = false; // Gli aiutanti hanno PS propri.
                     if(isEchoFinalRaid&&isEchoFinalSoulId(charInst.id)){
                         charInst.isEchoSoulGuardian=true;
@@ -482,7 +492,7 @@ if (appMode === 'campaign_team_select') {
                     else if (campaignState.difficulty === 'Insane' && !echoScaling) hpMultiplier *= 1.5; 
                     
                     const raidBossBalance=isFinalRaid?finalRaidBossStats(baseChar.id):null;
-                    let hp = isEchoFinalRaid && baseChar.id === 'echomax' ? 6200 : raidBossBalance?.maxHp ?? Math.floor(baseChar.maxHp * hpMultiplier);
+                    let hp = isEchoFinalRaid && baseChar.id === 'echomax' ? ECHO_FINAL_BOSS_HP : raidBossBalance?.maxHp ?? Math.floor(baseChar.maxHp * hpMultiplier);
                     
                     let charInst = {
                         ...JSON.parse(JSON.stringify(baseChar)), hp: hp, maxHp: hp, statuses: [], consecutiveProtect: 0,
