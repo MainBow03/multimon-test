@@ -17,6 +17,10 @@ export const ECHO_SOUL_DIALOGUE_PORTRAITS=Object.freeze({
  'Anima di Goku':'goku','Anima di Naruto':'naruto','Anima di Luffy':'luffy'
 });
 export const echoSoulPortraitId=label=>ECHO_SOUL_DIALOGUE_PORTRAITS[label]||null;
+// Solo Echomax della missione finale; la versione sbloccabile non ha immunità.
+export function isEchoRaidAccuracyProtected(char){
+ return !!(char?.id==='echomax'&&char.isEchoRaidBoss);
+}
 export function isEchoFinalSoulId(id){return ECHO_FINAL_SOUL_IDS.includes(id);}
 export function createEchoFinalSoul(base){
  if(!base||!isEchoFinalSoulId(base.id))throw new Error('Anima di Echomax sconosciuta.');
