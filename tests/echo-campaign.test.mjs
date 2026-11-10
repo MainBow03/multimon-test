@@ -125,7 +125,8 @@ test('Integrazione: battle classica, 6 in campo, 24 in squadra e sblocco Echomax
  assert.match(team,/charInst\.shieldGrantedHits=8/);
  assert.match(team,/charInst\.juggShieldHpThresholds=\[0\.8,0\.6,0\.4,0\.2\]/);
  assert.match(team,/charInst\.isEchoRaidBoss=true/);
- assert.match(team,/\? 6200 :/);
+ assert.match(team,/const ECHO_FINAL_BOSS_HP = 4000/);
+ assert.match(team,/\? ECHO_FINAL_BOSS_HP :/);
  assert.match(battle,/collectEchoSoul\(workingTeams,workingField,char,targetPlayer,events,/);
  assert.match(battle,/expireEchoCopies\(workingTeams,workingField,events\)/);
  assert.match(battle,/!attacker\.isEchoRaidBoss/);
