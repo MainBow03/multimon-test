@@ -32,12 +32,18 @@ test('il raid KO genera Echomax giocabile senza modificare il boss base',()=>{
   assert.equal(normal.maxHp,190);
   assert.equal(normal.atk,155);
   assert.equal(normal.def,115);
-  assert.equal(normal.spd,105);
+  assert.equal(normal.baseSpd,105);
+  assert.equal(normal.spd,210,'La seconda forma riceve +100% Velocità');
+  assert.deepEqual(normal.statuses,[{type:'Riflesso',turns:2}],
+    'Riflesso è già attivo al momento dell’evocazione');
   assert.equal(normal.isJuggernaut,false);
   assert.equal(normal.isEchoRaidBoss,false);
   assert.equal(normal.moves[0].remainingUses,4);
   assert.ok(game.field.p2.includes(game.teams.p2.length-1));
   assert.ok(events.some(e=>e.type==='summon'));
+  assert.ok(events.some(e=>e.text?.includes('RIFLESSO')));
+  assert.ok(events.some(e=>e.text?.includes('210')));
+  assert.equal(echomaxPlayable.spd,105,'Il Multimon sbloccabile resta a Velocità 105');
   assert.equal(echomaxPlayable.hp,190);
   assert.equal(echoFinalVictory({isEchoFinalBattle:true,stage,heroes:game.teams.p1,
     enemies:game.teams.p2}),null);
