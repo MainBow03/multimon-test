@@ -23,6 +23,7 @@ import { createBattleReport, accumulateBattleReport } from './battleReport.js';
 import {createBattlePlaybackSnapshot,applySummonPlaybackEvent} from './battleSummonPlayback.js';
 import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
 import {echoFinalVictory,isEchoRaidAccuracyProtected} from './echoFinalSouls.js';
+import {advanceEchoFinalPhase,echoCorruptedSoulReleased} from './echoFinalPhases.js';
 import {emitEchoFinalStoryBeats,echoSoulReleaseDialogue} from './echoFinalStoryBeats.js';
 import { applyStrengthToFighter } from './strengthLab.js';
 import { copyKirbyMoveOnHit } from './kirbyCopy.js';
@@ -891,6 +892,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
               if(char.echoFaintProcessed)return;
               char.echoFaintProcessed=true;
               events.push({ text: `${char.name} è esausto!`, type: 'faint' });
+              if(gameState.isEchoFinalBattle&&char.isEchoCorruptedSoul)
+                  echoCorruptedSoulReleased(char,events);
               if(gameState.isEchoFinalBattle&&char.isEchoSoulGuardian){
                   events.push({type:'text',text:'💠 '+char.name+
                     ' è stata liberata dal controllo di Echomax e non tornerà in battaglia.'});
@@ -1223,7 +1226,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 }
 
                 // --- GESTIONE PASSIVE: ALLA SCONFITTA (es. Bloom, Dolli) ---
-                if (target.hp === 0 && target.passive && target.passive.type === 'on_faint' && (target.passiveUses || 0) < (target.passive.maxUses || 1)) {
+                if (target.hp === 0 && !target.echoSoulPermanentDefeat && target.passive && target.passive.type === 'on_faint' && (target.passiveUses || 0) < (target.passive.maxUses || 1)) {
                     target.passiveUses = (target.passiveUses || 0) + 1;
                     
                     if (target.passive.reviveHpPercent) {
@@ -3691,6 +3694,13 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
             emitEchoFinalStoryBeats(workingTeams.p2,events);
         // Le Copie Perfette svaniscono dopo tre turni combattuti; mai permanenti.
         expireEchoCopies(workingTeams,workingField,events);
+        // Avanzamento autorevole: forma giocabile, poi fino a due anime dei caduti.
+        // Il risultato viene deciso SOLO dopo la trasformazione/evocazione.
+        const echoFinalStage=advanceEchoFinalPhase({
+            isEchoFinalBattle:gameState.isEchoFinalBattle,
+            stage:gameState.echoFinalStage||'raid',
+            teams:workingTeams,field:workingField,characters:CHARACTERS,events
+        });
 
         let nextStatus = 'battling';
         let winner = null;
@@ -3724,7 +3734,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
             // la sconfitta di un aiutante non termina la battaglia;
             // il KO del boss porta alla vittoria anche se gli aiutanti sono vivi.
             const echoResult=echoFinalVictory({isEchoFinalBattle:gameState.isEchoFinalBattle,
-                heroes:workingTeams.p1,enemies:workingTeams.p2});
+                heroes:workingTeams.p1,enemies:workingTeams.p2,stage:echoFinalStage});
             if(echoResult){
                 nextStatus='gameover';
                 winner=echoResult==='heroes'?gameState.players.p1:
@@ -3948,6 +3958,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
           survivalRound: currentSurvivalRound, 
           teams: workingTeams,
           field: workingField,
+          ...(gameState.isEchoFinalBattle?{echoFinalStage}:{}),
           startOfTurnTeams: startOfTurnTeams, 
           startOfTurnField: startOfTurnField,
           events: events,
