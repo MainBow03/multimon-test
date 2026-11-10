@@ -21,7 +21,7 @@ test('Il motore blocca sia i malus percentuali sia quelli assoluti alla precisio
  assert.equal(hit.length,1);
  assert.equal(percent.length,2,'Colpo dannoso e mossa di stato');
  assert.equal(flat.length,2,'Colpo dannoso e mossa di stato');
- assert.match(src,/isEchoRaidAccuracyProtected\(attacker\) \? 1 : \(attacker\.acc/);
+ assert.match(src,/let finalAccuracy = isEchoRaidAccuracyProtected\(attacker\)\s*\? 1 :/);
  assert.match(src,/!isEchoRaidAccuracyProtected\(attacker\) && attacker\.statuses\?\.some/);
 });
 
