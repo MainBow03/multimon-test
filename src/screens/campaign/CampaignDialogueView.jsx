@@ -18,7 +18,7 @@ if (appMode === 'campaign_dialogue') {
                 let maxTeamSize = 4;
                 if (isFinalRaid) maxTeamSize = 20;
                 if (isSecondCampaign) maxTeamSize = 8;
-                if (activeCampaignId === 'eco_anime') maxTeamSize = mission.echoFinal ? 24 : 6;
+                if (activeCampaignId === 'eco_anime') maxTeamSize = mission.echoFinal ? 24 : 4;
                 
                 if (isSecondCampaign) {
                     if (campaignState.roster.length <= maxTeamSize) {
