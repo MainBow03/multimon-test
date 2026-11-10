@@ -113,7 +113,9 @@ if (gameState.status === 'gameover') {
                                         unavailableRosterIds: [...new Set([
                                             ...(prev.unavailableRosterIds || []), ...unavailableUnlocks
                                         ])],
-                                        currentBossState: null // Pulisce lo stato del boss alla vittoria!
+                                        currentBossState: null, // Pulisce lo stato del boss alla vittoria!
+                                        ...(activeCampaignId==='eco_anime'&&mission.echoFinal
+                                            ?{echoFinalStage:null,echoCorruptedLockedIds:[]}:{}),
                                     }));
                                     setCampaignDialogueIdx(0);
                                     // Non saltare il post-dialogo del RAID finale (Trigon e Gaster).
@@ -158,6 +160,9 @@ if (gameState.status === 'gameover') {
 
                                 <button onClick={() => {
                                     const newRosterStats = { ...campaignState.rosterStats };
+                                    const stolenHeroIds=gameState.isEchoFinalBattle
+                                        ?(gameState.teams?.p1||[]).filter(c=>c?.echoCorruptedLocked).map(c=>c.id)
+                                        :[];
                                     if (gameState.teams && gameState.teams.p1) {
                                         gameState.teams.p1.forEach(c => {
                                             if (!c.isSummonOnly) newRosterStats[c.id] = c.hp;
@@ -176,6 +181,12 @@ if (gameState.status === 'gameover') {
                                                 echoCloneLabel: c.echoCloneLabel || null,
                                                 isEchoSoulGuardian: !!c.isEchoSoulGuardian,
                                                 echoFinalDialogueStages: c.echoFinalDialogueStages || [],
+                                                echoFinalForm: c.echoFinalForm || null,
+                                                isEchoRaidBoss: !!c.isEchoRaidBoss,
+                                                isEchoCorruptedSoul: !!c.isEchoCorruptedSoul,
+                                                echoCorruptionSourceId: c.echoCorruptionSourceId || null,
+                                                echoCorruptionSourceIndex: c.echoCorruptionSourceIndex ?? null,
+                                                echoSoulPermanentDefeat: !!c.echoSoulPermanentDefeat,
                                                 hp: c.hp,
                                                 maxHp: c.maxHp,
                                                 atk: c.atk,
@@ -190,20 +201,25 @@ if (gameState.status === 'gameover') {
                                     }
 
                                     // Prevenzione Soft-lock se tutto il Roster è morto o siamo nel Torneo
+                                    stolenHeroIds.forEach(id=>{newRosterStats[id]=0;});
                                     const aliveCount = campaignState.roster.filter(id => newRosterStats[id] > 0).length;
                                     if (aliveCount === 0 || activeCampaignId === 'torneo_assoluto') {
                                         campaignState.roster.forEach(id => {
                                             const baseChar = CHARACTERS.find(c=>c.id===id);
                                             if (activeCampaignId === 'torneo_assoluto') {
                                                 newRosterStats[id] = baseChar ? baseChar.maxHp : 100;
-                                            } else {
+                                            } else if(!stolenHeroIds.includes(id)) {
                                                 newRosterStats[id] = Math.max(1, Math.floor((baseChar ? baseChar.maxHp : 100) * 0.3)); 
                                             }
                                         });
                                     }
 
                                     setCampaignSelectedTeam([]); // FIX: Svuota la squadra in modo da poterne scegliere una nuova
-                                    setCampaignState(p => ({...p, rosterStats: newRosterStats, currentBossState: currentEnemyState}));
+                                    setCampaignState(p => ({...p, rosterStats: newRosterStats, currentBossState: currentEnemyState,
+                                        ...(gameState.isEchoFinalBattle?{
+                                            echoFinalStage:gameState.echoFinalStage||'raid',
+                                            echoCorruptedLockedIds:stolenHeroIds
+                                        }:{})}));
                                     setAppMode('campaign_map');
                                 }} className="bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 px-10 py-5 rounded-full font-black text-2xl transition-all shadow-[0_10px_30px_rgba(225,29,72,0.4)] hover:-translate-y-1">Ritirata Strategica (Riprova)</button>
                             </>
