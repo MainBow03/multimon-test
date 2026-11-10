@@ -36,6 +36,13 @@ if (appMode === 'campaign_dialogue') {
                     
                     mission.forcedRoster.forEach(id => {
                         if (!newRoster.includes(id)) newRoster.push(id);
+                        // Le anime rubate restano KO finché non vengono liberate.
+                        // L'aiuto narrativo del 30% non può aggirare questo blocco.
+                        if(activeCampaignId==='eco_anime'&&mission.echoFinal&&
+                            (campaignState.echoCorruptedLockedIds||[]).includes(id)){
+                            newStats[id]=0;
+                            return;
+                        }
                         if (!newStats[id] || newStats[id] <= 0) {
                             const c = CHARACTERS.find(x => x.id === id);
                             if (c) newStats[id] = Math.floor(c.maxHp * 0.3); // Li rianima al 30% per la trama se erano esausti
