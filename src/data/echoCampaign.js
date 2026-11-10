@@ -1,3 +1,5 @@
+import {echoEncounterRoster,echoEnemyFieldSize,echoEncounterBriefing,ECHO_CHALLENGE_VERSION} from '../systems/echoChallenge.js';
+import {echoEnrichedDialogue} from './echoStoryDepth.js';
 // MULTIMON III — L'Eco delle Anime. Terzo capitolo narrativo, 36 missioni.
 // I personaggi indicati in unlock entrano nella Resistenza SOLO dopo la vittoria.
 export const ECHO_STARTERS=['jake','marceline'];
@@ -346,11 +348,16 @@ export const ECHO_CAMPAIGN={
      const number=chapterIdx*6+stageIdx+1;
      const isFinal=number===36;
      return {
-       id:'eco_'+String(number).padStart(2,'0'),title,boss,unlock,dialogue:dialogue.map(([s,t])=>({s,t})),
-       postDialogue:postDialogue.map(([s,t])=>({s,t})),
+       id:'eco_'+String(number).padStart(2,'0'),title,
+       boss:echoEncounterRoster(number,boss),unlock,
+       dialogue:echoEnrichedDialogue(number,dialogue,'before'),
+       postDialogue:echoEnrichedDialogue(number,postDialogue,'after'),
        echoMission:true,echoAct:chapterIdx+1,echoNumber:number,
+       echoBriefing:echoEncounterBriefing(number),
+       echoChallengeVersion:ECHO_CHALLENGE_VERSION,
        echoReward:stageIdx===5?'legendaria':unlock.length?'resistenza':'superstite',
-       echoFinal:isFinal,forcedRoster:isFinal?[...ECHO_ALLIES]:undefined,forceFieldSize:isFinal?6:undefined
+       echoFinal:isFinal,forcedRoster:isFinal?[...ECHO_ALLIES]:undefined,
+       forceFieldSize:isFinal?6:echoEnemyFieldSize(number)
      };
    })
  }))
