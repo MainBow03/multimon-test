@@ -508,7 +508,7 @@ export const ECHO_ENSEMBLE_DIALOGUE={
         "Ci hai provato con il resto della Resistenza. Il risultato è che adesso siamo ventiquattro."
       ],
       [
-        "Gaster",
+        "W.D. Gaster",
         "Il... sigillo... può... spezzarsi... senza... perdere... le... anime."
       ],
       [
@@ -516,7 +516,7 @@ export const ECHO_ENSEMBLE_DIALOGUE={
         "Gaster. La tua scienza mi ha dato una porta. Ora la tua coscienza tenta di chiuderla."
       ],
       [
-        "Gaster",
+        "W.D. Gaster",
         "Non... è... una... porta. È... una... scelta."
       ],
       [
@@ -574,7 +574,7 @@ export const ECHO_ENSEMBLE_DIALOGUE={
         "La prigione non è crollata addosso ai prigionieri. Gaster, il tuo sigillo ha funzionato."
       ],
       [
-        "Gaster",
+        "W.D. Gaster",
         "Per... una... volta... nessuna... anima... resterà... sola."
       ],
       [
