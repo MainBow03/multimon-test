@@ -10,6 +10,7 @@ import { applyEchoRouteToTeam } from '../../systems/echoRoutes.js';
 import {echoEnemyScaling,echoPuppetIdentity} from '../../systems/echoChallenge.js';
 import { echoRaidStarters, toggleEchoRaidStarter, orderEchoRaidRoster, isCompleteEchoRaidLineup, ECHO_ACTIVE_LIMIT } from '../../systems/echoRaidLineup.js';
 import {createEchoFinalSoul,isEchoFinalSoulId,ECHO_FINAL_SOUL_VERSION} from '../../systems/echoFinalSouls.js';
+import {onMultimonImageError} from '../../systems/imageFallback.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
 const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, campaignZodiacChoices, setCampaignZodiacChoices, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
@@ -697,6 +698,28 @@ if (appMode === 'campaign_team_select') {
                         {activeCampaignId === 'torneo_assoluto' && campaignState.roster.length > maxTeamSize && !mission.forcedRoster && <span className="block text-sm text-indigo-400 mt-2">Forma l'Alleanza fissa da 8 (5 Membri + 3 Riserve)</span>}
                     </h2>
                     
+                    {isEchoFinalRaid&&<section className="w-full max-w-3xl mb-5 rounded-2xl border-2 border-fuchsia-400/70 bg-gradient-to-r from-purple-950/90 via-slate-950/90 to-purple-950/90 p-3 sm:p-5 shadow-[0_0_28px_rgba(168,85,247,0.2)]">
+                        <h3 className="text-lg sm:text-xl font-black text-fuchsia-200 text-center">👻 ECHOMAX E LE TRE ANIME PRIGIONIERE</h3>
+                        <p className="text-center text-xs sm:text-sm text-slate-200 mt-1 mb-4">
+                            Tre aiutanti affiancano Echomax. Una volta sconfitta, un'anima non torna in battaglia.
+                            <strong className="text-amber-200"> Per vincere devi sconfiggere Echomax!</strong>
+                        </p>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                            {activeBosses.map(id=>{
+                                const c=CHARACTERS.find(x=>x.id===id);
+                                const soul=isEchoFinalSoulId(id);
+                                if(!c)return null;
+                                const name=soul?'Anima di '+(id==='luffy'?'Luffy':c.name.replace(' Uzumaki','')):'ECHOMAX';
+                                return <div key={id} className={`flex flex-col items-center gap-1 rounded-xl border ${soul?'border-fuchsia-500/60 bg-fuchsia-950/45':'border-amber-400/70 bg-amber-950/30'} p-2 text-center`}>
+                                    <img src={c.img} alt={name} onError={onMultimonImageError} loading="lazy"
+                                        style={soul?{filter:'sepia(.4) hue-rotate(240deg) saturate(2) drop-shadow(0 0 12px #a855f7)'}:undefined}
+                                        className="h-20 sm:h-24 w-full object-contain"/>
+                                    <strong className="text-xs text-white">{name}</strong>
+                                    <small className={soul?'text-fuchsia-200':'text-amber-300'}>{soul?'AIUTANTE · KO DEFINITIVO':'BOSS PRINCIPALE'}</small>
+                                </div>;
+                            })}
+                        </div>
+                    </section>}
                     {/* HINT TIPI NEMICI NELLA SELEZIONE */}
                     <div className="mb-6 bg-slate-900/80 px-6 py-2 rounded-full border border-rose-500/30 flex items-center gap-3 backdrop-blur-md shadow-lg">
                         <span className="text-xs text-slate-300 font-bold uppercase tracking-widest">Tipi Nemici:</span>
