@@ -13,6 +13,10 @@ const DISPLAY=Object.freeze({
  goku:'Anima di Goku',naruto:'Anima di Naruto',luffy:'Anima di Luffy'
 });
 const GLOW='sepia(.48) hue-rotate(240deg) saturate(2.2) drop-shadow(0 0 22px #b56eff)';
+export const ECHO_SOUL_DIALOGUE_PORTRAITS=Object.freeze({
+ 'Anima di Goku':'goku','Anima di Naruto':'naruto','Anima di Luffy':'luffy'
+});
+export const echoSoulPortraitId=label=>ECHO_SOUL_DIALOGUE_PORTRAITS[label]||null;
 export function isEchoFinalSoulId(id){return ECHO_FINAL_SOUL_IDS.includes(id);}
 export function createEchoFinalSoul(base){
  if(!base||!isEchoFinalSoulId(base.id))throw new Error('Anima di Echomax sconosciuta.');
