@@ -832,7 +832,8 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             const baseDamage = ((2 * 50 / 5 + 2) * pwr * (attackValue / defValue)) / 85 + 2;
             const randomFactor = (Math.floor(random() * 16) + 85) / 100;
             const weakenFactor = (attacker.statuses?.some(s => s.type === 'Indebolito') ? 0.75 : 1) * assideramentoDamageFactor(attacker);
-            const teamDefFactor = !ignoresShields(attacker,move) && defender.statuses?.some(s => s.type === 'Scudo Team') ? 0.33 : 1;
+            // Scudo Team assorbe il 45% dei danni: resta il 55% (salvo mosse ignora-scudi).
+            const teamDefFactor = !ignoresShields(attacker,move) && defender.statuses?.some(s => s.type === 'Scudo Team') ? 0.55 : 1;
 
             // STAB (Same-Type Attack Bonus): Danno aumentato del 50% se il tipo mossa coincide con il tipo attaccante
             const stabFactor = attacker.types.includes(move.type) ? 1.5 : 1;
