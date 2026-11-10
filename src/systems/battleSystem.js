@@ -23,6 +23,7 @@ import { createBattleReport, accumulateBattleReport } from './battleReport.js';
 import {createBattlePlaybackSnapshot,applySummonPlaybackEvent} from './battleSummonPlayback.js';
 import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
 import {echoFinalVictory,isEchoRaidAccuracyProtected} from './echoFinalSouls.js';
+import {triggerEchoRaidHalfReset,restoreEchoRaidAccuracy} from './echoRaidHalfReset.js';
 import {advanceEchoFinalPhase,echoCorruptedSoulReleased} from './echoFinalPhases.js';
 import {emitEchoFinalStoryBeats,echoSoulReleaseDialogue} from './echoFinalStoryBeats.js';
 import { applyStrengthToFighter } from './strengthLab.js';
@@ -853,6 +854,16 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             
             let workingTeams = JSON.parse(JSON.stringify(gameState.teams));
             let workingField = JSON.parse(JSON.stringify(gameState.field));
+            const applyEchoMidpointReset=()=>{
+              if(!gameState.isEchoFinalBattle || (gameState.echoFinalStage||'raid')!=='raid')return;
+              const index=workingTeams.p2?.findIndex(c=>c?.id==='echomax'&&c.isEchoRaidBoss)??-1;
+              if(index<0)return;
+              triggerEchoRaidHalfReset({isEchoFinalBattle:true,boss:workingTeams.p2[index],
+                heroes:workingTeams.p1,events,bossIndex:index});
+            };
+            // Anche le battaglie iniziate con una versione precedente possono
+            // raggiungere la soglia senza perdere i propri progressi.
+            applyEchoMidpointReset();
             const gemObserver=createImperfectGemObserver(workingTeams,workingField,events,applyBattleStatModifier);
             const nightwingObserver=createNightwingBuffWatcher(workingTeams,workingField,
               {gameMode:gameState.gameMode,settings:gameState.settings,
@@ -1019,6 +1030,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 }
                 target.damageTakenThisTurn = (target.damageTakenThisTurn || 0) + dmg;
                 events.push({ type: 'damage', text: text, targetPlayer, targetIdx, newHp: target.hp });
+                if(targetPlayer==='p2' && target.id==='echomax' && target.isEchoRaidBoss)
+                    applyEchoMidpointReset();
                 if(options.isEnemyTarget && (options.directAttack||options.isOffensiveMove) &&
                    hpBeforeDamage>target.hp && target.hp>0){
                   const titans=activateTitansRobin(target,applyBattleStatModifier);
@@ -1895,7 +1908,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     continue;
                 }
 
-                let finalAccuracy = (move.accuracy !== undefined ? move.accuracy : 1.0) * (isEchoRaidAccuracyProtected(attacker) ? 1 : (attacker.acc || 1.0));
+                // Nel raid finale le mosse di Echomax partono tutte da precisione
+                // 100%. La schivata naturale del bersaglio resta una meccanica distinta.
+                let finalAccuracy = isEchoRaidAccuracyProtected(attacker)
+                    ? 1 : (move.accuracy !== undefined ? move.accuracy : 1.0) * (attacker.acc || 1.0);
                 if (!isEchoRaidAccuracyProtected(attacker) && attacker.statuses?.some(s=>s.type==='Accecato')) finalAccuracy *= 0.8;
                 if (finalAccuracy < 1.0 && Math.random() > finalAccuracy) {
                     events.push({ type: 'text', text: `${attacker.name} usa ${move.name}, ma manca clamorosamente il bersaglio!` });
@@ -3448,6 +3464,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 char.juggTurnCount = (char.juggTurnCount || 0) + 1;
                 if (char.juggTurnCount >= 2) {
                     char.juggTurnCount = 0; // Reset contatore
+                    if(restoreEchoRaidAccuracy(char))
+                        events.push({type:'text',text:'🎯 Aura Suprema: Echomax ripristina la Precisione al 100% dopo due turni!'});
                     const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'];
                     const hasNegative = char.statuses.some(s => negatives.includes(s.type));
                     if (hasNegative) {
@@ -4025,6 +4043,13 @@ const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, set
                    currentDisplayField=next.field;
                    setDisplayTeams(currentDisplay);
                    setDisplayField(currentDisplayField);
+                } else if (evt.type === 'echo_stat_reset') {
+                    const fighter=currentDisplay?.[evt.player]?.[evt.index];
+                    if(fighter){
+                        for(const attr of ['atk','def','spd','acc','evasionBonus'])
+                            if(evt[attr]!==undefined)fighter[attr]=evt[attr];
+                        setDisplayTeams({...currentDisplay});
+                    }
                 } else if (evt.type === 'hyper_transform') {
                    // --- ANIMAZIONE FORMA IPER LENTA E AD EFFETTO ---
                    setScreenFlash(true);
