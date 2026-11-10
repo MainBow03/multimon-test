@@ -569,6 +569,12 @@ if (appMode === 'campaign_team_select') {
                         charInst.baseAtk=270;charInst.baseDef=190;charInst.baseSpd=155;
                         charInst.imageFilter='drop-shadow(0 0 32px rgba(168,85,247,0.8))';
                     }
+                    if(isEchoFinalRaid&&charInst.id==='echomax'){
+                        // Checkpoint vecchi: i debuff di precisione precedenti alla
+                        // nuova immunità non devono riapparire al rientro.
+                        charInst.acc=1.0;
+                        charInst.statuses=(charInst.statuses||[]).filter(x=>x?.type!=='Accecato');
+                    }
                     return charInst;
                 });
             }
