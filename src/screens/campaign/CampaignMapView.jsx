@@ -66,7 +66,7 @@ if (appMode === 'campaign_map') {
                         <h3 className="text-sm text-slate-400 font-bold uppercase tracking-widest mb-2">Prossima Missione</h3>
                         <h1 className="text-5xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">{mission.title}</h1>
                         <div className="flex flex-col items-center justify-center gap-4 mb-8 bg-black/30 p-4 rounded-2xl w-full">
-                            <div className="flex items-center justify-center gap-4">
+                            <div className="flex items-center justify-center flex-wrap gap-3">
                                 <span className="text-slate-400 font-bold uppercase tracking-widest text-sm mr-2">Boss:</span>
                                 {(() => {
                                     let activeBosses = mission.isAnomaly && mission.id === 'm12_5' && campaignState.anomalyTargets && campaignState.anomalyTargets.length > 0 ? campaignState.anomalyTargets : mission.boss;
@@ -99,6 +99,11 @@ if (appMode === 'campaign_map') {
 
                         {mission.echoMission && <div className="w-full rounded-2xl border border-violet-500/40 bg-violet-950/35 p-4 mb-5 text-left">
                             <div className="font-black text-violet-200 text-sm uppercase tracking-wider mb-1">{mission.echoFinal?'Raid della Resistenza Unita':`Missione ${mission.echoNumber}/36 · Percorso tattico`}</div>
+                            {[34,35].includes(mission.echoNumber)&&<div className="mb-3 rounded-xl border border-fuchsia-400/70 bg-fuchsia-950/60 p-3">
+                                <div className="font-black text-fuchsia-200">⚔️ SCONTRO PRE-BOSS · 6 AVVERSARI IN CAMPO</div>
+                                <p className="text-sm text-slate-200 mt-1">{mission.echoBriefing}</p>
+                                <p className="text-xs text-slate-300 mt-1">La tua Resistenza mantiene la squadra normale di 4; prepara le sostituzioni e sfrutta i tipi.</p>
+                            </div>}
                             {mission.echoFinal
                                 ? <p className="text-sm text-slate-300">Potrai usare tutti i 24 alleati contro Echomax, ma soltanto 6 saranno in campo alla volta. Gli altri 18 saranno riserve selezionabili con i normali cambi e sostituzioni. Gli esausti verranno recuperati per l'ultimo assalto.</p>
                                 : <>
