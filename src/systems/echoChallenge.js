@@ -1,77 +1,44 @@
-// L'Eco delle Anime: 6 avversari TOTALI per missione ordinaria.
-// L'atto finale è un raid contro Echomax singolo con Legione dei Caduti.
-// La disposizione al campo aumenta da 2 a 6 man mano che arrivano alleati.
-// Le missioni 34 e 35 hanno composizioni fisse richieste dalla storia.
-export const ECHO_CHALLENGE_VERSION='echo-six-v2';
+// Solo due missioni pre-boss hanno sei nemici: la 34 e la 35.
+// Le 33 missioni precedenti preservano il numero originale di avversari.
+// Il raid finale rimane Echomax singolo con Legione dei Caduti.
+export const ECHO_CHALLENGE_VERSION='echo-preboss-v3';
 export const ECHO_MISSION_LINEUPS=Object.freeze({
-  1: ["scheletro","clone_rosso","clone_verde","robo_aiutante_1","slime","blob"],
-  2: ["metalsonic","zergling","robo_aiutante_1","robo_aiutante_2","clone_rosso","clone_verde"],
-  3: ["reboo","robo_aiutante_1","blob","robo_aiutante_2","scheletro","clone_verde"],
-  4: ["zazan","robo_aiutante_2","slime","zergling","clone_rosso","blob"],
-  5: ["megamind","clone_verde","robo_aiutante_1","robo_aiutante_2","metalsonic","clone_rosso"],
-  6: ["nito","mostro_scheletrico","scheletro","clone_rosso","clone_verde","blob"],
-  7: ["wario","robo_aiutante_1","megamind","plankton","clone_rosso","clone_verde"],
-  8: ["plankton","clone_rosso","wario","stewie","robo_aiutante_2","blob"],
-  9: ["cuoredipietra","blob","slime","worm","zergling","clone_verde"],
-  10: ["roserade","mantide","worm","zazan","slime","clone_rosso"],
-  11: ["stewie","robo_aiutante_2","megamind","metalsonic","clone_verde","clone_rosso"],
-  12: ["charmcaster","clone_corvina","clone_verde","strega","blob","reboo"],
-  13: ["juvia","slime","blob","worm","roserade","clone_verde"],
-  14: ["laxus","robo_aiutante_1","megamind","stewie","metalsonic","zergling"],
-  15: ["ryuk","mostro_scheletrico","nito","scheletro","clone_corvina","blob"],
-  16: ["zuko","natsu","laxus","charmcaster","slime","worm"],
-  17: ["kratos","golem_pietra","nito","mostro_scheletrico","zazan","clone_rosso"],
-  18: ["ainz","golem_pietra_supremo","nito","charmcaster","clone_corvina","strega"],
-  19: ["peridot","diamante","golem_pietra","robo_aiutante_1","robo_aiutante_2","reboo"],
-  20: ["diamantebianco","lapis","diamante","peridot","charmcaster","clone_corvina"],
-  21: ["nightwing","cyborg","metalsonic","robo_aiutante_2","clone_rosso","stewie"],
-  22: ["ursula","strega","charmcaster","clone_corvina","ryuk","reboo"],
-  23: ["finn","clone_rosso","clone_verde","reghiaccio","nito","renarouge"],
-  24: ["trigon","clone_corvina","mostro_scheletrico","nito","ainz","golem_pietra_supremo"],
-  25: ["pyra","spyro","zuko","natsu","laxus","clone_rosso"],
-  26: ["metalsonic","robo_aiutante_2","zergling","megamind","stewie","clone_verde"],
-  27: ["reghiaccio","dolli","yukionna","elsa","nito","clone_corvina"],
-  28: ["zergling","golem_pietra_supremo","mostro_scheletrico","robo_aiutante_1","robo_aiutante_2","clone_rosso"],
-  29: ["stewie","megamind","reboo","renarouge","clone_verde","clone_rosso"],
-  30: ["astral","clone_corvina","celljr_1","celljr_2","celljr_3","golem_pietra_supremo"],
-  31: ["celljr_1","celljr_2","celljr_3","celljr_4","clone_rosso","metalsonic"],
-  32: ["gaster","robo_aiutante_2","clone_corvina","robo_aiutante_1","astral","stewie"],
-  33: ["trigon","mostro_scheletrico","clone_corvina","nito","ainz","golem_pietra_supremo"],
-  34: ["renarouge","renarouge","finn","finn","reghiaccio","nito"],
-  35: ["topolino","snorlax","kirby","barry","shadow","celljr_1"],
+  34:['renarouge','renarouge','finn','finn','reghiaccio','nito'],
+  35:['topolino','snorlax','kirby','barry','shadow','celljr_1']
 });
 export function echoEncounterRoster(number,original=[]){
- if(number===36)return [...original];
  const roster=ECHO_MISSION_LINEUPS[number];
  return roster?[...roster]:[...original];
 }
 
+// Soltanto gli ultimi due scontri pre-boss schierano sei avversari
+// contemporaneamente. Le missioni 1–33 conservano la formazione originale.
 export function echoEnemyFieldSize(number){
- if(number>=36)return 6;
- const act=Math.max(1,Math.min(6,Math.ceil(number/6)));
- return Math.min(6,act+1);
+ return number===34||number===35?6:undefined;
 }
 
+// Aumento moderato della difficoltà nei sei atti, senza aggiungere nemici.
+// I due scontri 34–35 sono già più impegnativi per il numero di avversari.
 const CURVE=[
- // HP, Attacco, Difesa, Velocità. Più nemici richiedono un primo atto accessibile.
- {hp:.73,atk:.77,def:.82,spd:.90},
- {hp:.92,atk:.89,def:.94,spd:.96},
- {hp:1.06,atk:1.02,def:1.03,spd:1.00},
- {hp:1.16,atk:1.09,def:1.08,spd:1.04},
- {hp:1.27,atk:1.16,def:1.12,spd:1.07},
- {hp:1.40,atk:1.22,def:1.16,spd:1.10}
+ {hp:1.02,atk:1.00,def:1.00,spd:1.00},
+ {hp:1.09,atk:1.035,def:1.035,spd:1.01},
+ {hp:1.16,atk:1.07,def:1.065,spd:1.02},
+ {hp:1.23,atk:1.105,def:1.09,spd:1.035},
+ {hp:1.30,atk:1.14,def:1.115,spd:1.045},
+ {hp:1.37,atk:1.18,def:1.145,spd:1.06}
 ];
 export function echoEnemyScaling(number,{insane=false}={}){
  const act=Math.max(1,Math.min(6,Math.ceil(number/6)));
  const stage=(number-1)%6;
  const base=CURVE[act-1];
- const pressure=stage*.016+(stage===5?.055:0);
+ const preBoss=number===34||number===35;
+ const pressure=stage*.011+(stage===5?.025:0);
  const factor=insane?1.20:1;
  return {
-  hp:Number(((base.hp+pressure)*factor).toFixed(3)),
-  atk:Number(((base.atk+pressure*.55)*factor).toFixed(3)),
-  def:Number(((base.def+pressure*.36)*factor).toFixed(3)),
-  spd:Number((base.spd+pressure*.15).toFixed(3))
+  hp:Number(((preBoss?1.07:base.hp+pressure)*factor).toFixed(3)),
+  atk:Number(((preBoss?1.035:base.atk+pressure*.45)*factor).toFixed(3)),
+  def:Number(((preBoss?1.035:base.def+pressure*.25)*factor).toFixed(3)),
+  spd:Number((preBoss?1.00:base.spd+pressure*.12).toFixed(3))
  };
 }
 export function echoPuppetIdentity(missionId,index,base){
