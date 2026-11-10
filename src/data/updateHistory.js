@@ -13,6 +13,16 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov10-echo-only-two-preboss-squads',category:'improvements',date:'10/11/2026',
+    title:'🌌 Terza campagna: due scontri pre-boss da sei e una trama più intensa',items:[
+      'Solo le missioni 34 e 35, subito prima di Echomax, hanno squadre nemiche da sei Multimon. Le missioni 1–33 mantengono tutte le loro formazioni originali.',
+      'Missione 34: due copie di Rena Rouge, due copie di Finn, Re Ghiaccio e Gravelord Nito, tutti collegati al potere di Echomax.',
+      'Missione 35: Topolino controllato, Snorlax, Kirby, Barry, Shadow e Cell Jr. come ultima barriera prima del raid.',
+      'Nei due pre-boss i sei avversari possono essere schierati insieme, mentre la Resistenza conserva la selezione normale di quattro Multimon.',
+      'La difficoltà delle missioni precedenti cresce progressivamente con gli atti, senza aggiungere nemici. La finale contro Echomax conserva il raid da 24 alleati.',
+      'Nuovi dialoghi sviluppano la storia delle copie, i ricordi di Finn, la liberazione di Topolino e le motivazioni di Echomax; aggiunti test contro l’introduzione accidentale di sei nemici nelle prime 33 missioni.'
+    ]},
+
   {id:'nov9-critical-stability-balance-audit',category:'improvements',date:'09/11/2026',
     title:'🛠️ Multimon più affidabile · IA, sincronizzazione, immagini e audit bilanciamento',items:[
       'IA CPU: corretto il calcolo della precisione, che ora riconosce sia valori decimali 0–1 sia percentuali 0–100. Le mosse affidabili sono valutate correttamente rispetto a quelle più forti ma rischiose.',
