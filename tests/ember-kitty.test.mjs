@@ -52,7 +52,7 @@ test('Ember: mosse Suono più forti del 25%, scudi ignorati, incanto -25%',()=>{
  const ordinary={...ember,passive:null};
  const boosted=calculateDamageImpl({},ember,target,m,1,false,()=>.5);
  const base=calculateDamageImpl({},ordinary,target,m,1,false,()=>.5);
- assert.ok(boosted>base*3,'Rockstar bypassa anche la protezione dello scudo del team');
+ assert.ok(boosted>base*1.8,'Rockstar bypassa lo Scudo Team, ora con riduzione danni del 45%');
  assert.equal(ignoresShields(ember,m),true);
  assert.equal(ignoresShields(ordinary,m),false);
  const enchanted={...ordinary,statuses:[{type:'Incantato',turns:10}]};
