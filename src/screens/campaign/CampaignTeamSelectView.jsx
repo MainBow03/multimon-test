@@ -10,6 +10,7 @@ import { applyEchoRouteToTeam } from '../../systems/echoRoutes.js';
 import {echoEnemyScaling,echoPuppetIdentity} from '../../systems/echoChallenge.js';
 import { echoRaidStarters, toggleEchoRaidStarter, orderEchoRaidRoster, isCompleteEchoRaidLineup, ECHO_ACTIVE_LIMIT } from '../../systems/echoRaidLineup.js';
 import {createEchoFinalSoul,isEchoFinalSoulId,ECHO_FINAL_SOUL_VERSION} from '../../systems/echoFinalSouls.js';
+import {echoRaidMovesAtFullAccuracy} from '../../systems/echoRaidHalfReset.js';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 const ECHO_FINAL_BOSS_HP = 4000;
 // Schermata estratta senza alterare la struttura JSX originale.
@@ -423,23 +424,27 @@ if (appMode === 'campaign_team_select') {
                         statuses: savedC.statuses || [], 
                         consecutiveProtect: 0,
                         atk: savedC.atk, 
-                        baseAtk: savedC.atk, 
+                        baseAtk: savedC.baseAtk ?? (isEchoFinalRaid&&savedC.id==='echomax'&&savedC.echoFinalForm!=='normal'?270:savedC.atk), 
                         def: savedC.def, 
-                        baseDef: savedC.def, 
+                        baseDef: savedC.baseDef ?? (isEchoFinalRaid&&savedC.id==='echomax'&&savedC.echoFinalForm!=='normal'?190:savedC.def), 
                         spd: savedC.spd, 
-                        baseSpd: savedC.spd,
+                        baseSpd: savedC.baseSpd ?? (isEchoFinalRaid&&savedC.id==='echomax'&&savedC.echoFinalForm!=='normal'?155:savedC.spd),
                         moves: baseChar.moves.filter(Boolean).map(m => ({ ...m, remainingUses: m.maxUses !== undefined ? m.maxUses : null }))
                     };
                     
                     // Riporta anche i checkpoint precedenti al nuovo massimo,
                     // mantenendo la percentuale di PS rimasta nel raid.
-                    if (isEchoFinalRaid && savedC.id === 'echomax') {
+                    if (isEchoFinalRaid && savedC.id === 'echomax' && savedC.echoFinalForm!=='normal') {
                         const previousMaxHp = Math.max(1, Number(savedC.maxHp) || ECHO_FINAL_BOSS_HP);
                         const previousHp = Math.max(0, Number(savedC.hp) || 0);
                         charInst.maxHp = ECHO_FINAL_BOSS_HP;
                         charInst.hp = Math.max(1, Math.min(ECHO_FINAL_BOSS_HP, Math.round(previousHp / previousMaxHp * ECHO_FINAL_BOSS_HP)));
                     }
 
+                    if(isEchoFinalRaid && savedC.id==='echomax' && savedC.echoFinalForm!=='normal'){
+                      charInst.echoHalfResetDone=!!savedC.echoHalfResetDone;
+                      charInst.moves=echoRaidMovesAtFullAccuracy(charInst.moves);
+                    }
                     charInst.isSummonOnly = false; // Gli aiutanti hanno PS propri.
                     if(isEchoFinalRaid&&isEchoFinalSoulId(charInst.id)){
                         charInst.isEchoSoulGuardian=true;
@@ -584,6 +589,9 @@ if (appMode === 'campaign_team_select') {
                         charInst.def=190;
                         charInst.spd=155;
                         charInst.baseAtk=270;charInst.baseDef=190;charInst.baseSpd=155;
+                        charInst.acc=1;
+                        charInst.echoHalfResetDone=false;
+                        charInst.moves=echoRaidMovesAtFullAccuracy(charInst.moves);
                         charInst.imageFilter='drop-shadow(0 0 32px rgba(168,85,247,0.8))';
                     }
                     if(isEchoFinalRaid&&charInst.id==='echomax'){
