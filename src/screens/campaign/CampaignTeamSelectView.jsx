@@ -9,6 +9,7 @@ import { accumulateBattleReport } from '../../systems/battleReport.js';
 import { applyEchoRouteToTeam } from '../../systems/echoRoutes.js';
 import {echoEnemyScaling,echoPuppetIdentity} from '../../systems/echoChallenge.js';
 import { echoRaidStarters, toggleEchoRaidStarter, orderEchoRaidRoster, isCompleteEchoRaidLineup, ECHO_ACTIVE_LIMIT } from '../../systems/echoRaidLineup.js';
+import {createEchoFinalSoul,isEchoFinalSoulId} from '../../systems/echoFinalSouls.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
 const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, campaignZodiacChoices, setCampaignZodiacChoices, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
@@ -384,7 +385,7 @@ if (appMode === 'campaign_team_select') {
             if (campaignState.currentBossState && campaignState.currentBossState.length > 0 &&
                 // Dopo la revisione a sei nemici un vecchio checkpoint con 2-3
                 // nemici non deve svuotare la nuova squadra.
-                (!mission.echoMission || !['eco_34','eco_35'].includes(mission.id) ||
+                (!mission.echoMission || !['eco_34','eco_35','eco_36'].includes(mission.id) ||
                   (campaignState.echoChallengeVersion===mission.echoChallengeVersion &&
                    campaignState.echoChallengeMissionId===mission.id))) {
                 // FIX CRITICO: Ignora il salvataggio vecchio se avevi già perso contro Groot e Snorlax PRIMA dell'aggiornamento
@@ -420,7 +421,12 @@ if (appMode === 'campaign_team_select') {
                         moves: baseChar.moves.filter(Boolean).map(m => ({ ...m, remainingUses: m.maxUses !== undefined ? m.maxUses : null }))
                     };
                     
-                    charInst.isSummonOnly = false; // FIX: I boss della campagna sono sempre considerati combattenti principali
+                    charInst.isSummonOnly = false; // Gli aiutanti hanno PS propri.
+                    if(isEchoFinalRaid&&isEchoFinalSoulId(charInst.id)){
+                        charInst.isEchoSoulGuardian=true;
+                        charInst.echoSoulPermanentDefeat=true;
+                        charInst.soulMasterId='echomax';
+                    }
 
                     // Riassegna il filtro immagine
                     if (activeCampaignId === 'crisi_varco') {
@@ -539,6 +545,11 @@ if (appMode === 'campaign_team_select') {
                         if(disguise)Object.assign(charInst,disguise);
                     }
 
+                    if(isEchoFinalRaid && isEchoFinalSoulId(charInst.id)){
+                        // Le tre anime hanno i loro movimenti originali e un'unica vita.
+                        Object.assign(charInst,createEchoFinalSoul(charInst));
+                    }
+
                     if(isEchoFinalRaid && charInst.id==='echomax'){
                         // Echomax affronta sei campioni per volta e fino a 24 nell'intero raid.
                         charInst.isEchoRaidBoss=true;
@@ -576,7 +587,7 @@ if (appMode === 'campaign_team_select') {
             }
             
             state.settings = { teamSize: p1Team.length, fieldSize: fSize, echoRaid: isEchoFinalRaid };
-            if(mission.echoMission&&!isEchoFinalRaid && mission.echoAct>=3)
+            if(mission.echoMission && mission.echoAct>=3)
               state.cpuStyles={...(state.cpuStyles||{}),p2:'tactical'};
             
             state.players.p1 = playerName || "Resistenza";
@@ -584,7 +595,7 @@ if (appMode === 'campaign_team_select') {
             state.isBot.p1 = false;
             state.inventory.p1 = getPlayerData().inventory; // FIX: Aggiunto caricamento cure in Campagna!
             
-            state.players.p2 = mission.echoMission&&!isEchoFinalRaid
+            state.players.p2 = isEchoFinalRaid?'Echomax e le tre Anime Sottomesse' : mission.echoMission&&!isEchoFinalRaid
               ?(mission.id==='eco_34'?'Legione dell’Eco · Finn':mission.id==='eco_35'?'Legione dell’Eco · Topolino':'Legione dell’Eco')
               : mission.isAnomaly && mission.id === 'm12_5' ? "Team Infetto" : activeBosses.map(id => {
                  const b = CHARACTERS.find(c=>c.id===id);
