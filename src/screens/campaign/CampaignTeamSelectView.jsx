@@ -9,7 +9,7 @@ import { accumulateBattleReport } from '../../systems/battleReport.js';
 import { applyEchoRouteToTeam } from '../../systems/echoRoutes.js';
 import {echoEnemyScaling,echoPuppetIdentity} from '../../systems/echoChallenge.js';
 import { echoRaidStarters, toggleEchoRaidStarter, orderEchoRaidRoster, isCompleteEchoRaidLineup, ECHO_ACTIVE_LIMIT } from '../../systems/echoRaidLineup.js';
-import {createEchoFinalSoul,isEchoFinalSoulId} from '../../systems/echoFinalSouls.js';
+import {createEchoFinalSoul,isEchoFinalSoulId,ECHO_FINAL_SOUL_VERSION} from '../../systems/echoFinalSouls.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
 const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, campaignZodiacChoices, setCampaignZodiacChoices, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
@@ -387,7 +387,8 @@ if (appMode === 'campaign_team_select') {
                 // nemici non deve svuotare la nuova squadra.
                 (!mission.echoMission || !['eco_34','eco_35','eco_36'].includes(mission.id) ||
                   (campaignState.echoChallengeVersion===mission.echoChallengeVersion &&
-                   campaignState.echoChallengeMissionId===mission.id))) {
+                   campaignState.echoChallengeMissionId===mission.id &&
+                   (!isEchoFinalRaid||campaignState.echoFinalSoulVersion===ECHO_FINAL_SOUL_VERSION)))) {
                 // FIX CRITICO: Ignora il salvataggio vecchio se avevi già perso contro Groot e Snorlax PRIMA dell'aggiornamento
                 const isOldM24Save = mission.id === 'm24' && campaignState.currentBossState.length <= 2 && !campaignState.currentBossState.some(c => ['piantacarnivora', 'cespugliomaledetto', 'alberto', 'fioretenebroso'].includes(c.id));
                 
@@ -638,7 +639,8 @@ if (appMode === 'campaign_team_select') {
             if(mission.echoMission){
               setCampaignState(prev=>({...prev,
                 echoChallengeVersion:mission.echoChallengeVersion,
-                echoChallengeMissionId:mission.id
+                echoChallengeMissionId:mission.id,
+                ...(isEchoFinalRaid?{echoFinalSoulVersion:ECHO_FINAL_SOUL_VERSION}:{})
               }));
             }
             
