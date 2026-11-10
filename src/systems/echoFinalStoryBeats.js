@@ -21,7 +21,7 @@ export const ECHO_FINAL_STORY_BEATS=Object.freeze([
  ]}
 ]);
 export function emitEchoFinalStoryBeats(enemies=[],events=[]){
- const boss=enemies.find(e=>e?.id==='echomax'&&e.isEchoRaidBoss&&e.hp>0);
+ const boss=enemies.find(e=>e?.id==='echomax'&&e.hp>0&&e.echoFinalForm!=='normal'&&e.isEchoRaidBoss!==false);
  if(!boss||!Number.isFinite(boss.hp)||!Number.isFinite(boss.maxHp)||boss.maxHp<=0)return [];
  const finished=new Set(Array.isArray(boss.echoFinalDialogueStages)?boss.echoFinalDialogueStages:[]);
  const triggered=[];
