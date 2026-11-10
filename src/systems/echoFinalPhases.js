@@ -31,6 +31,27 @@ function releaseEchoCopies(teams,field,events){
   }
 }
 
+
+// È lo stesso Scudo Team della mossa "Riflesso" (Magico): riduce a
+// circa un terzo i danni ricevuti per cinque turni, senza contrattacco.
+// Si applica a Echomax e a tutti gli alleati ancora vivi sul suo lato.
+function grantNormalEchoTeamShield(teams,events,normal){
+  for(let idx=0;idx<teams.p2.length;idx++){
+    const ally=teams.p2[idx];
+    if(!ally||ally.hp<=0||ally.isEchoCopy)continue;
+    ally.statuses=Array.isArray(ally.statuses)?ally.statuses:[];
+    if(ally===normal)
+      ally.statuses=ally.statuses.filter(s=>s.type!=='Riflesso');
+    const existing=ally.statuses.find(s=>s.type==='Scudo Team');
+    if(existing)existing.turns=5;
+    else ally.statuses.push({type:'Scudo Team',turns:5});
+    events.push({type:'status_update',targetPlayer:'p2',targetIdx:idx,
+      statuses:structuredClone(ally.statuses)});
+  }
+  normal.echoNormalShieldApplied=true;
+  events.push({type:'text',text:'🛡️ SCUDO TEAM! Echomax protegge sé stesso e i suoi alleati: danni subiti ridotti per 5 turni!'});
+}
+
 export function advanceEchoFinalPhase({isEchoFinalBattle=false,stage='raid',teams,field,characters=[],events=[]}={}){
   if(!isEchoFinalBattle||!teams?.p1||!teams?.p2||!field?.p2)return stage;
   if(stage===ECHO_FINAL_PHASES.RAID){
@@ -46,21 +67,26 @@ export function advanceEchoFinalPhase({isEchoFinalBattle=false,stage='raid',team
     say(events,'Finn','Allora affrontaci senza quel potere. Faccia a faccia.');
     const normal={
       ...structuredClone(base),hp:base.maxHp,maxHp:base.maxHp,
-      // Riflesso respinge il 30% dei danni subiti per due turni.
-      // Il +100% Velocità appartiene solo a questa seconda fase.
-      statuses:[{type:'Riflesso',turns:2}],
+      // Scudo Team (5 turni), non Riflesso danni. Velocità +100%
+      // solo nella seconda fase, senza alterare il personaggio sbloccabile.
+      statuses:[],
       spd:base.spd*2,consecutiveProtect:0,echoFinalForm:'normal',
       isEchoRaidBoss:false,isJuggernaut:false,isSummonOnly:false,
       baseAtk:base.atk,baseDef:base.def,baseSpd:base.spd,
       moves:fullMoves(base.moves),echoSoulCharges:0,echoFaintProcessed:false
     };
     enterEnemy(teams,field,events,normal,'⚡ Echomax riappare nella sua forma giocabile, con '+normal.maxHp+' PS!');
-    events.push({type:'text',text:'🪞 RIFLESSO! Echomax respinge il 30% dei danni ricevuti per 2 turni.'});
+    grantNormalEchoTeamShield(teams,events,normal);
     events.push({type:'text',text:'💨 ULTIMO SCATTO! La Velocità di Echomax aumenta del 100% ('+base.spd+' → '+normal.spd+')!'});
     say(events,'Echomax','Non mi servono scudi o corone per piegare il vostro destino. Venite!');
     return ECHO_FINAL_PHASES.NORMAL;
   }
   if(stage===ECHO_FINAL_PHASES.NORMAL){
+    // Migra senza ricominciare lo scontro le forme normali apparse con
+    // la vecchia versione che dava Riflesso al posto di Scudo Team.
+    const livingNormal=teams.p2.find(c=>c?.id==='echomax'&&c.echoFinalForm==='normal'&&c.hp>0);
+    if(livingNormal&&!livingNormal.echoNormalShieldApplied)
+      grantNormalEchoTeamShield(teams,events,livingNormal);
     const defeatedNormal=teams.p2.find(c=>c?.id==='echomax'&&c.echoFinalForm==='normal'&&c.hp<=0);
     if(!defeatedNormal)return stage;
     releaseEchoCopies(teams,field,events);
