@@ -20,7 +20,7 @@ export function legalSupportTargets(state,owner,kind,{fieldOnly=false,activePlay
   const allies=supportTeamPlayers(state,owner,activePlayers);
   return allies.flatMap(p=>(state?.teams?.[p]||[]).map((char,idx)=>({player:p,idx,char}))
     .filter(t=>t.char&&!t.char.isSummonOnly&&
-      (kind==='revive'?t.char.hp<=0:t.char.hp>0)&&
+      (kind==='revive'?(t.char.hp<=0 && !t.char.echoCorruptedLocked && !t.char.echoSoulPermanentDefeat):t.char.hp>0)&&
       (!fieldOnly||state?.field?.[p]?.includes(t.idx))));
 }
 export function isLegalSupportTarget(state,owner,targetPlayer,targetIdx,kind,options={}){
