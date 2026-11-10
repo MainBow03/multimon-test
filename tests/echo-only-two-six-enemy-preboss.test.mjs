@@ -56,10 +56,10 @@ test('Missione 35: Topolino, Snorlax, Kirby, Barry, Shadow, Cell Jr. — sei in 
  assert.ok(mission.postDialogue.some(d=>d.s.includes('Gaster')));
 });
 
-test('Missione 36 resta il raid singolo di Echomax con 24 alleati',()=>{
+test('Missione 36 mantiene Echomax boss con tre anime guardiane e 24 alleati',()=>{
  const mission=missions[35];
  assert.equal(mission.id,'eco_36');
- assert.deepEqual(mission.boss,['echomax']);
+ assert.deepEqual(mission.boss,['echomax','goku','naruto','luffy']);
  assert.equal(mission.forceFieldSize,6);
  assert.equal(mission.forcedRoster.length,24);
  assert.equal(mission.echoFinal,true);
@@ -88,5 +88,5 @@ test('Il numero di eroi selezionabili rimane quattro fino al raid da 24',()=>{
  assert.match(selection,/if \(isEchoFinalRaid\) maxTeamSize = 24/);
  assert.match(dialogue,/mission\.echoFinal \? 24 : 4/);
  assert.match(selection,/mission\.forceFieldSize/);
- assert.match(selection,/\['eco_34','eco_35'\]\.includes\(mission\.id\)/);
+ assert.match(selection,/\['eco_34','eco_35','eco_36'\]\.includes\(mission\.id\)/);
 });
