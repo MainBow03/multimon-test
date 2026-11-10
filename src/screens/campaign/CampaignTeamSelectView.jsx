@@ -367,9 +367,11 @@ if (appMode === 'campaign_team_select') {
             const p1Team = battleRoster.map(id => {
                 const baseChar = CHARACTERS.find(c => c.id === id);
                 if (!baseChar) return null; // FIX: Previene crash fatali
-                const hp = campaignState.rosterStats[id] || 100;
+                const echoLocked=isEchoFinalRaid && (campaignState.echoCorruptedLockedIds||[]).includes(id);
+                const hp = echoLocked ? 0 : (campaignState.rosterStats[id] || 100);
                 const instance={
                     ...JSON.parse(JSON.stringify(baseChar)), hp: hp, statuses: [], consecutiveProtect: 0, heldItem: campaignHeldItems[id] || null,
+                    ...(echoLocked?{echoCorruptedLocked:true,echoSoulPermanentDefeat:true}:{}),
                     ...(id==='lucy'?{zodiacSpiritId:campaignZodiacChoices[id]||'zodiac_aries'}:{}),
                     baseAtk: baseChar.atk, baseDef: baseChar.def, baseSpd: baseChar.spd,
                     moves: baseChar.moves.filter(Boolean).map(m => ({ ...m, remainingUses: m.maxUses !== undefined ? m.maxUses : null }))
@@ -395,7 +397,7 @@ if (appMode === 'campaign_team_select') {
                 const isOldM24Save = mission.id === 'm24' && campaignState.currentBossState.length <= 2 && !campaignState.currentBossState.some(c => ['piantacarnivora', 'cespugliomaledetto', 'alberto', 'fioretenebroso'].includes(c.id));
                 
                 if (!isOldM24Save) {
-                    isValidSavedBoss = campaignState.currentBossState.some(c => Number(c.hp) > 0 && ((mission.isAnomaly && mission.id === 'm12_5') || activeBosses.includes(c.id)));
+                    isValidSavedBoss = campaignState.currentBossState.some(c => Number(c.hp) > 0 && ((mission.isAnomaly && mission.id === 'm12_5') || activeBosses.includes(c.id) || (isEchoFinalRaid && c.isEchoCorruptedSoul)));
                 }
             }
 
@@ -412,7 +414,12 @@ if (appMode === 'campaign_team_select') {
                         hp: savedC.hp,
                         maxHp: savedC.maxHp,
                         name: savedC.name || baseChar.name,
-                        ...(savedC.isEchoPuppet?{isEchoPuppet:true,echoCloneLabel:savedC.echoCloneLabel}:{}), 
+                        ...(savedC.isEchoPuppet?{isEchoPuppet:true,echoCloneLabel:savedC.echoCloneLabel}:{}),
+                        ...(savedC.echoFinalForm?{echoFinalForm:savedC.echoFinalForm}:{}),
+                        ...(savedC.isEchoCorruptedSoul?{isEchoCorruptedSoul:true,
+                            echoCorruptionSourceId:savedC.echoCorruptionSourceId,
+                            echoCorruptionSourceIndex:savedC.echoCorruptionSourceIndex,
+                            echoSoulPermanentDefeat:true}:{}), 
                         statuses: savedC.statuses || [], 
                         consecutiveProtect: 0,
                         atk: savedC.atk, 
@@ -452,7 +459,7 @@ if (appMode === 'campaign_team_select') {
                     }
                     
                     // RIPRISTINO ABILITA' DA SUPER-BOSS (JUGGERNAUT, SCUDO E PURIFICAZIONE PASSIVA)
-                    if (savedC.isJuggernaut || (isFinalRaid && (charInst.id === 'trigon' || charInst.id === 'gaster')) || (isEchoFinalRaid && charInst.id==='echomax')) {
+                    if (savedC.isJuggernaut || (isFinalRaid && (charInst.id === 'trigon' || charInst.id === 'gaster')) || (isEchoFinalRaid && charInst.id==='echomax' && savedC.echoFinalForm!=='normal')) {
                          charInst.isJuggernaut = true;
                          charInst.juggTurnCount = savedC.juggTurnCount || 0;
                          const raidBalance=isFinalRaid?finalRaidBossStats(charInst.id):null;
@@ -460,7 +467,7 @@ if (appMode === 'campaign_team_select') {
                              ? Math.min(raidBalance.shieldHits,Math.max(0,savedC.juggHitsRemaining||0))
                              : (savedC.juggHitsRemaining||0);
                          charInst.shieldGrantedHits = isEchoFinalRaid ? 8 : (raidBalance?.shieldHits || savedC.shieldGrantedHits || 4);
-                         if(isEchoFinalRaid && charInst.id==='echomax'){
+                         if(isEchoFinalRaid && charInst.id==='echomax' && charInst.echoFinalForm!=='normal'){
                            charInst.isEchoRaidBoss=true;
                            charInst.echoFinalDialogueStages=[...(savedC.echoFinalDialogueStages||[])];
                          }
@@ -579,7 +586,7 @@ if (appMode === 'campaign_team_select') {
                         charInst.baseAtk=270;charInst.baseDef=190;charInst.baseSpd=155;
                         charInst.imageFilter='drop-shadow(0 0 32px rgba(168,85,247,0.8))';
                     }
-                    if(isEchoFinalRaid&&charInst.id==='echomax'){
+                    if(isEchoFinalRaid&&charInst.id==='echomax'&&charInst.isEchoRaidBoss){
                         // Checkpoint vecchi: i debuff di precisione precedenti alla
                         // nuova immunità non devono riapparire al rientro.
                         charInst.acc=1.0;
@@ -593,6 +600,12 @@ if (appMode === 'campaign_team_select') {
             state.gameMode = 'classica';
             state.isCampaignBattle = true;
             state.isEchoFinalBattle = isEchoFinalRaid;
+            if(isEchoFinalRaid){
+              state.echoFinalStage=isValidSavedBoss
+                ?(campaignState.echoFinalStage || (p2Team.some(c=>c.isEchoCorruptedSoul)?'souls':
+                    p2Team.some(c=>c.echoFinalForm==='normal')?'normal':'raid'))
+                :'raid';
+            }
             state.campaignBattleId = mission.id;
             
             // La battaglia usa il motore classico: 6 titolari, 18 in panchina.
