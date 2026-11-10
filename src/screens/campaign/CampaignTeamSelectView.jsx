@@ -38,7 +38,7 @@ if (appMode === 'campaign_team_select') {
         const mission = sector.missions[campaignState.missionIdx] || sector.missions[0];
         const isEchoFinalRaid = activeCampaignId === 'eco_anime' && mission.echoFinal;
         if (isEchoFinalRaid) maxTeamSize = 24;
-        const echoStartingSix = isEchoFinalRaid ? echoRaidStarters(campaignSelectedTeam,campaignState.echoStartingSix) : [];
+        const echoStartingSix = isEchoFinalRaid ? echoRaidStarters(campaignSelectedTeam,campaignState.echoStartingSix).filter(id=>campaignState.rosterStats[id]>0) : [];
         const activeBosses = mission.isAnomaly && mission.id === 'm12_5' && campaignState.anomalyTargets && campaignState.anomalyTargets.length > 0 ? campaignState.anomalyTargets : mission.boss;
 
         const showSelectionDialogue = (charId, isDeselect = false) => {
@@ -302,7 +302,7 @@ if (appMode === 'campaign_team_select') {
                     setCampaignState(prev=>({
                         ...prev,
                         echoStartingSix:toggleEchoRaidStarter(campaignSelectedTeam,
-                            prev.echoStartingSix ?? campaignSelectedTeam.slice(0,ECHO_ACTIVE_LIMIT),id)
+                            echoStartingSix,id)
                     }));
                     return;
                 }
@@ -586,11 +586,13 @@ if (appMode === 'campaign_team_select') {
                         charInst.baseAtk=270;charInst.baseDef=190;charInst.baseSpd=155;
                         charInst.imageFilter='drop-shadow(0 0 32px rgba(168,85,247,0.8))';
                     }
-                    if(isEchoFinalRaid&&charInst.id==='echomax'&&charInst.isEchoRaidBoss){
+                    if(isEchoFinalRaid&&charInst.id==='echomax'){
+                      if(charInst.isEchoRaidBoss){
                         // Checkpoint vecchi: i debuff di precisione precedenti alla
                         // nuova immunità non devono riapparire al rientro.
                         charInst.acc=1.0;
                         charInst.statuses=(charInst.statuses||[]).filter(x=>x?.type!=='Accecato');
+                      }
                     }
                     return charInst;
                 });
