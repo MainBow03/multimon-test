@@ -32,8 +32,8 @@ function releaseEchoCopies(teams,field,events){
 }
 
 
-// È lo stesso Scudo Team della mossa "Riflesso" (Magico): riduce a
-// circa un terzo i danni ricevuti per cinque turni, senza contrattacco.
+// È lo stesso Scudo Team della mossa "Riflesso" (Magico): riduce
+// i danni subiti del 45% per cinque turni, senza contrattacco.
 // Si applica a Echomax e a tutti gli alleati ancora vivi sul suo lato.
 function grantNormalEchoTeamShield(teams,events,normal){
   for(let idx=0;idx<teams.p2.length;idx++){
