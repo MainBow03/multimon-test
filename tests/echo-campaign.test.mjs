@@ -45,7 +45,7 @@ test('Trentasei missioni in sei atti con dialoghi individuali, ricompense e boss
  assert.equal(stages[35].id,ECHO_FINAL_ID);
  assert.equal(stages[35].forceFieldSize,6);
  assert.deepEqual(stages[35].forcedRoster,ECHO_ALLIES);
- assert.deepEqual(stages[35].boss,['echomax']);
+ assert.deepEqual(stages[35].boss,['echomax','goku','naruto','luffy']);
 });
 
 test('Tutti i 24 campioni sono unici, i 22 reclutamenti compaiono una sola volta',()=>{
