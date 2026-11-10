@@ -1,6 +1,7 @@
 // Le tre anime soggiogate da Echomax combattono nella missione 36,
 // utilizzando le mosse originali di Goku, Naruto e Luffy.
 // Non sono evocazioni temporanee della passiva Legione dei Caduti.
+export const ECHO_FINAL_SOUL_VERSION=1;
 export const ECHO_FINAL_SOUL_IDS=Object.freeze(['goku','naruto','luffy']);
 export const ECHO_FINAL_ENEMY_IDS=Object.freeze(['echomax',...ECHO_FINAL_SOUL_IDS]);
 const BALANCE=Object.freeze({
