@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {advanceEchoFinalPhase} from '../src/systems/echoFinalPhases.js';
 import {echoFinalVictory} from '../src/systems/echoFinalSouls.js';
 import {legalSupportTargets} from '../src/systems/supportTargeting.js';
@@ -135,4 +136,15 @@ test('no-raid non innesca transizioni, squadra priva di eroi vivi perde',()=>{
   assert.equal(game.teams.p2.length,before);
   assert.equal(echoFinalVictory({isEchoFinalBattle:true,stage:'raid',
     heroes:game.teams.p1,enemies:[{...echomaxPlayable,hp:200}]}),'boss');
+});
+
+test('Scudo Team di Iris, Dolli ed Echomax riduce i danni del 45% e non del 67%',()=>{
+  const motor=readFileSync(new URL('../src/systems/battleSystem.js',import.meta.url),'utf8');
+  const moves=readFileSync(new URL('../src/data/moves.js',import.meta.url),'utf8');
+  const characters=readFileSync(new URL('../src/data/characters.js',import.meta.url),'utf8');
+  assert.match(motor,/defender\.statuses\?\.some\(s => s\.type === 'Scudo Team'\) \? 0\.55 : 1/);
+  assert.doesNotMatch(motor,/defender\.statuses\?\.some\(s => s\.type === 'Scudo Team'\) \? 0\.33 : 1/);
+  assert.match(moves,/'Scudo Cristallino':[^\n]*ridotti del 45%/);
+  assert.match(moves,/'Riflesso Team':[^\n]*Riduce del 45%/);
+  assert.match(characters,/id: 'dolli'[^\n]*riduce del 45%/);
 });
