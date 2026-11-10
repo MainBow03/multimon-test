@@ -449,7 +449,10 @@ if (appMode === 'campaign_team_select') {
                              ? Math.min(raidBalance.shieldHits,Math.max(0,savedC.juggHitsRemaining||0))
                              : (savedC.juggHitsRemaining||0);
                          charInst.shieldGrantedHits = isEchoFinalRaid ? 8 : (raidBalance?.shieldHits || savedC.shieldGrantedHits || 4);
-                         if(isEchoFinalRaid && charInst.id==='echomax')charInst.isEchoRaidBoss=true;
+                         if(isEchoFinalRaid && charInst.id==='echomax'){
+                           charInst.isEchoRaidBoss=true;
+                           charInst.echoFinalDialogueStages=[...(savedC.echoFinalDialogueStages||[])];
+                         }
                          
                          const hpRatio = charInst.hp / charInst.maxHp;
                          charInst.juggShieldHpThresholds = (isEchoFinalRaid?[0.8,0.6,0.4,0.2]:[0.75, 0.50, 0.25]).filter(t => t < hpRatio);
