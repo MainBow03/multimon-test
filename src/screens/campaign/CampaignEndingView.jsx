@@ -15,6 +15,11 @@ if (appMode === 'campaign_ending') {
                         ? 'Dopo la fuga di Cell, la Resistenza ha affrontato la vera minaccia: Trigon e Gaster. Il raid è terminato, il vuoto si richiude e la storia dei mondi salvati può finalmente continuare.'
                         : `Hai portato a termine ${activeCampaign.title}. La tua alleanza ha scritto un nuovo capitolo nel multiverso!`}
                 </p>
+                {campaignState.recoveredFromLegacyCompletion && (
+                    <p className="max-w-3xl mb-5 rounded-2xl border border-cyan-400/35 bg-cyan-950/40 p-4 text-sm text-cyan-100">
+                        Il completamento è stato recuperato dal registro dei traguardi: una vecchia versione aveva cancellato il salvataggio. I 24 eroi e l'epilogo sono stati ripristinati, ma non è possibile ricostruire con certezza le monete e i PS precedenti.
+                    </p>
+                )}
                 <div className="bg-slate-900/50 p-6 rounded-3xl border border-white/10 mb-12 w-full max-w-4xl backdrop-blur-md">
                     <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-widest mb-6">La Resistenza Finale</h3>
                     <div className="flex flex-wrap justify-center gap-4">
