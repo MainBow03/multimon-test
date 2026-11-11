@@ -1,11 +1,12 @@
 import { reconcileCampaignRoster } from './campaignRoster.js';
-import { completeCampaign, isCampaignUnlocked } from './campaignUnlocks.js';
+import { completeCampaign, getCompletedCampaigns, isCampaignUnlocked } from './campaignUnlocks.js';
+import {recoverMissingEchoCompletion,CAMPAIGN_REPLAY_RESET_PREFIX} from './echoCompletionRecovery.js';
 import { ECHO_ID, ECHO_STARTERS } from '../data/echoCampaign.js';
 import { isTournamentEligibleCharacter, sanitizeTournamentSave } from './tournamentEligibility.js';
 import {rememberSelectedCampaign} from './lastCampaignSelection.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const loadCampaignImpl = (ctx, campId) => {
-const { CHARACTERS, getCampaignStoryCharacters, setActiveCampaignId, setCampaignState } = ctx;
+const { CHARACTERS, CAMPAIGNS, getCampaignStoryCharacters, setActiveCampaignId, setCampaignState } = ctx;
 
               if (!isCampaignUnlocked(campId)) return null;
               rememberSelectedCampaign(campId);
@@ -49,6 +50,21 @@ const { CHARACTERS, getCampaignStoryCharacters, setActiveCampaignId, setCampaign
                       setCampaignState(parsed);
                       return parsed; 
                   } catch(e){}
+              }
+
+              // Recupero non distruttivo: il vecchio finale eliminava il salvataggio
+              // nonostante il registro globale segnasse Echomax come completato.
+              const recovered=recoverMissingEchoCompletion({
+                  campaignId:campId,
+                  campaign:CAMPAIGNS?.find(c=>c.id===campId),
+                  characters:CHARACTERS,
+                  completed:!!getCompletedCampaigns()[campId],
+                  explicitReset:localStorage.getItem(CAMPAIGN_REPLAY_RESET_PREFIX+campId)==='1'
+              });
+              if(recovered){
+                  localStorage.setItem(`multiverse_rpg_campaign_save_${campId}`,JSON.stringify(recovered));
+                  setCampaignState(recovered);
+                  return recovered;
               }
 
               const freshState = {
