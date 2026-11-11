@@ -19,7 +19,7 @@ const fullMoves=moves=>(moves||[]).filter(Boolean).map(move=>({
 export function recordEchoOriginalSoulDefeat(boss,soul,events=[]){
  if(!boss?.isEchoRaidBoss || boss.id!=='echomax' ||
     !soul?.isEchoSoulGuardian || soul.isEchoSoulRecalledProjection ||
-    !ECHO_FINAL_SOUL_IDS.includes(soul.id)) return false;
+    !ECHO_FINAL_SOUL_IDS.includes(soul.id) || Number(soul.hp)>0) return false;
  const defeated=new Set((boss.echoOriginalSoulsDefeated||[])
    .filter(id=>ECHO_FINAL_SOUL_IDS.includes(id)));
  if(defeated.has(soul.id))return false;
