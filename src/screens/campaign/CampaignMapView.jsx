@@ -17,7 +17,11 @@ if (appMode === 'campaign_map') {
                 <button onClick={() => setAppMode('menu')} className="absolute top-6 left-6 flex items-center gap-2 text-slate-300 hover:text-white transition-colors bg-black/50 px-4 py-2 rounded-xl backdrop-blur-sm border border-white/20 z-20">
                      <ArrowLeft size={20} /> Abbandona Campagna
                 </button>
-                <button onClick={() => { 
+                <button onClick={() => {
+                    if(!window.confirm('Vuoi davvero azzerare questa campagna? Il progresso salvato sarà cancellato e non potrà essere ripristinato automaticamente.'))return;
+                    // Il reset esplicito è diverso dalla cancellazione accidentale
+                    // provocata dal vecchio tasto "Torna al Menu" del finale.
+                    localStorage.setItem('multimon_explicit_campaign_reset_'+activeCampaignId,'1');
                     setCampaignSelectedTeam([]); // FIX: Svuota la squadra
                     const freshState = loadCampaign(activeCampaignId);
                     freshState.isStarted = false;
