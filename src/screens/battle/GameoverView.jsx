@@ -197,6 +197,12 @@ if (gameState.status === 'gameover') {
                                                 baseSpd: c.baseSpd,
                                                 acc: c.acc ?? 1,
                                                 echoHalfResetDone: !!c.echoHalfResetDone,
+                                                // I trigger del raid e delle nuove fasi sopravvivono
+                                                // anche a ritirate, rematch e vecchi checkpoint.
+                                                echo35SoulRecallDone: !!c.echo35SoulRecallDone,
+                                                echoRaidLastPulseTurn: c.echoRaidLastPulseTurn ?? null,
+                                                echoNormalSoulsSummoned: !!c.echoNormalSoulsSummoned,
+                                                isEchoSoulRecalledProjection: !!c.isEchoSoulRecalledProjection,
                                                 statuses: c.statuses,
                                                 isJuggernaut: c.isJuggernaut,
                                                 juggHitsRemaining: c.juggHitsRemaining,
