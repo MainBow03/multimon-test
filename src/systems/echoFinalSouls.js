@@ -21,14 +21,14 @@ export const echoSoulPortraitId=label=>ECHO_SOUL_DIALOGUE_PORTRAITS[label]||null
 export function isEchoRaidAccuracyProtected(char){
  return !!(char?.id==='echomax'&&char.isEchoRaidBoss);
 }
-// Il grande boss di Echomax III ha il 50% di probabilità di entrare
+// Il grande boss di Echomax III ha il 30% di probabilità di entrare
 // in Ricarica dopo Dominatore del Multiverso. Le altre forme (inclusa
 // quella giocabile e la seconda fase con statistiche normali) non cambiano.
 export function shouldApplyEchoRecharge(attacker,move,isEchoFinalBattle,random=Math.random){
  if(!move?.recharge)return false;
  if(isEchoFinalBattle&&attacker?.id==='echomax'&&attacker.isEchoRaidBoss&&
     move.name==='Dominatore del Multiverso')
-   return random()<0.5;
+   return random()<0.30;
  return true;
 }
 export function isEchoFinalSoulId(id){return ECHO_FINAL_SOUL_IDS.includes(id);}
