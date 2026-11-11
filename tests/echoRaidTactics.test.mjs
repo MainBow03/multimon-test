@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
- triggerEchoSoulRecall,shouldTriggerEchoRaidPulse,echoRaidPulseDamage
+ triggerEchoSoulRecall,shouldTriggerEchoRaidPulse,echoRaidPulseDamage,
+ recordEchoOriginalSoulDefeat,syncEchoOriginalSoulDefeats
 } from '../src/systems/echoRaidTactics.js';
 
 const guardian=id=>({
@@ -75,8 +76,30 @@ test('Se gli slot sono pieni, il ritorno rispetta la capienza del campo',()=>{
  assert(state.events.some(e=>e.type==='remove'));
 });
 
-test('Cataclisma attivo soltanto ogni cinque turni con Echomax vivo',()=>{
- const active={isEchoFinalBattle:true,stage:'raid',boss:boss(800)};
+test('Il Cataclisma resta bloccato finché non cadono Goku, Naruto e Luffy originali',()=>{
+ const raid=boss(800);
+ const active={isEchoFinalBattle:true,stage:'raid',boss:raid,turnNumber:5};
+ const events=[];
+ assert.equal(shouldTriggerEchoRaidPulse(active),false);
+ assert.equal(recordEchoOriginalSoulDefeat(raid,guardian('goku'),events),true);
+ assert.equal(shouldTriggerEchoRaidPulse(active),false);
+ assert.equal(recordEchoOriginalSoulDefeat(raid,guardian('naruto'),events),true);
+ assert.equal(shouldTriggerEchoRaidPulse(active),false);
+ // Una proiezione creata dal richiamo non vale come terza anima.
+ assert.equal(recordEchoOriginalSoulDefeat(raid,{...guardian('luffy'),isEchoSoulRecalledProjection:true},events),false);
+ assert.equal(shouldTriggerEchoRaidPulse(active),false);
+ assert.equal(recordEchoOriginalSoulDefeat(raid,guardian('luffy'),events),true);
+ assert.equal(shouldTriggerEchoRaidPulse(active),true);
+ assert.deepEqual(raid.echoOriginalSoulsDefeated,['goku','naruto','luffy']);
+ assert.equal(events.filter(e=>e.text?.includes('LE TRE ANIME ORIGINALI')).length,1);
+ assert.equal(recordEchoOriginalSoulDefeat(raid,guardian('goku'),events),false);
+ assert.equal(events.filter(e=>e.text?.includes('LE TRE ANIME ORIGINALI')).length,1);
+});
+
+test('Dopo lo sblocco, Cataclisma agisce ogni cinque turni soltanto col boss raid vivo',()=>{
+ const active={isEchoFinalBattle:true,stage:'raid',boss:{
+  ...boss(800),echoOriginalSoulsDefeated:['goku','naruto','luffy']
+ }};
  for(let t=1;t<=20;t++)assert.equal(
   shouldTriggerEchoRaidPulse({...active,turnNumber:t}),t%5===0
  );
@@ -86,6 +109,30 @@ test('Cataclisma attivo soltanto ogni cinque turni con Echomax vivo',()=>{
  assert.equal(shouldTriggerEchoRaidPulse({...active,boss:{...boss(0)},turnNumber:10}),false);
  assert.equal(shouldTriggerEchoRaidPulse({...active,stage:'normal',turnNumber:10}),false);
  assert.equal(shouldTriggerEchoRaidPulse({...active,isEchoFinalBattle:false,turnNumber:10}),false);
+});
+
+test('Il richiamo del 35% non revoca lo sblocco dopo i tre KO',()=>{
+ const state=setup({hp:350,fallen:['goku','naruto','luffy'],field:[0]});
+ const raid=state.teams.p2[0];
+ assert.equal(syncEchoOriginalSoulDefeats(state.teams.p2,state.events),true);
+ assert.equal(shouldTriggerEchoRaidPulse({
+  isEchoFinalBattle:true,boss:raid,turnNumber:5
+ }),true);
+ assert.equal(recall(state).id,'goku');
+ assert.equal(state.teams.p2[1].hp,100);
+ assert.equal(shouldTriggerEchoRaidPulse({
+  isEchoFinalBattle:true,boss:raid,turnNumber:5
+ }),true);
+ assert.equal(syncEchoOriginalSoulDefeats(state.teams.p2,state.events),true);
+ assert.equal(state.events.filter(e=>e.text?.includes('LE TRE ANIME ORIGINALI')).length,1);
+});
+
+test('I checkpoint con tre anime originali KO abilitano il colpo anche senza flag preesistente',()=>{
+ const state=setup({fallen:['goku','naruto','luffy'],field:[0]});
+ assert.equal(syncEchoOriginalSoulDefeats(state.teams.p2,state.events),true);
+ assert.equal(shouldTriggerEchoRaidPulse({
+  isEchoFinalBattle:true,boss:state.teams.p2[0],turnNumber:5
+ }),true);
 });
 
 test('Cataclisma: 40% dei PS massimi anche con PS attuali bassi',()=>{
