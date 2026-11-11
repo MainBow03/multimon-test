@@ -14,6 +14,38 @@ const fullMoves=moves=>(moves||[]).filter(Boolean).map(move=>({
   remainingUses:move.maxUses===undefined?null:move.maxUses
 }));
 
+// Traccia soltanto i KO delle tre anime ORIGINALI. Il ritorno di una
+// di loro al 35% non riavvolge lo sblocco del Cataclisma.
+export function recordEchoOriginalSoulDefeat(boss,soul,events=[]){
+ if(!boss?.isEchoRaidBoss || boss.id!=='echomax' ||
+    !soul?.isEchoSoulGuardian || soul.isEchoSoulRecalledProjection ||
+    !ECHO_FINAL_SOUL_IDS.includes(soul.id)) return false;
+ const defeated=new Set((boss.echoOriginalSoulsDefeated||[])
+   .filter(id=>ECHO_FINAL_SOUL_IDS.includes(id)));
+ if(defeated.has(soul.id))return false;
+ defeated.add(soul.id);
+ boss.echoOriginalSoulsDefeated=[...defeated];
+ if(defeated.size===ECHO_FINAL_SOUL_IDS.length){
+   events.push({type:'text',text:'🌑 LE TRE ANIME ORIGINALI SONO CADUTE! Echomax libera il Cataclisma delle Anime: da ora può colpire tutto il team ogni 5 turni!'});
+ }
+ return true;
+}
+
+// Retrocompatibilità: dopo un checkpoint ripristina gli eventuali KO
+// originali già presenti, senza contare proiezioni né cloni.
+export function syncEchoOriginalSoulDefeats(enemies=[],events=[]){
+ const boss=enemies.find(char=>char?.id==='echomax'&&char.isEchoRaidBoss);
+ if(!boss)return false;
+ for(const id of ECHO_FINAL_SOUL_IDS){
+   const original=enemies.find(char=>char?.id===id&&char.isEchoSoulGuardian&&
+     !char.isEchoSoulRecalledProjection);
+   if(original && Number(original.hp)<=0)
+     recordEchoOriginalSoulDefeat(boss,original,events);
+ }
+ return ECHO_FINAL_SOUL_IDS.every(id=>
+   (boss.echoOriginalSoulsDefeated||[]).includes(id));
+}
+
 // Ritorna UNA sola anima scelta in modo uniforme fra Goku, Naruto e Luffy.
 // Se è stata sconfitta, viene rianimata (eccezione allo stop permanente).
 // Se combatte già, Echomax proietta una sua seconda eco sul campo.
@@ -125,6 +157,8 @@ export function shouldTriggerEchoRaidPulse({
 }={}){
  const turn=Math.floor(Number(turnNumber));
  return eligibleRaidBoss(boss,isEchoFinalBattle,stage) &&
+   // Nessuna onda prima che Goku, Naruto e Luffy ORIGINALI siano tutti KO.
+   ECHO_FINAL_SOUL_IDS.every(id=>(boss.echoOriginalSoulsDefeated||[]).includes(id)) &&
    Number.isFinite(turn)&&turn>0&&turn%ECHO_PULSE_INTERVAL===0 &&
    boss.echoRaidLastPulseTurn!==turn;
 }
