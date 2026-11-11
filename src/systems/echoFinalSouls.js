@@ -53,7 +53,8 @@ export function echoFinalVictory({isEchoFinalBattle=false,heroes=[],enemies=[],s
  const bossAlive=stage==='souls'
   ?enemies.some(c=>c?.isEchoCorruptedSoul&&Number(c.hp)>0)
   :stage==='normal'
-    ?enemies.some(c=>c?.id==='echomax'&&c.echoFinalForm==='normal'&&Number(c.hp)>0)
+    ?enemies.some(c=>Number(c.hp)>0&&(
+        (c.id==='echomax'&&c.echoFinalForm==='normal')||c.isEchoCorruptedSoul))
     :echoFinalBossAlive(enemies);
  if(!heroesAlive&&!bossAlive)return 'draw';
  if(!heroesAlive)return 'boss';
