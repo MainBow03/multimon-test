@@ -200,6 +200,7 @@ if (gameState.status === 'gameover') {
                                                 // I trigger del raid e delle nuove fasi sopravvivono
                                                 // anche a ritirate, rematch e vecchi checkpoint.
                                                 echo35SoulRecallDone: !!c.echo35SoulRecallDone,
+                                                echoOriginalSoulsDefeated: [...(c.echoOriginalSoulsDefeated||[])],
                                                 echoRaidLastPulseTurn: c.echoRaidLastPulseTurn ?? null,
                                                 echoNormalSoulsSummoned: !!c.echoNormalSoulsSummoned,
                                                 isEchoSoulRecalledProjection: !!c.isEchoSoulRecalledProjection,
