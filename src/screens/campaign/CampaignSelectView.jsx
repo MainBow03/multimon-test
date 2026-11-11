@@ -24,11 +24,10 @@ if (appMode === 'campaign_select') {
                                     if (locked) return;
                                     const state = loadCampaign(camp.id);
                                     if (!state) return;
-                                    if (state.isStarted) {
-                                        setAppMode('campaign_map');
-                                    } else {
-                                        setAppMode('campaign_intro');
-                                    }
+                                    // Le campagne completate aprono l'epilogo,
+                                    // non ripartono dalla prima missione.
+                                    setAppMode(state.completed ? 'campaign_ending'
+                                        : state.isStarted ? 'campaign_map' : 'campaign_intro');
                                 }}
                             >
                                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors"></div>
