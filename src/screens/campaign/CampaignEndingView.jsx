@@ -25,14 +25,12 @@ if (appMode === 'campaign_ending') {
                          })}
                     </div>
                 </div>
-                <button onClick={() => { 
+                <button onClick={() => {
+                    // Il finale NON deve azzerare il salvataggio della campagna.
+                    // Mantieni completamento, ultimo settore, roster e ricompense.
                     completeCampaign(activeCampaignId);
-                    setCampaignSelectedTeam([]); // FIX: Svuota la squadra
-                    const freshState = loadCampaign(activeCampaignId);
-                    freshState.isStarted = false;
-                    setCampaignState(freshState);
-                    localStorage.removeItem(`multiverse_rpg_campaign_save_${activeCampaignId}`);
-                    setAppMode('menu'); 
+                    setCampaignSelectedTeam([]);
+                    setAppMode('menu');
                 }} className="bg-white text-black px-12 py-5 rounded-full font-black text-xl hover:scale-105 transition-transform shadow-[0_0_40px_rgba(255,255,255,0.4)]">Torna al Menu Principale</button>
             </div>
         );
