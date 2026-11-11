@@ -133,10 +133,11 @@ export function advanceEchoFinalPhase({isEchoFinalBattle=false,stage='raid',team
       moves:fullMoves(base.moves),echoSoulCharges:0,echoFaintProcessed:false
     };
     enterEnemy(teams,field,events,normal,'⚡ Echomax riappare nella sua forma giocabile, con '+normal.maxHp+' PS!');
-    grantNormalEchoTeamShield(teams,events,normal);
     events.push({type:'text',text:'💨 ULTIMO SCATTO! La Velocità di Echomax aumenta del 100% ('+base.spd+' → '+normal.spd+')!'});
     say(events,'Echomax','Non mi servono scudi o corone per piegare il vostro destino. Venite!');
     summonFallenHeroesAtNormalReveal(teams,field,events,normal);
+    // Lo Scudo Team protegge anche i due cloni, evocati nello stesso momento.
+    grantNormalEchoTeamShield(teams,events,normal);
     return ECHO_FINAL_PHASES.NORMAL;
   }
   if(stage===ECHO_FINAL_PHASES.NORMAL){
