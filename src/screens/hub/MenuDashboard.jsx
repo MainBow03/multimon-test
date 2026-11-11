@@ -46,7 +46,7 @@ export function MenuDashboard({ctx}){
   'Campagne':'finn','Roguelike Solo':'jake','Roguelike Co-op':'sage',
   'Sopravvivenza':'godzilla','Sfida vs CPU':'goku',
   'Gioca in Locale':'bugsbunny','Sfida contro CPU':'robin',
-  'Catalogo':'kirby','Prestigi e Padronanza':'garnet','Laboratorio':'bulma',
+  'Catalogo':'kirby','Collezione Multimon':'sage','Prestigi e Padronanza':'garnet','Laboratorio':'bulma',
   'Negozio':'wario','Bauli Campagna':'lucy','Casse Potenza':'starbutterfly',
   'Tabella Tipi':'peridot','Statistiche complete':'sonic'
  };
@@ -240,6 +240,7 @@ export function MenuDashboard({ctx}){
     {tab==='collection'&&<>
      <div className="mm-dash-section-title"><div><small>✦ PROGRESSIONE</small><h2>Costruisci la tua leggenda</h2></div><p>Più forti, più rari, più tuoi!</p></div>
      <div className={'mm-dash-card-grid mm-dash-card-grid--'+tab}>
+      {card('✨','Collezione Multimon','I tuoi personaggi ottenuti e quelli ancora bloccati.',()=>setAppMode('collection'),'cyan')}
       {card('📚','Catalogo','Esplora i Multimon e le loro mosse.',()=>launch('catalog',()=>setAppMode('catalog')),'blue')}
       {card('💎','Prestigi e Padronanza','Livelli, titoli, ricompense estetiche.',()=>guarded('stats','mastery','ai prestigi'),'purple')}
       {card('⚡','Laboratorio','Allena Attacco, Difesa e Velocità.',()=>guarded('strength_lab','strength_lab','al laboratorio'),'cyan',(data.strengthPoints||0)+' Punti Forza')}
