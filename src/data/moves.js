@@ -15,7 +15,7 @@ export const MOVES_DB = {
   'Raggio dei Caduti': {name:'Raggio dei Caduti',type:'Spettro',power:100,accuracy:0.8,desc:'Raggio spettrale potentissimo su un singolo bersaglio. Precisione 80%.'},
   'Le Tenebre vi Avvolgono': {name:'Le Tenebre vi Avvolgono',type:'Buio',power:70,targetCount:24,desc:'Le tenebre travolgono tutti i bersagli avversari in campo.'},
   'Vieni a Me, Anima': {name:'Vieni a Me, Anima',type:'Spettro',power:0,targetStatDebuff:{def:0.7,spd:0.7},desc:'Indebolisce Difesa e Velocità del bersaglio del 30%.'},
-  'Dominatore del Multiverso': {name:'Dominatore del Multiverso',type:'Spettro',power:150,recharge:true,echoRecoilConfusion:true,desc:'Colpo devastante a bersaglio singolo. Deve ricaricare; fuori dal raid confonde anche Echomax.'},
+  'Dominatore del Multiverso': {name:'Dominatore del Multiverso',type:'Spettro',power:150,recharge:true,echoRecoilConfusion:true,desc:'Colpo devastante a bersaglio singolo. Ricarica garantita, ma solo al 50% per il boss raid di Echomax. Fuori dal raid confonde anche Echomax.'},
           // Kirby · copia al primo colpo una mossa di ciascuno dei primi 2 nemici distinti.
           'Stella Sparata': { name:'Stella Sparata',type:'Magico',power:85,statusEffect:{type:'Stordito',chance:0.2,turns:1},desc:'Lancia una stella luminosa: potenza 85, 20% di stordire il bersaglio.' },
           'Super Risucchio': { name:'Super Risucchio',type:'Magico',power:70,drain:0.25,desc:'Potenza 70. Kirby recupera il 25% dei danni inflitti.' },
