@@ -48,6 +48,7 @@ import { renderIntermissionView } from './screens/battle/IntermissionView.jsx';
 import { renderPreBattleView } from './screens/battle/PreBattleView.jsx';
 import { handleForceSkipImpl, handleObserveImpl, applyOnEnterPassiveImpl, startBattleImpl, generateCPUActionsForPlayerImpl, commitActionImpl, handleSelectMoveTargetImpl, checkTurnReadyImpl, calculateDamageImpl, calculateTurnImpl, playEventsAnimationImpl } from './systems/battleSystem.js';
 import { loadCampaignImpl, advanceCampaignImpl } from './systems/campaignFlow.js';
+import {lastSavedCampaignId} from './systems/lastCampaignSelection.js';
 import { reconcileCampaignRoster } from './systems/campaignRoster.js';
 import { nextCampaignCommandIndex, shouldRecoverCampaignCommand } from './systems/campaignBattleRecovery.js';
 import { handleAvatarUploadImpl, leaveRoomImpl, handleConfirmLeaveImpl, updateStateImpl, getRequiredPlayersImpl, getActivePlayersImpl, isAllPlayersJoinedImpl, handleCreateRoomImpl, handleJoinRoomImpl, commitReplacementChoiceImpl, handleAddBotImpl, handleRemovePlayerImpl, handleLocalStartImpl, handleVsCpuStartImpl, handlePickImpl, handleDraftRerollImpl, handleSharedPickImpl } from './systems/multiplayerSystem.js';
@@ -467,12 +468,12 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           // ---------------------------------------------------
 
           // --- STATO CAMPAGNA ---
-          const [activeCampaignId, setActiveCampaignId] = useState('crisi_varco');
+          const [activeCampaignId, setActiveCampaignId] = useState(()=>lastSavedCampaignId());
           
           const loadCampaign = (...__args) => loadCampaignImpl({ CHARACTERS, getCampaignStoryCharacters, setActiveCampaignId, setCampaignState }, ...__args);
 
           const [campaignState, setCampaignState] = useState(() => {
-              const saved = localStorage.getItem('multiverse_rpg_campaign_save_crisi_varco');
+              const saved = localStorage.getItem('multiverse_rpg_campaign_save_'+activeCampaignId);
               if (saved) {
                   try { 
                       let parsed = JSON.parse(saved);
