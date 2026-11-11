@@ -417,6 +417,8 @@ if (appMode === 'campaign_team_select') {
                         name: savedC.name || baseChar.name,
                         ...(savedC.isEchoPuppet?{isEchoPuppet:true,echoCloneLabel:savedC.echoCloneLabel}:{}),
                         ...(savedC.echoFinalForm?{echoFinalForm:savedC.echoFinalForm}:{}),
+                        ...(savedC.isEchoSoulRecalledProjection?{isEchoSoulRecalledProjection:true}:{}),
+                        echoNormalSoulsSummoned:!!savedC.echoNormalSoulsSummoned,
                         ...(savedC.isEchoCorruptedSoul?{isEchoCorruptedSoul:true,
                             echoCorruptionSourceId:savedC.echoCorruptionSourceId,
                             echoCorruptionSourceIndex:savedC.echoCorruptionSourceIndex,
@@ -443,6 +445,8 @@ if (appMode === 'campaign_team_select') {
 
                     if(isEchoFinalRaid && savedC.id==='echomax' && savedC.echoFinalForm!=='normal'){
                       charInst.echoHalfResetDone=!!savedC.echoHalfResetDone;
+                      charInst.echo35SoulRecallDone=!!savedC.echo35SoulRecallDone;
+                      charInst.echoRaidLastPulseTurn=savedC.echoRaidLastPulseTurn??null;
                       charInst.moves=echoRaidMovesAtFullAccuracy(charInst.moves);
                     }
                     charInst.isSummonOnly = false; // Gli aiutanti hanno PS propri.
