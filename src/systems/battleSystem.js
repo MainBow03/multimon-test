@@ -3742,6 +3742,20 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
              events.push({ type: 'summon', text: '', player: 'p1', newChar: returningChar, fieldIdx: newIdx, putOnField: putOnField });
         });
 
+        // Echomax raid: +5% Velocità BASE a ogni fine turno, anche dopo
+        // Ricarica o Stordito. Il limite standard è +100% (baseSpd * 2).
+        // Non riguarda la forma giocabile o Echomax sbloccato.
+        if(gameState.isEchoFinalBattle && (gameState.echoFinalStage||'raid')==='raid'){
+          const idx=workingTeams.p2?.findIndex(c=>c?.id==='echomax'&&c.isEchoRaidBoss===true&&c.hp>0)??-1;
+          if(idx>=0){
+            const boss=workingTeams.p2[idx];
+            if(applyBattleStatModifier(boss,'spd',1.05)){
+              events.push({type:'echo_stat_reset',player:'p2',index:idx,
+                spd:boss.spd,text:'💨 Crescita Inarrestabile! Echomax ottiene +5% Velocità cumulabile ('+
+                Math.round(100*boss.spd/(boss.baseSpd||boss.spd))+'% della velocità base, massimo 200%)!'});
+            }
+          }
+        }
         // Il dialogo finale segue le fasi reali degli HP del boss, una sola
         // volta per soglia; sopravvive anche ai checkpoint della campagna.
         if(gameState.isEchoFinalBattle)
