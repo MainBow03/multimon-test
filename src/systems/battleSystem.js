@@ -24,7 +24,7 @@ import {createBattlePlaybackSnapshot,applySummonPlaybackEvent} from './battleSum
 import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
 import {echoFinalVictory,isEchoRaidAccuracyProtected,shouldApplyEchoRecharge} from './echoFinalSouls.js';
 import {triggerEchoRaidHalfReset,restoreEchoRaidAccuracy} from './echoRaidHalfReset.js';
-import {triggerEchoSoulRecall,shouldTriggerEchoRaidPulse,echoRaidPulseDamage} from './echoRaidTactics.js';
+import {triggerEchoSoulRecall,shouldTriggerEchoRaidPulse,echoRaidPulseDamage,recordEchoOriginalSoulDefeat,syncEchoOriginalSoulDefeats} from './echoRaidTactics.js';
 import {advanceEchoFinalPhase,echoCorruptedSoulReleased} from './echoFinalPhases.js';
 import {emitEchoFinalStoryBeats,echoSoulReleaseDialogue} from './echoFinalStoryBeats.js';
 import { applyStrengthToFighter } from './strengthLab.js';
@@ -860,6 +860,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
               if(!gameState.isEchoFinalBattle || (gameState.echoFinalStage||'raid')!=='raid')return;
               const index=workingTeams.p2?.findIndex(c=>c?.id==='echomax'&&c.isEchoRaidBoss)??-1;
               if(index<0)return;
+              // Importante per i salvataggi precedenti: registra i guardiani
+              // originali già KO PRIMA dell'eventuale richiamo al 35%.
+              syncEchoOriginalSoulDefeats(workingTeams.p2,events);
               triggerEchoRaidHalfReset({isEchoFinalBattle:true,boss:workingTeams.p2[index],
                 heroes:workingTeams.p1,events,bossIndex:index});
               // Il 35% richiama una sola anima (anche da un checkpoint vecchio).
@@ -914,8 +917,14 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
               if(gameState.isEchoFinalBattle&&char.isEchoCorruptedSoul)
                   echoCorruptedSoulReleased(char,events);
               if(gameState.isEchoFinalBattle&&char.isEchoSoulGuardian){
+                  // Solo il KO del guardiano iniziale conta per sbloccare
+                  // il Cataclisma: le copie e i richiami sono esclusi.
+                  if(targetPlayer==='p2'){
+                    const raidBoss=workingTeams.p2?.find(c=>c?.id==='echomax'&&c.isEchoRaidBoss);
+                    recordEchoOriginalSoulDefeat(raidBoss,char,events);
+                  }
                   events.push({type:'text',text:'💠 '+char.name+
-                    ' è stata liberata dal controllo di Echomax e non tornerà in battaglia.'});
+                    ' è stata liberata dal controllo di Echomax!'});
                   for(const [speaker,line] of echoSoulReleaseDialogue(char.id))
                       events.push({type:'text',text:'🎭 '+speaker+': «'+line+'»'});
               }
@@ -3244,8 +3253,9 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 isFirstAttackOfTurn = false;
             }
         } // Fine ciclo coda dei turni
-        // Colpo extra ogni cinque turni della prima fase, indipendentemente
-        // dalla normale azione e dagli status Stordito e Ricarica.
+        // Il colpo extra diventa disponibile SOLO dopo i KO di tutte e
+        // tre le anime originali, poi ogni cinque turni della prima fase,
+        // indipendentemente dalla normale azione, da Stordito e Ricarica.
         if(gameState.isEchoFinalBattle && (gameState.echoFinalStage||'raid')==='raid'){
           const raidIdx=workingTeams.p2?.findIndex(c=>c?.id==='echomax'&&c.isEchoRaidBoss===true)??-1;
           const raidBoss=raidIdx>=0?workingTeams.p2[raidIdx]:null;
