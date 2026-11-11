@@ -6,10 +6,10 @@ const raid={id:'echomax',isEchoRaidBoss:true};
 const attack={name:'Dominatore del Multiverso',recharge:true};
 const roll=value=>()=>value;
 
-test('Echomax boss finale: Ricarica soltanto quando il tiro è inferiore a 0,5',()=>{
+test('Echomax boss finale: Ricarica soltanto quando il tiro è inferiore a 0,30',()=>{
  assert.equal(shouldApplyEchoRecharge(raid,attack,true,roll(0)),true);
- assert.equal(shouldApplyEchoRecharge(raid,attack,true,roll(.4999)),true);
- assert.equal(shouldApplyEchoRecharge(raid,attack,true,roll(.5)),false);
+ assert.equal(shouldApplyEchoRecharge(raid,attack,true,roll(.2999)),true);
+ assert.equal(shouldApplyEchoRecharge(raid,attack,true,roll(.30)),false);
  assert.equal(shouldApplyEchoRecharge(raid,attack,true,roll(.9999)),false);
 });
 
