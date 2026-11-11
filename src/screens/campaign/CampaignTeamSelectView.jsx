@@ -446,6 +446,7 @@ if (appMode === 'campaign_team_select') {
                     if(isEchoFinalRaid && savedC.id==='echomax' && savedC.echoFinalForm!=='normal'){
                       charInst.echoHalfResetDone=!!savedC.echoHalfResetDone;
                       charInst.echo35SoulRecallDone=!!savedC.echo35SoulRecallDone;
+                      charInst.echoOriginalSoulsDefeated=[...(savedC.echoOriginalSoulsDefeated||[])];
                       charInst.echoRaidLastPulseTurn=savedC.echoRaidLastPulseTurn??null;
                       charInst.moves=echoRaidMovesAtFullAccuracy(charInst.moves);
                     }
