@@ -24,6 +24,7 @@ import {createBattlePlaybackSnapshot,applySummonPlaybackEvent} from './battleSum
 import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
 import {echoFinalVictory,isEchoRaidAccuracyProtected,shouldApplyEchoRecharge} from './echoFinalSouls.js';
 import {triggerEchoRaidHalfReset,restoreEchoRaidAccuracy} from './echoRaidHalfReset.js';
+import {triggerEchoSoulRecall,shouldTriggerEchoRaidPulse,echoRaidPulseDamage} from './echoRaidTactics.js';
 import {advanceEchoFinalPhase,echoCorruptedSoulReleased} from './echoFinalPhases.js';
 import {emitEchoFinalStoryBeats,echoSoulReleaseDialogue} from './echoFinalStoryBeats.js';
 import { applyStrengthToFighter } from './strengthLab.js';
@@ -861,6 +862,12 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
               if(index<0)return;
               triggerEchoRaidHalfReset({isEchoFinalBattle:true,boss:workingTeams.p2[index],
                 heroes:workingTeams.p1,events,bossIndex:index});
+              // Il 35% richiama una sola anima (anche da un checkpoint vecchio).
+              triggerEchoSoulRecall({
+                isEchoFinalBattle:true,stage:gameState.echoFinalStage||'raid',
+                teams:workingTeams,field:workingField,events,
+                fieldSize:gameState.settings?.fieldSize||6
+              });
             };
             // Anche le battaglie iniziate con una versione precedente possono
             // raggiungere la soglia senza perdere i propri progressi.
@@ -3237,6 +3244,30 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 isFirstAttackOfTurn = false;
             }
         } // Fine ciclo coda dei turni
+        // Colpo extra ogni cinque turni della prima fase, indipendentemente
+        // dalla normale azione e dagli status Stordito e Ricarica.
+        if(gameState.isEchoFinalBattle && (gameState.echoFinalStage||'raid')==='raid'){
+          const raidIdx=workingTeams.p2?.findIndex(c=>c?.id==='echomax'&&c.isEchoRaidBoss===true)??-1;
+          const raidBoss=raidIdx>=0?workingTeams.p2[raidIdx]:null;
+          const turnNumber=Math.max(0,Math.floor(Number(gameState.battleReport?.turns)||0))+1;
+          if(shouldTriggerEchoRaidPulse({
+            isEchoFinalBattle:true,stage:'raid',boss:raidBoss,turnNumber
+          })){
+            raidBoss.echoRaidLastPulseTurn=turnNumber; // Il salvataggio evita doppi inneschi.
+            events.push({type:'battle_actor',player:'p2',charTeamIdx:raidIdx,kind:'attack'});
+            events.push({type:'text',text:'🌑 CATACLISMA DELLE ANIME! Echomax usa il suo attacco automatico del turno '+turnNumber+'! Tutti gli avversari in campo perdono il 40% dei loro PS massimi, senza riduzioni da Difesa o Scudi!'});
+            // Copia gli indici perché i KO possono rimuoverli dal campo.
+            for(const heroIdx of [...(workingField.p1||[])]){
+              const hero=workingTeams.p1?.[heroIdx];
+              if(!hero||hero.hp<=0)continue;
+              const fixedDamage=echoRaidPulseDamage(hero.maxHp);
+              if(fixedDamage>0)applyDamage(hero,fixedDamage,'p1',heroIdx,
+                '💥 Cataclisma delle Anime: '+hero.name+' subisce '+fixedDamage+
+                ' danni fissi (40% dei PS massimi)!');
+            }
+            events.push({type:'battle_actor_end'});
+          }
+        }
         // I danni e le cure automatiche a fine turno non appartengono all'ultimo attaccante.
         events.push({type:'battle_actor_end'});
         // Reset turno anche per chi è in panchina o esausto.
