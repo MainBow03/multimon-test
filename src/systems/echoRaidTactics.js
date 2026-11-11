@@ -33,9 +33,14 @@ export function triggerEchoSoulRecall({
    .filter(entry=>entry.index>=0);
  if(!guardians.length)return null;
 
+ // Prima consideriamo le anime già KO, poi quelle fuori campo.
+ // Se sono tutte già schierate, crea una proiezione supplementare.
+ const fallen=guardians.filter(entry=>Number(enemies[entry.index].hp)<=0);
+ const reserves=guardians.filter(entry=>!active.includes(entry.index));
+ const candidates=fallen.length?fallen:reserves.length?reserves:guardians;
  const sampled=Number(random());
- const choice=guardians[Math.min(guardians.length-1,Math.max(0,Math.floor(
-   (Number.isFinite(sampled)?sampled:0)*guardians.length
+ const choice=candidates[Math.min(candidates.length-1,Math.max(0,Math.floor(
+   (Number.isFinite(sampled)?sampled:0)*candidates.length
  )))];
  const soul=enemies[choice.index];
  const makeProjection=Number(soul.hp)>0&&active.includes(choice.index);
@@ -45,10 +50,18 @@ export function triggerEchoSoulRecall({
  // Se il campo resta pieno, mettiamo in riserva l'ultimo alleato non-boss.
  if(active.length>=size){
    let slot=active.findIndex(index=>enemies[index]?.isEchoCopy);
-   if(slot<0)slot=active.findLastIndex(index=>
-     enemies[index]?.id!=='echomax' && index!==choice.index);
-   if(slot<0 && makeProjection)slot=active.findLastIndex(index=>
-     enemies[index]?.id!=='echomax');
+   if(slot<0){
+     for(let i=active.length-1;i>=0;i--){
+       if(enemies[active[i]]?.id!=='echomax' && active[i]!==choice.index){
+         slot=i;break;
+       }
+     }
+   }
+   if(slot<0 && makeProjection){
+     for(let i=active.length-1;i>=0;i--){
+       if(enemies[active[i]]?.id!=='echomax'){slot=i;break;}
+     }
+   }
    if(slot<0)return null;
    const benched=active.splice(slot,1)[0];
    const fighter=enemies[benched];
