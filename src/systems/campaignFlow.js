@@ -2,11 +2,13 @@ import { reconcileCampaignRoster } from './campaignRoster.js';
 import { completeCampaign, isCampaignUnlocked } from './campaignUnlocks.js';
 import { ECHO_ID, ECHO_STARTERS } from '../data/echoCampaign.js';
 import { isTournamentEligibleCharacter, sanitizeTournamentSave } from './tournamentEligibility.js';
+import {rememberSelectedCampaign} from './lastCampaignSelection.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const loadCampaignImpl = (ctx, campId) => {
 const { CHARACTERS, getCampaignStoryCharacters, setActiveCampaignId, setCampaignState } = ctx;
 
               if (!isCampaignUnlocked(campId)) return null;
+              rememberSelectedCampaign(campId);
               setActiveCampaignId(campId);
               
               let defaultRoster = [];
