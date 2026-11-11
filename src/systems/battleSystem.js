@@ -22,7 +22,7 @@ import { activateRoguelikeBossShield } from './roguelikeBossPower.js';
 import { createBattleReport, accumulateBattleReport } from './battleReport.js';
 import {createBattlePlaybackSnapshot,applySummonPlaybackEvent} from './battleSummonPlayback.js';
 import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
-import {echoFinalVictory,isEchoRaidAccuracyProtected} from './echoFinalSouls.js';
+import {echoFinalVictory,isEchoRaidAccuracyProtected,shouldApplyEchoRecharge} from './echoFinalSouls.js';
 import {triggerEchoRaidHalfReset,restoreEchoRaidAccuracy} from './echoRaidHalfReset.js';
 import {advanceEchoFinalPhase,echoCorruptedSoulReleased} from './echoFinalPhases.js';
 import {emitEchoFinalStoryBeats,echoSoulReleaseDialogue} from './echoFinalStoryBeats.js';
@@ -3188,10 +3188,14 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 }
 
                 if (move.recharge && attackSucceeded && attacker.hp > 0) {
-                    attacker.statuses.push({ type: 'Ricarica', turns: 1 });
-                    const cured=activateNeutralizingSpray(attacker);
-                    updateStatusUI(player,charTeamIdx);
-                    if(cured.length)events.push({type:'text',text:`🧴 Spray Neutralizzante di ${attacker.name}: annulla Ricarica e gli altri malus!`});
+                    // Soltanto il boss raid di Echomax III rischia Ricarica al 50%.
+                    // Tutti gli altri utilizzatori mantengono il normale obbligo.
+                    if(shouldApplyEchoRecharge(attacker,move,gameState.isEchoFinalBattle)){
+                        attacker.statuses.push({ type: 'Ricarica', turns: 1 });
+                        const cured=activateNeutralizingSpray(attacker);
+                        updateStatusUI(player,charTeamIdx);
+                        if(cured.length)events.push({type:'text',text:`🧴 Spray Neutralizzante di ${attacker.name}: annulla Ricarica e gli altri malus!`});
+                    }
                 }
                 if(move.echoRecoilConfusion && attackSucceeded && attacker.hp>0 && !attacker.isEchoRaidBoss){
                     attacker.statuses.push({type:'Confuso',turns:2});
