@@ -1,6 +1,6 @@
 // Le due sorprese finali appartengono esclusivamente al raid della terza campagna.
 // Una volta sconfitto il boss da 4000 PS, appare la sua forma giocabile.
-// Solo alla sconfitta di quest'ultima vengono richiamati fino a due eroi KO.
+// La forma giocabile ritorna SUBITO con fino a due copie dei nostri alleati KO.
 export const ECHO_FINAL_PHASES = Object.freeze({
   RAID:'raid', NORMAL:'normal', SOULS:'souls'
 });
@@ -31,6 +31,63 @@ function releaseEchoCopies(teams,field,events){
   }
 }
 
+
+// Quando si manifesta la forma giocabile, Echomax porta con sé fino a due
+// copie corrotte dei protagonisti già esausti. Non aspettare il suo secondo KO.
+function summonFallenHeroesAtNormalReveal(teams,field,events,normal){
+  if(!normal||normal.echoNormalSoulsSummoned)return 0;
+  normal.echoNormalSoulsSummoned=true; // Conservato anche nei checkpoint.
+  say(events,'Echomax','LE ANIME DEI VOSTRI CADUTI MI APPARTENGONO!');
+    const defeated=teams.p1.map((hero,index)=>({hero,index}))
+      .filter(({hero})=>hero&&hero.hp<=0&&!hero.isSummonOnly&&!hero.echoCorruptedLocked);
+    // Fisher–Yates: ogni eroe esausto ha pari probabilità di essere scelto.
+    for(let i=defeated.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [defeated[i],defeated[j]]=[defeated[j],defeated[i]];
+    }
+    const chosen=defeated.slice(0,2);
+    for(const {hero,index} of chosen){
+      hero.echoCorruptedLocked=true;
+      hero.echoSoulPermanentDefeat=true;
+      const fullHp=Math.max(1,Number(hero.maxHp)||1);
+      const soul={
+        ...structuredClone(hero),name:'Anima corrotta di '+hero.name,
+        hp:fullHp,maxHp:fullHp,atk:hero.baseAtk||hero.atk,
+        def:hero.baseDef||hero.def,spd:hero.baseSpd||hero.spd,
+        statuses:[],consecutiveProtect:0,echoFaintProcessed:false,
+        moves:fullMoves(hero.moves),imageFilter:CORRUPTION_FILTER,
+        isEchoCorruptedSoul:true,echoCorruptionSourceId:hero.id,
+        echoCorruptionSourceIndex:index,echoCorruptedLocked:false,
+        isEchoRaidBoss:false,isJuggernaut:false,isSummonOnly:false,
+        isEchoCopy:false,echoSoulPermanentDefeat:true
+      };
+      say(events,'Echomax',hero.name+'! Alzati. La tua forza combatterà contro chi ti chiamava amico!');
+      // Il raid permette al massimo sei combattenti attivi per schieramento.
+      // Se i guardiani Goku/Naruto/Luffy occupano gli slot, vanno in riserva.
+      if(field.p2.length>=6){
+        let pos=-1;
+        for(let i=field.p2.length-1;i>=0;i--){
+          const fighter=teams.p2[field.p2[i]];
+          if(fighter && fighter.id!=='echomax' && !fighter.isEchoCorruptedSoul){pos=i;break;}
+        }
+        if(pos>=0){
+          const idx=field.p2.splice(pos,1)[0];
+          events.push({type:'remove',player:'p2',pos});
+          events.push({type:'text',text:'🌑 '+teams.p2[idx].name+' arretra per lasciare spazio a un’anima corrotta!'});
+        }
+      }
+      enterEnemy(teams,field,events,soul,'🌘 '+hero.name+' viene trascinato nel team nemico al 100% dei PS!');
+    }
+    if(!chosen.length){
+      say(events,'Echomax','Nessun caduto da reclamare?! Tutti ancora in piedi... impossibile!');
+      say(events,'Topolino','È finita, Echomax. Neanche un’anima ti obbedirà più.');
+    }else{
+      say(events,'Corvina','I loro corpi sono esausti e le loro anime sono prigioniere. Dobbiamo sconfiggere queste copie per liberarli!');
+      say(events,'Echomax','Provateci. Anche sconfitto, sarò io a decidere come termina questa storia!');
+    }
+
+  return chosen.length;
+}
 
 // È lo stesso Scudo Team della mossa "Riflesso" (Magico): riduce
 // i danni subiti del 45% per cinque turni, senza contrattacco.
@@ -79,6 +136,7 @@ export function advanceEchoFinalPhase({isEchoFinalBattle=false,stage='raid',team
     grantNormalEchoTeamShield(teams,events,normal);
     events.push({type:'text',text:'💨 ULTIMO SCATTO! La Velocità di Echomax aumenta del 100% ('+base.spd+' → '+normal.spd+')!'});
     say(events,'Echomax','Non mi servono scudi o corone per piegare il vostro destino. Venite!');
+    summonFallenHeroesAtNormalReveal(teams,field,events,normal);
     return ECHO_FINAL_PHASES.NORMAL;
   }
   if(stage===ECHO_FINAL_PHASES.NORMAL){
@@ -87,8 +145,14 @@ export function advanceEchoFinalPhase({isEchoFinalBattle=false,stage='raid',team
     const livingNormal=teams.p2.find(c=>c?.id==='echomax'&&c.echoFinalForm==='normal'&&c.hp>0);
     if(livingNormal&&!livingNormal.echoNormalShieldApplied)
       grantNormalEchoTeamShield(teams,events,livingNormal);
+    // Salvataggi creati prima della correzione: i compagni esausti entrano
+    // appena il turno viene calcolato, senza dover sconfiggere Echomax.
+    if(livingNormal && !livingNormal.echoNormalSoulsSummoned)
+      summonFallenHeroesAtNormalReveal(teams,field,events,livingNormal);
     const defeatedNormal=teams.p2.find(c=>c?.id==='echomax'&&c.echoFinalForm==='normal'&&c.hp<=0);
     if(!defeatedNormal)return stage;
+    if(!defeatedNormal.echoNormalSoulsSummoned)
+      summonFallenHeroesAtNormalReveal(teams,field,events,defeatedNormal);
     releaseEchoCopies(teams,field,events);
     events.push({type:'text',text:'💠 ULTIMO ATTO — LA VOLONTÀ DI ECHOMAX SI SPEZZA'});
     say(events,'Echomax','No... non può essere. Perfino questa forma... sconfitta?');
@@ -99,40 +163,7 @@ export function advanceEchoFinalPhase({isEchoFinalBattle=false,stage='raid',team
     say(events,'Neon','Il tuo potere sta svanendo. Non puoi più comandare la Legione.');
     say(events,'Echomax','Allora userò l’ultima scintilla. Non per vincere... per dimostrarvi che nessun legame è al sicuro!');
     say(events,'Marceline','Non toccare i nostri compagni, Echomax!');
-    say(events,'Echomax','LE ANIME DEI VOSTRI CADUTI MI APPARTENGONO!');
-    const defeated=teams.p1.map((hero,index)=>({hero,index}))
-      .filter(({hero})=>hero&&hero.hp<=0&&!hero.isSummonOnly&&!hero.echoCorruptedLocked);
-    // Fisher–Yates: ogni eroe esausto ha pari probabilità di essere scelto.
-    for(let i=defeated.length-1;i>0;i--){
-      const j=Math.floor(Math.random()*(i+1));
-      [defeated[i],defeated[j]]=[defeated[j],defeated[i]];
-    }
-    const chosen=defeated.slice(0,2);
-    for(const {hero,index} of chosen){
-      hero.echoCorruptedLocked=true;
-      hero.echoSoulPermanentDefeat=true;
-      const fullHp=Math.max(1,Number(hero.maxHp)||1);
-      const soul={
-        ...structuredClone(hero),name:'Anima corrotta di '+hero.name,
-        hp:fullHp,maxHp:fullHp,atk:hero.baseAtk||hero.atk,
-        def:hero.baseDef||hero.def,spd:hero.baseSpd||hero.spd,
-        statuses:[],consecutiveProtect:0,echoFaintProcessed:false,
-        moves:fullMoves(hero.moves),imageFilter:CORRUPTION_FILTER,
-        isEchoCorruptedSoul:true,echoCorruptionSourceId:hero.id,
-        echoCorruptionSourceIndex:index,echoCorruptedLocked:false,
-        isEchoRaidBoss:false,isJuggernaut:false,isSummonOnly:false,
-        isEchoCopy:false,echoSoulPermanentDefeat:true
-      };
-      say(events,'Echomax',hero.name+'! Alzati. La tua forza combatterà contro chi ti chiamava amico!');
-      enterEnemy(teams,field,events,soul,'🌘 '+hero.name+' viene trascinato nel team nemico al 100% dei PS!');
-    }
-    if(!chosen.length){
-      say(events,'Echomax','Nessun caduto da reclamare?! Tutti ancora in piedi... impossibile!');
-      say(events,'Topolino','È finita, Echomax. Neanche un’anima ti obbedirà più.');
-    }else{
-      say(events,'Corvina','I loro corpi sono esausti e le loro anime sono prigioniere. Dobbiamo sconfiggere queste copie per liberarli!');
-      say(events,'Echomax','Provateci. Anche sconfitto, sarò io a decidere come termina questa storia!');
-    }
+    say(events,'Echomax','Neppure senza di me riuscirete a spezzare tutti i miei ultimi legami!');
     return ECHO_FINAL_PHASES.SOULS;
   }
   return stage;
