@@ -1,4 +1,4 @@
-import { getCampaignLock } from '../../systems/campaignUnlocks.js';
+import { getCampaignLock, getCompletedCampaigns } from '../../systems/campaignUnlocks.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignSelectView(ctx) {
 const { ArrowLeft, CAMPAIGNS, appMode, loadCampaign, setAppMode } = ctx;
@@ -15,6 +15,7 @@ if (appMode === 'campaign_select') {
                     {CAMPAIGNS.map(camp => {
                         const saved = localStorage.getItem(`multiverse_rpg_campaign_save_${camp.id}`);
                         const isInProgress = !!saved;
+                        const completed = !!getCompletedCampaigns()[camp.id];
                         const prerequisite = getCampaignLock(camp.id);
                         const locked = !!prerequisite;
                         const unlockLabel = prerequisite === 'crisi_varco' ? 'Completa La Crisi del Varco Rotto' : prerequisite === 'torneo_assoluto' ? 'Completa Il Torneo Assoluto' : 'Completa L\'Eco delle Anime';
@@ -37,7 +38,7 @@ if (appMode === 'campaign_select') {
                                     <h2 className="text-3xl font-black text-white mb-4">{camp.title}</h2>
                                     <p className="text-slate-300 mb-8 flex-1">{camp.description}</p>
                                     <button className="bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-8 rounded-full backdrop-blur-sm border border-white/20 transition-colors w-full uppercase tracking-widest shadow-lg mt-auto">
-                                        {locked ? '🔒 CAMPAGNA BLOCCATA' : (isInProgress ? 'Continua Partita' : 'Nuova Partita')}
+                                        {locked ? '🔒 CAMPAGNA BLOCCATA' : (completed ? '🏆 Campagna Completata · Rivedi Finale' : isInProgress ? 'Continua Partita' : 'Nuova Partita')}
                                     </button>
                                 </div>
                             </div>
