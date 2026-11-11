@@ -36,6 +36,7 @@ import { PowerChestsView } from './screens/hub/PowerChestsView.jsx';
 import { renderStatsView } from './screens/hub/StatsView.jsx';
 import { renderTypeChartView } from './screens/hub/TypeChartView.jsx';
 import { renderCatalogView } from './screens/hub/CatalogView.jsx';
+import { CollectionView } from './screens/hub/CollectionView.jsx';
 import { renderLobbyView } from './screens/battle/LobbyView.jsx';
 import { renderDraftingView } from './screens/battle/DraftingView.jsx';
 import { renderSwitchingPhaseView } from './screens/battle/SwitchingPhaseView.jsx';
@@ -2054,6 +2055,18 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
   const __screen = renderCatalogView({ ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Lock, MOVES_DB, TYPES, TYPE_STYLES, appMode, catalogFilter, catalogSearch, catalogSort, setAppMode, setCatalogFilter, setCatalogSearch, setCatalogSort });
   if (__screen !== undefined) return __screen;
 }
+
+    if (appMode === 'collection') {
+      return <CollectionView
+        characters={CHARACTERS}
+        playerData={getPlayerData()}
+        typeStyles={TYPE_STYLES}
+        isPreview={IS_PREVIEW}
+        onBack={() => setAppMode('menu')}
+        onCatalog={() => setAppMode('catalog')}
+        onShop={() => { if (!playerName.trim()) setSystemAlert('Inserisci il tuo nome per accedere al Negozio!'); else setAppMode('shop'); }}
+      />;
+    }
 
     if (gameState.status === 'lobby') {
   const __screen = renderLobbyView({ ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Loader2, SOUNDTRACKS, Swords, TYPE_STYLES, Users, Volume2, appMode, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleAddBot, handleRemovePlayer, isAllPlayersJoined, leaveRoom, playerRole, roomId, setDraftTimeLeft, startBattle, updateState });
