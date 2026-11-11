@@ -470,7 +470,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           // --- STATO CAMPAGNA ---
           const [activeCampaignId, setActiveCampaignId] = useState(()=>lastSavedCampaignId());
           
-          const loadCampaign = (...__args) => loadCampaignImpl({ CHARACTERS, getCampaignStoryCharacters, setActiveCampaignId, setCampaignState }, ...__args);
+          const loadCampaign = (...__args) => loadCampaignImpl({ CHARACTERS, CAMPAIGNS, getCampaignStoryCharacters, setActiveCampaignId, setCampaignState }, ...__args);
 
           const [campaignState, setCampaignState] = useState(() => {
               const saved = localStorage.getItem('multiverse_rpg_campaign_save_'+activeCampaignId);
