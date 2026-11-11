@@ -81,18 +81,19 @@ test('Il Cataclisma resta bloccato finché non cadono Goku, Naruto e Luffy origi
  const active={isEchoFinalBattle:true,stage:'raid',boss:raid,turnNumber:5};
  const events=[];
  assert.equal(shouldTriggerEchoRaidPulse(active),false);
- assert.equal(recordEchoOriginalSoulDefeat(raid,guardian('goku'),events),true);
+ assert.equal(recordEchoOriginalSoulDefeat(raid,guardian('goku'),events),false);
+ assert.equal(recordEchoOriginalSoulDefeat(raid,{...guardian('goku'),hp:0},events),true);
  assert.equal(shouldTriggerEchoRaidPulse(active),false);
- assert.equal(recordEchoOriginalSoulDefeat(raid,guardian('naruto'),events),true);
+ assert.equal(recordEchoOriginalSoulDefeat(raid,{...guardian('naruto'),hp:0},events),true);
  assert.equal(shouldTriggerEchoRaidPulse(active),false);
  // Una proiezione creata dal richiamo non vale come terza anima.
- assert.equal(recordEchoOriginalSoulDefeat(raid,{...guardian('luffy'),isEchoSoulRecalledProjection:true},events),false);
+ assert.equal(recordEchoOriginalSoulDefeat(raid,{...guardian('luffy'),hp:0,isEchoSoulRecalledProjection:true},events),false);
  assert.equal(shouldTriggerEchoRaidPulse(active),false);
- assert.equal(recordEchoOriginalSoulDefeat(raid,guardian('luffy'),events),true);
+ assert.equal(recordEchoOriginalSoulDefeat(raid,{...guardian('luffy'),hp:0},events),true);
  assert.equal(shouldTriggerEchoRaidPulse(active),true);
  assert.deepEqual(raid.echoOriginalSoulsDefeated,['goku','naruto','luffy']);
  assert.equal(events.filter(e=>e.text?.includes('LE TRE ANIME ORIGINALI')).length,1);
- assert.equal(recordEchoOriginalSoulDefeat(raid,guardian('goku'),events),false);
+ assert.equal(recordEchoOriginalSoulDefeat(raid,{...guardian('goku'),hp:0},events),false);
  assert.equal(events.filter(e=>e.text?.includes('LE TRE ANIME ORIGINALI')).length,1);
 });
 
