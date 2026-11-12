@@ -64,7 +64,7 @@ const PASSIVE_CONDITIONS={
   on_enter:'All’ingresso in campo (con eventuale limite di utilizzo)',
   on_hp_threshold:'Quando i PS attraversano la soglia prevista',
   first_hit_immunity:'Al primo colpo ricevuto',
-  rapid_transmutation:'Primo turno dopo l’ingresso: +1 priorità a Robot e Terra',
+  rapid_transmutation:'Primo turno dopo l’ingresso: +1 priorità ad Acciaio e Terra',
   psychological_manipulation:'Dopo un colpo andato a segno: 20% di attivazione',
   critical_immunity:'Sempre attiva: immunità ai brutti colpi',
   aura:'Sempre attiva mentre valgono le condizioni della passiva',
@@ -122,7 +122,7 @@ export function BattleCodexLauncher({ gameState }) {
       })).sort((a,b)=>a.sub.localeCompare(b.sub,'it'));
       case 'weather':return [
         {name:'🌧️ Tempesta di Acqua / Pioggia',sub:'Meteo globale · 5 turni',description:'Le mosse Acqua infliggono +25% danni; le mosse Fuoco infliggono −25% danni. Juvia riceve +20 punti percentuali di elusione e Nami attiva Clima Tattico. Sostituisce Neve o Erba Rigogliosa.'},
-        {name:'❄️ Tempesta di Neve',sub:'Meteo globale · 5 turni',description:'Alla fine del turno, i Multimon non immuni perdono il 2% dei PS massimi. Tipi Ghiaccio, Roccia e Robot immuni. Sostituisce gli altri meteo.'},
+        {name:'❄️ Tempesta di Neve',sub:'Meteo globale · 5 turni',description:'Alla fine del turno, i Multimon non immuni perdono il 2% dei PS massimi. Tipi Ghiaccio, Roccia e Acciaio immuni. Sostituisce gli altri meteo.'},
         {name:'🌿 Erba Rigogliosa',sub:'Meteo globale · 5 turni',description:'A fine turno ogni Multimon vivo di tipo Erba, alleato o avversario, recupera il 5% dei PS massimi. Le mosse Erba infliggono +20% danni. Sostituisce Pioggia o Neve.'},
         {name:'💨 Tailwind',sub:'Effetto di squadra · 5 turni',description:'Aumenta del 30% la Velocità effettiva di tutta la squadra, inclusi gli alleati che entrano più tardi. Non modifica in modo permanente la Velocità e funziona anche insieme al meteo.'},
         ...Object.values(MOVES_DB).filter(m=>m.rainstormChance||m.snowstormTurns||m.snowstormChance||
