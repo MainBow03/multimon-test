@@ -236,7 +236,12 @@ export const ULTIMON_DUPLICATE_REACTIONS=Object.freeze({
   "garneline": "Un'altra Garneline. Il futuro ci vede entrambe sul palco della mezzanotte.",
   "snorzard": "Un altro Snorzard? Se ruggisce, svegliatemi. Voglio sentire come suona.",
   "braan": "Un altro Braan. L'oscurità non concede due volte l'immortalità.",
-  "yoshgon": "Yoshi?! Un altro Yoshgon! Attenzione, due draghi affamati di vittoria!"
+  "yoshgon": "Yoshi?! Un altro Yoshgon! Attenzione, due draghi affamati di vittoria!",
+  "regista": "Un altro Regista? Non permetterò che una copia mi rubi il copione e soprattutto il finale!",
+  "caposcena": "Un altro Caposcena tra le quinte? I macchinisti seguono i miei ordini, non i suoi!",
+  "primadonna": "Un'altra Prima Donna nel camerino? Benissimo. Vediamo a chi riserveranno davvero il bis!",
+  "riflettore": "Un altro Riflettore Vivente? Il palco è troppo piccolo per due fasci di luce così orgogliosi!",
+  "nina_teatro": "Un'altra Nina del Teatro Zero? Se il futuro è libero, entrambe possiamo scrivere pagine diverse!",
 });
 
 const FIELDS=Object.freeze([
