@@ -2,6 +2,7 @@ import { reconcileCampaignRoster } from './campaignRoster.js';
 import { completeCampaign, getCompletedCampaigns, isCampaignUnlocked } from './campaignUnlocks.js';
 import {recoverMissingEchoCompletion,CAMPAIGN_REPLAY_RESET_PREFIX} from './echoCompletionRecovery.js';
 import { ECHO_ID, ECHO_STARTERS } from '../data/echoCampaign.js';
+import {THEATER_ID,THEATER_STARTERS} from '../data/theaterCampaign.js';
 import { isTournamentEligibleCharacter, sanitizeTournamentSave } from './tournamentEligibility.js';
 import {rememberSelectedCampaign} from './lastCampaignSelection.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
@@ -17,7 +18,9 @@ const { CHARACTERS, CAMPAIGNS, getCampaignStoryCharacters, setActiveCampaignId, 
                   defaultRoster = ['finn', 'topolino'];
               } else if (campId === ECHO_ID) {
                    defaultRoster = [...ECHO_STARTERS];
-               } else if (campId === 'monarch_akuma') {
+               } else if (campId === THEATER_ID) {
+                  defaultRoster = [...THEATER_STARTERS];
+              } else if (campId === 'monarch_akuma') {
                   defaultRoster = ['ladybug', 'chatnoir'];
               } else {
                   const storyChars = getCampaignStoryCharacters(campId);
