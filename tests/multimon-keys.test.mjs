@@ -150,7 +150,7 @@ test('Migrazione retroattiva + UI: monete, chiavi e Regalo Beta sono opzioni dis
  const shop=read('../src/screens/hub/ShopView.jsx');
  const history=read('../src/data/updateHistory.js');
  assert.match(app,/grantMultimonWelcomeKeys\(migration\.profile\)/);
- assert.match(app,/localStorage\.setItem\(key,JSON\.stringify\(keys\.profile\)\)/);
+ assert.match(app,/localStorage\.setItem\(key,JSON\.stringify\(normalized\.profile\)\)/);
  assert.match(shop,/Chiavi Multimon/);
  assert.match(shop,/multimonKeyBalance\(playerData\)/);
  assert.match(shop,/updateLocalStats\(\{redeemMultimonKey:char\.id\}\)/);
