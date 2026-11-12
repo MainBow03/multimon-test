@@ -53,6 +53,7 @@ import { reconcileCampaignRoster } from './systems/campaignRoster.js';
 import { nextCampaignCommandIndex, shouldRecoverCampaignCommand } from './systems/campaignBattleRecovery.js';
 import { handleAvatarUploadImpl, leaveRoomImpl, handleConfirmLeaveImpl, updateStateImpl, getRequiredPlayersImpl, getActivePlayersImpl, isAllPlayersJoinedImpl, handleCreateRoomImpl, handleJoinRoomImpl, commitReplacementChoiceImpl, handleAddBotImpl, handleRemovePlayerImpl, handleLocalStartImpl, handleVsCpuStartImpl, handlePickImpl, handleDraftRerollImpl, handleSharedPickImpl } from './systems/multiplayerSystem.js';
 import { updateLocalStatsImpl } from './systems/profileSystem.js';
+import {battleUsageSnapshot,normalizeCareerProfile} from './systems/careerStats.js';
 import { equippedMasteryTitle, masteryVisibleLevels } from './systems/masterySystem.js';
 import { renderHealthBarImpl } from './components/uiHelpers.jsx';
 import { RoomSyncBanner } from './components/RoomSyncBanner.jsx';
@@ -1096,9 +1097,10 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                   // Assegna il regalo ai veterani al prossimo accesso,
                   // dopo aver recuperato il loro profilo (anche dal cloud).
                   const keys=grantMultimonWelcomeKeys(migration.profile);
-                  if(migration.changed||keys.changed)
-                      localStorage.setItem(key,JSON.stringify(keys.profile));
-                  return keys.profile;
+                  const normalized=normalizeCareerProfile(keys.profile,[...CHARACTERS,...FUSION_CHARACTERS]);
+                  if(migration.changed||keys.changed||normalized.changed)
+                      localStorage.setItem(key,JSON.stringify(normalized.profile));
+                  return normalized.profile;
               };
               const raw = localStorage.getItem(key);
               if (raw) {
@@ -1166,9 +1168,29 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               // neppure le chiamate indirette del motore (mosse, vittorie, PS).
               if(gameState.isTrainingBattle)return {ok:false,reason:'Simulazione: progressi disattivati'};
               const result=updateLocalStatsImpl({ getPlayerData }, ...__args);
-              setProfileRevision(previous => previous + 1);
+              if(result?.changed!==false)setProfileRevision(previous => previous + 1);
               return result;
           };
+
+          // Il report di battaglia è identico per host e ospiti: ognuno
+          // accredita soltanto le azioni del proprio giocatore. I checkpoint
+          // impediscono di contare due volte refresh e aggiornamenti realtime.
+          useEffect(()=>{
+              const activeStatuses=['pre_battle','battling','executing','switching_phase',
+                'intermission','gameover','ultimon_result','ultimon_final'];
+              if(gameState.isTrainingBattle||!activeStatuses.includes(gameState.status) ||
+                 !playerName.trim()||!/^p[1-8]$/.test(playerRole||''))return;
+              const side=playerRole;
+              if(gameState.isBot?.[side]||gameState.players?.[side]!==playerName)return;
+              if(gameState.playerUids?.[side]&&user?.uid&&gameState.playerUids[side]!==user.uid)return;
+              const snapshot=battleUsageSnapshot({report:gameState.battleReport,
+                teams:gameState.teams,player:side,mode:gameState.isCampaignBattle?'campagna':
+                gameState.isRoguelikeCoop?'roguelike_coop':gameState.isRoguelikeBattle?'roguelike':gameState.gameMode});
+              if(snapshot)updateLocalStats({battleUsage:snapshot});
+          },[gameState.status,gameState.battleReport,gameState.teams,
+              gameState.gameMode,gameState.isCampaignBattle,gameState.isRoguelikeBattle,
+              gameState.isRoguelikeCoop,gameState.isTrainingBattle,gameState.players,
+              gameState.isBot,gameState.playerUids,playerRole,playerName,user?.uid]);
           const getPlayerTitle = () => equippedMasteryTitle(getPlayerData(), [...CHARACTERS, ...FUSION_CHARACTERS]);
           // La guida viene mostrata solo al primo click, PRIMA di avviare
           // l'azione. Dopo la conferma si conserva la scelta sul cloud.
