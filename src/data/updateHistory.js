@@ -13,6 +13,14 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov12-hyper-coraline',category:'champions',date:'12/11/2026',
+    title:'🔑 Iper Coraline — Oltre la Porticina',items:[
+      'Coraline ottiene la Forma Iper con artwork originale personalizzato e animazione di trasformazione in battaglia.',
+      'Porta dell’Impossibile è la nuova mossa esclusiva di tipo Psico: potenza speciale 90, precisione 100%, 25% di confondere per 3 turni e 2 utilizzi.',
+      'Come le altre Iper, aumenta Attacco, Difesa e Velocità del 35%; la nuova mossa è disponibile nello stesso turno dell’attivazione.',
+      'Il Catalogo mostra Iper Coraline con la sua immagine dedicata e la nuova mossa. La Coraline normale mantiene Psico/Spettro, le proprie 4 mosse e la passiva originale.'
+    ]},
+
   {id:'nov10-echomax-soul-trio-ensemble-dialogues',category:'features',date:'10/11/2026',
     title:'🌌 Echomax: anime di Goku, Naruto e Luffy e finale corale',items:[
       'Nella missione 36 Echomax affronta la Resistenza con tre aiutanti: Anima di Goku, Anima di Naruto e Anima di Luffy, ciascuno con PNG dall’aura viola, mosse originali e statistiche proprie.',
