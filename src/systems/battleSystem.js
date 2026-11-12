@@ -569,14 +569,8 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
 
             updateState(nextState);
 
-            // AGGIORNAMENTO STATISTICHE: Partita e Personaggi scelti
-            if (playerName.trim()) {
-                updateLocalStats({ match: true });
-                const myKey = Object.keys(gameState.players).find(k => gameState.players[k] === playerName);
-                if (myKey && teams[myKey]) {
-                    teams[myKey].forEach(c => updateLocalStats({ char: c.name }));
-                }
-            }
+            // Le statistiche personali sono registrate da ogni client tramite
+            // il report condiviso, non soltanto dal dispositivo che avvia la lotta.
             matchStartTimeRef.current = Date.now();
 
             if (appMode === 'local_room' || appMode === 'vs_cpu') {
@@ -1538,10 +1532,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 events.push({type:'text',text:`🧴 Spray Neutralizzante di ${attacker.name}: rimuove ${clearedBefore.join(', ')}!`});
               }
 
-              // AGGIORNAMENTO STATISTICHE: Mossa usata
-              if (gameState.players[player] === playerName && action.type === 'attack' && move) {
-                  updateLocalStats({ move: move.name });
-              }
+              // Il calcolo del turno può essere affidato all'host: invia un
+              // evento per TUTTI i giocatori e ciascun client conta solo
+              // le proprie mosse, una volta per azione (non per bersaglio).
+              if(action.type==='attack'&&move)
+                events.push({type:'battle_move_used',player,charTeamIdx,moveName:move.name});
 
               if (action.type === 'use_item') {
                   const itemId=action.itemId;
@@ -4087,7 +4082,7 @@ const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, set
 
             for (let evt of gameState.events) {
                 // Marker statistici, non animazioni visibili.
-                if (evt.type === 'battle_actor' || evt.type === 'battle_actor_end') continue;
+                if (evt.type === 'battle_actor' || evt.type === 'battle_actor_end' || evt.type === 'battle_move_used') continue;
                 if (evt.text) {
                     setEventPlaybackText(evt.text);
                     
