@@ -1,3 +1,4 @@
+import {typeDisplayName} from '../../systems/typeLabel.js';
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import {ULTIMON_ENTRANCE_EFFECTS,ULTIMON_ENTRANCE_PRICE,ownedUltimonEntrances}
   from '../../systems/ultimonCosmetics.js';
@@ -312,7 +313,7 @@ if (appMode === 'shop') {
                                             <h4 className="font-bold text-center text-sm mb-2 text-slate-100">{char.name}</h4>
                                             <div className="flex flex-wrap gap-1 justify-center mb-4">
                                                 {char.types.map(t => (
-                                                    <span key={t} className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{t}</span>
+                                                    <span key={t} className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{typeDisplayName(t)}</span>
                                                 ))}
                                             </div>
 
