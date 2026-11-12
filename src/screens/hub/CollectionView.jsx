@@ -1,3 +1,4 @@
+import {typeDisplayName} from '../../systems/typeLabel.js';
 import React, {useState} from 'react';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 import {getCollectionEntries} from '../../systems/collectionRoster.js';
@@ -27,7 +28,7 @@ function CollectionCard({entry, typeStyles}) {
       <div className="space-y-2 px-3 pb-4 pt-3">
         <h3 className={`min-h-[2.7rem] text-center text-sm font-extrabold leading-snug sm:text-base ${owned ? 'text-white' : 'text-slate-300'}`}>{character.name}</h3>
         <div className="flex min-h-6 flex-wrap items-start justify-center gap-1">
-          {types.map(type => <span key={type} className={`rounded-full px-2 py-1 text-[10px] font-bold leading-none ${owned ? (typeStyles[type] || 'bg-slate-700 text-white') : 'bg-slate-700/70 text-slate-300'}`}>{type}</span>)}
+          {types.map(type => <span key={type} className={`rounded-full px-2 py-1 text-[10px] font-bold leading-none ${owned ? (typeStyles[type] || 'bg-slate-700 text-white') : 'bg-slate-700/70 text-slate-300'}`}>{typeDisplayName(type)}</span>)}
         </div>
         <p className={`text-center text-[11px] font-semibold ${owned ? 'text-cyan-300' : 'text-slate-400'}`}>
           {owned ? (character.isSecretUnlock ? 'Sblocco speciale ottenuto' : 'Nella tua collezione') : character.isSecretUnlock ? 'Sblocco speciale' : character.price ? `${character.price} monete nel Negozio` : 'Ancora da ottenere'}
@@ -84,7 +85,7 @@ export function CollectionView({characters, playerData, typeStyles, isPreview, o
         </section>
         <div className="mb-8 flex flex-wrap gap-3 rounded-2xl border border-slate-700/60 bg-slate-900/60 p-3">
           <label className="min-w-[190px] flex-[2]"><span className="mb-1 block text-xs font-bold text-slate-300">Cerca un Multimon</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Nome del personaggio..." aria-label="Cerca Multimon" className="w-full rounded-xl border border-slate-600 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-400"/></label>
-          <label className="min-w-[130px] flex-1"><span className="mb-1 block text-xs font-bold text-slate-300">Tipo</span><select value={filterType} onChange={e=>setFilterType(e.target.value)} className="w-full rounded-xl border border-slate-600 bg-slate-950 px-3 py-2.5 text-sm text-white">{['Tutti', ...types].map(type=><option key={type} value={type}>{type}</option>)}</select></label>
+          <label className="min-w-[130px] flex-1"><span className="mb-1 block text-xs font-bold text-slate-300">Tipo</span><select value={filterType} onChange={e=>setFilterType(e.target.value)} className="w-full rounded-xl border border-slate-600 bg-slate-950 px-3 py-2.5 text-sm text-white">{['Tutti', ...types].map(type=><option key={type} value={type}>{typeDisplayName(type)}</option>)}</select></label>
           <label className="min-w-[130px] flex-1"><span className="mb-1 block text-xs font-bold text-slate-300">Ordina</span><select value={sort} onChange={e=>setSort(e.target.value)} className="w-full rounded-xl border border-slate-600 bg-slate-950 px-3 py-2.5 text-sm text-white"><option value="az">Nome A–Z</option><option value="recent">Nuovi arrivi prima</option></select></label>
         </div>
         <section aria-labelledby="collection-owned-heading" className="mb-12">
