@@ -76,6 +76,7 @@ if (appMode === 'campaign_dialogue') {
         const soulPortraitId=echoSoulPortraitId(dialogue.s);
         if(soulPortraitId)speakerChar=CHARACTERS.find(c=>c.id===soulPortraitId)||speakerChar;
         const echoFinalScene=activeCampaignId==='eco_anime'&&mission.echoFinal;
+        const theaterScene=activeCampaignId==='teatro_catastrofi';
         
         return (
             <div className={`min-h-screen flex flex-col justify-end p-8 ${sector.bg} relative overflow-hidden`} onClick={nextDialogue}>
@@ -84,11 +85,12 @@ if (appMode === 'campaign_dialogue') {
                      <div className={`absolute bottom-0 left-4 md:left-24 transition-all duration-500 pointer-events-none drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]`}>
                          <img src={speakerChar.img} alt={speakerChar.name} onError={onMultimonImageError}
                            style={soulPortraitId?{filter:'sepia(.4) hue-rotate(245deg) saturate(2) drop-shadow(0 0 24px #a855f7)'}:undefined}
-                           className={`w-48 h-48 md:w-80 md:h-80 object-contain rounded-t-full border-t-4 border-x-4 ${soulPortraitId?'border-fuchsia-400':'border-emerald-500'} opacity-100`} />
+                           className={`w-48 h-48 md:w-80 md:h-80 object-contain rounded-t-full border-t-4 border-x-4 ${soulPortraitId?'border-fuchsia-400':theaterScene?'border-amber-400':'border-emerald-500'} opacity-100`} />
                      </div>
                  )}
-                 <div className={`bg-slate-900/95 border-2 ${echoFinalScene?'border-fuchsia-400 shadow-[0_0_48px_rgba(192,38,211,0.3)]':'border-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.2)]'} p-6 sm:p-8 rounded-2xl max-w-4xl w-full mx-auto z-10 cursor-pointer relative mb-12 animate-fade-in`}>
-                      <div className={`absolute -top-4 left-6 px-4 py-1 rounded-full font-black text-sm uppercase tracking-widest shadow-md ${echoFinalScene?'bg-fuchsia-600':'bg-emerald-500'} text-white`}>{dialogue.s}</div>
+                 <div className={`bg-slate-900/95 border-2 ${echoFinalScene?'border-fuchsia-400 shadow-[0_0_48px_rgba(192,38,211,0.3)]':theaterScene?'border-amber-400 shadow-[0_0_40px_rgba(239,68,68,0.26)]':'border-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.2)]'} p-6 sm:p-8 rounded-2xl max-w-4xl w-full mx-auto z-10 cursor-pointer relative mb-12 animate-fade-in`}>
+                      <div className={`absolute -top-4 left-6 px-4 py-1 rounded-full font-black text-sm uppercase tracking-widest shadow-md ${echoFinalScene?'bg-fuchsia-600':theaterScene?'bg-rose-700':'bg-emerald-500'} text-white`}>{dialogue.s}</div>
+                      {theaterScene&&<div className="text-[11px] font-black uppercase tracking-widest text-amber-200 mb-2">🎭 Atto {mission.theaterAct} · Missione {mission.theaterNumber}/36 · Battuta {campaignDialogueIdx+1}/{fullDialogue.length}</div>}
                       {echoFinalScene&&<div className="text-[11px] font-black uppercase tracking-widest text-fuchsia-200 mb-2">
                         🌌 Scontro finale · Dialogo {campaignDialogueIdx+1}/{fullDialogue.length}
                       </div>}
