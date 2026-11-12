@@ -111,7 +111,7 @@ test('Avvio integrato: startBattleImpl genera realmente le squadre del motore cl
  assert.equal(selectedRole,'p1');
  assert.equal(command,0);
  assert.ok(clock.current>0);
- assert.ok(saved>0,'Il motore normale prova a registrare progressi: App deve bloccarli nel sandbox');
+ assert.equal(saved,0,'Il motore salva le statistiche usando il report condiviso, non dal pulsante di avvio');
  const room={...lab,...battle,status:'battling'};
  const dummy=dummyCombatLabActions(room,'p2');
  assert.deepEqual(dummy,{0:{type:'pass'}});
