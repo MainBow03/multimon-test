@@ -58,6 +58,13 @@ export const NEW_TRIO_MOVES={
   name:'Porticina Segreta',type:'Spettro',power:0,target:'self',
   isProtect:true,priority:5,maxUses:3,strictUses:true,
   desc:'Coraline scompare oltre la porta e si protegge dagli attacchi per il turno. 3 utilizzi.'
+ },
+ // Mossa esclusiva della Forma Iper: la Coraline normale non la possiede.
+ 'Porta dell’Impossibile':{
+  name:'Porta dell’Impossibile',type:'Psico',power:90,special:true,
+  accuracy:1,maxUses:2,strictUses:true,
+  statusEffect:{type:'Confuso',chance:0.25,turns:3},
+  desc:'Iper Coraline apre una porta impossibile: potenza speciale 90, precisione 100%, 25% di confondere per 3 turni. Solo 2 utilizzi.'
  }
 };
 
