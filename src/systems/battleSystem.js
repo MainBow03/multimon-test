@@ -25,6 +25,7 @@ import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
 import {echoFinalVictory,isEchoRaidAccuracyProtected,shouldApplyEchoRecharge} from './echoFinalSouls.js';
 import {triggerEchoRaidHalfReset,restoreEchoRaidAccuracy} from './echoRaidHalfReset.js';
 import {triggerEchoSoulRecall,shouldTriggerEchoRaidPulse,echoRaidPulseDamage,recordEchoOriginalSoulDefeat,syncEchoOriginalSoulDefeats} from './echoRaidTactics.js';
+import {theaterDamageMultiplier,theaterTurnCue,advanceTheaterFinalBossPhase} from './theaterBattleRules.js';
 import {advanceEchoFinalPhase,echoCorruptedSoulReleased} from './echoFinalPhases.js';
 import {emitEchoFinalStoryBeats,echoSoulReleaseDialogue} from './echoFinalStoryBeats.js';
 import { applyStrengthToFighter } from './strengthLab.js';
@@ -856,6 +857,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             
             let workingTeams = JSON.parse(JSON.stringify(gameState.teams));
             let workingField = JSON.parse(JSON.stringify(gameState.field));
+            const theaterScene=gameState.isCampaignBattle?gameState.theaterScene:null;
+            const theaterTurnNumber=Number(gameState.battleReport?.turns||0)+1;
+            const theaterCue=theaterTurnCue(theaterScene,theaterTurnNumber);
+            if(theaterCue)events.push({type:'text',text:theaterCue});
             const applyEchoMidpointReset=()=>{
               if(!gameState.isEchoFinalBattle || (gameState.echoFinalStage||'raid')!=='raid')return;
               const index=workingTeams.p2?.findIndex(c=>c?.id==='echomax'&&c.isEchoRaidBoss)??-1;
@@ -902,7 +907,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 return Math.max(1,Math.floor(base*weatherMoveFactor(args[2],workingWeather)*
                   namiClimateFactor(args[0],args[2],workingWeather)*
                   flameMoveDamageFactor(args[0],args[2],heatBurstActive)*
-                  newcomerDamageFactor(args[0],args[1],args[2])));
+                  newcomerDamageFactor(args[0],args[1],args[2])*
+                  theaterDamageMultiplier({scene:theaterScene,teams:workingTeams,
+                    attacker:args[0],target:args[1],turnNumber:theaterTurnNumber})));
             };
             let workingFieldTraps = {...(gameState.fieldTraps||{})};
             let workingTrapSeen = JSON.parse(JSON.stringify(gameState.fieldTrapSeen||{}));
@@ -1047,6 +1054,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 }
                 target.damageTakenThisTurn = (target.damageTakenThisTurn || 0) + dmg;
                 events.push({ type: 'damage', text: text, targetPlayer, targetIdx, newHp: target.hp });
+                if(targetPlayer==='p2'&&target.id==='regista'&&target.theaterFinalBoss)
+                    advanceTheaterFinalBossPhase({boss:target,events,applyStatBuff:applyBattleStatModifier});
                 if(targetPlayer==='p2' && target.id==='echomax' && target.isEchoRaidBoss)
                     applyEchoMidpointReset();
                 if(options.isEnemyTarget && (options.directAttack||options.isOffensiveMove) &&
