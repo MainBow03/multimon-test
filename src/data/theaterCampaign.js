@@ -21,12 +21,12 @@ const ACTS=[THEATER_ACT_I,THEATER_ACT_II,THEATER_ACT_III,
 const dialogue=lines=>(lines||[]).map(([s,t])=>({s,t}));
 export const THEATER_CAMPAIGN={
  id:THEATER_ID,title:'Il Teatro delle Catastrofi',shortTitle:'Quarta Campagna',
- description:'Star Butterfly, Coraline e Sam affrontano Severin Vell: un Regista capace di organizzare catastrofi e di imprigionare interi mondi nei suoi spettacoli.',
+ description:'Un invito misterioso, una principessa scelta come protagonista e un teatro tra le dimensioni: Star, Coraline e Sam sono le attrici di uno spettacolo preparato nei minimi dettagli.',
  bg:'from-rose-950 via-purple-950 to-slate-950',
  intro:{
   title:'Il Teatro delle Catastrofi',subtitle:'Prologo: La principessa fuori copione',
-  p1:'A Mewni il cielo si spegne. Una porta impossibile porta Coraline nel castello di Star Butterfly. I cittadini ripetono le stesse frasi, mentre un misterioso Regista annuncia la caduta del regno: tutto è già scritto.',
-  p2:'Sei atti, 36 missioni e dodici possibili compagni. Star e Coraline dovranno scoprire cosa esiste dietro i sipari, salvare gli spettatori e scegliere se il finale possa essere deciso da qualcuno. Ogni battaglia porta una diversa Regola di Scena: leggi la descrizione prima di entrare.'
+  p1:'Star Butterfly riceve un biglietto dorato per uno spettacolo che non ha mai accettato. Quella notte un quartiere di Mewni viene trasformato in un palcoscenico, con veri abitanti intrappolati tra i fondali. A casa sua, Coraline trova un invito identico accanto a una porta comparsa dal nulla. Qualcuno ha scelto entrambe per una rappresentazione multiversale.',
+  p2:'Un misterioso Regista vuole mettere in scena la rappresentazione perfetta, utilizzando veri luoghi e persone. Perché proprio Star e Coraline? Chi assiste allo spettacolo e chi ha scritto il copione? Sei atti, 36 missioni e una Regola di Scena diversa in ogni battaglia.'
  },
  sectors:ACTS.map((act,actIdx)=>({
   name:act.name,description:act.description,bg:act.bg,
