@@ -434,6 +434,10 @@ if (appMode === 'campaign_team_select') {
                         moves: baseChar.moves.filter(Boolean).map(m => ({ ...m, remainingUses: m.maxUses !== undefined ? m.maxUses : null }))
                     };
                     
+                    if(mission.theaterMission && savedC.id==='regista'){
+                      charInst.theaterFinalBoss=!!savedC.theaterFinalBoss||!!mission.theaterFinal;
+                      charInst.theaterPhase=savedC.theaterPhase||1;
+                    }
                     // Riporta anche i checkpoint precedenti al nuovo massimo,
                     // mantenendo la percentuale di PS rimasta nel raid.
                     if (isEchoFinalRaid && savedC.id === 'echomax' && savedC.echoFinalForm!=='normal') {
@@ -510,6 +514,8 @@ if (appMode === 'campaign_team_select') {
                     
                     const raidBossBalance=isFinalRaid?finalRaidBossStats(baseChar.id):null;
                     let hp = isEchoFinalRaid && baseChar.id === 'echomax' ? ECHO_FINAL_BOSS_HP : raidBossBalance?.maxHp ?? Math.floor(baseChar.maxHp * hpMultiplier);
+                    if(mission.theaterMission && baseChar.id==='regista' && mission.theaterNumber>=35)
+                      hp=mission.theaterFinal?950:450;
                     
                     let charInst = {
                         ...JSON.parse(JSON.stringify(baseChar)), hp: hp, maxHp: hp, statuses: [], consecutiveProtect: 0,
@@ -518,6 +524,10 @@ if (appMode === 'campaign_team_select') {
                     };
 
                     charInst.isSummonOnly = false; // FIX: I boss della campagna sono sempre considerati combattenti principali
+                    if(mission.theaterFinal && charInst.id==='regista'){
+                      charInst.theaterFinalBoss=true;
+                      charInst.theaterPhase=1;
+                    }
                     
                     // Buff Alle Statistiche (Attacco e Difesa scalano in base al settore)
                     if (!isFinalRaid) {
@@ -615,6 +625,8 @@ if (appMode === 'campaign_team_select') {
             state.gameMode = 'classica';
             state.isCampaignBattle = true;
             state.isEchoFinalBattle = isEchoFinalRaid;
+            state.theaterScene=mission.theaterMission?{rule:mission.theaterRule,missionId:mission.id}:null;
+            state.isTheaterFinalBattle=!!mission.theaterFinal;
             if(isEchoFinalRaid){
               state.echoFinalStage=isValidSavedBoss
                 ?(campaignState.echoFinalStage || (p2Team.some(c=>c.isEchoCorruptedSoul)?'souls':
@@ -636,7 +648,7 @@ if (appMode === 'campaign_team_select') {
             }
             
             state.settings = { teamSize: p1Team.length, fieldSize: fSize, echoRaid: isEchoFinalRaid };
-            if(mission.echoMission && mission.echoAct>=3)
+            if((mission.echoMission && mission.echoAct>=3)||(mission.theaterMission&&mission.theaterAct>=4))
               state.cpuStyles={...(state.cpuStyles||{}),p2:'tactical'};
             
             state.players.p1 = playerName || "Resistenza";
