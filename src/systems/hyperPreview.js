@@ -22,7 +22,8 @@ export const HYPER_BONUS_MOVES = Object.freeze({
   dolli:['Incubo di Pezza'],
   poisonivy:['Polline scottante'],
   carlos:['Pugno infuocato del survivor'],
-  sage:['questo è il mio vero potenziale']
+  sage:['questo è il mio vero potenziale'],
+  coraline:['Porta dell’Impossibile']
 });
 
 export function hyperPreviewMoves(character,pendingHyper,movesDb){
