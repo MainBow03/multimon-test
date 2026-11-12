@@ -14,7 +14,7 @@ import {getRequiredSwitches} from '../src/systems/roomRecovery.js';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
 test('Echomax è la terza campagna prima di Monarch, non modifica le prime due',()=>{
- assert.deepEqual(CAMPAIGN_ORDER,['crisi_varco','torneo_assoluto','eco_anime','monarch_akuma']);
+ assert.deepEqual(CAMPAIGN_ORDER,['crisi_varco','torneo_assoluto','eco_anime','teatro_catastrofi','monarch_akuma']);
  assert.deepEqual(CAMPAIGNS.map(c=>c.id),CAMPAIGN_ORDER);
  assert.equal(ECHO_CAMPAIGN.id,'eco_anime');
  const storage={getItem:key=>{
