@@ -1532,12 +1532,6 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 events.push({type:'text',text:`🧴 Spray Neutralizzante di ${attacker.name}: rimuove ${clearedBefore.join(', ')}!`});
               }
 
-              // Il calcolo del turno può essere affidato all'host: invia un
-              // evento per TUTTI i giocatori e ciascun client conta solo
-              // le proprie mosse, una volta per azione (non per bersaglio).
-              if(action.type==='attack'&&move)
-                events.push({type:'battle_move_used',player,charTeamIdx,moveName:move.name});
-
               if (action.type === 'use_item') {
                   const itemId=action.itemId;
                   const itemDef=ITEMS_DB[itemId];
@@ -1823,6 +1817,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     move.name+': Corpo Funesto la disabilita ancora!'});
                   continue;
                 }
+                // Conteggia solo le mosse realmente tentate: niente statistiche
+                // per turni persi per sonno, ricarica, stordimento o blocchi.
+                // L'evento viene scritto nel report autorevole condiviso.
+                events.push({type:'battle_move_used',player,charTeamIdx,moveName:move.name});
                 if (move.remainingUses !== null && move.remainingUses !== undefined) {
                     move.remainingUses -= 1;
                 }
