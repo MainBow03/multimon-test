@@ -12,7 +12,9 @@ if (gameState.status === 'gameover') {
             const mission = sector.missions[campaignState.missionIdx] || sector.missions[0];
             const isScriptedDefeat = !isWin && mission.progressOnDefeat;
             
-            const winMessage = activeCampaignId === 'monarch_akuma'
+            const winMessage = activeCampaignId === 'teatro_catastrofi'
+                ? 'Hai spezzato il copione e salvato gli spettatori del Teatro Zero!'
+                : activeCampaignId === 'monarch_akuma'
                 ? 'Hai purificato l\'Akuma e salvato i tuoi amici dall\'oscurità di Monarch!'
                 : (activeCampaignId === 'crisi_varco'
                     ? 'Hai sconfitto i burattini di Cell e spezzato il controllo mentale!'
@@ -201,6 +203,8 @@ if (gameState.status === 'gameover') {
                                                 // anche a ritirate, rematch e vecchi checkpoint.
                                                 echo35SoulRecallDone: !!c.echo35SoulRecallDone,
                                                 echoOriginalSoulsDefeated: [...(c.echoOriginalSoulsDefeated||[])],
+                                                theaterFinalBoss:!!c.theaterFinalBoss,
+                                                theaterPhase:c.theaterPhase||1,
                                                 echoRaidLastPulseTurn: c.echoRaidLastPulseTurn ?? null,
                                                 echoNormalSoulsSummoned: !!c.echoNormalSoulsSummoned,
                                                 isEchoSoulRecalledProjection: !!c.isEchoSoulRecalledProjection,
