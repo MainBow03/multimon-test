@@ -1,4 +1,5 @@
 import { ECHO_CAMPAIGN } from './echoCampaign.js';
+import { THEATER_CAMPAIGN } from './theaterCampaign.js';
 import {enrichFirstCampaign,enrichEchoCampaign} from './campaignDialogueEnrichment.js';
 export const CAMPAIGNS = [
           {
@@ -1149,6 +1150,7 @@ export const CAMPAIGNS = [
           ]
           },
           ECHO_CAMPAIGN,
+          THEATER_CAMPAIGN,
           {
             id: 'monarch_akuma',
             title: "L'Ombra di Monarch",
