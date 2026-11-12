@@ -38,7 +38,7 @@ export const THEATER_CHARACTERS=[
  {id:'regista',name:'Severin Vell · Il Regista',types:['Psico','Spettro'],
   hp:205,maxHp:205,atk:135,def:109,spd:104,
   // PNG originale nel bundle Vite, accessibile anche su GitHub Pages.
-  img:import.meta.env.BASE_URL+'theater-regista.png',isSecretUnlock:true,
+  img:((typeof import.meta.env!=='undefined'&&import.meta.env.BASE_URL)||'/')+'theater-regista.png',isSecretUnlock:true,
   passive:{name:'Sipario Aperto',type:'on_enter',maxUses:1,enemyStatDebuff:{spd:.9},
    desc:'Quando entra in campo rallenta del 10% la Velocità degli avversari.'},
   moves:['Ciak!','Montaggio Impossibile','Luci di Scena','Cala il Sipario'].map(n=>THEATER_MOVES[n])},
