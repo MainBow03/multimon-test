@@ -1,3 +1,4 @@
+import {typeDisplayName} from '../../systems/typeLabel.js';
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { HeldEquipmentCard, HeldEquipmentGuide } from '../../components/HeldEquipmentPicker.jsx';
 import { ZodiacSpiritPicker } from '../../components/ZodiacSpiritPicker.jsx';
@@ -789,7 +790,7 @@ if (appMode === 'campaign_team_select') {
                                     if (b) b.types.forEach(t => allTypes.add(t));
                                 });
                                 return Array.from(allTypes).map(t => (
-                                    <span key={t} className={`text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{t}</span>
+                                    <span key={t} className={`text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{typeDisplayName(t)}</span>
                                 ));
                             })()}
                         </div>
@@ -809,7 +810,7 @@ if (appMode === 'campaign_team_select') {
                         <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Tipo:</span>
                         <select value={draftFilterType} onChange={e => setDraftFilterType(e.target.value)} className="bg-slate-800 text-white font-bold p-2 rounded-lg outline-none border border-slate-600 focus:border-cyan-500 text-xs">
                             <option value="Tutti">Tutti</option>
-                            {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                            {TYPES.map(t => <option key={t} value={t}>{typeDisplayName(t)}</option>)}
                         </select>
                     </div>
                     <div className="flex items-center gap-2">
@@ -864,7 +865,7 @@ if (appMode === 'campaign_team_select') {
                                     <h4 className="font-bold text-sm sm:text-base mb-2 leading-snug line-clamp-2 min-h-[2.25em] break-words text-slate-100">{char.name}</h4>
                                     <div className="flex flex-wrap gap-1 justify-center mb-3">
                                         {char.types.map(t => (
-                                            <span key={t} className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{t}</span>
+                                            <span key={t} className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{typeDisplayName(t)}</span>
                                         ))}
                                     </div>
                                     {renderHealthBar(hp, char.maxHp)}
