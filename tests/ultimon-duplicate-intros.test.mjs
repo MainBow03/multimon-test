@@ -30,9 +30,9 @@ const mockRoom=(id='bugsbunny')=>({
  }
 });
 
-test('Tutti i 235 Multimon, fusioni comprese, possiedono una reazione esclusiva al doppione',()=>{
+test('Tutti i 240 Multimon, fusioni comprese, possiedono una reazione esclusiva al doppione',()=>{
  const ids=all.map(c=>c.id);
- assert.equal(ids.length,235);
+ assert.equal(ids.length,240);
  assert.equal(new Set(ids).size,ids.length);
  assert.equal(Object.keys(ULTIMON_DUPLICATE_REACTIONS).length,ids.length);
  assert.deepEqual(Object.keys(ULTIMON_DUPLICATE_REACTIONS).sort(),ids.sort());
