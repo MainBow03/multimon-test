@@ -6,8 +6,10 @@ import {STRAW_HAT_CHARACTERS} from './strawHatCrew.js';
 import {GEM_FLAME_CHARACTERS} from './gemFlameCharacters.js';
 import {BERRY_FRILLISH_CHARACTERS} from './berryFrillishCharacters.js';
 import {NEW_TRIO_CHARACTERS} from './flinsGanyuCoraline.js';
+import {THEATER_CHARACTERS} from './theaterActors.js';
 
 export const CHARACTERS = [
+  ...THEATER_CHARACTERS,
   ...NEW_TRIO_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
   ...BERRY_FRILLISH_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
   ...GEM_FLAME_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
