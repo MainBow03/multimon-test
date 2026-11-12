@@ -1,26 +1,33 @@
 export const THEATER_ACT_I={
  name:'ATTO I · La principessa fuori copione',
- description:'Le stelle si spengono su Mewni. Una principessa e una ragazza di un altro mondo entrano in una rappresentazione che non hanno scelto.',
+ description:'Un Regista sceglie Star e Coraline come protagoniste e prepara la sua prima teatrale usando un quartiere reale di Mewni come palcoscenico.',
  bg:'bg-fuchsia-950',
  missions:[
  {title:'Il cielo va in scena',boss:['caposcena','riflettore'],sceneRule:'spotlight',
  dialogue:[
- ['Star Butterfly','Okay, giuro che questo incantesimo doveva creare solo popcorn. Non un sipario grande quanto Mewni!'],
- ['Coraline','Una porta si è aperta nel mio soggiorno e mi ha sputata qui. Dove siamo?'],
- ['Star Butterfly','Mewni! Di solito abbiamo un cielo. E oggi abbiamo anche... un pubblico?'],
- ['Il Regista','Signore e signori, prima rappresentazione: La principessa che non riuscì a salvare nessuno.'],
+ ['Star Butterfly','Ieri ho ricevuto un biglietto dorato: Prima assoluta, Star Butterfly protagonista. Ma io non mi sono iscritta a nessuno spettacolo!'],
+ ['Star Butterfly','E adesso il cielo sopra il castello sembra un sipario. Okay, QUESTO non è colpa della mia magia dei popcorn.'],
+ ['Il Regista','Ogni grande spettacolo merita un cast straordinario. Per la mia prima ho scelto la principessa più imprevedibile del Multiverso.'],
+ ['Star Butterfly','Hai messo in scena tutto questo per ME?! Non hai neppure chiesto il permesso!'],
+ ['Coraline','Un invito identico era vicino a una porticina apparsa ieri a casa mia. Ho sentito chiedere aiuto e ho deciso di controllare.'],
+ ['Star Butterfly','Quindi abbiamo ricevuto due biglietti uguali? Il servizio clienti di questo teatro è terrificante.'],
+ ['Il Regista','Coraline Jones, la testimone. Volevo proprio una ragazza capace di riconoscere una realtà costruita.'],
+ ['Coraline','Allora hai creato quella porta apposta per me. Anche la richiesta di aiuto era una recita?'],
+ ['Il Regista','Un buon direttore di scena sa come convincere il proprio cast a presentarsi.'],
+ ['Star Butterfly','Siamo a Mewni, ma guarda: al di là del muro rosso il cielo è ancora normale. Hai isolato solo il quartiere del castello!'],
+ ['Il Regista','Signore e signori, benvenuti al Teatro delle Catastrofi! Prima rappresentazione: La principessa che non riuscì a salvare nessuno. Sipario!'],
  ['Star Butterfly','Ehi! Il titolo fa schifo e io non ho firmato niente!'],
- ['Coraline','Gli abitanti stanno ripetendo la stessa frase. Guarda: anche quello laggiù.'],
- ['Il Caposcena','Posizioni, comparse! Il ponte deve crollare quando il riflettore si accende.'],
- ['Coraline','Quindi non è una profezia. È un ordine. Star, colpisci quella luce!'],
+ ['Coraline','Queste persone sono vere, ma le strade dietro di loro sono fondali. Guarda quel bambino: cerca di uscire dal quartiere.'],
+ ['Il Caposcena','Silenzio sul set! I figuranti del quartiere restino in posizione. Il ponte crollerà quando si accende il riflettore!'],
+ ['Coraline','Non ha inghiottito Mewni. Ha costruito una trappola attorno a una parte della città. Quel riflettore comanda il ponte, Star!'],
  ['Star Butterfly','MAGIA DELLA STELLA CADENTE! ...Questo era decisamente il nome che avevo in mente.']
  ],
  postDialogue:[
- ['Star Butterfly','Il ponte è ancora intero! E io ho ancora tutte le dita. Ottimo inizio.'],
- ['Coraline','C’era un meccanismo sotto le assi. Volevano farci credere che il disastro fosse inevitabile.'],
- ['Il Regista','Brave. Avete salvato l’introduzione. Peccato per il vostro finale.'],
- ['Star Butterfly','VIENI QUI E DIMMELO IN FACCIA!'],
- ['Coraline','Non credo che quello sia il genere di invito che dovremmo accettare.']
+ ['Star Butterfly','Il ponte è salvo! E fuori dal sipario Mewni esiste ancora. Ora dobbiamo liberare le persone intrappolate.'],
+ ['Coraline','Il ponte era collegato a un meccanismo. Voleva un disastro vero, non una semplice illusione. E ha scelto noi due apposta.'],
+ ['Il Regista','Brave. Ho scelto attrici che non si lasciano dirigere: soltanto una reazione autentica rende memorabile una rappresentazione.'],
+ ['Star Butterfly','Quindi hai preparato una catastrofe per vederci reagire?! Vieni qui e dimmelo in faccia!'],
+ ['Coraline','Io non accetterei altri suoi inviti. Però ci sono ancora persone da aiutare dietro quel sipario.']
  ]},
  {title:'La porta senza casa',boss:['reboo','riflettore'],sceneRule:'mirror',
  dialogue:[
