@@ -237,6 +237,11 @@ export const ULTIMON_ENTRANCE_LINES = Object.freeze({
   "snorzard": "Ruggito... sbadiglio... RUGGITO! Ecco, adesso sono sveglio.",
   "braan": "L'immortalità incontra l'oscurità. Indovinate chi perde?",
   "yoshgon": "Yoshi! Il drago ha fame... di vittoria!",
+  "regista": "L'ultimo sipario lo decido io... oppure oggi proverete a strappare il copione dalle mie mani?",
+  "caposcena": "Controllate gli ingressi e le uscite: un Caposcena sa rendere pericolosa ogni quinta.",
+  "primadonna": "Non mi serve un bis per conquistare la scena. Basterà la prima nota.",
+  "riflettore": "Sono la luce che decide chi finisce al centro del palco. Nessuno sfugge al mio raggio.",
+  "nina_teatro": "La mia pagina era bianca. Oggi posso scriverci sopra la prima vittoria tutta mia.",
 });
 
 export function ultimonEntranceLine(character){
