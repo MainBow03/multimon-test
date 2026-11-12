@@ -10,7 +10,9 @@ export const BATTLE_REPORT_METRICS = [
 ];
 
 export function createBattleReport(){
-  return {version:1,turns:0,entries:{}};
+  // ID identico per tutti i client perché il report vive nel gameState condiviso.
+  // Cambia soltanto quando nasce una nuova battaglia.
+  return {version:1,id:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,11),turns:0,entries:{}};
 }
 
 const battleKey=(player,idx)=>player+':'+idx;
@@ -32,10 +34,14 @@ function register(report,player,idx,char){
     report.entries[key]={
       player,idx:Number(idx),id:char.id||'',name:char.name||'Multimon',
       img:char.img||'',damageDealt:0,damageTaken:0,healing:0,turnsOnField:0,
+      moveUses:{},revealed:!!char.revealed,
       kos:0,shieldsBroken:0,passiveActivations:0
     };
   }
-  return report.entries[key];
+  const entry=report.entries[key];
+  entry.moveUses||={};
+  if(char.revealed)entry.revealed=true;
+  return entry;
 }
 
 function namedPassiveOwner(report,event,acting){
@@ -57,7 +63,7 @@ export function accumulateBattleReport(previous, teamsAtTurnStart, events, {coun
   // Turni reali trascorsi sul campo: contiamo solo i personaggi schierati
   // e vivi all'inizio di ciascun turno, mai tutta la squadra in riserva.
   const report=previous?.version===1
-    ? {version:1,turns:integer(previous.turns),entries:JSON.parse(JSON.stringify(previous.entries||{}))}
+    ? {version:1,id:previous.id||null,turns:integer(previous.turns),entries:JSON.parse(JSON.stringify(previous.entries||{}))}
     : createBattleReport();
   const health=new Map();
   const shields=new Map();
@@ -92,6 +98,16 @@ export function accumulateBattleReport(previous, teamsAtTurnStart, events, {coun
     }
     if(event.type==='battle_actor_end'){
       actor=null;
+      continue;
+    }
+    if(event.type==='battle_move_used'){
+      const entry=report.entries[battleKey(event.player,event.charTeamIdx)];
+      const move=typeof event.moveName==='string'?event.moveName.trim():'';
+      if(entry&&move){
+        entry.moveUses||={};
+        entry.moveUses[move]=integer(entry.moveUses[move])+1;
+        entry.revealed=true;
+      }
       continue;
     }
     if(event.type==='summon'){
