@@ -1,3 +1,4 @@
+import {typeDisplayName} from '../../systems/typeLabel.js';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { TeamAdvisor } from '../../components/TeamAdvisor.jsx';
@@ -219,7 +220,7 @@ if (gameState.status === 'drafting') {
                                                 
                                                 <div className="flex flex-wrap gap-1 justify-center w-full mb-1">
                                                     {item.char.types.map(t => (
-                                                        <span key={t} className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{t}</span>
+                                                        <span key={t} className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{typeDisplayName(t)}</span>
                                                     ))}
                                                 </div>
                                                 
@@ -264,7 +265,7 @@ if (gameState.status === 'drafting') {
                                             <h3 className="text-lg sm:text-xl font-black text-white mb-2 leading-snug line-clamp-2 break-words">{char.name}</h3>
                                             <div className="flex flex-wrap gap-2 justify-center mb-6">
                                                 {char.types.map(t => (
-                                                    <span key={t} className={`text-xs font-black px-3 py-1 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{t}</span>
+                                                    <span key={t} className={`text-xs font-black px-3 py-1 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{typeDisplayName(t)}</span>
                                                 ))}
                                             </div>
                                             <div className="w-full grid grid-cols-2 gap-3 text-sm font-mono bg-black/40 p-4 rounded-xl border border-slate-700/50 mb-6">
@@ -278,7 +279,7 @@ if (gameState.status === 'drafting') {
                                                 {char.moves.slice(0, 3).map((m, mIdx) => (
                                                     <div key={mIdx} className="bg-slate-800/80 p-2 rounded-lg text-xs flex justify-between items-center border border-slate-700">
                                                         <span className="font-bold text-slate-200 truncate pr-2">{m.name}</span>
-                                                        <span className={`px-1.5 py-0.5 rounded text-[9px] ${TYPE_STYLES[m.type] || 'bg-gray-500'}`}>{m.type}</span>
+                                                        <span className={`px-1.5 py-0.5 rounded text-[9px] ${TYPE_STYLES[m.type] || 'bg-gray-500'}`}>{typeDisplayName(m.type)}</span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -303,7 +304,7 @@ if (gameState.status === 'drafting') {
                                         <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Tipo:</span>
                                         <select value={draftFilterType} onChange={e => setDraftFilterType(e.target.value)} className="bg-slate-800 text-white font-bold p-2 rounded-lg outline-none border border-slate-600 focus:border-cyan-500 text-xs">
                                             <option value="Tutti">Tutti</option>
-                                            {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                                            {TYPES.map(t => <option key={t} value={t}>{typeDisplayName(t)}</option>)}
                                         </select>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -404,7 +405,7 @@ if (gameState.status === 'drafting') {
                                                 </div>
                                                 <div className="flex flex-wrap gap-1 justify-center mb-3">
                                                     {char.types.map(t => (
-                                                        <span key={t} className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{t}</span>
+                                                        <span key={t} className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{typeDisplayName(t)}</span>
                                                     ))}
                                                 </div>
                                                 <div className="w-full grid grid-cols-2 gap-1 text-[10px] font-mono bg-slate-950/50 p-2 rounded-xl border border-slate-800 mb-1">
@@ -437,7 +438,7 @@ if (gameState.status === 'drafting') {
                                                                 <div key={i} className="text-[9px] bg-slate-800/50 p-1.5 rounded border border-slate-700/50">
                                                                     <div className="flex justify-between items-center mb-0.5">
                                                                         <span className="font-bold text-slate-200">{m.name}</span>
-                                                                        <span className={`px-1 rounded text-[8px] ${TYPE_STYLES[m.type] || 'bg-gray-500'}`}>{m.type}</span>
+                                                                        <span className={`px-1 rounded text-[8px] ${TYPE_STYLES[m.type] || 'bg-gray-500'}`}>{typeDisplayName(m.type)}</span>
                                                                     </div>
                                                                     <p className="text-slate-400 italic leading-tight line-clamp-2">{m.desc}</p>
                                                                 </div>
