@@ -15,6 +15,7 @@ import {isMoveDisabled,disabledMoveInfo} from '../../systems/berryFrillishEffect
 import {legalSupportTargets} from '../../systems/supportTargeting.js';
 import {ultimonIsFinalShowdown} from '../../systems/ultimonSystem.js';
 import {canUseBagItems} from '../../systems/bagItemPolicy.js';
+import {THEATER_RULES} from '../../data/theaterCampaign.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderBattlingView(ctx) {
 const { ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, appMode, actionMenuMode, combatLog, commandingIdx, commitAction, coopPendingAction, roomId, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
@@ -23,6 +24,27 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
         const grandFinale = ultimonIsFinalShowdown(gameState);
         const bagAvailable = canUseBagItems(gameState);
         const feedbackKind = battleFeedbackKind(eventPlaybackText, !!eventPlaybackPassive);
+        // Una regola di scena per ognuna delle 36 battaglie del Teatro,
+        // mantenuta nello stato della battaglia anche durante i checkpoint.
+        const theaterRule=gameState.isCampaignBattle && gameState.theaterScene
+          ?THEATER_RULES[gameState.theaterScene.rule]:null;
+        const theaterTurn=Math.max(1,Number(gameState.battleReport?.turns||0)+1);
+        const theaterLampsAlive=(gameState.teams?.p2||[]).filter(char=>char?.id==='riflettore'&&char.hp>0).length;
+        const theaterBoss=(gameState.teams?.p2||[]).find(char=>char?.id==='regista'&&char.hp>0);
+        const theaterCurrentEffect=(()=>{
+          const rule=gameState.theaterScene?.rule;
+          if(rule==='spotlight')return theaterLampsAlive
+            ?`Attiva: ${theaterLampsAlive} riflettore/i proteggono i nemici (-25% danni).`
+            :'Riflettori spenti: protezione rimossa.';
+          if(rule==='finale')return theaterLampsAlive
+            ?`Attiva: ${theaterLampsAlive} riflettore/i proteggono il Regista (-30% danni).`
+            :`Riflettori spenti: scudo rimosso.${theaterBoss?.theaterPhase>=3?' Il Regista subisce +10% di danni.':''}`;
+          if(rule==='mirror')return theaterTurn%2===0?'Attiva questo turno: tutti i danni -10%.':'Questo turno: danni normali.';
+          if(rule==='rehearsal')return theaterTurn%3===0?'Attiva questo turno: danni dei nemici +15%.':'Questo turno: danni dei nemici normali.';
+          if(rule==='improv')return theaterTurn%3===0?'Attiva questo turno: danni della tua squadra +20%.':'Questo turno: danni normali.';
+          if(rule==='curtain')return theaterTurn%4===0?'Attiva questo turno: tutti i danni -15%.':'Questo turno: danni normali.';
+          return null;
+        })();
         
         let bottomPlayers = [];
         let topPlayers = [];
@@ -538,6 +560,29 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                              </h2>
                         </div>
                     </div>
+                )}
+
+                {/* BANNER DELLA REGOLA DI SCENA: SEMPRE DISPONIBILE DURANTE IL TEATRO.
+                    <details> nativo: consultabile anche durante i replay, senza perdere la mossa. */}
+                {theaterRule && (
+                  <div className="relative z-[70] flex-shrink-0 border-b border-amber-500/30 bg-gradient-to-r from-rose-950 via-slate-950 to-purple-950 px-3 sm:px-5 py-2">
+                    <details className="group max-w-4xl mx-auto rounded-xl border border-amber-400/40 bg-black/35">
+                      <summary aria-label={'Leggi le regole della scena: '+theaterRule.name}
+                        className="cursor-pointer select-none list-none flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-3 sm:px-4 py-2 text-amber-100">
+                        <span className="flex items-center gap-2 font-black text-sm sm:text-base">
+                          <span aria-hidden="true">🎭</span> Regola di Scena: {theaterRule.name}
+                        </span>
+                        <span className="text-xs font-bold text-amber-200/80">Turno {theaterTurn} · Leggi dettagli <span aria-hidden="true" className="inline-block group-open:rotate-180 transition-transform">⌄</span></span>
+                      </summary>
+                      <div className="border-t border-amber-500/25 px-3 sm:px-4 py-3 text-xs sm:text-sm text-slate-200 leading-relaxed">
+                        <p>{theaterRule.description}</p>
+                        {theaterCurrentEffect&&<p role="status" className="mt-2 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 font-bold text-amber-200">{theaterCurrentEffect}</p>}
+                        {gameState.theaterScene?.rule==='finale'&&theaterBoss&&
+                          <p className="mt-2 text-fuchsia-200 font-bold">Fase del Regista: {theaterBoss.theaterPhase||1}/3 · Le transizioni scattano a 66% e 33% dei PS.</p>}
+                        <p className="mt-2 text-slate-400">Questa regola modifica i danni reali dello scontro. Puoi aprire il pannello in qualsiasi momento.</p>
+                      </div>
+                    </details>
+                  </div>
                 )}
 
                 {/* BATTLE ARENA */}
