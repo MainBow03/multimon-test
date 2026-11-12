@@ -1,3 +1,4 @@
+import {typeDisplayName} from '../../systems/typeLabel.js';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCatalogView(ctx) {
@@ -141,7 +142,7 @@ if (appMode === 'catalog') {
                                 <option value="Mostri Campagna">Mostri Campagna</option>
                                 <option value="Iper forme">Iper Forme</option>
                                 <option value="Fusioni">Fusioni</option>
-                                {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                                {TYPES.map(t => <option key={t} value={t}>{typeDisplayName(t)}</option>)}
                             </select>
                         </div>
                         <div className="flex items-center gap-2">
@@ -190,7 +191,7 @@ if (appMode === 'catalog') {
                                     <h4 className="font-bold text-lg mb-2 text-slate-100 text-center">{char.name}</h4>
                                     <div className="flex flex-wrap gap-1.5 justify-center mb-4">
                                       {char.types.map(t => (
-                                        <span key={t} className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{t}</span>
+                                        <span key={t} className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{typeDisplayName(t)}</span>
                                       ))}
                                     </div>
                                     <div className="w-full grid grid-cols-2 gap-2 text-xs font-mono bg-slate-950/50 p-3 rounded-xl mb-4 border border-slate-800">
@@ -213,7 +214,7 @@ if (appMode === 'catalog') {
                                             <div key={i} className="text-[10px] bg-slate-800 p-2 rounded border border-slate-700 flex flex-col gap-1">
                                                 <div className="flex justify-between items-center">
                                                     <span className="font-bold text-gray-300">{m.name}</span>
-                                                    <span className={`${TYPE_STYLES[m.type]} px-1 py-0.5 rounded text-[8px]`}>{m.type}</span>
+                                                    <span className={`${TYPE_STYLES[m.type]} px-1 py-0.5 rounded text-[8px]`}>{typeDisplayName(m.type)}</span>
                                                 </div>
                                                 <div className="flex justify-between text-slate-500 text-[9px] font-bold">
                                                     <span>{m.power > 0 ? `Pot: ${m.power}` : (m.heal || m.healFlat || m.targetMode === 'team_smart_heal' || m.targetMode === 'team' || m.selfHeal || m.healLastTurnDamage ? 'Cura' : (m.isProtect ? 'Difesa' : ((m.isSummon || m.randomSummon) ? 'Evoca' : 'Stato')))}</span>
