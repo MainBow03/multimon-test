@@ -94,9 +94,9 @@ export const THEATER_ACT_II={
  ]},
  {title:'La legge dei riflettori',boss:['primadonna','riflettore','riflettore'],sceneRule:'spotlight',
  dialogue:[
- ['Tails','Siamo dentro la cabina di regia secondaria. Ho trovato i registri degli spettacoli.'],
- ['Sam (Totally Spies)','Qui non c’è magia predittiva. Ogni disastro viene costruito: rotaie, interruttori, percorsi obbligati.'],
- ['Star Butterfly','Quindi quel tipo non vede il futuro. Organizza cose orribili e poi fa finta di averle previste.'],
+ ['Tails','Siamo nella cabina di regia secondaria. Ho trovato i registri e perfino i dossier del cast.'],
+ ['Sam (Totally Spies)','Qui non c’è magia predittiva: ogni disastro è una scena organizzata. Persino i nostri inviti erano pianificati. Rotaie, interruttori e percorsi obbligati.'],
+ ['Star Butterfly','Quindi il suo grande spettacolo non prevede niente: provoca disastri e aspetta che il suo cast reagisca davvero!'],
  ['Coraline','Ma chi guarda davvero tutti questi spettacoli?'],
  ['La Prima Donna','Il nostro pubblico non vuole essere visto. Vuole soltanto una storia perfetta.'],
  ['Hatsune Miku','Sento qualcosa sotto la sala. Come migliaia di voci che cercano di parlare.'],
@@ -104,7 +104,7 @@ export const THEATER_ACT_II={
  ['Sam (Totally Spies)','Se vogliamo capire, dobbiamo andare oltre il palcoscenico.']
  ],
  postDialogue:[
- ['Tails','Ho copiato l’archivio degli spettacoli. Ci sono nomi di mondi interi.'],
+ ['Tails','Ho copiato l’archivio del Teatro. Prevede sei atti e scenografie sottratte a diversi mondi. Quello di Mewni era soltanto il primo allestimento.'],
  ['Coraline','E persone segnate con una sola parola: comparsa.'],
  ['Star Butterfly','Non ci credo. Abbiamo appena iniziato a scoprire quanto è grande questa cosa.'],
  ['Il Regista','Complimenti, mie attrici. Avete ottenuto l’accesso al secondo spettacolo.'],
