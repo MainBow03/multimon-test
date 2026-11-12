@@ -1,4 +1,5 @@
 import { SIX_NEW_MOVES } from './sixNewChampions.js';
+import {THEATER_MOVES} from './theaterActors.js';
 import { FIVE_NEW_MOVES } from './fiveNewChampions.js';
 import {STRAW_HAT_MOVES} from './strawHatCrewMoves.js';
 import {GEM_FLAME_MOVES} from './gemFlameMoves.js';
@@ -11,6 +12,7 @@ export const MOVES_DB = {
   ...GEM_FLAME_MOVES,
   ...STRAW_HAT_MOVES,
   ...SIX_NEW_MOVES,
+  ...THEATER_MOVES,
   ...FIVE_NEW_MOVES,
   'Raggio dei Caduti': {name:'Raggio dei Caduti',type:'Spettro',power:100,accuracy:0.8,desc:'Raggio spettrale potentissimo su un singolo bersaglio. Precisione 80%.'},
   'Le Tenebre vi Avvolgono': {name:'Le Tenebre vi Avvolgono',type:'Buio',power:70,targetCount:24,desc:'Le tenebre travolgono tutti i bersagli avversari in campo.'},
