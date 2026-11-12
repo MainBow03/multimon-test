@@ -1,3 +1,4 @@
+import {typeDisplayName} from '../../systems/typeLabel.js';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 import { onlineHealingRemaining, isLimitedHealingItem } from '../../systems/onlineHealingLimit.js';
 import { MOVES_DB } from '../../data/moves.js';
@@ -425,7 +426,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                         
                         <div className="flex gap-1 justify-center mb-1 flex-wrap">
                             {char.types.map(t => (
-                                <span key={t} className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{t}</span>
+                                <span key={t} className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{typeDisplayName(t)}</span>
                             ))}
                         </div>
 
@@ -696,7 +697,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                 <div className="battle-weather-card battle-weather-card--snowstorm">
                                     <div className="battle-weather-title">❄️ TEMPESTA DI NEVE</div>
                                     <div className="battle-weather-turns">{gameState.battleWeather.turns} {gameState.battleWeather.turns === 1 ? 'turno' : 'turni'} rimanenti</div>
-                                    <div className="battle-weather-detail">Ghiaccio / Roccia / Robot immuni</div>
+                                    <div className="battle-weather-detail">Ghiaccio / Roccia / Acciaio immuni</div>
                                 </div>
                             )}
                             {gameState.battleWeather?.type === 'rainstorm' && gameState.battleWeather.turns > 0 && (
@@ -1032,7 +1033,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                                     )}
                                                         </div>
                                                         <div className="flex flex-col items-end pointer-events-none">
-                                                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${TYPE_STYLES[move.type] || 'bg-gray-500'}`}>{move.type}</span>
+                                                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${TYPE_STYLES[move.type] || 'bg-gray-500'}`}>{typeDisplayName(move.type)}</span>
                                                              <span className="text-xs text-gray-400 mt-1 font-mono">{move.power > 0 ? `Potenza: ${move.power}` : (move.heal || move.healFlat || move.targetMode === 'team_smart_heal' || move.selfHeal || move.targetMode === 'team' || move.healLastTurnDamage ? 'Cura' : (move.isProtect ? 'Difesa' : ((move.isSummon || move.randomSummon) ? 'Evoca' : 'Stato')))}</span>
                                                         </div>
                                                 </button>
@@ -1181,7 +1182,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                             <div className="text-left flex-1 min-w-0">
                                                                 <div className="font-bold text-sm truncate text-white mb-1">{char.name}</div>
                                                                 <div className="flex gap-1 mb-1.5 flex-wrap">
-                                                                     {char.types.map(t => <span key={t} className={`text-[8px] font-black px-1 py-0.5 rounded uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{t.substring(0,3)}</span>)}
+                                                                     {char.types.map(t => <span key={t} className={`text-[8px] font-black px-1 py-0.5 rounded uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{typeDisplayName(t).substring(0,3)}</span>)}
                                                                 </div>
                                                                 {renderHealthBar(char.hp, char.maxHp)}
                                                             </div>
