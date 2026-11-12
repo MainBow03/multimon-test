@@ -101,6 +101,12 @@ if (appMode === 'campaign_map') {
                             </div>
                         </div>
 
+                        {mission.theaterMission && <div className="w-full rounded-2xl border border-rose-400/40 bg-rose-950/40 p-4 mb-5 text-left">
+                            <div className="font-black text-amber-200 text-sm uppercase tracking-wider mb-1">🎭 Atto {mission.theaterAct} · Missione {mission.theaterNumber}/36</div>
+                            <div className="font-bold text-white mb-1">Regola di Scena: {({spotlight:'Luci di protezione',mirror:'Scena specchiata',rehearsal:'Prove generali',improv:'Fuori copione',curtain:'Sipario pesante',finale:'Ultimo sipario'})[mission.theaterRule]}</div>
+                            <p className="text-sm text-slate-200">{mission.theaterRuleDescription}</p>
+                            {mission.theaterFinal && <p className="text-xs text-amber-200 mt-2 font-bold">Finale in tre fasi: il Regista cambia strategia al 66% e al 33% dei PS.</p>}
+                        </div>}
                         {mission.echoMission && <div className="w-full rounded-2xl border border-violet-500/40 bg-violet-950/35 p-4 mb-5 text-left">
                             <div className="font-black text-violet-200 text-sm uppercase tracking-wider mb-1">{mission.echoFinal?'Raid della Resistenza Unita':`Missione ${mission.echoNumber}/36 · Percorso tattico`}</div>
                             {[34,35].includes(mission.echoNumber)&&<div className="mb-3 rounded-xl border border-fuchsia-400/70 bg-fuchsia-950/60 p-3">
