@@ -22,7 +22,7 @@ export const THEATER_ACT_IV={
  ['Clover (Totally Spies)','No. Questa volta voglio fare qualcosa di utile, tutto qui.'],
  ['Il Regista','Quarantasette nomi cancellati da una lista. Un singolo rifugio segnato su una mappa. Ottimo scambio.']
  ]},
- {title:'La scena del tradimento',boss:['clover','caposcena'],sceneRule:'curtain',
+ {title:'La scena del tradimento',boss:['clover','caposcena'],removeChars:['tails','miku'],sceneRule:'curtain',
  dialogue:[
  ['Tails','ALLARME! Il rifugio è stato trovato! Hanno bloccato le uscite dietro Miku!'],
  ['Star Butterfly','È impossibile! Solo noi sappiamo dove si trova!'],
@@ -101,8 +101,8 @@ export const THEATER_ACT_IV={
  {title:'La ragazza senza finale',boss:['caposcena','riflettore','riflettore'],sceneRule:'spotlight',
  dialogue:[
  ['Nina','Dovete vedere il primo impianto. Severin non ve lo mostrerà mai.'],
- ['Tails','Ho recuperato uno schema dagli archivi. Il vecchio sistema sosteneva le strutture anche senza spettatori.'],
- ['Sam (Totally Spies)','Quindi esiste un’alternativa all’Occhio di Platea. Perché è stato disattivato?'],
+ ['Sam (Totally Spies)','Ho recuperato uno schema dagli archivi. Il vecchio sistema sosteneva le strutture anche senza spettatori.'],
+ ['Coraline','Quindi esiste un’alternativa all’Occhio di Platea. Perché è stato disattivato?'],
  ['Nina','Consuma più energia e ha bisogno di essere mantenuto da molte persone, non da una sola. Severin temeva che gli altri non lo aiutassero.'],
  ['Coraline','Ha preferito una macchina che può controllare, invece di rischiare di fidarsi di qualcuno.'],
  ['Il Regista','E voi vi affidereste a sconosciuti per salvare l’unica persona che amate?'],
