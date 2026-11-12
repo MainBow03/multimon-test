@@ -1938,7 +1938,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (appMode === 'campaign_intro') {
-  const __screen = renderCampaignIntroView({ activeCampaign, activeCampaignId, appMode, campaignState, setAppMode, setCampaignState });
+  const __screen = renderCampaignIntroView({ CHARACTERS, activeCampaign, activeCampaignId, appMode, campaignState, setAppMode, setCampaignState });
   if (__screen !== undefined) return __screen;
 }
 
