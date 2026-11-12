@@ -6,7 +6,7 @@ if (appMode === 'campaign_intro') {
         const theater=activeCampaignId==='teatro_catastrofi';
         return (
             <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
-                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] ${theater?'from-rose-900/60 via-purple-950 to-black':'from-emerald-900/40 via-slate-950 to-black'} pointer-events-none opacity-60"></div>
+                 <div className={`absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] ${theater?'from-rose-900/60 via-purple-950 to-black':'from-emerald-900/40 via-slate-950 to-black'} pointer-events-none opacity-60`}></div>
                  <div className={`bg-slate-900/85 p-6 sm:p-8 rounded-3xl max-w-3xl text-center border z-10 shadow-2xl ${theater?'border-amber-500/50 shadow-rose-950/50':'border-emerald-500/30'}`}>
                       <h1 className={`text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r mb-4 ${theater?'from-amber-200 via-rose-300 to-fuchsia-400':'from-emerald-400 to-cyan-500'}`}>{introData.title}</h1>
                       <h2 className={`text-xl font-bold mb-6 ${theater?'text-amber-300':'text-emerald-400'}`}>{introData.subtitle}</h2>
