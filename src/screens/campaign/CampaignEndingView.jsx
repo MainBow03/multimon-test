@@ -4,9 +4,9 @@ export function renderCampaignEndingView(ctx) {
 const { CHARACTERS, Trophy, activeCampaign, activeCampaignId, appMode, campaignState, loadCampaign, setAppMode, setCampaignSelectedTeam, setCampaignState } = ctx;
 if (appMode === 'campaign_ending') {
         return (
-            <div className="min-h-screen bg-gradient-to-t from-blue-950 to-slate-950 text-white flex flex-col items-center justify-center p-6 text-center">
+            <div className={`min-h-screen bg-gradient-to-t ${activeCampaignId==='teatro_catastrofi'?'from-rose-950 via-purple-950 to-slate-950':'from-blue-950 to-slate-950'} text-white flex flex-col items-center justify-center p-6 text-center`}>
                 <Trophy size={80} className="text-yellow-400 mb-6 drop-shadow-[0_0_30px_rgba(234,179,8,0.8)] animate-bounce" />
-                <h1 className="text-6xl md:text-8xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 drop-shadow-md tracking-tighter">
+                <h1 className={`text-5xl md:text-8xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r ${activeCampaignId==='teatro_catastrofi'?'from-amber-200 via-rose-300 to-fuchsia-400':'from-cyan-400 via-blue-500 to-purple-600'} drop-shadow-md tracking-tighter`}>
                     {activeCampaignId === 'crisi_varco' ? 'IL MULTIVERSO È SALVO!' : activeCampaignId === 'eco_anime' ? 'L’ECO È STATO SPEZZATO!' : activeCampaignId === 'teatro_catastrofi' ? 'IL SIPARIO NON CALA!' : 'CAMPAGNA COMPLETATA!'}
                 </h1>
                 <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mb-12 font-medium leading-relaxed">
