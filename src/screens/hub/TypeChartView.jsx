@@ -1,3 +1,4 @@
+import {typeDisplayName} from '../../systems/typeLabel.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderTypeChartView(ctx) {
 const { ArrowLeft, TYPES, TYPE_CHART, TYPE_STYLES, appMode, setAppMode } = ctx;
@@ -32,7 +33,7 @@ if (appMode === 'type_chart') {
                                         <th key={t} className="p-2 border-b-2 border-slate-700 sticky top-0 bg-slate-950 z-20 w-12 sm:w-16 shadow-sm">
                                             <div className="flex justify-center h-24 items-end pb-2">
                                                 <span className={`text-[10px] font-black px-1.5 py-1 rounded uppercase tracking-wider ${TYPE_STYLES[t] || 'bg-gray-500'} transform -rotate-180 whitespace-nowrap`} style={{ writingMode: 'vertical-rl' }}>
-                                                    {t}
+                                                    {typeDisplayName(t)}
                                                 </span>
                                             </div>
                                         </th>
@@ -44,7 +45,7 @@ if (appMode === 'type_chart') {
                                     <tr key={atkType} className="hover:bg-slate-800/50 transition-colors">
                                         <td className="p-2 border-b border-r-2 border-slate-700 bg-slate-900 sticky left-0 z-10 font-bold min-w-[120px] text-right pr-4">
                                             <div className="flex items-center justify-end gap-2">
-                                                <span className="text-slate-300">{atkType}</span>
+                                                <span className="text-slate-300">{typeDisplayName(atkType)}</span>
                                                 <span className={`w-3 h-3 rounded-full ${TYPE_STYLES[atkType]?.split(' ')[0] || 'bg-gray-500'}`}></span>
                                             </div>
                                         </td>
