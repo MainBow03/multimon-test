@@ -1,4 +1,6 @@
 import { masteryLevel, masteryProgress, masteryRank, masteryTitle, isMasteryUnlocked, equippedMasteryTitle, isMasteryEligible, MASTERY_REWARDS } from '../../systems/masterySystem.js';
+import {careerTopThree} from '../../systems/careerStats.js';
+import {onMultimonImageError} from '../../systems/imageFallback.js';
 // La padronanza è visibile nel profilo, con titoli puramente estetici.
 export function renderStatsView(ctx) {
 const { ArrowLeft, Swords, Target, Trophy, Users, CHARACTERS, FUSION_CHARACTERS, appMode,
@@ -7,15 +9,41 @@ const { ArrowLeft, Swords, Target, Trophy, Users, CHARACTERS, FUSION_CHARACTERS,
 if (appMode === 'stats' || appMode === 'mastery') {
         const stats = getPlayerData();
 
-        const getMostUsed = (obj) => {
-            if (!obj || Object.keys(obj).length === 0) return { name: "Nessuno", count: 0 };
-            const best = Object.keys(obj).reduce((a, b) => obj[a] > obj[b] ? a : b);
-            return { name: best, count: obj[best] };
+        const allCharacters=[...CHARACTERS,...FUSION_CHARACTERS];
+        const byId=Object.fromEntries(allCharacters.map(c=>[c.id,c]));
+        const charNames=Object.fromEntries(allCharacters.map(c=>[c.id,c.name]));
+        const topCharacters=careerTopThree(stats.chars,charNames);
+        const topMoves=careerTopThree(stats.moves);
+        const characterCounts=Object.entries(stats.chars||{}).filter(([,n])=>Number(n)>0);
+        const moveCounts=Object.entries(stats.moves||{}).filter(([,n])=>Number(n)>0);
+        const totalCharacterUses=characterCounts.reduce((n,[,v])=>n+(Number(v)||0),0);
+        const favoriteCharacter=topCharacters[0]||null;
+        const favoriteMove=topMoves[0]||null;
+        const Medal=({rank})=><span className="text-xl" aria-label={rank+'° posto'}>{['🥇','🥈','🥉'][rank-1]}</span>;
+        const Podium=({items,kind,total})=>{
+          const ordered=[items[1],items[0],items[2]];
+          return <div className="grid grid-cols-3 gap-2 items-end" role="list" aria-label={kind==='char'?'Podio Multimon più usati':'Podio mosse più usate'}>
+            {ordered.map((item,index)=>{
+              const rank=[2,1,3][index];
+              const character=kind==='char'?byId[item?.id]:null;
+              return <div key={item?.id||'empty-'+rank} role="listitem"
+                className={`min-w-0 rounded-xl border ${rank===1?'border-amber-400/60 bg-amber-950/25 pb-5':'border-slate-700 bg-slate-900/70 pb-3'} px-2 pt-3 text-center`}>
+                <div className="mb-2 flex justify-center"><Medal rank={rank}/></div>
+                {item&&kind==='char'&&character?.img?
+                  <img src={character.img} alt={item.name} loading="lazy" onError={onMultimonImageError}
+                    className="w-14 h-14 sm:w-16 sm:h-16 object-contain mx-auto mb-2 rounded-lg bg-black/20"/>:
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-slate-800/70 mx-auto mb-2 rounded-lg flex items-center justify-center">
+                    {kind==='move'?<Swords size={30} className="text-rose-300"/>:<Users size={27} className="text-slate-500"/>}
+                  </div>}
+                <div className="text-xs sm:text-sm font-black text-slate-100 break-words leading-tight min-h-8"
+                  title={item?.name||'Nessun utilizzo'}>{item?.name||'—'}</div>
+                <div className={`mt-2 text-lg font-black ${rank===1?'text-amber-300':'text-cyan-200'}`}>{item?.count||0}</div>
+                <div className="text-[10px] text-slate-400">{kind==='char'?'battaglie':'utilizzi'}</div>
+                <div className="text-[10px] text-slate-500 mt-1">{item&&total>0?Math.round(item.count/total*100)+'% del totale':''}</div>
+              </div>;
+            })}
+          </div>;
         };
-
-        const favChar = getMostUsed(stats.chars);
-        const favMove = getMostUsed(stats.moves);
-        
         const formatTime = (secs) => {
             if (secs < 60) return `${secs} secondi`;
             const m = Math.floor(secs / 60);
@@ -26,8 +54,8 @@ if (appMode === 'stats' || appMode === 'mastery') {
 
         const winRate = stats.matches > 0 ? Math.round((stats.wins / stats.matches) * 100) : 0;
         const defeats=Math.max(0,(stats.matches||0)-(stats.wins||0));
-        const usedDifferent=Object.keys(stats.chars||{}).length;
-        const totalMoves=Object.values(stats.moves||{}).reduce((n,v)=>n+(Number(v)||0),0);
+        const usedDifferent=characterCounts.length;
+        const totalMoves=moveCounts.reduce((n,[,v])=>n+(Number(v)||0),0);
         const averageTime=stats.matches>0?Math.round((stats.playtime||0)/stats.matches):0;
         const roster = CHARACTERS.filter(isMasteryEligible);
         const currentTitle = equippedMasteryTitle(stats, roster);
@@ -83,30 +111,19 @@ if (appMode === 'stats' || appMode === 'mastery') {
                             </div>
                         </div>
 
-                        {/* Preferenze */}
-                        <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-6 shadow-inner flex flex-col justify-center">
-                            <h3 className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-4 flex items-center gap-2"><Target size={16} className="text-rose-500"/> I Tuoi Preferiti</h3>
-                            
-                            <div className="bg-slate-900 border border-slate-700/50 rounded-xl p-4 mb-4 flex items-center gap-4">
-                                <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center shrink-0 border border-slate-600">
-                                    <Users size={24} className="text-cyan-400"/>
-                                </div>
-                                <div className="overflow-hidden w-full">
-                                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Personaggio Più Usato</div>
-                                    <div className="text-lg font-black text-white truncate w-full">{favChar.name}</div>
-                                    <div className="text-xs text-slate-500">Schierato {favChar.count} volte</div>
-                                </div>
+                        {/* Podi: contatori persistenti e classifiche storiche. */}
+                        <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-inner min-w-0">
+                            <h3 className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-3 flex items-center gap-2"><Users size={16} className="text-cyan-400"/> Podio Multimon più giocati</h3>
+                            <Podium items={topCharacters} kind="char" total={totalCharacterUses}/>
+                            <div className="mt-3 flex justify-between text-xs text-slate-400">
+                                <span>Schieramenti totali</span><strong className="text-cyan-200">{totalCharacterUses}</strong>
                             </div>
-
-                            <div className="bg-slate-900 border border-slate-700/50 rounded-xl p-4 flex items-center gap-4">
-                                <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center shrink-0 border border-slate-600">
-                                    <Swords size={24} className="text-rose-400"/>
-                                </div>
-                                <div className="overflow-hidden w-full">
-                                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Mossa Più Usata</div>
-                                    <div className="text-lg font-black text-white truncate w-full">{favMove.name}</div>
-                                    <div className="text-xs text-slate-500">Eseguita {favMove.count} volte</div>
-                                </div>
+                        </div>
+                        <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-inner min-w-0">
+                            <h3 className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-3 flex items-center gap-2"><Swords size={16} className="text-rose-400"/> Podio mosse più utilizzate</h3>
+                            <Podium items={topMoves} kind="move" total={totalMoves}/>
+                            <div className="mt-3 flex justify-between text-xs text-slate-400">
+                                <span>Mosse registrate</span><strong className="text-rose-200">{totalMoves}</strong>
                             </div>
                         </div>
                     </div>
@@ -122,6 +139,37 @@ if (appMode === 'stats' || appMode === 'mastery') {
                         <div className={`font-black text-xl md:text-2xl mt-2 ${item.color}`}>{item.value}</div>
                       </div>)}
                     </div>
+                    {appMode==='stats'&&<div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                      <details className="rounded-xl bg-slate-950/70 border border-slate-700 p-4">
+                        <summary className="cursor-pointer text-sm font-bold text-cyan-200">📊 Classifica completa dei Multimon</summary>
+                        <div className="max-h-64 overflow-y-auto mt-3 space-y-2">
+                          {Object.entries(stats.chars||{}).filter(([,n])=>Number(n)>0)
+                            .sort((a,b)=>Number(b[1])-Number(a[1])||String(charNames[a[0]]||a[0]).localeCompare(String(charNames[b[0]]||b[0]),'it'))
+                            .map(([id,uses],i)=><div key={id} className="flex justify-between gap-3 text-sm border-b border-slate-800 pb-1">
+                              <span className="truncate text-slate-300">{i+1}. {charNames[id]||id}</span>
+                              <strong className="text-cyan-200 shrink-0">{uses}</strong>
+                            </div>)}
+                          {usedDifferent===0&&<p className="text-sm text-slate-500">Nessuna partita registrata.</p>}
+                        </div>
+                      </details>
+                      <details className="rounded-xl bg-slate-950/70 border border-slate-700 p-4">
+                        <summary className="cursor-pointer text-sm font-bold text-rose-200">⚡ Classifica completa delle mosse</summary>
+                        <div className="max-h-64 overflow-y-auto mt-3 space-y-2">
+                          {Object.entries(stats.moves||{}).filter(([,n])=>Number(n)>0)
+                            .sort((a,b)=>Number(b[1])-Number(a[1])||a[0].localeCompare(b[0],'it'))
+                            .map(([name,uses],i)=><div key={name} className="flex justify-between gap-3 text-sm border-b border-slate-800 pb-1">
+                              <span className="truncate text-slate-300">{i+1}. {name}</span>
+                              <strong className="text-rose-200 shrink-0">{uses}</strong>
+                            </div>)}
+                          {moveCounts.length===0&&<p className="text-sm text-slate-500">Nessuna mossa registrata.</p>}
+                        </div>
+                      </details>
+                      <div className="md:col-span-2 rounded-xl border border-slate-800 bg-slate-950/40 p-3 text-xs text-slate-400">
+                        Le classifiche sono cumulative e non si azzerano tra una battaglia e l'altra.
+                        Vengono conteggiati i Multimon entrati effettivamente in campo e le mosse selezionate durante i turni.
+                        I vecchi utilizzi mai registrati dal gioco non possono essere ricostruiti con certezza.
+                      </div>
+                    </div>}
                     <button type="button" onClick={()=>setAppMode('mastery')}
                       className="w-full mb-5 rounded-2xl bg-violet-950/35 border border-violet-500/50 hover:bg-violet-800/30 px-4 py-3 text-sm font-bold text-violet-200">
                       🏅 Gestisci Prestigi, Padronanza e titoli in una sezione separata →
