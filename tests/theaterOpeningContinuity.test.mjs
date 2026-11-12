@@ -19,7 +19,7 @@ test('Coraline e Sam sono scelte e raggiungono il teatro per motivi spiegati',()
  assert.match(lines(0),/un invito identico/i);
  assert.match(lines(0),/una porticina/i);
  assert.match(lines(0),/Coraline Jones, la testimone/i);
- assert.match(lines(1),/lista del cast/i);
+ assert.match(epilogue(1),/lista del cast/i);
  assert.match(lines(2),/trasmettitore rubato/i);
  assert.match(lines(2),/terza attrice/i);
  assert.match(epilogue(2),/trasmettitore era un’esca/i);
