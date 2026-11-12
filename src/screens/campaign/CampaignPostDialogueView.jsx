@@ -35,6 +35,7 @@ if (appMode === 'campaign_post_dialogue') {
             );
         }
 
+        const theaterScene=!!mission.theaterMission;
         const speakerName = dialogue.s.replace(' (Corrotto)', '').replace(' (Corrotta)', '').replace(' (Sottomessa)', '');
         let speakerChar = CHARACTERS.find(c => c.name === speakerName);
         if (!speakerChar) speakerChar = CHARACTERS.find(c => c.name.includes(speakerName));
@@ -44,11 +45,12 @@ if (appMode === 'campaign_post_dialogue') {
                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent pointer-events-none opacity-50"></div>
                  {speakerChar && (
                      <div className={`absolute bottom-0 left-4 md:left-24 transition-all duration-500 pointer-events-none drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]`}>
-                         <img src={speakerChar.img} className="w-48 h-48 md:w-80 md:h-80 object-cover rounded-t-full border-t-4 border-x-4 border-cyan-500 opacity-100" />
+                         <img src={speakerChar.img} className={`w-48 h-48 md:w-80 md:h-80 object-contain rounded-t-full border-t-4 border-x-4 ${theaterScene?'border-amber-400':'border-cyan-500'} opacity-100`} />
                      </div>
                  )}
-                 <div className="bg-slate-900/95 border-2 border-cyan-400 p-8 rounded-2xl max-w-4xl w-full mx-auto z-10 cursor-pointer shadow-[0_0_40px_rgba(34,211,238,0.2)] relative mb-12 animate-fade-in">
-                      <div className={`absolute -top-4 left-6 px-4 py-1 rounded-full font-black text-sm uppercase tracking-widest shadow-md bg-cyan-500 text-black`}>{dialogue.s}</div>
+                 <div className={`bg-slate-900/95 border-2 ${theaterScene?'border-amber-400 shadow-[0_0_40px_rgba(239,68,68,0.24)]':'border-cyan-400 shadow-[0_0_40px_rgba(34,211,238,0.2)]'} p-8 rounded-2xl max-w-4xl w-full mx-auto z-10 cursor-pointer relative mb-12 animate-fade-in`}>
+                      <div className={`absolute -top-4 left-6 px-4 py-1 rounded-full font-black text-sm uppercase tracking-widest shadow-md ${theaterScene?'bg-rose-700 text-white':'bg-cyan-500 text-black'}`}>{dialogue.s}</div>
+                      {theaterScene&&<p className="text-xs font-black uppercase tracking-wider text-amber-300">🎭 Dopo la scena · Missione {mission.theaterNumber}/36</p>}
                       <p className="text-xl md:text-2xl mt-4 leading-relaxed font-medium text-white italic">"{dialogue.t}"</p>
                       <p className="text-right text-xs text-cyan-400 mt-4 animate-pulse font-bold">Clicca per continuare...</p>
                  </div>
