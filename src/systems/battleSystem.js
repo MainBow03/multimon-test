@@ -1453,6 +1453,14 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                                 char.moves.push({ ...MOVES_DB['questo è il mio vero potenziale'], remainingUses: MOVES_DB['questo è il mio vero potenziale'].maxUses !== undefined ? MOVES_DB['questo è il mio vero potenziale'].maxUses : null });
                             }
 
+                            if (char.id === 'coraline' && MOVES_DB['Porta dell’Impossibile']) {
+                                // La mossa nuova è disponibile nello stesso turno dell'Iper.
+                                // Tipi, passiva e mosse della Coraline normale restano invariati.
+                                if (!char.moves.some(m => m.name === 'Porta dell’Impossibile')) {
+                                    char.moves.push({ ...MOVES_DB['Porta dell’Impossibile'], remainingUses: 2 });
+                                }
+                            }
+
                             workingHyperUsed[player] = true;
                             
                             // Genera evento speciale per innescare l'animazione di trasformazione!
