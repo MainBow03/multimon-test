@@ -50,6 +50,7 @@ import { handleForceSkipImpl, handleObserveImpl, applyOnEnterPassiveImpl, startB
 import { loadCampaignImpl, advanceCampaignImpl } from './systems/campaignFlow.js';
 import {lastSavedCampaignId} from './systems/lastCampaignSelection.js';
 import { reconcileCampaignRoster } from './systems/campaignRoster.js';
+import {migrateTheaterStellarubia} from './systems/theaterRecruitMigration.js';
 import { nextCampaignCommandIndex, shouldRecoverCampaignCommand } from './systems/campaignBattleRecovery.js';
 import { handleAvatarUploadImpl, leaveRoomImpl, handleConfirmLeaveImpl, updateStateImpl, getRequiredPlayersImpl, getActivePlayersImpl, isAllPlayersJoinedImpl, handleCreateRoomImpl, handleJoinRoomImpl, commitReplacementChoiceImpl, handleAddBotImpl, handleRemovePlayerImpl, handleLocalStartImpl, handleVsCpuStartImpl, handlePickImpl, handleDraftRerollImpl, handleSharedPickImpl } from './systems/multiplayerSystem.js';
 import { updateLocalStatsImpl } from './systems/profileSystem.js';
@@ -484,7 +485,15 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                       if (parsed.sectorIdx === undefined) parsed.sectorIdx = 0;
                       if (parsed.missionIdx === undefined) parsed.missionIdx = 0;
                       if (parsed.coins === undefined) parsed.coins = 50;
-                      return reconcileCampaignRoster(parsed, CHARACTERS); 
+                      parsed=reconcileCampaignRoster(parsed, CHARACTERS);
+                      if(activeCampaignId==='teatro_catastrofi'){
+                        const migration=migrateTheaterStellarubia(parsed,CHARACTERS);
+                        if(migration.changed){
+                          parsed=migration.state;
+                          localStorage.setItem('multiverse_rpg_campaign_save_'+activeCampaignId,JSON.stringify(parsed));
+                        }
+                      }
+                      return parsed; 
                   } catch(e){}
               }
               const finn = CHARACTERS.find(c=>c.id==='finn');
