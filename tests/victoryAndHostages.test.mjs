@@ -46,7 +46,7 @@ test('Gli ostaggi sono disabilitati anche in UI e nello startBattle, senza cambi
 
 test('Sei cosmetici realmente nuovi con identificativi, scene e animazioni indipendenti',()=>{
  const ids=['portal','checkmate','chronofinale','astraldragon','thunderstorm','storybook'];
- assert.equal(VICTORY_EFFECTS.length,16);
+ assert.equal(VICTORY_EFFECTS.length,20);
  assert.equal(VICTORY_EFFECT_PRICE,100);
  const css=read('../src/screens/battle/VictoryCelebration.css');
  const jsx=read('../src/screens/battle/VictoryCelebration.jsx');
@@ -62,8 +62,8 @@ test('Sei cosmetici realmente nuovi con identificativi, scene e animazioni indip
   assert.match(css,new RegExp('@keyframes '+keyframes[i]));
   assert.match(jsx,new RegExp('victory-cinema-'+(id==='chronofinale'?'clock':id)));
  }
- assert.equal(new Set(VICTORY_EFFECTS.map(e=>e.id)).size,16);
- assert.equal(new Set(VICTORY_EFFECTS.map(e=>e.name)).size,16);
+ assert.equal(new Set(VICTORY_EFFECTS.map(e=>e.id)).size,20);
+ assert.equal(new Set(VICTORY_EFFECTS.map(e=>e.name)).size,20);
  assert.match(shop,/VICTORY_EFFECTS\.length/);
  assert.match(shop,/onClick=\{\(\)=>setVictoryPreview\(effect\)\}/);
  assert.match(css,/prefers-reduced-motion:reduce/);
