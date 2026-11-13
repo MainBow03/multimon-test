@@ -55,14 +55,17 @@ export const THEATER_ACT_II={
  ['Coraline','Conosci soltanto quello che pensi dovrebbe rendermi felice.'],
  ['Altra Madre','Con due nuove amiche sei diventata ancora più impertinente.'],
  ['Star Butterfly','È un complimento, giusto? Perché io lo prenderei come un complimento.'],
- ['Coraline','No, Star. Ma grazie. Questa volta non ho intenzione di entrare da sola.']
+ ['Coraline','No, Star. Ma grazie. Questa volta non ho intenzione di entrare da sola.'],
+ ['Stellarubia','Allora entreremo con te! Nessuna compagna deve affrontare da sola un’oscura madre con occhi di bottoni.']
  ],
  postDialogue:[
  ['Altra Madre','Chiudevi gli occhi per la paura. Ora sai guardare soltanto chi ti accompagna.'],
  ['Coraline','Ho imparato a guardare entrambe le cose. Addio.'],
  ['Star Butterfly','Okay. Adesso che siamo fuori posso davvero chiedere la storia dei bottoni?'],
  ['Sam (Totally Spies)','Dopo aver sigillato la porta. Per favore.'],
- ['Coraline','Ve la racconterò. Ma non durante la cena.']
+ ['Coraline','Ve la racconterò. Ma non durante la cena.'],
+ ['Stellarubia','In tal caso preparerò del dolce stellare di Tamaran! È delizioso e lievemente fluorescente.'],
+ ['Star Butterfly','PERFETTO. Almeno questa parte della giornata merita un applauso.']
  ]},
  {title:'Il concerto interrotto',boss:['primadonna','riflettore'],unlock:['miku'],sceneRule:'rehearsal',
  dialogue:[
@@ -71,6 +74,7 @@ export const THEATER_ACT_II={
  ['Sam (Totally Spies)','Quel sistema di amplificazione rimanda l’ultimo ritornello ai musicisti.'],
  ['Coraline','Così nessuno può completare il concerto.'],
  ['Star Butterfly','Ehi! Un concerto senza finale è una tortura! Non puoi nemmeno andare a mangiare i popcorn!'],
+ ['Stellarubia','Sul mio pianeta una canzone può durare giorni interi. Ma solo se tutti desiderano continuare a cantare!'],
  ['Hatsune Miku','Se riuscite a interrompere il ritorno audio, posso suonare una nota fuori programma.'],
  ['La Prima Donna','Nessuna improvvisazione è ammessa sul mio palcoscenico!'],
  ['Sam (Totally Spies)','Allora sarà un peccato quando la tua cassa di controllo smetterà di funzionare.']
@@ -80,7 +84,9 @@ export const THEATER_ACT_II={
  ['Star Butterfly','A me piacciono quelle che fanno BOOM!'],
  ['Sam (Totally Spies)','Miku, quelle frequenze interferiscono con i riflettori. Ti andrebbe di aiutarci?'],
  ['Hatsune Miku','Sì. Vorrei che anche gli altri potessero cantare senza un copione.'],
- ['Coraline','Mi piace come suona questo piano.']
+ ['Coraline','Mi piace come suona questo piano.'],
+ ['Stellarubia','Miku! Mi insegneresti a cantare? Conosco già il verso di sette animali cosmici.'],
+ ['Hatsune Miku','Potremmo cominciare da una semplice nota. Magari senza il ruggito cosmico.']
  ]},
  {title:'Tre battute per un disastro',boss:['wario','primadonna','riflettore'],sceneRule:'improv',
  dialogue:[
@@ -109,22 +115,34 @@ export const THEATER_ACT_II={
  ['Il Regista','Avete trovato una soluzione a una scena mal costruita. Ne prenderò nota.'],
  ['Sam (Totally Spies)','Il prossimo obiettivo è quella cabina. E dobbiamo smettere di seguire le porte che ci apre.']
  ]},
- {title:'La legge dei riflettori',boss:['primadonna','riflettore','riflettore'],sceneRule:'spotlight',
+ {title:'La legge dei riflettori',boss:['gaston','primadonna','riflettore'],unlock:['tails'],sceneRule:'spotlight',
  dialogue:[
- ['Tails','Siamo nella cabina di regia secondaria. Ho trovato i registri e perfino i dossier del cast.'],
- ['Sam (Totally Spies)','Qui non c’è magia predittiva: ogni disastro è una scena organizzata. Persino i nostri inviti erano pianificati. Rotaie, interruttori e percorsi obbligati.'],
- ['Star Butterfly','Quindi il suo grande spettacolo non prevede niente: provoca disastri e aspetta che il suo cast reagisca davvero!'],
- ['Coraline','Ma chi guarda davvero tutti questi spettacoli?'],
- ['La Prima Donna','Il nostro pubblico non vuole essere visto. Vuole soltanto una storia perfetta.'],
- ['Hatsune Miku','Sento qualcosa sotto la sala. Come migliaia di voci che cercano di parlare.'],
- ['Tails','Una rete di energia scende fino ai sotterranei. Non posso isolare la fonte.'],
- ['Sam (Totally Spies)','Se vogliamo capire, dobbiamo andare oltre il palcoscenico.']
+ ['Sam (Totally Spies)','Siamo sopra la cabina secondaria. Il segnale di Tails arriva da lì, ma le porte sono sorvegliate.'],
+ ['Gaston','Nessuno può superare Gaston, il valoroso guardiano del palcoscenico! Ho una canzone di ingresso e un contratto esclusivo!'],
+ ['Stellarubia','Oh! Il possente guardiano ha chiesto una canzone. Se cantassimo tutti insieme potremmo distrarlo!'],
+ ['Coraline','Credo che si distragga benissimo da solo.'],
+ ['Tails','Dal comunicatore posso sentire tutto! Ho piazzato dei sensori per sabotare i proiettori, ma il Caposcena mi ha rinchiuso qui.'],
+ ['Star Butterfly','TAILS! LA VOLPE CON DUE CODE! Aspetta, come fai a sentire?'],
+ ['Tails','La radio funziona ancora! Ogni volta che spengo un riflettore, un altro lo riaccende. La cabina centrale coordina tutta la rete.'],
+ ['La Prima Donna','La cabina non sarà aperta finché il pubblico non avrà avuto il suo finale!'],
+ ['Sam (Totally Spies)','Stellarubia, tieni lontano Gaston. Star, coprimi; Coraline, aiutami a trovare il pannello giusto.'],
+ ['Stellarubia','A disposizione! L’onore della nostra squadra delle stelle splenderà sulla sala!'],
+ ['Coraline','Dobbiamo davvero decidere quel nome?'],
+ ['Tails','Mi basta che qualcuno prema il tasto verde. NON quello rosso con scritto APPLAUSI OBBLIGATORI!'],
+ ['Star Butterfly','C’è un tasto per gli applausi obbligatori?! Okay, questo posto fa sempre più schifo.']
  ],
  postDialogue:[
- ['Tails','Ho copiato l’archivio del Teatro. Prevede sei atti e scenografie sottratte a diversi mondi. Quello di Mewni era soltanto il primo allestimento.'],
- ['Coraline','E persone segnate con una sola parola: comparsa.'],
- ['Star Butterfly','Non ci credo. Abbiamo appena iniziato a scoprire quanto è grande questa cosa.'],
- ['Il Regista','Complimenti, mie attrici. Avete ottenuto l’accesso al secondo spettacolo.'],
- ['Sam (Totally Spies)','Sapeva che saremmo arrivati qui. Dobbiamo smettere di seguire le porte che ci apre.']
- ]}
+ ['Tails','Libero! Grazie. Sono Tails, e vi devo un favore enorme.'],
+ ['Stellarubia','Il nostro nuovo amico possiede due code e il talento dell’ingegneria! È una grande benedizione cosmica!'],
+ ['Star Butterfly','Adoro già questo gruppo. Siamo sempre più strani.'],
+ ['Tails','Ho copiato l’archivio del Teatro. Prevede sei atti e scenografie sottratte a diversi mondi. Mewni era soltanto il primo allestimento.'],
+ ['Sam (Totally Spies)','E qui c’è la prova: ogni disastro viene preparato. Rotaie, interruttori, percorsi obbligati. Non è magia predittiva.'],
+ ['Coraline','Però qualcuno sta osservando ogni scena. Chi è il vero pubblico?'],
+ ['Tails','Posso cercare una risposta. Ho bisogno di una squadra che mi copra mentre studio il sistema. Vengo con voi.'],
+ ['Stellarubia','Accettato! Ti presenterò subito il regolamento del nostro club stellare!'],
+ ['Sam (Totally Spies)','Non abbiamo un club. Né un regolamento.'],
+ ['Il Regista','Complimenti, mie attrici. Avete guadagnato un nuovo tecnico per il secondo spettacolo.'],
+ ['Star Butterfly','E adesso che siamo in cinque, abbiamo cinque possibilità di rovinarti il finale!']
+ ]},
+
  ]};
