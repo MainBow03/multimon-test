@@ -38,6 +38,13 @@ export function VictoryCelebration({presentation,onClose}){
    <div className="victory-cinema-crystal victory-cinema-crystal--a" aria-hidden="true"/>
    <div className="victory-cinema-crystal victory-cinema-crystal--b" aria-hidden="true"/>
    <div className="victory-cinema-fireworks" aria-hidden="true"><span/><span/><span/><span/></div>
+   {/* Sei scene nuove, ognuna con una propria animazione, non soltanto un colore. */}
+   <div className="victory-cinema-portal" aria-hidden="true"><span/><span/></div>
+   <div className="victory-cinema-checkmate" aria-hidden="true"><span className="victory-chess-king">♚</span><span className="victory-chess-knight">♞</span><span className="victory-chess-rook">♜</span></div>
+   <div className="victory-cinema-clock" aria-hidden="true"><span className="victory-clock-hour"/><span className="victory-clock-minute"/><span className="victory-clock-core"/></div>
+   <div className="victory-cinema-astraldragon" aria-hidden="true">{Array.from({length:9},(_,i)=><span key={i}/>)}</div>
+   <div className="victory-cinema-thunderstorm" aria-hidden="true">{Array.from({length:6},(_,i)=><span key={i}/>)}</div>
+   <div className="victory-cinema-storybook" aria-hidden="true"><span className="victory-book-left"/><span className="victory-book-right"/><span className="victory-book-cover"/></div>
    <div className="victory-cinema-particles" aria-hidden="true">
     {particles.map(p=><span key={p.i} style={{
      '--particle-x':p.x,'--particle-delay':p.delay,
