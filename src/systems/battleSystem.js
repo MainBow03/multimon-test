@@ -4,6 +4,7 @@ import {selectedPassiveDamageFactor,triggerMiraculousAllyHeal,triggerJackpot,tri
 import {legalSupportTargets,isLegalSupportTarget} from './supportTargeting.js';
 import {healFromVampiricBite} from './vampiricBite.js';
 import {activateTitansRobin,createNightwingBuffWatcher,healBerrySlideAllies} from './titansBerryEffects.js';
+import {healHyperMikuConcertAllies} from './hyperMikuEffects.js';
 import {newcomerDamageFactor,recordSpyExposure,cloverExtraEvasion,triggerCloverDodge,triggerStarWand,resolveBlueberryAction,resetNewcomerTurnFlags} from './newcomerEffects.js';
 import {generateStrategicCpuActions,rememberPublicCpuMoves} from './strategicCpu.js';
 import {dummyCombatLabActions} from './combatLab.js';
@@ -1451,6 +1452,16 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
 
                             if (char.id === 'sage') {
                                 char.moves.push({ ...MOVES_DB['questo è il mio vero potenziale'], remainingUses: MOVES_DB['questo è il mio vero potenziale'].maxUses !== undefined ? MOVES_DB['questo è il mio vero potenziale'].maxUses : null });
+                            }
+
+                            if (char.id === 'luigi' && MOVES_DB['Aspirazione Fantasma'] &&
+                                !char.moves.some(m=>m.name==='Aspirazione Fantasma')) {
+                                char.moves.push({...MOVES_DB['Aspirazione Fantasma'],remainingUses:2});
+                            }
+
+                            if (char.id === 'miku' && MOVES_DB['Concerto Universale'] &&
+                                !char.moves.some(m=>m.name==='Concerto Universale')) {
+                                char.moves.push({...MOVES_DB['Concerto Universale'],remainingUses:2});
                             }
 
                             if (char.id === 'coraline' && MOVES_DB['Porta dell’Impossibile']) {
@@ -3231,6 +3242,10 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
 
                 if(attackSucceeded && move.berryTeamHeal && attacker.hp>0)
                   healBerrySlideAllies(attacker,move,player,workingTeams,workingField,
+                    {gameMode:gameState.gameMode,settings:gameState.settings,
+                      isRoguelikeCoop:gameState.isRoguelikeCoop},events,activeMatchPlayers);
+                if(attackSucceeded && move.concertTeamHeal && attacker.hp>0)
+                  healHyperMikuConcertAllies(attacker,move,player,workingTeams,workingField,
                     {gameMode:gameState.gameMode,settings:gameState.settings,
                       isRoguelikeCoop:gameState.isRoguelikeCoop},events,activeMatchPlayers);
                 const qilin=resolveQilinAttack(attacker,move,attackSucceeded);
