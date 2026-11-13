@@ -19,23 +19,31 @@ export const THEATER_ACT_II={
  ['Coraline','Non ancora. Il Teatro ha preso anche le loro porte di uscita.'],
  ['Sam (Totally Spies)','Allora troviamo chi progetta quelle porte.']
  ]},
- {title:'Un ingegnere dietro le quinte',boss:['caposcena','mechajohnny'],unlock:['tails'],sceneRule:'curtain',
+ {title:'Due stelle, un solo copione',boss:['wario','mechajohnny'],unlock:['stellarubia'],sceneRule:'curtain',
  dialogue:[
- ['Tails','Non muovetevi! Ho piazzato dei sensori tra i macchinari.'],
- ['Star Butterfly','È una volpe con due code! Posso chiederti se...'],
- ['Sam (Totally Spies)','Star. Dopo. Mi chiamo Sam: il tuo sistema sta tentando di aggirare i controlli?'],
- ['Tails','Sì! Ogni volta che spengo un proiettore, un altro lo riaccende. Qualcuno sta riscrivendo i comandi.'],
- ['Coraline','Come quando chiudi una porta e qualcuno la apre dall’altro lato.'],
- ['Il Caposcena','L’ingegnere è in ritardo. La scena deve iniziare ADESSO!'],
- ['Tails','Allora aiutatemi a salvare la console prima che il suo robot la distrugga!'],
- ['Star Butterfly','Bene! Abbiamo trovato un genio e un altro robot da prendere a schiaffi!']
+ ['Sam (Totally Spies)','La città finisce qui. Questo corridoio porta ai macchinari usati per preparare le catastrofi.'],
+ ['Star Butterfly','Ehi, sentite? Qualcuno sta ridendo mentre cadono i fondali.'],
+ ['Wario','WAHAHA! Il Regista mi paga a spettacolo! Più gente guarda i miei effetti speciali, più guadagno!'],
+ ['Stellarubia','Cittadini della Terra e degli altri pianeti! Sono Stellarubia, la vostra nuova acrobata stellare!'],
+ ['Coraline','Quindi ci sono due Star in questa storia. Magnifico.'],
+ ['Star Butterfly','SEI UN’ALIENA VOLANTE! IO SONO STAR! POSSIAMO ESSERE IL DUO DELLE STELLE!'],
+ ['Stellarubia','Un nome eccellente! Ma perché quel signore vuole incendiare una casa con persone vere dentro?'],
+ ['Wario','Sono COMPARSE! Fa tutto parte dello spettacolo. Il contratto lo dice chiarissimo!'],
+ ['Sam (Totally Spies)','Quel contratto è falso. Wario ha collegato gli effetti alla casa vera. E Mecha Johnny sorveglia il comando.'],
+ ['Stellarubia','Allora sono stata ingaggiata per uno spettacolo disonorevole! Restituirò il mio costume di scena... dopo aver lanciato qualche Starbolt!'],
+ ['Star Butterfly','NO, TIENI IL COSTUME! È FANTASTICO! PRIMA FERMIAMO QUEI DUE!']
  ],
  postDialogue:[
- ['Tails','Ho isolato il circuito. Possiamo controllare alcune luci dall’interno.'],
- ['Sam (Totally Spies)','Con il tuo aiuto possiamo mappare tutte le cabine del Teatro.'],
- ['Tails','Resterò con voi. Ho bisogno di scoprire come funziona questa macchina.'],
- ['Star Butterfly','BENVENUTO! L’unica regola del gruppo è che io posso dare nomi ai nostri piani.'],
- ['Coraline','Quella non è una regola approvata.']
+ ['Wario','NIENTE BONUS?! E QUELLI ERANO EFFETTI SPECIALI COSTOSISSIMI!'],
+ ['Stellarubia','I terrestri hanno strani costumi. Quello mi ha offerto denaro per mettere in pericolo i suoi stessi spettatori.'],
+ ['Coraline','Benvenuta nel Teatro. Purtroppo non è neppure la cosa più assurda che abbiamo visto.'],
+ ['Sam (Totally Spies)','Stellarubia, i tuoi colpi di Fuoco possono disattivare questi macchinari di Acciaio. Ci aiuti a liberare gli altri?'],
+ ['Stellarubia','Con enorme felicità! Giuro sul popolo di Tamaran di non obbedire mai a un cattivo regista!'],
+ ['Star Butterfly','EVVIVA! Ora siamo ufficialmente due Star, una Sam e una Coraline!'],
+ ['Coraline','Spero davvero che non inventiate un nome per la squadra.'],
+ ['Stellarubia','Propongo: LE MERAVIGLIOSE STELLE E LE LORO AMICHE STRAORDINARIE!'],
+ ['Sam (Totally Spies)','...Chiedo di essere assegnata alla squadra dei silenziosi.'],
+ ['Coraline','Mi unisco volentieri.']
  ]},
  {title:'Due madri, una porta',boss:['altramadre','caposcena'],sceneRule:'mirror',
  dialogue:[
