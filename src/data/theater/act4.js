@@ -27,7 +27,7 @@ export const THEATER_ACT_IV={
  ["Clover (Totally Spies)","Lo so cosa stai per dire."],
  ["Il Regista","Quarantasette porte si apriranno. Basta una firma."]
  ]},
- {title:'La scena del tradimento',boss:['clover','caposcena'],removeChars:['tails','miku'],sceneRule:'curtain',
+ {title:'La scena del tradimento',boss:['clover','caposcena'],unavailableChars:['tails','miku'],removeChars:['tails','miku'],sceneRule:'curtain',
  dialogue:[
  ["Tails","Sam! Stanno entrando nel rifugio!"],
  ["Hatsune Miku","Le porte si sono chiuse. Siamo ancora dentro!"],
