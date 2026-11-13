@@ -88,8 +88,8 @@ test('Nessuna carica consumata se la mossa manca o bypassa gli scudi',()=>{
 
 test('I due boss continuano ad attivare gli scudi al 75%, 50%, 25%',()=>{
  assert.match(campaign,/charInst\.juggShieldHpThresholds = \[0\.75, 0\.50, 0\.25\]/);
- assert.match(battle,/target\.juggHitsRemaining = hitsToGrant/);
- assert.match(battle,/t\.char\.juggHitsRemaining = hitsToGrant/);
+ assert.match(battle,/target\.juggHitsRemaining=hitsToGrant/);
+ assert.match(battle,/activateNextJuggernautShield\(t\.char\)/);
  assert.match(campaign,/Math\.min\(raidBalance\.shieldHits,Math\.max\(0,savedC\.juggHitsRemaining\|\|0\)\)/);
 });
 
@@ -118,7 +118,7 @@ test('Il motore emette e riproduce aggiornamenti dello scudo in tempo reale',()=
   assert.equal((battle.match(/createRaidShieldUpdateEvent\(t\.player,t\.idx,raidHit\.remaining/g)||[]).length,2,
     'Sia i danni percentuali che le mosse normali/multicolpo emettono eventi per carica');
   assert.match(battle,/createRaidShieldUpdateEvent\(targetPlayer,targetIdx,hitsToGrant/);
-  assert.match(battle,/createRaidShieldUpdateEvent\(t\.player,t\.idx,hitsToGrant/);
+  assert.match(battle,/createRaidShieldUpdateEvent\(t\.player,t\.idx,nextQueued\.hits/);
   assert.match(battle,/evt\.type === 'raid_shield_update'/);
   assert.match(battle,/applyRaidShieldUpdateEvent\(currentDisplay, evt\)/);
   assert.match(battle,/setDisplayTeams\(\{ \.\.\.currentDisplay \}\)/);

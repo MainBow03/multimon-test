@@ -1,6 +1,7 @@
 import {maybeRogueEvent} from '../../systems/roguelikeEvents.js';
 import { partitionCampaignUnlocks } from '../../systems/campaignRoster.js';
 import { BattleReportPanel } from '../../components/BattleReportPanel.jsx';
+import { JuggernautResults } from '../../components/JuggernautResults.jsx';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderGameoverView(ctx) {
 const { CHARACTERS, ChevronRight, Coins, RotateCcw, Trophy, activeCampaign, activeCampaignId, campaignState, gameState, getDefaultAvatar, leaveRoom, playerName, roguelikeState, setAppMode, setCampaignDialogueIdx, setCampaignSelectedTeam, setCampaignState, setRoguelikeState, setSystemAlert, updateLocalStats } = ctx;
@@ -545,6 +546,7 @@ if (gameState.status === 'gameover') {
                     
                     {/* INIEZIONE TABELLONE NEL GAMEOVER */}
                     {renderTournamentUI()}
+                    {gameState.gameMode==='juggernaut' && <JuggernautResults gameState={gameState}/>}
                     <BattleReportPanel report={gameState.battleReport} players={gameState.players} />
 
                     {rankText && <h3 className="text-2xl font-bold text-emerald-400 mb-4 drop-shadow-sm">{rankText}</h3>}

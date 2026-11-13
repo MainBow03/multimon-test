@@ -148,6 +148,39 @@ if (gameState.status === 'pre_battle') {
             );
         }
 
+        if(gameState.gameMode==='juggernaut'){
+            const bossRole=gameState.settings?.juggernautPlayer||'p1';
+            const bossName=gameState.players?.[bossRole]||'Juggernaut';
+            const boss=gameState.teams?.[bossRole]?.[0];
+            const contenders=activeMatchPlayers.filter(role=>role!==bossRole);
+            return <div className="min-h-screen relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-rose-950 via-slate-950 to-indigo-950 p-5 text-white">
+                <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(225,29,72,0.25),transparent_64%)]" />
+                <div className="relative z-10 w-full max-w-5xl text-center">
+                    <div className={`mb-3 text-2xl sm:text-5xl font-black tracking-widest text-amber-300 drop-shadow-[0_0_18px_rgba(251,191,36,0.55)] transition-all duration-700 ${introCharIdx>1?'scale-90 opacity-85':'animate-pulse'}`}>
+                        JUGGERNAUT · 1 CONTRO TUTTI
+                    </div>
+                    <div className="rounded-3xl border border-rose-500/60 bg-slate-950/70 px-4 py-5 shadow-[0_0_70px_rgba(225,29,72,0.25)]">
+                        <div className="text-xs sm:text-sm font-black text-rose-300 uppercase tracking-widest">Il tiranno entra nell'arena</div>
+                        {boss?.img&&<img alt={boss.name||'Boss'} src={boss.img} className={`mx-auto h-36 w-36 sm:h-48 sm:w-48 object-contain drop-shadow-[0_0_25px_rgba(251,113,133,0.7)] transition-all duration-700 ${introCharIdx>0?'scale-110':'scale-90'}`}/>}
+                        <h2 className="text-xl sm:text-3xl font-black text-white mt-2">{bossName} <span className="text-amber-300">· {boss?.name||'Boss'}</span></h2>
+                        <p className="mt-2 text-sm text-rose-200 italic">«Uno soltanto contro tutti voi. Chi avrà il coraggio di fermarmi?»</p>
+                        <div className="mt-5 text-amber-200 text-xs font-black tracking-widest">CONTRO</div>
+                        <div className="mt-2 flex flex-wrap justify-center gap-3">
+                            {contenders.map((role,i)=>{
+                                const fighter=gameState.teams?.[role]?.[0];
+                                return <div key={role} className={`min-w-[80px] max-w-[125px] rounded-xl border border-sky-400/45 bg-sky-950/55 p-2 transition-all duration-700 ${introCharIdx>=i+1?'opacity-100 scale-100':'opacity-70 scale-90'}`}>
+                                    {fighter?.img&&<img alt="" src={fighter.img} className="w-12 h-12 sm:w-16 sm:h-16 mx-auto object-contain"/>}
+                                    <div className="text-xs sm:text-sm font-black text-sky-200 truncate">{gameState.players?.[role]||role}</div>
+                                    <div className="text-[10px] text-slate-300 truncate">{fighter?.name||''}</div>
+                                </div>;
+                            })}
+                        </div>
+                    </div>
+                    <p className="mt-4 text-xs font-bold text-slate-400">Tre soglie di scudo · Quattro fasi · Una sola possibilità di trionfare</p>
+                </div>
+            </div>;
+        }
+
         if (gameState.gameMode === 'battleroyale') {
             return (
                 <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center relative overflow-hidden p-6">
