@@ -117,7 +117,7 @@ export const THEATER_ACT_II={
  ]},
  {title:'La legge dei riflettori',boss:['gaston','primadonna','riflettore'],unlock:['tails'],sceneRule:'spotlight',
  dialogue:[
- ['Sam (Totally Spies)','Siamo sopra la cabina secondaria. Il segnale di Tails arriva da lì, ma le porte sono sorvegliate.'],
+ ['Sam (Totally Spies)','Siamo sopra la cabina secondaria. Il segnale di Tails arriva da lì, ma le porte sono sorvegliate. Sul monitor è aperto un dossier del cast: il Regista aveva previsto persino chi sarebbe venuto a liberarlo.'],
  ['Gaston','Nessuno può superare Gaston, il valoroso guardiano del palcoscenico! Ho una canzone di ingresso e un contratto esclusivo!'],
  ['Stellarubia','Oh! Il possente guardiano ha chiesto una canzone. Se cantassimo tutti insieme potremmo distrarlo!'],
  ['Coraline','Credo che si distragga benissimo da solo.'],
