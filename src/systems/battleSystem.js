@@ -1037,7 +1037,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 }
                 target.damageTakenThisTurn = (target.damageTakenThisTurn || 0) + dmg;
                 events.push({ type: 'damage', text: text, targetPlayer, targetIdx, newHp: target.hp });
-                if(target.isJuggernaut && target.hp>0 && target.hp<hpBeforeDamage){
+                if(gameState.gameMode==='juggernaut' && target.isJuggernaut && target.hp>0 && target.hp<hpBeforeDamage){
                   if(options.isEnemyTarget && options.attackerPlayer && !options.attacker?.isJuggernaut){
                     juggHittersThisTurn.add(options.attackerPlayer);
                     juggSynergy.bossDamageByPlayer ??= {};
@@ -1053,6 +1053,21 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                   const nextShield=activateNextJuggernautShield(target);
                   if(nextShield)events.push(createRaidShieldUpdateEvent(targetPlayer,targetIdx,nextShield.hits,
                     '🛡️ '+target.name+' attiva lo Scudo Assoluto del '+nextShield.threshold+'% ('+nextShield.hits+' colpi)!',true));
+                } else if(gameState.gameMode!=='juggernaut' && !target.isRoguelikeBoss &&
+                          target.hp>0 && target.juggShieldHpThresholds?.length){
+                  // Le campagne e i raid mantengono gli scudi originali, senza le nuove fasi PvP.
+                  let reached=false;
+                  while(target.juggShieldHpThresholds.length &&
+                    target.hp/Math.max(1,target.maxHp)<=target.juggShieldHpThresholds[0]){
+                    target.juggShieldHpThresholds.shift();
+                    reached=true;
+                  }
+                  if(reached){
+                    const hitsToGrant=target.shieldGrantedHits||4;
+                    target.juggHitsRemaining=hitsToGrant;
+                    events.push(createRaidShieldUpdateEvent(targetPlayer,targetIdx,hitsToGrant,
+                      '🛡️ '+target.name+' attiva il suo scudo raid da '+hitsToGrant+' colpi!',true));
+                  }
                 }
                 if(counterTrigger && target.hp>0 && options.attacker.hp>0){
                   target.juggCounterReady=false;
