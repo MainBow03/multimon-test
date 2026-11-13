@@ -18,6 +18,7 @@ import {legalSupportTargets} from '../../systems/supportTargeting.js';
 import {ultimonIsFinalShowdown} from '../../systems/ultimonSystem.js';
 import {canUseBagItems} from '../../systems/bagItemPolicy.js';
 import {THEATER_RULES} from '../../data/theaterCampaign.js';
+import {canUseJuggernautSkill,canActivateJuggernautSynergy,JUGGERNAUT_PHASE_NAMES} from '../../systems/juggernautSystem.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderBattlingView(ctx) {
 const { ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, appMode, actionMenuMode, combatLog, commandingIdx, commitAction, coopPendingAction, roomId, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
@@ -48,6 +49,16 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
           return null;
         })();
         
+        const isJuggernautBattle=gameState.gameMode==='juggernaut';
+        const juggernautPlayer=gameState.settings?.juggernautPlayer||'p1';
+        const juggCombatant=(isPlayingEvents ? displayTeams : gameState.teams)?.[juggernautPlayer]?.[0];
+        const juggCurrentHp=Math.max(0,Number(juggCombatant?.hp)||0);
+        const juggMaxHp=Math.max(1,Number(juggCombatant?.maxHp)||1);
+        const juggPhase=juggCombatant?.juggPhase||1;
+        const synergy=gameState.juggSynergy||{charge:0,coordinatedTurns:0};
+        const synergyTurn=(gameState.battleReport?.turns||0)+1;
+        const synergyReady=isJuggernautBattle && playerRole!==juggernautPlayer &&
+          canActivateJuggernautSynergy(synergy,synergyTurn);
         let bottomPlayers = [];
         let topPlayers = [];
         const isSpectatorState = playerRole === 'spectator';
@@ -593,6 +604,29 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                   </div>
                 )}
 
+                {isJuggernautBattle && juggCombatant && <section aria-label="Stato del Juggernaut" className={`relative z-20 flex-shrink-0 border-y px-3 py-2 sm:px-6 ${juggPhase===4?'border-orange-500/75 bg-gradient-to-r from-red-950 via-orange-950 to-red-950 shadow-[0_0_25px_rgba(251,146,60,0.3)]':juggPhase>=3?'border-fuchsia-500/50 bg-gradient-to-r from-rose-950 via-purple-950 to-rose-950':'border-rose-500/35 bg-gradient-to-r from-slate-950 via-rose-950/90 to-slate-950'}`}>
+                  <div className="max-w-5xl mx-auto flex flex-wrap justify-between gap-x-3 gap-y-2 items-center">
+                    <div className="flex-1 min-w-[170px]">
+                      <div className="flex justify-between gap-2 text-xs sm:text-sm font-black">
+                        <span className="text-rose-200 truncate">👑 {gameState.players?.[juggernautPlayer]||'Juggernaut'} · {juggCombatant.name}</span>
+                        <span className="text-white tabular-nums shrink-0">{juggCurrentHp.toLocaleString('it-IT')} / {juggMaxHp.toLocaleString('it-IT')} PS</span>
+                      </div>
+                      <div role="progressbar" aria-label="Salute del boss" aria-valuemin={0} aria-valuemax={juggMaxHp} aria-valuenow={juggCurrentHp} className="relative mt-1 h-4 rounded-full border border-rose-300/40 bg-black/80 overflow-hidden">
+                        <div className={`h-full transition-all duration-700 ${juggPhase===4?'bg-gradient-to-r from-orange-700 to-amber-400':'bg-gradient-to-r from-rose-800 to-fuchsia-400'}`} style={{width:`${Math.max(0,Math.min(100,100*juggCurrentHp/juggMaxHp))}%`}}/>
+                        {[25,50,75].map(p=><span key={p} aria-hidden="true" className="absolute top-0 bottom-0 w-0.5 bg-white/65" style={{left:p+'%'}} />)}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end shrink-0">
+                      <span className="text-[11px] sm:text-sm font-black uppercase tracking-wider text-amber-200">Fase {juggPhase}/4 · {JUGGERNAUT_PHASE_NAMES[juggPhase-1]}</span>
+                      <span className="text-[11px] font-bold text-cyan-200">🛡️ Scudo: {juggCombatant.juggHitsRemaining||0} colpi · In coda: {juggCombatant.juggPendingShields?.length||0}</span>
+                    </div>
+                  </div>
+                  <div className="max-w-5xl mx-auto mt-1 flex items-center justify-between gap-2 text-[11px] font-bold">
+                    <span className="text-cyan-200">🤝 Sinergia sfidanti: {Math.min(2,synergy.charge||0)}/2 · Coordinazioni: {synergy.coordinatedTurns||0}</span>
+                    <span className="text-slate-300">{synergyReady?'PRONTA!':synergy.cooldownUntilTurn>synergyTurn?'Ricarica fino al turno '+synergy.cooldownUntilTurn:'Colpite in due nello stesso turno!'}</span>
+                  </div>
+                </section>}
+
                 {/* BATTLE ARENA */}
                 <div className={`flex-1 p-4 flex flex-col relative overflow-hidden transition-colors duration-700 ${gameState.battleWeather?.type === 'snowstorm' ? 'battlefield-snowstorm' : gameState.battleWeather?.type === 'rainstorm' ? 'battlefield-rainstorm' : gameState.battleWeather?.type === 'lush_grass' ? 'battlefield-lush-grass' : 'bg-slate-950'} ${isPlayingEvents && (feedbackKind === 'ko' || feedbackKind === 'critical') ? 'battle-impact-shake' : ''} ${grandFinale ? 'ultimon-final-battlefield' : ''}`}>
                     {grandFinale && <div className="ultimon-final-arena-glow" aria-hidden="true" />}
@@ -916,10 +950,16 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                     );
                                                 })()}
                                                 {/* --------------------------- */}
+                                                {synergyReady && <div className="col-span-2 grid grid-cols-2 gap-2 p-2 rounded-xl border border-cyan-400/40 bg-cyan-950/50">
+                                                  <div className="col-span-2 text-center text-xs font-black text-cyan-200">🤝 SINERGIA PRONTA · scegli una tattica (consuma l'azione)</div>
+                                                  <button className="rounded-lg bg-sky-600/35 border border-sky-400/65 text-sky-100 font-black text-xs sm:text-sm p-3 hover:bg-sky-500/40" onClick={()=>commitAction({type:'juggernaut_synergy',effect:'damage'})}>⚡ Colpo Coordinato <span className="block text-[10px] font-medium">+15% danni questo turno</span></button>
+                                                  <button className="rounded-lg bg-amber-600/35 border border-amber-400/65 text-amber-100 font-black text-xs sm:text-sm p-3 hover:bg-amber-500/40" onClick={()=>commitAction({type:'juggernaut_synergy',effect:'shield'})}>🛡️ Frantuma Scudo <span className="block text-[10px] font-medium">−1 carica extra al prossimo colpo</span></button>
+                                                </div>}
                                                 {availableMoves.map((move, idx) => {
                                                     const moveLock=disabledMoveInfo(activeCommandChar,move);
                                                     let isDisabled = isMoveDisabled(activeCommandChar,move) ||
-                                                      move.remainingUses === 0 || (move.currentCooldown && move.currentCooldown > 0);
+                                                      move.remainingUses === 0 || (move.currentCooldown && move.currentCooldown > 0) ||
+                                                      !canUseJuggernautSkill(activeCommandChar,move);
                                                     if (move.requireSummonsDead && !isDisabled) {
                                                         if (gameState.teams[playerRole].some(c => move.requireSummonsDead.includes(c.id) && c.hp > 0)) {
                                                             isDisabled = true;
@@ -1031,7 +1071,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                             className={`select-none bg-slate-800/80 backdrop-blur-md border border-slate-600 rounded-xl p-4 flex justify-between items-center transition-all duration-300 ${isDisabled ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:bg-slate-700 hover:-translate-y-1 hover:shadow-lg'}`}
                                                     >
                                                             <div className="flex flex-col items-start pointer-events-none">
-                                                                    <span className="font-bold text-lg drop-shadow-sm">{move.name}{move.hyperPreview && <span className="ml-2 inline-flex items-center rounded-full bg-fuchsia-500/25 px-2 py-0.5 text-[10px] font-black text-fuchsia-200 border border-fuchsia-400">NUOVA IPER</span>}</span>
+                                                                    <span className="font-bold text-lg drop-shadow-sm">{move.name}{move.juggSpecial && <span className="ml-1 text-[9px] text-rose-300 font-black">BOSS</span>}{move.hyperPreview && <span className="ml-2 inline-flex items-center rounded-full bg-fuchsia-500/25 px-2 py-0.5 text-[10px] font-black text-fuchsia-200 border border-fuchsia-400">NUOVA IPER</span>}</span>
                                                                     {moveLock ? (
                                                                         <span className="text-[10px] text-purple-300 font-black mt-1">
                                                                           👻 Disabilitata · {moveLock.turns} turni
