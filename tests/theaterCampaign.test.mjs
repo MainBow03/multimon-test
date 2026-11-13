@@ -4,6 +4,9 @@ import {THEATER_CAMPAIGN,THEATER_ID,THEATER_TOTAL_MISSIONS,THEATER_RULES} from '
 import {THEATER_CHARACTERS,THEATER_MOVES} from '../src/data/theaterActors.js';
 import {theaterDamageMultiplier,theaterTurnCue,advanceTheaterFinalBossPhase} from '../src/systems/theaterBattleRules.js';
 import {getCampaignLock} from '../src/systems/campaignUnlocks.js';
+import {CHARACTERS} from '../src/data/characters.js';
+import {getMultiplier} from '../src/systems/typeSystem.js';
+import {migrateTheaterStellarubia} from '../src/systems/theaterRecruitMigration.js';
 
 const missions=THEATER_CAMPAIGN.sectors.flatMap(section=>section.missions);
 test('Teatro: 6 atti da 6 missioni con ID/dialoghi unici',()=>{
@@ -80,4 +83,72 @@ test('La campagna laterale Monarch non viene bloccata dal nuovo Teatro',()=>{
  const storage={getItem:key=>data[key]??null};
  assert.equal(getCampaignLock('teatro_catastrofi',storage),null);
  assert.equal(getCampaignLock('monarch_akuma',storage),null);
+});
+
+test('Stellarubia e il quarto membro; Tails entra solo a missione 12',()=>{
+ const star=CHARACTERS.find(c=>c.id==='starbutterfly');
+ const coraline=CHARACTERS.find(c=>c.id==='coraline');
+ const sam=CHARACTERS.find(c=>c.id==='samtotallyspies');
+ const stellarubia=CHARACTERS.find(c=>c.id==='stellarubia');
+ const tails=CHARACTERS.find(c=>c.id==='tails');
+ assert.ok(star&&coraline&&sam&&stellarubia&&tails);
+ assert.deepEqual(THEATER_CAMPAIGN.sectors[0].missions[2].unlock,['samtotallyspies']);
+ assert.deepEqual(missions[7].unlock,['stellarubia']);
+ assert.equal(missions[7].theaterNumber,8);
+ assert.deepEqual(missions[11].unlock,['tails']);
+ assert.equal(missions[11].theaterNumber,12);
+ assert.ok(!missions.slice(0,11).some(m=>m.unlock.includes('tails')),
+  'Tails non deve essere reclutato prima della missione 12');
+ assert.equal(stellarubia.types.includes('Fuoco'),true);
+ assert.equal(getMultiplier('Fuoco',['Robot','Normale']),2,
+  'Stellarubia deve essere superefficace contro i macchinari di Acciaio');
+ assert.ok(stellarubia.moves.some(m=>m.type==='Fuoco'&&m.power>=70));
+ assert.ok(missions[7].boss.includes('wario')&&missions[7].boss.includes('mechajohnny'),
+  'Missione 8 deve introdurre tipi avversari differenti');
+ assert.ok(missions[10].boss.includes('wario'));
+ assert.ok(missions[11].boss.includes('gaston'));
+});
+
+test('Stellarubia ha una storia coerente e resta presente nel resto della campagna',()=>{
+ assert.ok(missions[7].dialogue.some(d=>d.s==='Stellarubia'));
+ assert.ok(missions[7].postDialogue.some(d=>d.s==='Stellarubia'));
+ assert.ok(missions[10].postDialogue.some(d=>d.s==='Voce dal comunicatore'&&d.t.includes('Tails')));
+ assert.ok(missions[11].dialogue.some(d=>d.s==='Tails'));
+ for(const act of [2,3,4,5]){
+   assert.ok(THEATER_CAMPAIGN.sectors[act].missions.some(m=>
+     [...m.dialogue,...m.postDialogue].some(d=>d.s==='Stellarubia')
+   ),'Stellarubia non compare negli atti successivi: '+(act+1));
+ }
+ assert.ok(missions[35].dialogue.some(d=>d.s==='Stellarubia'));
+});
+
+test('La migrazione preserva avanzamento, monete, PS e un Tails gia ottenuto',()=>{
+ const initial={isStarted:true,sectorIdx:1,missionIdx:2,
+  coins:219,roster:['starbutterfly','coraline','samtotallyspies','tails'],
+  rosterStats:{starbutterfly:55,coraline:41,samtotallyspies:19,tails:16},
+  currentBossState:{p2:[{id:'riflettore',hp:20}]},
+  difficulty:'Difficile'};
+ const migrated=migrateTheaterStellarubia(initial,CHARACTERS);
+ assert.equal(migrated.changed,true);
+ assert.deepEqual(migrated.state.roster.slice(0,4),initial.roster);
+ assert.equal(migrated.state.roster.filter(id=>id==='stellarubia').length,1);
+ assert.equal(migrated.state.rosterStats.tails,16);
+ assert.equal(migrated.state.rosterStats.coraline,41);
+ assert.equal(migrated.state.rosterStats.stellarubia,
+   CHARACTERS.find(c=>c.id==='stellarubia').maxHp);
+ assert.equal(migrated.state.coins,219);
+ assert.deepEqual(migrated.state.currentBossState,initial.currentBossState);
+ assert.equal(migrated.state.difficulty,'Difficile');
+ assert.equal(migrateTheaterStellarubia(migrated.state,CHARACTERS).changed,false,
+  'Secondo caricamento non deve creare doppioni');
+});
+
+test('Non si sblocca Stellarubia prima di aver completato la missione 8',()=>{
+ const base={sectorIdx:1,missionIdx:1,roster:['starbutterfly','coraline','samtotallyspies'],
+  rosterStats:{starbutterfly:10},coins:50};
+ assert.equal(migrateTheaterStellarubia(base,CHARACTERS).changed,false);
+ const next={...base,sectorIdx:2,missionIdx:0};
+ assert.equal(migrateTheaterStellarubia(next,CHARACTERS).changed,true);
+ const last={...base,completed:true};
+ assert.equal(migrateTheaterStellarubia(last,CHARACTERS).changed,true);
 });
