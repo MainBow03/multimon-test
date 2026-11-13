@@ -342,13 +342,17 @@ if (appMode === 'campaign_team_select') {
         
         const handleStartCampaignBattle = () => {
             const aliveCount = availableCampaignHeroes(mission,campaignState.roster).filter(id => campaignState.rosterStats[id] > 0).length;
-            const lineupValidation=validateCampaignLineup(mission,campaignState.roster,campaignSelectedTeam);
-            if(!lineupValidation.ok && lineupValidation.reason==='unavailable'){
-                setCampaignSelectedTeam(playableSelectedTeam);
-                return setSystemAlert('Tails e Miku sono prigionieri durante il tradimento! Scegli altri alleati.');
+            // Verifica dedicata soltanto alle missioni con ostaggi: le altre
+            // campagne mantengono le loro regole di selezione e raid.
+            if(mission.unavailableChars?.length){
+                const lineupValidation=validateCampaignLineup(mission,campaignState.roster,campaignSelectedTeam);
+                if(!lineupValidation.ok && lineupValidation.reason==='unavailable'){
+                    setCampaignSelectedTeam(playableSelectedTeam);
+                    return setSystemAlert('Tails e Miku sono prigionieri durante il tradimento! Scegli altri alleati.');
+                }
+                if(!lineupValidation.ok && lineupValidation.reason!=='empty')
+                    return setSystemAlert('La squadra scelta non è più disponibile. Ricomponila prima di entrare in battaglia.');
             }
-            if(!lineupValidation.ok && lineupValidation.reason!=='empty')
-                return setSystemAlert('La squadra scelta non è più disponibile. Ricomponila prima di entrare in battaglia.');
             const requiredCount = Math.min(maxTeamSize, aliveCount);
 
             if (campaignSelectedTeam.length === 0) return setSystemAlert("Seleziona almeno un personaggio!");
