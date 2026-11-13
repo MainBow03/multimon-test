@@ -82,23 +82,32 @@ export const THEATER_ACT_II={
  ['Hatsune Miku','Sì. Vorrei che anche gli altri potessero cantare senza un copione.'],
  ['Coraline','Mi piace come suona questo piano.']
  ]},
- {title:'Tre battute per un disastro',boss:['riflettore','caposcena','riflettore'],sceneRule:'improv',
+ {title:'Tre battute per un disastro',boss:['wario','primadonna','riflettore'],sceneRule:'improv',
  dialogue:[
- ['Il Regista','A sinistra, una famiglia chiusa in una galleria. A destra, un ponte pieno di viaggiatori. Davanti, il vostro amico Tails. Una sola uscita.'],
+ ['Il Regista','A sinistra, una famiglia chiusa in una galleria. A destra, un ponte pieno di viaggiatori. Davanti, un tecnico dalle due code, isolato nella cabina dei comandi. Una sola uscita.'],
  ['Star Butterfly','Perché continui a inventare queste stupidaggini?!'],
- ['Sam (Totally Spies)','Ha collegato tutti e tre i settori alla stessa leva. Ma non sono circuiti indipendenti.'],
+ ['Wario','Perché gli effetti speciali li fatturo IO! WAHAHA!'],
+ ['Stellarubia','Signor Wario! Le assicuro che si può recitare senza mettere in pericolo le persone!'],
+ ['Wario','Non faccio sconti alle attrici ribelli!'],
+ ['Sam (Totally Spies)','La leva centrale tiene bloccati tre settori. Ma quelle porte non sono circuiti indipendenti.'],
  ['Coraline','Guarda i segni sul pavimento: la scenografia ruota. Le tre strade si incontrano dietro.'],
- ['Tails','Posso sincronizzare le porte, ma qualcuno deve impedire ai riflettori di riavviarsi.'],
+ ['Stellarubia','Volerò sopra le scenografie e terrò aperto il varco! Questa è una prova acrobatica degna di Tamaran!'],
  ['Hatsune Miku','Un segnale audio può tenerli fuori tempo per qualche secondo.'],
- ['Star Butterfly','Allora mi prendo il ruolo di quella che distrae tre luci idiote. È il mio ruolo naturale!'],
+ ['Sam (Totally Spies)','Perfetto. Io sincronizzo la rotazione, Miku tiene spenti i riflettori e Stellarubia recupera chi è in pericolo.'],
+ ['Star Butterfly','E io cosa faccio?'],
+ ['Coraline','Tu impedisci alla Prima Donna di spegnere la musica. Niente esplosioni vicino ai civili.'],
+ ['Star Butterfly','Ricevuto! Esplosioni SOLTANTO vicino ai cattivi!'],
  ['Il Regista','Un piano collettivo. Che sorpresa... Vediamo se funziona davvero.']
  ],
  postDialogue:[
- ['Tails','Le porte si sono aperte contemporaneamente. Tutti e tre i gruppi sono usciti.'],
- ['Star Butterfly','HAI VISTO? Non abbiamo scelto chi perdere!'],
+ ['Stellarubia','La famiglia è salva! Il ponte è salvo! Ho anche recuperato tre cappelli, un gatto e un distributore di popcorn.'],
+ ['Star Butterfly','IL DISTRIBUTORE?! Sei la mia eroina!'],
+ ['Coraline','Credo che il gatto sia più riconoscente.'],
+ ['Sam (Totally Spies)','Tutti fuori, tranne il tecnico. La cabina è ancora sigillata da una serratura elettronica.'],
+ ['Voce dal comunicatore','Vi sento! Sono Tails. Ho cercato di sabotare il Teatro dall’interno, ma mi hanno chiuso qui. La cabina secondaria è sopra di voi!'],
+ ['Stellarubia','Resisti, amico dalle due code! Presto saremo da te!'],
  ['Il Regista','Avete trovato una soluzione a una scena mal costruita. Ne prenderò nota.'],
- ['Sam (Totally Spies)','Sta imparando da noi. Non possiamo usare sempre lo stesso trucco.'],
- ['Coraline','Bene. Allora ne inventeremo altri.']
+ ['Sam (Totally Spies)','Il prossimo obiettivo è quella cabina. E dobbiamo smettere di seguire le porte che ci apre.']
  ]},
  {title:'La legge dei riflettori',boss:['primadonna','riflettore','riflettore'],sceneRule:'spotlight',
  dialogue:[
