@@ -6,7 +6,7 @@ export function renderCatalogView(ctx) {
 const { ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Lock, MOVES_DB, TYPES, TYPE_STYLES, appMode, catalogFilter, catalogSearch, catalogSort, setAppMode, setCatalogFilter, setCatalogSearch, setCatalogSort } = ctx;
 if (appMode === 'catalog') {
         let displayedChars = [...CHARACTERS];
-        const hyperIds = ['barry', 'gardevoir', 'astral', 'polterpup', 'spongebob', 'patrick', 'alphonse', 'ariana', 'bloom', 'gaston', 'jake', 'marceline', 'finn', 'natsu', 'juvia', 'laxus', 'bumblebee', 'corvina', 'entoma', 'garnet', 'darwin', 'brago', 'iris', 'sdentato', 'ladybug', 'bowser', 'rainbowdash', 'elsa', 'sheldon', 'charizard', 'maxcaulfield', 'chloeprice', 'dolli', 'zatchbell', 'yoshi', 'poisonivy', 'carlos', 'leon', 'sage', 'coraline'];
+        const hyperIds = ['barry', 'gardevoir', 'astral', 'polterpup', 'spongebob', 'patrick', 'alphonse', 'ariana', 'bloom', 'gaston', 'jake', 'marceline', 'finn', 'natsu', 'juvia', 'laxus', 'bumblebee', 'corvina', 'entoma', 'garnet', 'darwin', 'brago', 'iris', 'sdentato', 'ladybug', 'bowser', 'rainbowdash', 'elsa', 'sheldon', 'charizard', 'maxcaulfield', 'chloeprice', 'dolli', 'zatchbell', 'yoshi', 'poisonivy', 'carlos', 'leon', 'sage', 'coraline', 'luigi', 'miku'];
         
         if (catalogFilter === 'Evocazioni') {
             displayedChars = displayedChars.filter(c => c.isSummonOnly);
@@ -20,11 +20,16 @@ if (appMode === 'catalog') {
                 char.atk = Math.floor(char.atk * 1.35);
                 char.def = Math.floor(char.def * 1.35);
                 char.spd = Math.floor(char.spd * 1.35);
-                char.name = char.id === 'coraline' ? 'Coraline (Iper — Oltre la Porticina)' : char.name + " (Iper)";
+                char.name = char.id === 'coraline' ? 'Coraline (Iper — Oltre la Porticina)' :
+                    char.id === 'luigi' ? 'Luigi (Iper — Terrore Sconfitto)' :
+                    char.id === 'miku' ? 'Hatsune Miku (Iper — Diva Stellare)' :
+                    char.name + " (Iper)";
                 char.isHyperInCatalog = true;
                 
                 // --- APPLICA MOSSE E TIPI IPER ---
                 if (char.id === 'coraline') { char.moves.push(MOVES_DB['Porta dell’Impossibile']); }
+                if (char.id === 'luigi') { char.moves.push(MOVES_DB['Aspirazione Fantasma']); }
+                if (char.id === 'miku') { char.moves.push(MOVES_DB['Concerto Universale']); }
                 if (char.id === 'gardevoir') { char.types = ['Psico', 'Erba']; char.moves.push(MOVES_DB['Liane Oscillanti']); }
                 if (char.id === 'astral') { char.types = ['Oscuro']; char.moves.push(MOVES_DB['Assorbimento Tenebroso']); }
                 if (char.id === 'polterpup') { char.moves.push(MOVES_DB['Riporta']); }
@@ -91,6 +96,8 @@ if (appMode === 'catalog') {
                 else if (char.id === 'leon') char.img = "https://i.postimg.cc/N540GdVZ/834bde13bf771897729c8fc78dfcb7cd-(1).jpg"; // Leon Iper
                 else if (char.id === 'sage') char.img = "https://i.pinimg.com/1200x/c8/94/13/c89413f6d9bfeacd9b036e496117f1f8.jpg"; // Sage Iper
                 else if (char.id === 'coraline') char.img = CORALINE_HYPER_IMAGE;
+                else if (char.id === 'luigi') char.img = 'https://i.pinimg.com/1200x/22/86/f9/2286f929ba8c9bc5bd63a96ccb266f2d.jpg';
+                else if (char.id === 'miku') char.img = 'https://i.pinimg.com/736x/4d/88/d9/4d88d9df93b4a62f43bc69bfd46eb250.jpg';
                 
                 return char;
             });
