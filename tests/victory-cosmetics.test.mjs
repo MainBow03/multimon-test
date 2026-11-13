@@ -18,9 +18,9 @@ const battle=(status='gameover')=>({
  playerVictoryEffects:{p1:'rainbow',p2:'disco'}
 });
 
-test('Le dieci celebrazioni sono uniche e coerenti (prezzo 100 e tutte illustrate)',()=>{
+test('Le sedici celebrazioni sono uniche e coerenti (prezzo 100 e tutte illustrate)',()=>{
  assert.equal(VICTORY_EFFECT_PRICE,100);
- assert.equal(VICTORY_EFFECTS.length,10);
+ assert.equal(VICTORY_EFFECTS.length,16);
  assert.equal(new Set(VICTORY_EFFECTS.map(e=>e.id)).size,10);
  assert.equal(new Set(VICTORY_EFFECTS.map(e=>e.name)).size,10);
  for(const effect of VICTORY_EFFECTS){
@@ -142,7 +142,7 @@ test('Vere animazioni, anteprima nel negozio, equipaggiamento e sincronizzazione
  const css=read('../src/screens/battle/VictoryCelebration.css');
  const app=read('../src/App.jsx');
  const multiplayer=read('../src/systems/multiplayerSystem.js');
- assert.match(shop,/Animazioni di Vittoria · 10/);
+ assert.match(shop,/Animazioni di Vittoria · \{VICTORY_EFFECTS\.length\}/);
  assert.match(shop,/shopCosmeticTab==='victories'/);
  assert.match(shop,/setShopCosmeticTab\('victories'\)/);
  assert.match(shop,/VICTORY_EFFECTS\.map\(effect=>/);
