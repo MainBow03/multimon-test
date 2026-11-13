@@ -303,42 +303,32 @@
 .victory-cinema--chronofinale .victory-cinema-content h2{animation:victory-time-title 4.8s ease-out both}
 .victory-cinema--chronofinale .victory-cinema-particles span{width:3px;height:20px;background:#fde68a}
 
-/* 14 · DRAGO DELLE COSTELLAZIONI — nove stelle tracciano una figura. */
+/* 14 · Drago delle Costellazioni: figura SVG unica, senza pseudo-elementi
+   disallineati. ViewBox fisso, proporzioni preservate anche su tablet. */
 .victory-cinema--astraldragon .victory-cinema-backdrop{
- background:radial-gradient(ellipse at 50% 33%,#04785770,transparent 59%),
- radial-gradient(ellipse at 78% 76%,#0f766e77,transparent 50%),#030b22}
-.victory-cinema--astraldragon .victory-cinema-astraldragon{display:block}
-.victory-cinema-astraldragon::before{content:"";position:absolute;
- width:min(72vw,610px);height:min(58vh,460px);top:15%;left:15%;
- border:clamp(8px,1.5vw,16px) solid #86efac;
- border-top-color:transparent;border-right-color:#34d399;
- border-radius:80% 20% 75% 25% / 20% 85% 15% 90%;
- transform:rotate(32deg);filter:drop-shadow(0 0 27px #34d399);
- animation:victory-dragon-glide 4.3s ease-in-out infinite}
-.victory-cinema-astraldragon::after{content:"";position:absolute;
- width:clamp(65px,11vw,140px);aspect-ratio:1;top:15%;right:16%;
- background:radial-gradient(circle at 68% 33%,#0f172a 0 6%,transparent 7%),
- linear-gradient(135deg,#bef264,#22c55e);
- clip-path:polygon(0 42%,46% 5%,67% 24%,88% 7%,79% 47%,100% 74%,54% 67%,15% 100%);
- filter:drop-shadow(0 0 24px #4ade80);
- animation:victory-dragon-head 4.3s ease-in-out infinite}
-.victory-cinema-astraldragon span{position:absolute;width:clamp(8px,1.5vw,15px);
- aspect-ratio:1;border-radius:50%;background:#f0fdf4;
- box-shadow:0 0 12px 5px #4ade80,0 0 40px #22c55e;
- animation:victory-dragon-stars 3s ease-in-out infinite;
- animation-delay:calc(var(--dragon-index)*.18s)}
-.victory-cinema-astraldragon span:nth-child(1){left:12%;top:72%;--dragon-index:0}
-.victory-cinema-astraldragon span:nth-child(2){left:22%;top:48%;--dragon-index:1}
-.victory-cinema-astraldragon span:nth-child(3){left:34%;top:32%;--dragon-index:2}
-.victory-cinema-astraldragon span:nth-child(4){left:48%;top:42%;--dragon-index:3}
-.victory-cinema-astraldragon span:nth-child(5){left:58%;top:61%;--dragon-index:4}
-.victory-cinema-astraldragon span:nth-child(6){left:70%;top:58%;--dragon-index:5}
-.victory-cinema-astraldragon span:nth-child(7){left:77%;top:39%;--dragon-index:6}
-.victory-cinema-astraldragon span:nth-child(8){left:84%;top:22%;--dragon-index:7}
-.victory-cinema-astraldragon span:nth-child(9){left:92%;top:28%;--dragon-index:8}
+ background:radial-gradient(ellipse at 52% 29%,#065f4675,transparent 62%),
+ radial-gradient(ellipse at 85% 74%,#0891b248,transparent 45%),#030a1b;
+}
+.victory-cinema--astraldragon .victory-cinema-astraldragon{
+ display:flex;align-items:center;justify-content:center;
+ left:50%;top:42%;width:min(96vw,840px);height:min(63vh,480px);inset:auto;
+ transform:translate(-50%,-50%);
+}
+.victory-dragon-figure{
+ display:block;width:100%;height:100%;overflow:visible;
+ filter:drop-shadow(0 0 22px #10b98180);
+ animation:victory-dragon-glide 4.6s ease-in-out infinite alternate;
+}
+.victory-dragon-body-glow{opacity:.2;filter:blur(12px)}
+.victory-dragon-body,.victory-dragon-head{filter:drop-shadow(0 0 5px #6ee7b7)}
+.victory-dragon-star{
+ filter:drop-shadow(0 0 7px #86efac);
+ animation:victory-dragon-stars 2.9s ease-in-out infinite;
+ transform-box:fill-box;transform-origin:center;
+}
 .victory-cinema--astraldragon .victory-cinema-particles span{
- width:5px;height:5px;background:#bbf7d0;border-radius:50%}
-
+ width:5px;height:5px;border-radius:50%;background:#bbf7d0
+}
 /* 15 · APPLAUSO DEL TUONO — scariche reali, lampi e nubi in movimento. */
 .victory-cinema--thunderstorm .victory-cinema-backdrop{
  background:radial-gradient(ellipse at 50% -20%,#1d4ed8a5,transparent 64%),
@@ -384,9 +374,16 @@
  background:linear-gradient(140deg,#78350f,#451a03)!important;
  transform-origin:0% 50%;
  animation:victory-book-cover 4.5s ease-in-out both}
-.victory-book-cover::after{content:"✦ VITTORIA ✦";position:absolute;top:42%;left:5%;right:5%;
- text-align:center;color:#fde68a;font-weight:1000;letter-spacing:.06em;
- font-size:clamp(12px,2.5vw,24px)}
+/* Titolo leggibile: figlio indipendente, non ruota insieme alla copertina. */
+.victory-book-title{
+ position:absolute;top:48%;left:50%;z-index:4;transform:translate(-50%,-50%);
+ color:#7c2d12;background:#fffbebf0;border:2px solid #b45309;
+ box-shadow:0 2px 12px #78350f75,0 0 28px #fde68a80;
+ border-radius:9px;padding:.35em .7em;white-space:nowrap;
+ font-size:clamp(13px,2.8vw,24px);letter-spacing:.07em;font-weight:1000;
+ direction:ltr;unicode-bidi:isolate;
+ animation:victory-book-title-reveal 4.5s both
+}
 .victory-cinema--storybook .victory-cinema-particles span{width:7px;height:10px;
  background:#fef08a;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
 
@@ -434,19 +431,17 @@
  100%{opacity:1;transform:scale(1)}
 }
 @keyframes victory-dragon-glide{
- 0%{opacity:.1;transform:translate(-25%,20%) rotate(5deg) scale(.6)}
- 60%{opacity:1;transform:translate(5%,-4%) rotate(32deg) scale(1)}
- 100%{opacity:.7;transform:translate(12%,-12%) rotate(43deg) scale(1.05)}
-}
-@keyframes victory-dragon-head{
- 0%{opacity:0;transform:translate(-120px,70px) rotate(-35deg) scale(.45)}
- 65%{opacity:1;transform:translate(0,0) rotate(8deg) scale(1)}
- 100%{opacity:.85;transform:translate(15px,-14px) rotate(18deg) scale(1.07)}
+ 0%{opacity:.85;transform:translateY(6px)}
+ 100%{opacity:1;transform:translateY(-8px)}
 }
 @keyframes victory-dragon-stars{
- 0%{opacity:0;transform:scale(.2)}
- 55%{opacity:1;transform:scale(1.65)}
- 100%{opacity:.4;transform:scale(.8)}
+ 0%,100%{opacity:.45;transform:scale(.83)}
+ 48%{opacity:1;transform:scale(1.65)}
+}
+@keyframes victory-book-title-reveal{
+ 0%,53%{opacity:0;transform:translate(-50%,-42%) scale(.8)}
+ 68%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}
+ 100%{opacity:1;transform:translate(-50%,-50%) scale(1)}
 }
 @keyframes victory-bolt{
  0%,9%{opacity:0;filter:brightness(1)}
@@ -499,4 +494,166 @@
  .victory-cinema-portal span,.victory-cinema-clock{transform:translate(-50%,-50%)}
  .victory-cinema-thunderstorm span{opacity:.65}
  .victory-book-cover{opacity:0}
+}
+
+
+/* 17–20: 4 nuovi cosmetici. Elementi nascosti negli altri effetti. */
+.victory-cinema-meteorcrown,.victory-cinema-roseeclipse,
+.victory-cinema-royalcards,.victory-cinema-mechaforge{
+ display:none;position:absolute;inset:0;z-index:-2;pointer-events:none;
+}
+
+/* 17 · CORONA METEORITICA: meteore che convergono, corona che cade. */
+.victory-cinema--meteorcrown .victory-cinema-backdrop{
+ background:radial-gradient(ellipse at 50% 5%,#f9731675,transparent 58%),
+ linear-gradient(155deg,#3b100b,#190d27 70%,#090a17)}
+.victory-cinema--meteorcrown .victory-cinema-meteorcrown{display:block}
+.victory-meteor{position:absolute;top:-30%;left:calc(12% + var(--meteor-index)*19%);
+ width:clamp(76px,13vw,190px);height:7px;border-radius:99px;
+ background:linear-gradient(90deg,transparent,#fdba74 55%,#fff7ed);
+ box-shadow:0 0 20px #fb923c,0 0 45px #ea580c;
+ transform:rotate(35deg);animation:victory-meteor-fall 2.7s linear infinite;
+ animation-delay:calc(var(--meteor-index)*-.48s)}
+.victory-meteor-crown{position:absolute;left:50%;top:12%;
+ width:clamp(145px,30vw,350px);height:clamp(95px,16vw,200px);
+ transform:translateX(-50%);
+ background:linear-gradient(155deg,#fff7ed,#fbbf24 42%,#b45309);
+ clip-path:polygon(4% 24%,22% 53%,31% 8%,50% 46%,69% 8%,78% 53%,96% 24%,88% 81%,12% 81%);
+ filter:drop-shadow(0 0 22px #fb923c);
+ animation:victory-meteor-coronation 5.2s cubic-bezier(.2,.84,.3,1) both}
+.victory-meteor-crown::after{content:"";position:absolute;inset:42% 12% 21%;
+ background:repeating-linear-gradient(90deg,#fef9c3 0 24px,#f97316 24px 29px);
+ border-radius:7px}
+
+/* 18 · ECLISSI DI ROSE: disco, corona cremisi e petali indipendenti. */
+.victory-cinema--roseeclipse .victory-cinema-backdrop{
+ background:radial-gradient(ellipse at 50% 22%,#9f123966,transparent 62%),
+ linear-gradient(158deg,#190718,#310820 60%,#0c0718)}
+.victory-cinema--roseeclipse .victory-cinema-roseeclipse{display:block}
+.victory-eclipse-halo,.victory-eclipse-disc{position:absolute;left:50%;top:32%;
+ border-radius:50%;transform:translate(-50%,-50%)}
+.victory-eclipse-halo{width:clamp(175px,32vw,350px);aspect-ratio:1;
+ background:radial-gradient(circle,transparent 42%,#fda4af 48%,
+ #be185d 58%,transparent 66%);
+ box-shadow:0 0 56px #f472b699;animation:victory-eclipse-ring 4.8s ease-in-out infinite}
+.victory-eclipse-disc{width:clamp(126px,24vw,253px);aspect-ratio:1;
+ background:radial-gradient(circle at 30% 24%,#1f1027,#070615 80%);
+ box-shadow:inset 0 0 30px #f9a8d425,0 0 35px #f43f5e9c}
+.victory-rose-petal{position:absolute;left:var(--rose-x);top:-20%;
+ width:var(--rose-size);height:calc(var(--rose-size)*1.6);
+ border-radius:70% 0 70% 0;background:#f9a8d4;
+ box-shadow:0 0 10px #fb7185;
+ animation:victory-rose-fall 4.4s linear infinite;animation-delay:var(--rose-delay)}
+
+/* 19 · TRIONFO REALE: quattro carte che si aprono a ventaglio. */
+.victory-cinema--royalcards .victory-cinema-backdrop{
+ background:radial-gradient(ellipse at 50% 20%,#a78bfa6b,transparent 60%),
+ repeating-linear-gradient(45deg,#fbbf2412 0 2px,transparent 3px 45px),#120727}
+.victory-cinema--royalcards .victory-cinema-royalcards{display:block}
+.victory-royal-card{position:absolute;left:50%;top:35%;
+ width:clamp(75px,14vw,132px);height:clamp(115px,20vw,190px);
+ background:linear-gradient(140deg,#fffdf5,#fef3c7);
+ border:5px solid #f59e0b;outline:2px solid #fffbeb;
+ border-radius:13px;display:grid;place-items:center;
+ box-shadow:0 12px 25px #0009,0 0 35px #a78bfa;
+ transform:translate(-50%,-50%) rotateY(90deg);
+ animation:victory-card-fan 5s cubic-bezier(.16,1,.3,1) both;
+ animation-delay:calc(var(--card-index)*.16s)}
+.victory-royal-card span{font-family:Georgia,serif;font-size:clamp(42px,8vw,88px);
+ font-weight:900;color:#7c3aed;text-shadow:1px 2px #a78bfa55}
+.victory-royal-card:nth-child(even) span{color:#e11d48}
+.victory-cinema--royalcards .victory-cinema-particles span{
+ clip-path:polygon(50% 0,80% 35%,100% 50%,80% 65%,50% 100%,20% 65%,0 50%,20% 35%);
+ background:#fbbf24}
+
+/* 20 · FORGIA DEL CAMPIONE: ingranaggi, incudine e martello d'energia. */
+.victory-cinema--mechaforge .victory-cinema-backdrop{
+ background:radial-gradient(ellipse at 50% 85%,#0d948876,transparent 63%),
+ repeating-linear-gradient(90deg,#93c5fd12 0 2px,transparent 2px 85px),#061725}
+.victory-cinema--mechaforge .victory-cinema-mechaforge{display:block}
+.victory-forge-gear{position:absolute;top:9%;left:9%;
+ font-size:clamp(90px,19vw,220px);line-height:1;color:#7dd3fc77;
+ text-shadow:0 0 24px #2dd4bf9c;
+ animation:victory-forge-spin 6s linear infinite}
+.victory-forge-gear--right{left:auto;right:8%;top:17%;font-size:clamp(85px,16vw,185px);
+ animation-direction:reverse;animation-duration:5s}
+.victory-forge-anvil{position:absolute;bottom:12%;left:50%;
+ width:clamp(190px,37vw,380px);height:clamp(70px,13vw,135px);
+ transform:translateX(-50%);
+ background:linear-gradient(180deg,#f8fafc,#94a3b8 18%,#334155 65%,#0f172a);
+ clip-path:polygon(0 12%,95% 0,100% 19%,78% 31%,76% 58%,91% 92%,9% 92%,25% 58%,22% 32%);
+ filter:drop-shadow(0 0 19px #2dd4bf)}
+.victory-forge-hammer{position:absolute;top:15%;left:50%;
+ width:clamp(16px,2.7vw,27px);height:clamp(135px,30vh,260px);
+ border-radius:12px;background:linear-gradient(90deg,#64748b,#e2e8f0,#475569);
+ transform-origin:50% 15%;animation:victory-forge-strike 2.2s cubic-bezier(.45,0,.22,1) infinite}
+.victory-forge-hammer::after{content:"";position:absolute;top:-10%;left:50%;
+ width:clamp(92px,18vw,155px);height:clamp(38px,6vw,62px);
+ border-radius:10px;border:3px solid #e2e8f0;
+ transform:translateX(-50%);
+ background:linear-gradient(145deg,#e0f2fe,#0ea5e9 45%,#164e63);
+ box-shadow:0 0 25px #38bdf8, inset 0 0 18px #cffafe}
+.victory-forge-spark{position:absolute;left:50%;top:69%;width:7px;height:16px;
+ border-radius:99px;background:#fde68a;box-shadow:0 0 13px #f97316;
+ opacity:0;animation:victory-forge-sparks 2.2s ease-out infinite;
+ animation-delay:0s;}
+
+/* Quattro sequenze autonome e la correzione del testo del libro. */
+@keyframes victory-meteor-fall{
+ 0%{opacity:0;transform:translate(-35vw,-24vh) rotate(35deg)}
+ 20%{opacity:1}100%{opacity:0;transform:translate(35vw,95vh) rotate(35deg)}
+}
+@keyframes victory-meteor-coronation{
+ 0%,18%{opacity:0;transform:translate(-50%,-110%) scale(.6)}
+ 58%{opacity:1;transform:translate(-50%,15%) scale(1.07)}
+ 75%,100%{opacity:1;transform:translate(-50%,0) scale(1)}
+}
+@keyframes victory-eclipse-ring{
+ 0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(.93)}
+ 50%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}
+}
+@keyframes victory-rose-fall{
+ 0%{opacity:0;transform:translateY(-10vh) rotate(0)}
+ 20%{opacity:1}100%{opacity:0;transform:translateY(125vh) rotate(520deg)}
+}
+@keyframes victory-card-fan{
+ 0%,15%{opacity:0;transform:translate(-50%,-50%) rotateY(90deg) scale(.6)}
+ 55%{opacity:1;transform:translate(calc(-50% + var(--card-x)),-50%) rotate(var(--card-angle)) scale(1.08)}
+ 100%{opacity:1;transform:translate(calc(-50% + var(--card-x)),-50%) rotate(var(--card-angle)) scale(1)}
+}
+@keyframes victory-forge-spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes victory-forge-strike{
+ 0%,18%{transform:translateX(-50%) rotate(-35deg)}
+ 43%,50%{transform:translateX(-50%) rotate(19deg)}
+ 70%,100%{transform:translateX(-50%) rotate(-35deg)}
+}
+@keyframes victory-forge-sparks{
+ 0%,32%{opacity:0;transform:translate(-50%,-50%) rotate(var(--spark-angle)) translateY(0)}
+ 45%{opacity:1}73%,100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--spark-angle)) translateY(var(--spark-distance))}
+}
+@media(max-width:650px){
+ .victory-cinema--astraldragon .victory-cinema-astraldragon{
+  width:100vw;height:min(44vh,300px);top:40%
+ }
+ .victory-eclipse-disc{top:26%}
+ .victory-eclipse-halo{top:26%}
+ .victory-royal-card{top:31%}
+ .victory-forge-gear{opacity:.6}
+ .victory-forge-hammer{height:155px}
+ .victory-book-title{font-size:14px}
+}
+@media(prefers-reduced-motion:reduce){
+ .victory-dragon-figure,.victory-dragon-star,.victory-book-title,
+ .victory-meteor,.victory-meteor-crown,.victory-eclipse-halo,.victory-rose-petal,
+ .victory-royal-card,.victory-forge-gear,.victory-forge-hammer,.victory-forge-spark{
+   animation:none!important;transition:none!important
+ }
+ .victory-dragon-figure{opacity:1;transform:none}
+ .victory-book-title{opacity:1;transform:translate(-50%,-50%)}
+ .victory-meteor{display:none}
+ .victory-meteor-crown{opacity:1;transform:translateX(-50%)}
+ .victory-rose-petal{display:none}
+ .victory-royal-card{opacity:1;transform:translate(calc(-50% + var(--card-x)),-50%) rotate(var(--card-angle))}
+ .victory-forge-hammer{transform:translateX(-50%) rotate(10deg)}
+ .victory-forge-spark{display:none}
 }
