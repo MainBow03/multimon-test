@@ -379,6 +379,10 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     displayImg = "https://i.postimg.cc/N540GdVZ/834bde13bf771897729c8fc78dfcb7cd-(1).jpg"; // Leon Iper
                 } else if (char.id === 'coraline') {
                     displayImg = CORALINE_HYPER_IMAGE; // Artwork custom: Oltre la Porticina
+                } else if (char.id === 'luigi') {
+                    displayImg = 'https://i.pinimg.com/1200x/22/86/f9/2286f929ba8c9bc5bd63a96ccb266f2d.jpg'; // Iper Luigi: immagine scelta dall'utente
+                } else if (char.id === 'miku') {
+                    displayImg = 'https://i.pinimg.com/736x/4d/88/d9/4d88d9df93b4a62f43bc69bfd46eb250.jpg'; // Iper Miku: immagine scelta dall'utente
                 }
             }
 
@@ -869,7 +873,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                         {actionMenuMode === 'moves' && (
                                             <div className="grid grid-cols-2 gap-4">
                                                 {/* --- PULSANTE FORMA IPER --- */}
-                                                {(!gameState.hyperUsed[playerRole] && !activeCommandChar.isHyper && (activeCommandChar.id === 'barry' || activeCommandChar.id === 'gardevoir' || activeCommandChar.id === 'astral' || activeCommandChar.id === 'polterpup' || activeCommandChar.id === 'spongebob' || activeCommandChar.id === 'patrick' || activeCommandChar.id === 'alphonse' || activeCommandChar.id === 'ariana' || activeCommandChar.id === 'bloom' || activeCommandChar.id === 'gaston' || activeCommandChar.id === 'jake' || activeCommandChar.id === 'marceline' || activeCommandChar.id === 'finn' || activeCommandChar.id === 'natsu' || activeCommandChar.id === 'juvia' || activeCommandChar.id === 'laxus' || activeCommandChar.id === 'bumblebee' || activeCommandChar.id === 'corvina' || activeCommandChar.id === 'entoma' || activeCommandChar.id === 'garnet' || activeCommandChar.id === 'darwin' || activeCommandChar.id === 'brago' || activeCommandChar.id === 'iris' || activeCommandChar.id === 'sdentato' || activeCommandChar.id === 'ladybug' || activeCommandChar.id === 'bowser' || activeCommandChar.id === 'rainbowdash' || activeCommandChar.id === 'elsa' || activeCommandChar.id === 'sheldon' || activeCommandChar.id === 'charizard' || activeCommandChar.id === 'maxcaulfield' || activeCommandChar.id === 'chloeprice' || activeCommandChar.id === 'dolli' || activeCommandChar.id === 'zatchbell' || activeCommandChar.id === 'yoshi' || activeCommandChar.id === 'poisonivy' || activeCommandChar.id === 'carlos' || activeCommandChar.id === 'leon' || activeCommandChar.id === 'sage' || activeCommandChar.id === 'coraline')) && (() => {
+                                                {(!gameState.hyperUsed[playerRole] && !activeCommandChar.isHyper && (activeCommandChar.id === 'barry' || activeCommandChar.id === 'gardevoir' || activeCommandChar.id === 'astral' || activeCommandChar.id === 'polterpup' || activeCommandChar.id === 'spongebob' || activeCommandChar.id === 'patrick' || activeCommandChar.id === 'alphonse' || activeCommandChar.id === 'ariana' || activeCommandChar.id === 'bloom' || activeCommandChar.id === 'gaston' || activeCommandChar.id === 'jake' || activeCommandChar.id === 'marceline' || activeCommandChar.id === 'finn' || activeCommandChar.id === 'natsu' || activeCommandChar.id === 'juvia' || activeCommandChar.id === 'laxus' || activeCommandChar.id === 'bumblebee' || activeCommandChar.id === 'corvina' || activeCommandChar.id === 'entoma' || activeCommandChar.id === 'garnet' || activeCommandChar.id === 'darwin' || activeCommandChar.id === 'brago' || activeCommandChar.id === 'iris' || activeCommandChar.id === 'sdentato' || activeCommandChar.id === 'ladybug' || activeCommandChar.id === 'bowser' || activeCommandChar.id === 'rainbowdash' || activeCommandChar.id === 'elsa' || activeCommandChar.id === 'sheldon' || activeCommandChar.id === 'charizard' || activeCommandChar.id === 'maxcaulfield' || activeCommandChar.id === 'chloeprice' || activeCommandChar.id === 'dolli' || activeCommandChar.id === 'zatchbell' || activeCommandChar.id === 'yoshi' || activeCommandChar.id === 'poisonivy' || activeCommandChar.id === 'carlos' || activeCommandChar.id === 'leon' || activeCommandChar.id === 'sage' || activeCommandChar.id === 'coraline' || activeCommandChar.id === 'luigi' || activeCommandChar.id === 'miku')) && (() => {
                                                     let hyperTypeText = "";
                                                     const hyperTypesMap = {
                                                         'gardevoir': 'Psico-Erba',
@@ -892,7 +896,9 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                         'carlos': 'Fuoco-Lotta',
                                                         'leon': 'Fuoco-Normale',
                                                         'sage': 'Cristallo-Magico',
-                                                        'coraline': 'Psico-Spettro'
+                                                        'coraline': 'Psico-Spettro',
+                                                        'luigi': 'Normale-Aria',
+                                                        'miku': 'Suono-Magico'
                                                     };
                                                     if (hyperTypesMap[activeCommandChar.id]) {
                                                         hyperTypeText = ` [${hyperTypesMap[activeCommandChar.id].toUpperCase()}]`;
