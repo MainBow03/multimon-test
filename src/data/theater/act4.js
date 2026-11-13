@@ -10,6 +10,7 @@ export const THEATER_ACT_IV={
  ['Clover (Totally Spies)','E quanto ci vorrà? Un giorno? Due?'],
  ['Sam (Totally Spies)','Se ci muoviamo male, quei riflettori si accenderanno tutti insieme.'],
  ['Star Butterfly','Possiamo rompere il meccanismo e tirarli fuori!'],
+ ['Stellarubia','Ho tentato di raggiungere quella galleria in volo, ma il fondale si richiude ogni volta. Serve una via più sicura.'],
  ['Coraline','Prima serve capire quale parte del corridoio è vera.'],
  ['Il Regista','Talvolta basta una firma per salvare una vita. Soprattutto quando gli eroi sono troppo occupati a discutere.'],
  ['Clover (Totally Spies)','...Che cosa vuoi in cambio?'],
@@ -29,6 +30,7 @@ export const THEATER_ACT_IV={
  ['Sam (Totally Spies)','Clover... perché la tua firma è su questo contratto?'],
  ['Clover (Totally Spies)','Ho salvato quarantasette persone. Doveva essere solo l’indirizzo del rifugio.'],
  ['Sam (Totally Spies)','Ci hai esposti tutti! Tails e Miku sono ancora là dentro!'],
+ ['Stellarubia','Volerò a cercarli. Non permetterò che i nostri amici diventino comparse senza voce.'],
  ['Clover (Totally Spies)','Non pensavo che sarebbe andata così.'],
  ['Coraline','È il problema: non hai pensato a chi avrebbe deciso il resto.'],
  ['Il Caposcena','L’attrice ha firmato. Ora la scena del tradimento può cominciare!'],
@@ -41,12 +43,15 @@ export const THEATER_ACT_IV={
  ['Clover (Totally Spies)','Perché lui sa dove sono quelle persone e voi no.'],
  ['Sam (Totally Spies)','Forse. Ma avresti almeno potuto parlare con me.'],
  ['Clover (Totally Spies)','Non ho una risposta buona. Solo una decisione che non posso più cancellare.'],
- ['Coraline','Le persone possono cambiare decisione. Le conseguenze, però, restano.']
+ ['Coraline','Le persone possono cambiare decisione. Le conseguenze, però, restano.'],
+ ['Stellarubia','E noi non lasceremo indietro né i prigionieri né chi ha sbagliato. Anche se oggi siamo arrabbiate.']
  ]},
  {title:'Il corridoio dei fantasmi',boss:['reboo','caposcena'],unlock:['dannyphantom'],sceneRule:'mirror',
  dialogue:[
  ['Danny Phantom','Se state cercando l’ala di detenzione, dovete smettere di usare le porte.'],
  ['Star Butterfly','DANNY PHANTOM! Ti conosciamo! Che bello vedere qualcuno che non ci ha venduti!'],
+ ['Stellarubia','Un fantasma eroico! Avrà forse il potere di attraversare ogni parete del teatro?'],
+ ['Danny Phantom','In realtà è proprio il mio talento principale.'],
  ['Danny Phantom','Grazie... credo. Sono entrato attraverso una parete.'],
  ['Coraline','Interessante. I riflettori controllano porte e corridoi, ma non il vuoto tra una parete e l’altra.'],
  ['Sam (Totally Spies)','Il piano è attraversare i depositi senza passare dai sensori di ingresso.'],
@@ -66,6 +71,7 @@ export const THEATER_ACT_IV={
  ['Ganyu','Questo villaggio vive la stessa sera da diciannove giorni. Ho tenuto aperta la strada per i rifornimenti.'],
  ['Sam (Totally Spies)','Il sole non tramonta: è un fondale retroilluminato.'],
  ['Star Butterfly','Una bella giornata infinita! Aspetta... senza notte nessuno può dormire. Okay, pessima idea.'],
+ ['Stellarubia','Anche le stelle devono lasciare spazio al buio per essere viste. Non è una bella alba se non può mai arrivare il domani.'],
  ['Coraline','Hai visto altre persone attraversare il villaggio?'],
  ['Ganyu','Un uomo con una maschera e una donna che cantava. Dicevano che la sera perfetta non doveva finire.'],
  ['La Prima Donna','La luce resta accesa finché la platea applaude!'],
@@ -87,6 +93,7 @@ export const THEATER_ACT_IV={
  ['Il Regista','Io non ho mentito. Ho promesso loro di uscire dalla galleria. Non dal Teatro.'],
  ['Star Butterfly','È proprio quel genere di frase che mi fa desiderare di lanciare un unicorno esplosivo.'],
  ['Coraline','Clover, adesso puoi scegliere cosa fare. Anche se non puoi cancellare quello che hai fatto.'],
+ ['Stellarubia','Sei libera di scegliere, Clover. E anche noi siamo libere di non chiamare giusta la tua scelta.'],
  ['Clover (Totally Spies)','Se smetto, quelle persone finiranno in pericolo subito.'],
  ['Sam (Totally Spies)','Allora toglieremo al Regista il potere di minacciarle. Prima, però, dobbiamo fermarti.'],
  ['La Prima Donna','L’antagonista deve affrontare la protagonista. Siamo pronti per il duello!']
@@ -107,6 +114,7 @@ export const THEATER_ACT_IV={
  ['Coraline','Ha preferito una macchina che può controllare, invece di rischiare di fidarsi di qualcuno.'],
  ['Il Regista','E voi vi affidereste a sconosciuti per salvare l’unica persona che amate?'],
  ['Star Butterfly','Io l’ho fatto più volte! Non sempre è andata benissimo, ma qualcuno mi ha aiutata.'],
+ ['Stellarubia','Io ho affidato la mia vita a persone che conoscevo appena. Se avessi atteso la certezza, sarei ancora sola.'],
  ['Il Regista','Il vostro coraggio è una forma elegante di irresponsabilità.'],
  ['Sam (Totally Spies)','No. Irresponsabile è non raccontare a Nina che esiste un altro modo di mantenerla in vita.'],
  ['Nina','Severin... devi lasciarci almeno provare.']
