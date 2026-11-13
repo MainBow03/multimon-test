@@ -12,9 +12,11 @@ if (appMode === 'stats' || appMode === 'mastery') {
         const allCharacters=[...CHARACTERS,...FUSION_CHARACTERS];
         const byId=Object.fromEntries(allCharacters.map(c=>[c.id,c]));
         const charNames=Object.fromEntries(allCharacters.map(c=>[c.id,c.name]));
-        const topCharacters=careerTopThree(stats.chars,charNames);
+        // Il podio rappresenta le scelte volontarie: campagna esclusa.
+        const chosenCharacters=stats.chosenChars||{};
+        const topCharacters=careerTopThree(chosenCharacters,charNames);
         const topMoves=careerTopThree(stats.moves);
-        const characterCounts=Object.entries(stats.chars||{}).filter(([,n])=>Number(n)>0);
+        const characterCounts=Object.entries(chosenCharacters).filter(([,n])=>Number(n)>0);
         const moveCounts=Object.entries(stats.moves||{}).filter(([,n])=>Number(n)>0);
         const totalCharacterUses=characterCounts.reduce((n,[,v])=>n+(Number(v)||0),0);
         const favoriteCharacter=topCharacters[0]||null;
@@ -113,10 +115,11 @@ if (appMode === 'stats' || appMode === 'mastery') {
 
                         {/* Podi: contatori persistenti e classifiche storiche. */}
                         <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-inner min-w-0">
-                            <h3 className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-3 flex items-center gap-2"><Users size={16} className="text-cyan-400"/> Podio Multimon più giocati</h3>
+                            <h3 className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-3 flex items-center gap-2"><Users size={16} className="text-cyan-400"/> Podio Multimon preferiti</h3>
+                            <p className="text-xs text-slate-400 mb-3">Conta soltanto le battaglie in cui scegli tu i personaggi. Le campagne sono escluse.</p>
                             <Podium items={topCharacters} kind="char" total={totalCharacterUses}/>
                             <div className="mt-3 flex justify-between text-xs text-slate-400">
-                                <span>Schieramenti totali</span><strong className="text-cyan-200">{totalCharacterUses}</strong>
+                                <span>Schieramenti liberi registrati</span><strong className="text-cyan-200">{totalCharacterUses}</strong>
                             </div>
                         </div>
                         <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-inner min-w-0">
@@ -131,7 +134,7 @@ if (appMode === 'stats' || appMode === 'mastery') {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-7" aria-label="Statistiche aggiuntive">
                       {[
                         {label:'Sconfitte',value:defeats,icon:'🛡️',color:'text-rose-300'},
-                        {label:'Multimon provati',value:usedDifferent,icon:'🧬',color:'text-cyan-300'},
+                        {label:'Multimon scelti',value:usedDifferent,icon:'🧬',color:'text-cyan-300'},
                         {label:'Mosse eseguite',value:totalMoves,icon:'⚡',color:'text-violet-300'},
                         {label:'Tempo medio / partita',value:formatTime(averageTime),icon:'⌛',color:'text-amber-300'}
                       ].map(item=><div key={item.label} className="rounded-2xl bg-slate-950/75 border border-slate-700/80 p-4">
@@ -141,15 +144,15 @@ if (appMode === 'stats' || appMode === 'mastery') {
                     </div>
                     {appMode==='stats'&&<div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
                       <details className="rounded-xl bg-slate-950/70 border border-slate-700 p-4">
-                        <summary className="cursor-pointer text-sm font-bold text-cyan-200">📊 Classifica completa dei Multimon</summary>
+                        <summary className="cursor-pointer text-sm font-bold text-cyan-200">📊 Classifica Multimon scelti (senza campagne)</summary>
                         <div className="max-h-64 overflow-y-auto mt-3 space-y-2">
-                          {Object.entries(stats.chars||{}).filter(([,n])=>Number(n)>0)
+                          {Object.entries(chosenCharacters).filter(([,n])=>Number(n)>0)
                             .sort((a,b)=>Number(b[1])-Number(a[1])||String(charNames[a[0]]||a[0]).localeCompare(String(charNames[b[0]]||b[0]),'it'))
                             .map(([id,uses],i)=><div key={id} className="flex justify-between gap-3 text-sm border-b border-slate-800 pb-1">
                               <span className="truncate text-slate-300">{i+1}. {charNames[id]||id}</span>
                               <strong className="text-cyan-200 shrink-0">{uses}</strong>
                             </div>)}
-                          {usedDifferent===0&&<p className="text-sm text-slate-500">Nessuna partita registrata.</p>}
+                          {usedDifferent===0&&<p className="text-sm text-slate-500">Non risultano ancora utilizzi nelle modalità libere. Le battaglie delle campagne non influenzano questo podio.</p>}
                         </div>
                       </details>
                       <details className="rounded-xl bg-slate-950/70 border border-slate-700 p-4">
@@ -165,9 +168,9 @@ if (appMode === 'stats' || appMode === 'mastery') {
                         </div>
                       </details>
                       <div className="md:col-span-2 rounded-xl border border-slate-800 bg-slate-950/40 p-3 text-xs text-slate-400">
-                        Le classifiche sono cumulative e non si azzerano tra una battaglia e l'altra.
-                        Vengono conteggiati i Multimon entrati effettivamente in campo e le mosse selezionate durante i turni.
-                        I vecchi utilizzi mai registrati dal gioco non possono essere ricostruiti con certezza.
+                        Il podio Multimon conta soltanto le scelte effettuate nelle modalità libere, non nelle campagne.
+                        I vecchi utilizzi non-campagna vengono recuperati quando il registro della battaglia indica la modalità; quelli misti non identificabili sono esclusi per non falsare i preferiti.
+                        La classifica delle mosse rimane generale e include anche le campagne. Nessuna statistica storica viene cancellata.
                       </div>
                     </div>}
                     <button type="button" onClick={()=>setAppMode('mastery')}
