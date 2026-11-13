@@ -21,8 +21,8 @@ const battle=(status='gameover')=>({
 test('Le sedici celebrazioni sono uniche e coerenti (prezzo 100 e tutte illustrate)',()=>{
  assert.equal(VICTORY_EFFECT_PRICE,100);
  assert.equal(VICTORY_EFFECTS.length,16);
- assert.equal(new Set(VICTORY_EFFECTS.map(e=>e.id)).size,10);
- assert.equal(new Set(VICTORY_EFFECTS.map(e=>e.name)).size,10);
+ assert.equal(new Set(VICTORY_EFFECTS.map(e=>e.id)).size,16);
+ assert.equal(new Set(VICTORY_EFFECTS.map(e=>e.name)).size,16);
  for(const effect of VICTORY_EFFECTS){
   assert.ok(effect.icon&&effect.hint.length>30&&effect.tagline.length>16,effect.id);
   assert.match(effect.color,/^#[0-9a-f]{6}$/i);
