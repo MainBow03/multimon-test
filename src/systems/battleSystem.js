@@ -1038,8 +1038,12 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 target.damageTakenThisTurn = (target.damageTakenThisTurn || 0) + dmg;
                 events.push({ type: 'damage', text: text, targetPlayer, targetIdx, newHp: target.hp });
                 if(target.isJuggernaut && target.hp>0 && target.hp<hpBeforeDamage){
-                  if(options.isEnemyTarget && options.attackerPlayer && !options.attacker?.isJuggernaut)
+                  if(options.isEnemyTarget && options.attackerPlayer && !options.attacker?.isJuggernaut){
                     juggHittersThisTurn.add(options.attackerPlayer);
+                    juggSynergy.bossDamageByPlayer ??= {};
+                    juggSynergy.bossDamageByPlayer[options.attackerPlayer] =
+                      (juggSynergy.bossDamageByPlayer[options.attackerPlayer]||0)+(hpBeforeDamage-target.hp);
+                  }
                   const unlocked=updateJuggernautThresholds(target,target.hp);
                   for(const stage of unlocked){
                     events.push({type:'juggernaut_phase',player:targetPlayer,idx:targetIdx,stage,
@@ -1872,8 +1876,6 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                   events.push({type:'text',text:`👥 Gemini copia la mossa ${remembered.name} di ${target.name}!`});
                 }
                 attacker.lastUsedMove={...move,remainingUses:null};
-                if(attacker.isJuggernaut && attacker.juggNextAttackBoost && (move.power||0)>0)
-                  attacker.juggNextAttackBoost=false; // applicazione rinviata: si consuma DOPO il calcolo del colpo
 
                 // Si registra solo ciò che il nemico ha DAVVERO mostrato;
                 // mai leggere comandi pendenti di giocatori avversari.
@@ -3325,6 +3327,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 if(bookwormResult)events.push({type:'text',text:bookwormResult,isPassive:true,
                     passiveChar:attacker.name,passiveName:attacker.passive.name});
                 if(move.power>0)recordOffensiveMove(attacker,move);
+                 if(move.power>0 && attacker.isJuggernaut && attacker.juggNextAttackBoost)
+                   attacker.juggNextAttackBoost=false; // Dopo tutti i bersagli e i colpi della mossa.
                 if (move.suicide && attacker.hp > 0) {
                     applyDamage(attacker, attacker.hp, player, charTeamIdx, `${attacker.name} va in cortocircuito ed esplode sacrificandosi!`);
                 }
