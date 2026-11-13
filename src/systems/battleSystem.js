@@ -1977,7 +1977,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             newSummon.moves.forEach(m => {
                                 if (m.maxUses !== undefined) m.remainingUses = m.maxUses;
                             });
-
+                            if(gameState.gameMode==='juggernaut' && player===(gameState.settings.juggernautPlayer||'p1'))
+                              applyJuggernautSummonBonus(newSummon,activeMatchPlayers.length-1);
                             workingTeams[player].push(newSummon);
                             const newCharTeamIdx = workingTeams[player].length - 1;
                             workingField[player].push(newCharTeamIdx);
@@ -2446,6 +2447,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             if (raidHit?.absorbed) {
                                 juggHitsAbsorbed++;
                                 actualHits++;
+                                if(gameState.gameMode==='juggernaut' && t.char.isJuggernaut && player!==(gameState.settings.juggernautPlayer||'p1'))
+                                  juggHittersThisTurn.add(player);
                                  events.push(createRaidShieldUpdateEvent(t.player,t.idx,raidHit.remaining,`${attacker.name} usa ${move.name} su ${t.char.name}: lo Scudo assorbe il colpo ${i+1}${hits>1?`/${hits}`:''}! (${raidHit.remaining} cariche rimaste)`));
                                 if (raidHit.broken) {
                                     events.push({ type: 'text', text: `🛡️ Lo Scudo di ${t.char.name} si è infranto!` });
