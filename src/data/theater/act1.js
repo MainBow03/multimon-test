@@ -118,7 +118,7 @@ export const THEATER_ACT_I={
  postDialogue:[
  ["Il Caposcena","Il primo atto è finito. Io sono senza lavoro."],
  ["Sam (Totally Spies)","Ho aperto il collegamento con Mewni. Gli abitanti possono uscire, ma la struttura centrale è ancora attiva."],
- ["Star Butterfly","Quindi Non ha inghiottito l’universo di Star. Ha solo rubato un quartiere per usarlo come set."],
+ ["Sam (Totally Spies)","E una cosa è chiara: Non ha inghiottito l’universo di Star. Ha solo rubato un quartiere per usarlo come set. Teatro Zero è una struttura costruita per contenerlo."],
  ["Coraline","E non è il suo unico set. Guarda quante porte ci sono in fondo."],
  ["Il Regista","Intervallo. Mi raccomando, non fate tardi per il secondo atto."],
  ["Star Butterfly","Stai tranquillo. La prossima scena te la roviniamo in anticipo."]
