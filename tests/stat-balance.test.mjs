@@ -90,6 +90,6 @@ test('le battaglie classiche e del torneo applicano la funzione comune',()=>{
   assert.match(event,/applyBattleStatModifier\(actor,k,value\)/);
   assert.match(codex,/due \+30% diventano \+60%/);
   const juggernaut=readFileSync(new URL('../src/systems/juggernautSystem.js',import.meta.url),'utf8');
-  assert.match(normal,/setupJuggernaut\\(teams\\[juggPlayer\\]\\[0\\],numOpponents\\)/);
-  assert.match(juggernaut,/boss\\.atk = Math\\.floor\\(boss\\.atk \\* scale\\.atk\\)/);
+  assert.match(normal,/setupJuggernaut\(teams\[juggPlayer\]\[0\],numOpponents\)/);
+  assert.match(juggernaut,/boss\.atk = Math\.floor\(boss\.atk \* scale\.atk\)/);
 });
