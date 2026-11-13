@@ -133,7 +133,9 @@ export function applyBattleUsageSnapshot(profile,snapshot){
   if(!changed)return {profile,changed:false};
   const next={...profile,
     chars:{...counter(profile?.chars)},
-    chosenChars:{...counter(profile?.chosenChars)},
+    chosenChars:profile?.chosenCharsVersion===1
+      ?{...counter(profile?.chosenChars)}:backfillChosenCharacters(previous),
+    chosenCharsVersion:1,
     moves:{...counter(profile?.moves)},
     careerBattleLedger:{...previous},
     modeMatches:{...counter(profile?.modeMatches)}};
