@@ -56,7 +56,8 @@ if (appMode === 'stats' || appMode === 'mastery') {
 
         const winRate = stats.matches > 0 ? Math.round((stats.wins / stats.matches) * 100) : 0;
         const defeats=Math.max(0,(stats.matches||0)-(stats.wins||0));
-        const usedDifferent=characterCounts.length;
+        const chosenDifferent=characterCounts.length;
+        const usedDifferent=Object.entries(stats.chars||{}).filter(([,uses])=>Number(uses)>0).length;
         const totalMoves=moveCounts.reduce((n,[,v])=>n+(Number(v)||0),0);
         const averageTime=stats.matches>0?Math.round((stats.playtime||0)/stats.matches):0;
         const roster = CHARACTERS.filter(isMasteryEligible);
@@ -134,7 +135,7 @@ if (appMode === 'stats' || appMode === 'mastery') {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-7" aria-label="Statistiche aggiuntive">
                       {[
                         {label:'Sconfitte',value:defeats,icon:'🛡️',color:'text-rose-300'},
-                        {label:'Multimon scelti',value:usedDifferent,icon:'🧬',color:'text-cyan-300'},
+                        {label:'Multimon provati (tutte le modalità)',value:usedDifferent,icon:'🧬',color:'text-cyan-300'},
                         {label:'Mosse eseguite',value:totalMoves,icon:'⚡',color:'text-violet-300'},
                         {label:'Tempo medio / partita',value:formatTime(averageTime),icon:'⌛',color:'text-amber-300'}
                       ].map(item=><div key={item.label} className="rounded-2xl bg-slate-950/75 border border-slate-700/80 p-4">
@@ -152,7 +153,7 @@ if (appMode === 'stats' || appMode === 'mastery') {
                               <span className="truncate text-slate-300">{i+1}. {charNames[id]||id}</span>
                               <strong className="text-cyan-200 shrink-0">{uses}</strong>
                             </div>)}
-                          {usedDifferent===0&&<p className="text-sm text-slate-500">Non risultano ancora utilizzi nelle modalità libere. Le battaglie delle campagne non influenzano questo podio.</p>}
+                          {chosenDifferent===0&&<p className="text-sm text-slate-500">Non risultano ancora utilizzi nelle modalità libere. Le battaglie delle campagne non influenzano questo podio.</p>}
                         </div>
                       </details>
                       <details className="rounded-xl bg-slate-950/70 border border-slate-700 p-4">
