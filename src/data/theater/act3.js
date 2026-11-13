@@ -12,14 +12,18 @@ export const THEATER_ACT_III={
  ['Coraline','Se vuoi difendere queste persone, lasciaci aiutare. Le guardie ci stanno arrivando addosso.'],
  ['Il Caposcena','Basta con i fuori programma! Le comparse tornino alle rispettive scene!'],
  ['Blaze the Cat','Toccate anche soltanto uno di loro e passerete sul mio fuoco.'],
- ['Star Butterfly','Okay, ci piace. Moltissimo.']
+ ['Star Butterfly','Okay, ci piace. Moltissimo.'],
+ ['Stellarubia','Una protettrice dei più deboli! Posso già vedere il nostro prossimo spettacolo: tre eroine in volo!'],
+ ['Coraline','Per favore, niente spettacoli. Stavolta è proprio quello che stiamo cercando di fermare.']
  ],
  postDialogue:[
  ['Blaze the Cat','Avete difeso gli abitanti invece di inseguire il Caposcena. Non me l’aspettavo.'],
  ['Sam (Totally Spies)','Il nostro obiettivo è proteggere chi viene usato come comparsa.'],
  ['Blaze the Cat','Conosco un passaggio fino alla platea. Vi accompagnerò.'],
  ['Coraline','Bene. Ma qualcuno deve controllare che Star non gli dia un nome tipo Passaggio Esplosione.'],
- ['Star Butterfly','ERA ESATTAMENTE IL NOME CHE AVEVO SCELTO!']
+ ['Star Butterfly','ERA ESATTAMENTE IL NOME CHE AVEVO SCELTO!'],
+ ['Stellarubia','Io voto a favore! Un nome magnificamente esplosivo!'],
+ ['Blaze the Cat','Preferirei un nome che non faccia scoprire il nostro nascondiglio.']
  ]},
  {title:'Il pubblico delle sedie vuote',boss:['reboo','riflettore'],sceneRule:'mirror',
  dialogue:[
@@ -27,6 +31,8 @@ export const THEATER_ACT_III={
  ['Sam (Totally Spies)','I sensori rilevano impulsi di memoria, non corpi. Ogni posto contiene il ricordo di uno spettatore.'],
  ['Marceline','Una sala piena di gente che non può muoversi. Bel modo di rovinare una serata.'],
  ['Star Butterfly','MARCELINE?! Che ci fai qui?'],
+ ['Stellarubia','È una celebre cantante? Il suo strumento sembra perfetto per un duetto cosmico.'],
+ ['Marceline','Una principessa volante e una principessa magica? Questo posto è sempre più strano.'],
  ['Marceline','Stavo seguendo un basso che suonava da solo. Indovina dove mi ha portata.'],
  ['Coraline','Se riesci a raggiungere quelle memorie, potremmo capire dove sono le persone.'],
  ['Marceline','Proviamo. Miku, vieni: un paio di note e facciamo tremare questo posto.'],
@@ -55,6 +61,7 @@ export const THEATER_ACT_III={
  ['Sam (Totally Spies)','Il Regista riscrive le circostanze. Non gli serve cambiare ciò che pensi.'],
  ['Clover (Totally Spies)','Benissimo, vengo con voi. Ma non trattatemi da principiante.'],
  ['Star Butterfly','Non preoccuparti. Tra noi la principiante sono io! O forse no. A volte neanche so come funziona la mia bacchetta.'],
+ ['Stellarubia','E io conosco il funzionamento di ogni stella! Tranne quella che mi ha portata qui. Era un contratto, non un astro.'],
  ['Coraline','Quello che ci serviva: un’altra persona impulsiva.']
  ]},
  {title:'Il protagonista mancato',boss:['daffyduck','reboo'],unlock:['daffyduck'],sceneRule:'improv',
@@ -66,6 +73,8 @@ export const THEATER_ACT_III={
  ['Daffy Duck','I GRANDI ARTISTI NON LEGGONO LE CLAUSOLE!'],
  ['Sam (Totally Spies)','Ogni volta che cerchi di vincere, Re Boo rimanda la scena al suo inizio.'],
  ['Daffy Duck','E quindi?! Dovrei uscire e lasciare gli applausi a qualcun altro?!'],
+ ['Stellarubia','Sul mio pianeta il più grande onore è aiutare senza aspettare un applauso!'],
+ ['Daffy Duck','Il tuo pianeta ha SERI problemi di marketing!'],
  ['Coraline','Esatto. Il copione prevede che TU rimanga qui.'],
  ['Daffy Duck','Mai! ...Un momento. Questa volta hai ragione, piccola umana.']
  ],
@@ -87,6 +96,8 @@ export const THEATER_ACT_III={
  ['Nina','Severin dice che quando una storia è dimenticata, tutto ciò che contiene scompare.'],
  ['Tails','La tua frequenza vitale dipende dai macchinari del Teatro, ma c’è un vecchio circuito di sostegno nascosto qui sotto.'],
  ['Nina','Quel circuito funzionava prima della Platea. Severin non vuole parlarne.'],
+ ['Stellarubia','Non conosco il tuo passato, Nina, ma una storia non è un oggetto da possedere. È una persona che può ancora sorprendere.'],
+ ['Nina','Non mi ero mai sentita chiamare persona da qualcuno che non volesse proteggermi da qualcosa.'],
  ['Il Caposcena','L’archivio è chiuso! La ragazza non deve uscire dal suo atto!']
  ],
  postDialogue:[
@@ -112,6 +123,7 @@ export const THEATER_ACT_III={
  ],
  postDialogue:[
  ['Star Butterfly','Non avrei mai creduto di dirlo: non so se distruggere le luci sia la cosa giusta.'],
+ ['Stellarubia','Allora non le distruggiamo finché non sappiamo come salvare chi vive grazie a esse. Combattere bene significa anche sapersi fermare.'],
  ['Sam (Totally Spies)','Neanche io. Potrebbe annientare gli abitanti di questo posto.'],
  ['Coraline','Non dobbiamo accettare la gabbia solo perché il suo costruttore ci dice che fuori è peggio.'],
  ['Nina','Severin aveva promesso di proteggermi. Un tempo ci riusciva senza questa macchina.'],
