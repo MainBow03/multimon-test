@@ -625,6 +625,9 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     <span className="text-cyan-200">🤝 Sinergia sfidanti: {Math.min(2,synergy.charge||0)}/2 · Coordinazioni: {synergy.coordinatedTurns||0}</span>
                     <span className="text-slate-300">{synergyReady?'PRONTA!':synergy.cooldownUntilTurn>synergyTurn?'Ricarica fino al turno '+synergy.cooldownUntilTurn:'Colpite in due nello stesso turno!'}</span>
                   </div>
+                  <div role="progressbar" aria-label="Carica Sinergia di Squadra" aria-valuenow={Math.min(2,synergy.charge||0)} aria-valuemin={0} aria-valuemax={2} className="max-w-5xl mx-auto mt-1 h-1.5 bg-black/70 border border-cyan-500/25 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-sky-600 via-cyan-300 to-amber-300 transition-all duration-500" style={{width:(Math.min(2,synergy.charge||0)*50)+'%'}}/>
+                  </div>
                 </section>}
 
                 {/* BATTLE ARENA */}
