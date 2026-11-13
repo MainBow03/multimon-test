@@ -123,10 +123,10 @@ export const THEATER_ACT_IV={
  {title:'La ragazza senza finale',boss:['caposcena','riflettore','riflettore'],sceneRule:'spotlight',
  dialogue:[
  ["Nina","Ho trovato il disegno della macchina vecchia. Era sotto il pavimento dell'archivio."],
- ["Tails","Aspetta, mostramelo. Questi collegamenti non vanno alla platea."],
- ["Sam (Totally Spies)","Quindi non servivano spettatori per tenerla accesa."],
+ ["Sam (Totally Spies)","Aspetta, mostramelo. Questi collegamenti non vanno alla platea."],
+ ["Coraline","Quindi non servivano spettatori per tenerla accesa."],
  ["Nina","No. Ci lavoravano in tanti. Ogni settimana qualcuno controllava le batterie."],
- ["Coraline","E perché Severin l'ha spenta?"],
+ ["Star Butterfly","E allora perché l'ha spenta?"],
  ["Nina","Perché un giorno nessuno venne a ripararla. Aveva paura che sarebbe successo ancora."],
  ["Il Regista","Una paura fondata, vi assicuro."],
  ["Star Butterfly","Però hai scelto di intrappolare altre persone invece di chiedere aiuto."],
