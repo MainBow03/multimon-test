@@ -36,6 +36,7 @@ export const THEATER_CAMPAIGN={
     id:'teatro_'+String(number).padStart(2,'0'),title:entry.title,
     boss:entry.boss,unlock:entry.unlock||[],
     removeChars:entry.removeChars||undefined,
+    unavailableChars:entry.unavailableChars||undefined,
     dialogue:dialogue(entry.dialogue),postDialogue:dialogue(entry.postDialogue),
     theaterMission:true,theaterAct:actIdx+1,theaterNumber:number,
     theaterRule:entry.sceneRule,
