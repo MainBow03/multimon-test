@@ -60,7 +60,7 @@ test('Sei cosmetici realmente nuovi con identificativi, scene e animazioni indip
   assert.ok(effect&&effect.hint.length>40&&effect.tagline.length>20,id);
   assert.match(css,new RegExp('victory-cinema--'+id));
   assert.match(css,new RegExp('@keyframes '+keyframes[i]));
-  assert.match(jsx,new RegExp('victory-cinema-'+id));
+  assert.match(jsx,new RegExp('victory-cinema-'+(id==='chronofinale'?'clock':id)));
  }
  assert.equal(new Set(VICTORY_EFFECTS.map(e=>e.id)).size,16);
  assert.equal(new Set(VICTORY_EFFECTS.map(e=>e.name)).size,16);
