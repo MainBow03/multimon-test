@@ -14,6 +14,17 @@ export const MOVES_DB = {
   ...SIX_NEW_MOVES,
   ...THEATER_MOVES,
   ...FIVE_NEW_MOVES,
+  // Forme Iper 2026: le mosse esclusive appaiono solo a trasformazione avvenuta.
+  'Aspirazione Fantasma': {
+    name:'Aspirazione Fantasma',type:'Spettro',power:95,accuracy:1,
+    drain:.20,maxUses:2,strictUses:true,
+    desc:'Iper Luigi aspira l’energia del bersaglio. Potenza 95, recupera il 20% dei danni inflitti. Solo 2 utilizzi.'
+  },
+  'Concerto Universale': {
+    name:'Concerto Universale',type:'Suono',power:70,accuracy:1,special:true,
+    targetCount:24,concertTeamHeal:.10,maxUses:2,strictUses:true,
+    desc:'Iper Miku canta per tutta la squadra: potenza 70 su tutti i nemici e cura del 10% dei PS massimi gli alleati vivi in campo (inclusa Miku). Solo 2 utilizzi.'
+  },
   'Raggio dei Caduti': {name:'Raggio dei Caduti',type:'Spettro',power:100,accuracy:0.8,desc:'Raggio spettrale potentissimo su un singolo bersaglio. Precisione 80%.'},
   'Le Tenebre vi Avvolgono': {name:'Le Tenebre vi Avvolgono',type:'Buio',power:70,targetCount:24,desc:'Le tenebre travolgono tutti i bersagli avversari in campo.'},
   'Vieni a Me, Anima': {name:'Vieni a Me, Anima',type:'Spettro',power:0,targetStatDebuff:{def:0.7,spd:0.7},desc:'Indebolisce Difesa e Velocità del bersaglio del 30%.'},
