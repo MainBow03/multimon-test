@@ -13,6 +13,7 @@ export const THEATER_ACT_V={
  ['Star Butterfly','E se qualcuno volesse cambiare?'],
  ['Il Regista','Non ne avrebbe bisogno.'],
  ['Star Butterfly','Allora non è un mondo felice. È un mondo in cui hai deciso tu cosa significhi esserlo.'],
+ ['Stellarubia','Una stella che non può muoversi non è libera di brillare. Star, questa non è la nostra casa.'],
  ['La Prima Donna','La principessa deve accettare il lieto fine. È scritto!'],
  ['Star Butterfly','Peccato. Mi sono sempre piaciuti i finali improvvisati.']
  ],
@@ -60,7 +61,11 @@ export const THEATER_ACT_V={
  ['Hatsune Miku','La sala mi rimandava sempre la stessa nota. Ho scoperto un suono che il sistema non riconosce.'],
  ['Sam (Totally Spies)','Ci serve proprio un segnale che i riflettori non sappiano classificare.'],
  ['Star Butterfly','Finalmente un piano con una canzone e un’esplosione!'],
- ['Coraline','La parte dell’esplosione non è ancora stata approvata.']
+ ['Stellarubia','Posso ballare durante il concerto? Ho studiato la danza del grande meteorite!'],
+ ['Hatsune Miku','Potrai ballare appena il generatore sarà stabile. Promesso.'],
+ ['Coraline','La parte dell’esplosione non è ancora stata approvata.'],
+ ['Stellarubia','Io potrei trasportare tutti in volo! Purché mi diciate quali pareti sono vere.'],
+ ['Sam (Totally Spies)','Per questo abbiamo bisogno sia delle tue ali sia della mappa di Coraline.']
  ]},
  {title:'La canzone che nessuno ascolta',boss:['primadonna','riflettore'],sceneRule:'improv',
  dialogue:[
@@ -91,6 +96,7 @@ export const THEATER_ACT_V={
  ['Sam (Totally Spies)','Per salvare le persone. Non per premiarti.'],
  ['Star Butterfly','E per rompere una macchina davvero antipatica.'],
  ['Coraline','Clover, se vuoi aiutare, questo è il momento.'],
+ ['Stellarubia','Abbiamo perso amici per quel contratto, ma puoi aiutarci a riportarli tutti a casa.'],
  ['Clover (Totally Spies)','Lo faccio. Anche se non perdonerete mai quello che ho combinato.']
  ],
  postDialogue:[
@@ -105,6 +111,7 @@ export const THEATER_ACT_V={
  dialogue:[
  ['Sam (Totally Spies)','Squadra uno: Danny e Blaze liberano la platea. Squadra due: Tails e Miku riaccendono i generatori.'],
  ['Star Butterfly','Squadra tre: io, Coraline e Clover portiamo un po’ di disordine organizzato!'],
+ ['Stellarubia','E io farò da collegamento volante tra i gruppi! Finalmente il mio talento di acrobata avrà un pubblico volontario!'],
  ['Coraline','Possiamo evitare di chiamarlo così?'],
  ['Clover (Totally Spies)','Per una volta il nome è perfetto.'],
  ['Tails','Se una sola stazione cede, il Teatro perde stabilità. Avremo bisogno di protezione.'],
