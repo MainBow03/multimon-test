@@ -152,7 +152,7 @@ if (appMode === 'shop') {
                           <button type="button" onClick={()=>setShopCosmeticTab('victories')}
                             className={`flex-1 min-w-[145px] rounded-xl px-4 py-3 font-black text-xs border transition-all
                               ${shopCosmeticTab==='victories'?'bg-gradient-to-r from-amber-600 to-rose-600 border-yellow-300 text-white':'bg-slate-950/70 border-amber-700/70 text-slate-300 hover:bg-slate-800'}`}>
-                            🏆 Animazioni di Vittoria · 10
+                            🏆 Animazioni di Vittoria · {VICTORY_EFFECTS.length}
                           </button>
                         </nav>
                         {shopCosmeticTab==='entrances'&&<>
