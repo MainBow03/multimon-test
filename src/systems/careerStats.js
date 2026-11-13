@@ -41,16 +41,47 @@ export function normalizeCareerProfile(profile,characters=[]){
     chars[id]=(chars[id]||0)+uses;
     delete chars[name];
   }
-  const result={...profile,chars,moves};
+  // Migrazione una tantum: parti solo dagli utilizzi liberi che si
+  // possono riconoscere nel registro delle battaglie esistenti.
+  // Non fare chars - campagne note: i vecchi totali possono includere
+  // molte campagne non più presenti nel registro (limite 400).
+  const hasChosen=profile?.chosenCharsVersion===1;
+  const chosenChars=hasChosen?counter(profile.chosenChars):
+    backfillChosenCharacters(profile?.careerBattleLedger);
+  const result={...profile,chars,moves,chosenChars,chosenCharsVersion:1};
   const changed=JSON.stringify(profile?.chars||{})!==JSON.stringify(chars) ||
-    JSON.stringify(profile?.moves||{})!==JSON.stringify(moves);
+    JSON.stringify(profile?.moves||{})!==JSON.stringify(moves) ||
+    JSON.stringify(profile?.chosenChars||{})!==JSON.stringify(chosenChars) ||
+    !hasChosen;
   return {profile:result,changed};
 }
 
 const eligibleFighter=char=>!!(char?.id&&!char.isSummonOnly&&!char.isEchoCopy&&
   !char.isEchoCorruptedSoul&&!char.isEchoPuppet&&!char.isZodiacSpirit&&
   !char.isEchoSoulRecalledProjection);
-const entryKey=(player,idx)=>player+':'+idx;
+// Per i preferiti contano soltanto le battaglie in cui il giocatore può
+// scegliere il proprio roster. Le campagne restano nelle statistiche
+// generali, ma non devono falsare il podio dei personaggi preferiti.
+export const isVoluntaryBattleMode=mode=>{
+  const value=cleanName(mode).toLowerCase();
+  return !!value&&!['campagna','campaign','story','storia'].includes(value);
+};
+
+// I vecchi contatori chars erano mescolati (campagne e partite libere).
+// Solo i checkpoint con modalità verificabile permettono di recuperare
+// utilizzi non-campagna, senza attribuire numeri mai dimostrabili.
+export function backfillChosenCharacters(ledger){
+  const chosen={};
+  if(!ledger||typeof ledger!=='object'||Array.isArray(ledger))return chosen;
+  for(const record of Object.values(ledger)){
+    if(!isVoluntaryBattleMode(record?.mode))continue;
+    for(const id of new Set(Array.isArray(record.chars)?record.chars:[])){
+      if(!cleanName(id))continue;
+      chosen[id]=(chosen[id]||0)+1;
+    }
+  }
+  return chosen;
+}
 
 // In un match un Multimon conta UNA volta, quando entra realmente in campo.
 // Le riserve mai usate, le evocazioni e gli avversari CPU sono esclusi.
@@ -84,6 +115,10 @@ export function applyBattleUsageSnapshot(profile,snapshot){
   const previous=profile?.careerBattleLedger&&typeof profile.careerBattleLedger==='object'
     ?profile.careerBattleLedger:{};
   const old=previous[key]||null;
+  const mode=cleanName(snapshot.mode)||cleanName(old?.mode)||'classica';
+  // Se il medesimo report è rivisto con un nome di modalità diverso,
+  // privilegia la classificazione di campagna: mai contaminarne i preferiti.
+  const isChoice=isVoluntaryBattleMode(mode)&&(!old||isVoluntaryBattleMode(old.mode));
   const oldChars=new Set(old?.chars||[]);
   const oldMoves=counter(old?.moves);
   const currentChars=new Set((snapshot.chars||[]).filter(x=>cleanName(x)));
@@ -98,6 +133,7 @@ export function applyBattleUsageSnapshot(profile,snapshot){
   if(!changed)return {profile,changed:false};
   const next={...profile,
     chars:{...counter(profile?.chars)},
+    chosenChars:{...counter(profile?.chosenChars)},
     moves:{...counter(profile?.moves)},
     careerBattleLedger:{...previous},
     modeMatches:{...counter(profile?.modeMatches)}};
@@ -105,7 +141,10 @@ export function applyBattleUsageSnapshot(profile,snapshot){
     next.matches=integer(profile?.matches)+1;
     next.modeMatches[snapshot.mode]=(next.modeMatches[snapshot.mode]||0)+1;
   }
-  for(const id of freshChars)next.chars[id]=(next.chars[id]||0)+1;
+  for(const id of freshChars){
+    next.chars[id]=(next.chars[id]||0)+1;
+    if(isChoice)next.chosenChars[id]=(next.chosenChars[id]||0)+1;
+  }
   for(const [name,delta] of Object.entries(diffs))next.moves[name]=(next.moves[name]||0)+delta;
   const previousChars=new Set([...oldChars,...currentChars]);
   const nextMoves={...oldMoves};
@@ -114,7 +153,7 @@ export function applyBattleUsageSnapshot(profile,snapshot){
   // Riordina i checkpoint: le partite in corso devono essere tra le più
   // recenti, senza crescere per sempre oltre la quota del cloud.
   delete next.careerBattleLedger[key];
-  next.careerBattleLedger[key]={chars:[...previousChars],moves:nextMoves,mode:snapshot.mode};
+  next.careerBattleLedger[key]={chars:[...previousChars],moves:nextMoves,mode:old?.mode||mode};
   const keys=Object.keys(next.careerBattleLedger);
   for(const obsolete of keys.slice(0,Math.max(0,keys.length-CAREER_BATTLE_LEDGER_LIMIT)))
     delete next.careerBattleLedger[obsolete];
