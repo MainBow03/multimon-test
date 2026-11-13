@@ -476,7 +476,6 @@
 @media(max-width:650px){
  .victory-cinema-checkmate span{font-size:clamp(45px,12vw,78px);bottom:20%}
  .victory-cinema-clock{width:95vw}
- .victory-cinema-astraldragon::after{right:4%;top:20%}
  .victory-cinema-storybook{height:50vh}
  .victory-cinema-portal span{width:90vw}
 }
@@ -485,7 +484,6 @@
  .victory-cinema-astraldragon,.victory-cinema-thunderstorm,.victory-cinema-storybook,
  .victory-cinema-portal span,.victory-cinema-checkmate span,.victory-cinema-checkmate::before,
  .victory-cinema-clock span,.victory-cinema-astraldragon span,
- .victory-cinema-astraldragon::before,.victory-cinema-astraldragon::after,
  .victory-cinema-thunderstorm span,.victory-cinema-storybook span,
  .victory-cinema--chronofinale .victory-cinema-content h2,
  .victory-cinema--thunderstorm .victory-cinema-backdrop{
