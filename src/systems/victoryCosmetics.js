@@ -21,6 +21,18 @@ export const VICTORY_EFFECTS=Object.freeze([
    hint:"Cristalli prismatici ruotano e si frammentano in scintille azzurre.",tagline:"UN TRIONFO CHE NON SI SPEZZA!",color:"#bfdbfe",accent:"#6366f1"},
   {id:"fireworks",name:"Festival dei Dieci Cieli",icon:"🎆",
    hint:"Fuochi colorati si aprono in dieci costellazioni sopra l’arena.",tagline:"TUTTO IL CIELO FESTEGGIA QUESTA VITTORIA!",color:"#fde68a",accent:"#ec4899"},
+  {id:"portal",name:"Varco del Trionfo",icon:"🌀",
+   hint:"Un enorme portale ruota e squarcia il cielo: due anelli di energia si aprono sul vincitore.",tagline:"IL CAMPIONE È OLTRE OGNI DIMENSIONE!",color:"#c4b5fd",accent:"#7c3aed"},
+  {id:"checkmate",name:"Scaccomatto Multiversale",icon:"♟️",
+   hint:"Una scacchiera luminosa appare sotto il campione: il re avversario cade mentre un cavallo e una torre avanzano.",tagline:"UNA MOSSA. UNA VITTORIA. SCACCOMATTO!",color:"#e2e8f0",accent:"#0ea5e9"},
+  {id:"chronofinale",name:"Il Tempo è Mio",icon:"⏳",
+   hint:"Un orologio gigante gira all’impazzata, le lancette si fermano e un lampo dorato consacra il vincitore.",tagline:"IL MOMENTO DELLA GLORIA È ADESSO!",color:"#fde68a",accent:"#d97706"},
+  {id:"astraldragon",name:"Drago delle Costellazioni",icon:"🐉",
+   hint:"Nove stelle si accendono una dopo l’altra formando un drago di luce che avvolge l’arena.",tagline:"LE STELLE RICONOSCONO IL DRAGO!",color:"#86efac",accent:"#34d399"},
+  {id:"thunderstorm",name:"Applauso del Tuono",icon:"⚡",
+   hint:"L’arena piomba nella tempesta: sei fulmini illuminano il cielo a tempo, poi tutto si accende di elettricità.",tagline:"IL TUONO PRONUNCIA IL TUO NOME!",color:"#fef08a",accent:"#2563eb"},
+  {id:"storybook",name:"Libro delle Leggende",icon:"📖",
+   hint:"Un antico tomo si apre, le pagine si voltano da sole e il nome del vincitore entra nella leggenda.",tagline:"UN NUOVO CAPITOLO NELLA LEGGENDA!",color:"#fcd34d",accent:"#b45309"},
 ]);
 const known=new Set(VICTORY_EFFECTS.map(x=>x.id));
 export function ownedVictoryEffects(profile){
