@@ -18,11 +18,11 @@ const battle=(status='gameover')=>({
  playerVictoryEffects:{p1:'rainbow',p2:'disco'}
 });
 
-test('Le sedici celebrazioni sono uniche e coerenti (prezzo 100 e tutte illustrate)',()=>{
+test('Le venti celebrazioni sono uniche e coerenti (prezzo 100 e tutte illustrate)',()=>{
  assert.equal(VICTORY_EFFECT_PRICE,100);
- assert.equal(VICTORY_EFFECTS.length,16);
- assert.equal(new Set(VICTORY_EFFECTS.map(e=>e.id)).size,16);
- assert.equal(new Set(VICTORY_EFFECTS.map(e=>e.name)).size,16);
+ assert.equal(VICTORY_EFFECTS.length,20);
+ assert.equal(new Set(VICTORY_EFFECTS.map(e=>e.id)).size,20);
+ assert.equal(new Set(VICTORY_EFFECTS.map(e=>e.name)).size,20);
  for(const effect of VICTORY_EFFECTS){
   assert.ok(effect.icon&&effect.hint.length>30&&effect.tagline.length>16,effect.id);
   assert.match(effect.color,/^#[0-9a-f]{6}$/i);
