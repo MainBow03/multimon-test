@@ -4,6 +4,7 @@ import { HeldEquipmentCard, HeldEquipmentGuide } from '../../components/HeldEqui
 import { ZodiacSpiritPicker } from '../../components/ZodiacSpiritPicker.jsx';
 import { canEquipHeldItem } from '../../systems/heldEquipment.js';
 import { initialCampaignField } from '../../systems/campaignBattleRecovery.js';
+import {isCampaignHeroUnavailable,availableCampaignHeroes,validateCampaignLineup} from '../../systems/campaignMissionAvailability.js';
 import { applyStrengthToFighter, canTrainCharacter } from '../../systems/strengthLab.js';
 import { finalRaidBossStats, rebalanceSavedFinalRaidBoss } from '../../systems/finalRaidBalance.js';
 import { accumulateBattleReport } from '../../systems/battleReport.js';
@@ -38,6 +39,7 @@ if (appMode === 'campaign_team_select') {
         
         const sector = activeCampaign.sectors[campaignState.sectorIdx] || activeCampaign.sectors[0];
         const mission = sector.missions[campaignState.missionIdx] || sector.missions[0];
+        const playableSelectedTeam=availableCampaignHeroes(mission,campaignSelectedTeam);
         const isEchoFinalRaid = activeCampaignId === 'eco_anime' && mission.echoFinal;
         if (isEchoFinalRaid) maxTeamSize = 24;
         const echoStartingSix = isEchoFinalRaid ? echoRaidStarters(campaignSelectedTeam,campaignState.echoStartingSix).filter(id=>campaignState.rosterStats[id]>0) : [];
@@ -291,6 +293,12 @@ if (appMode === 'campaign_team_select') {
         };
 
         const toggleChar = (id) => {
+            if(isCampaignHeroUnavailable(mission,id)){
+                if(campaignSelectedTeam.includes(id))
+                    setCampaignSelectedTeam(availableCampaignHeroes(mission,campaignSelectedTeam));
+                setSystemAlert('Tails e Miku sono intrappolati! Non possono partecipare a questa battaglia.');
+                return;
+            }
             const isAnomalyTarget = mission.isAnomaly && mission.id === 'm12_5' && campaignState.anomalyTargets && campaignState.anomalyTargets.includes(id);
             if (isAnomalyTarget) {
                 setSystemAlert("Questo personaggio è stato infettato dall'Anomalia e non può essere schierato! Lo affronterai a breve!");
@@ -317,14 +325,14 @@ if (appMode === 'campaign_team_select') {
                 return;
             }
 
-            if (campaignSelectedTeam.includes(id)) {
-                setCampaignSelectedTeam(campaignSelectedTeam.filter(c => c !== id));
+            if (playableSelectedTeam.includes(id)) {
+                setCampaignSelectedTeam(playableSelectedTeam.filter(c => c !== id));
                 if (activeCampaignId === 'torneo_assoluto') {
                     showSelectionDialogue(id, true);
                 }
             } else {
-                if (campaignSelectedTeam.length < maxTeamSize) {
-                    setCampaignSelectedTeam([...campaignSelectedTeam, id]);
+                if (playableSelectedTeam.length < maxTeamSize) {
+                    setCampaignSelectedTeam([...playableSelectedTeam, id]);
                     if (activeCampaignId === 'torneo_assoluto') {
                         showSelectionDialogue(id, false);
                     }
@@ -333,7 +341,14 @@ if (appMode === 'campaign_team_select') {
         };
         
         const handleStartCampaignBattle = () => {
-            const aliveCount = campaignState.roster.filter(id => campaignState.rosterStats[id] > 0).length;
+            const aliveCount = availableCampaignHeroes(mission,campaignState.roster).filter(id => campaignState.rosterStats[id] > 0).length;
+            const lineupValidation=validateCampaignLineup(mission,campaignState.roster,campaignSelectedTeam);
+            if(!lineupValidation.ok && lineupValidation.reason==='unavailable'){
+                setCampaignSelectedTeam(playableSelectedTeam);
+                return setSystemAlert('Tails e Miku sono prigionieri durante il tradimento! Scegli altri alleati.');
+            }
+            if(!lineupValidation.ok && lineupValidation.reason!=='empty')
+                return setSystemAlert('La squadra scelta non è più disponibile. Ricomponila prima di entrare in battaglia.');
             const requiredCount = Math.min(maxTeamSize, aliveCount);
 
             if (campaignSelectedTeam.length === 0) return setSystemAlert("Seleziona almeno un personaggio!");
@@ -745,7 +760,7 @@ if (appMode === 'campaign_team_select') {
                             ? "Squadra Tattica Obbligatoria!"
                             : (activeCampaignId === 'torneo_assoluto' && campaignState.roster.length <= maxTeamSize 
                                 ? `Schiera i tuoi Campioni (${campaignSelectedTeam.length}/${Math.min(maxTeamSize, campaignState.roster.filter(id => campaignState.rosterStats[id] > 0).length)})` 
-                                : `Seleziona la tua Resistenza (${campaignSelectedTeam.length}/${maxTeamSize})`
+                                : `Seleziona la tua Resistenza (${playableSelectedTeam.length}/${maxTeamSize})`
                             )
                         }
                         {isEchoFinalRaid && <span className="block text-base text-cyan-300 mt-3">
@@ -755,6 +770,9 @@ if (appMode === 'campaign_team_select') {
                         {activeCampaignId === 'torneo_assoluto' && campaignState.roster.length > maxTeamSize && !mission.forcedRoster && <span className="block text-sm text-indigo-400 mt-2">Forma l'Alleanza fissa da 8 (5 Membri + 3 Riserve)</span>}
                     </h2>
                     
+                    {mission.unavailableChars?.length>0&&<div className="w-full max-w-4xl mb-5 rounded-xl border border-amber-400/50 bg-amber-950/30 px-4 py-3 text-center text-sm text-amber-100">
+                        🔒 Tails e Miku sono intrappolati nella scena del tradimento: non possono essere schierati. Torneranno dopo il salvataggio.
+                    </div>}
                     {isEchoFinalRaid&&<section className="w-full max-w-3xl mb-5 rounded-2xl border-2 border-fuchsia-400/70 bg-gradient-to-r from-purple-950/90 via-slate-950/90 to-purple-950/90 p-3 sm:p-5 shadow-[0_0_28px_rgba(168,85,247,0.2)]">
                         <h3 className="text-lg sm:text-xl font-black text-fuchsia-200 text-center">👻 ECHOMAX E LE TRE ANIME PRIGIONIERE</h3>
                         <p className="text-center text-xs sm:text-sm text-slate-200 mt-1 mb-4">
@@ -843,7 +861,8 @@ if (appMode === 'campaign_team_select') {
                             const id = char.id;
                             const hp = campaignState.rosterStats[id] || 0;
                             const isDead = hp <= 0;
-                            const isSelected = campaignSelectedTeam.includes(id);
+                            const isUnavailable = isCampaignHeroUnavailable(mission,id);
+                            const isSelected = playableSelectedTeam.includes(id);
                             const isStarting = isEchoFinalRaid && echoStartingSix.includes(id);
                             const isAnomalyTarget = mission.isAnomaly && mission.id === 'm12_5' && campaignState.anomalyTargets && campaignState.anomalyTargets.includes(id);
 
@@ -851,13 +870,17 @@ if (appMode === 'campaign_team_select') {
                                 <div 
                                     key={id} 
                                     onClick={() => {
+                                        if (isUnavailable) {
+                                            toggleChar(id);
+                                            return;
+                                        }
                                         if (isDead) {
                                             setSystemAlert("Questo personaggio è esausto! Curarlo all'accampamento prima di poterlo schierare in battaglia.");
                                             return;
                                         }
                                         toggleChar(id);
                                     }}
-                                    className={`multimon-roster-card relative min-w-0 overflow-hidden bg-slate-900/80 backdrop-blur-md border rounded-2xl p-3 sm:p-4 text-center transition-all duration-300 ${isDead ? 'opacity-50 grayscale border-rose-900 cursor-not-allowed' : isAnomalyTarget ? 'border-fuchsia-500 opacity-50 cursor-not-allowed' : isEchoFinalRaid ? (isStarting ? 'border-amber-300 bg-amber-900/25 shadow-[0_0_18px_rgba(251,191,36,0.3)] cursor-pointer':'border-slate-600/80 hover:border-cyan-400 cursor-pointer') : isSelected ? 'border-emerald-400 bg-emerald-900/30 ring-2 ring-emerald-400/35 shadow-[0_0_15px_rgba(16,185,129,0.25)]' : 'border-slate-700/50 hover:border-cyan-500/50 hover:-translate-y-1 cursor-pointer shadow-lg'}`}
+                                    className={`multimon-roster-card relative min-w-0 overflow-hidden bg-slate-900/80 backdrop-blur-md border rounded-2xl p-3 sm:p-4 text-center transition-all duration-300 ${isUnavailable ? 'opacity-60 grayscale border-amber-600/60 cursor-not-allowed' : isDead ? 'opacity-50 grayscale border-rose-900 cursor-not-allowed' : isAnomalyTarget ? 'border-fuchsia-500 opacity-50 cursor-not-allowed' : isEchoFinalRaid ? (isStarting ? 'border-amber-300 bg-amber-900/25 shadow-[0_0_18px_rgba(251,191,36,0.3)] cursor-pointer':'border-slate-600/80 hover:border-cyan-400 cursor-pointer') : isSelected ? 'border-emerald-400 bg-emerald-900/30 ring-2 ring-emerald-400/35 shadow-[0_0_15px_rgba(16,185,129,0.25)]' : 'border-slate-700/50 hover:border-cyan-500/50 hover:-translate-y-1 cursor-pointer shadow-lg'}`}
                                 >
                                     <div className={`multimon-roster-portrait w-full h-28 sm:h-32 md:h-36 flex items-center justify-center rounded-xl bg-slate-950/60 border-2 mb-3 p-2 ${isEchoFinalRaid ? (isStarting?'border-amber-300':'border-slate-600') : isSelected ? 'border-emerald-400' : 'border-slate-600/50'}`}>
                                         <img src={char.img} alt={char.name} loading="lazy" className="w-full h-full object-contain drop-shadow-lg" />
@@ -875,6 +898,11 @@ if (appMode === 'campaign_team_select') {
                                     {isSelected && !isEchoFinalRaid && (
                                         <div className="absolute top-2 right-2 bg-emerald-500 text-white rounded-full w-5 h-5 flex items-center justify-center font-black text-xs shadow-md">✓</div>
                                     )}
+                                    {isUnavailable && (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-amber-950/75 backdrop-blur-[1px] z-20 rounded-2xl">
+                                            <span className="text-amber-100 font-black text-xs uppercase -rotate-6 border-2 border-amber-400 px-3 py-1.5 bg-black/70 rounded-lg shadow-lg">🔒 Prigioniero</span>
+                                        </div>
+                                    )}
                                     {isAnomalyTarget && (
                                         <div className="absolute inset-0 flex items-center justify-center bg-fuchsia-900/80 backdrop-blur-sm z-10">
                                             <span className="text-white font-black text-[10px] uppercase -rotate-12 border-2 border-white px-2 py-1 bg-black/50 rounded shadow-lg">Infetto</span>
@@ -890,7 +918,7 @@ if (appMode === 'campaign_team_select') {
                         });
                     })()}
                 </div>
-                {campaignSelectedTeam.length > 0 && <div className="w-full max-w-6xl bg-gradient-to-b from-slate-900/95 to-indigo-950/80 border border-violet-400/45 rounded-3xl p-4 sm:p-6 mb-6 shadow-[0_0_35px_rgba(139,92,246,0.12)]">
+                {playableSelectedTeam.length > 0 && <div className="w-full max-w-6xl bg-gradient-to-b from-slate-900/95 to-indigo-950/80 border border-violet-400/45 rounded-3xl p-4 sm:p-6 mb-6 shadow-[0_0_35px_rgba(139,92,246,0.12)]">
                   <div className="flex items-center gap-3 mb-3">
                     <ItemArtwork id="iperband" size={35}/>
                     <div>
@@ -899,7 +927,7 @@ if (appMode === 'campaign_team_select') {
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {campaignSelectedTeam.map((id,index) => {
+                    {playableSelectedTeam.map((id,index) => {
                       const hero=CHARACTERS.find(c=>c.id===id);
                       const team=campaignSelectedTeam.map(heroId=>({heldItem:campaignHeldItems[heroId]||null}));
                       return hero?<HeldEquipmentCard key={id} hero={hero} index={index} team={team}
