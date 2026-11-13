@@ -20,6 +20,10 @@ import { applyPerfezioneBonus, firstHitProtectionFactor } from './nerfPassives.j
 import { isOnlineHealingLimited, isLimitedHealingItem, onlineHealingRemaining, ONLINE_HEAL_ITEM_LIMIT } from './onlineHealingLimit.js';
 import { consumeRaidShieldHit, createRaidShieldUpdateEvent, applyRaidShieldUpdateEvent } from './finalRaidBalance.js';
 import { activateRoguelikeBossShield } from './roguelikeBossPower.js';
+import {setupJuggernaut, applyJuggernautSummonBonus, updateJuggernautThresholds,
+  activateNextJuggernautShield, canUseJuggernautSkill, createJuggernautSynergy,
+  chargeJuggernautSynergy, canActivateJuggernautSynergy, spendJuggernautSynergy
+} from './juggernautSystem.js';
 import { createBattleReport, accumulateBattleReport } from './battleReport.js';
 import {createBattlePlaybackSnapshot,applySummonPlaybackEvent} from './battleSummonPlayback.js';
 import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
@@ -173,16 +177,8 @@ const { CHARACTERS } = ctx;
                           
                           // --- POTENZIAMENTO EVOCAZIONI JUGGERNAUT / CAMPAGNA BOSS ---
                           if (gameMode === 'juggernaut' && settings && !settings.isRoguelikeCoop && p === (settings.juggernautPlayer || 'p1')) {
-                              const numOpp = Object.keys(workingField).filter(k => workingTeams[k] && workingTeams[k].length > 0).length - 1;
-                              if (numOpp > 0) {
-                                  newSummon.maxHp = Math.floor(newSummon.maxHp * (1 + numOpp * 0.8));
-                                  newSummon.hp = newSummon.maxHp;
-                                  newSummon.atk = Math.floor(newSummon.atk * (1 + numOpp * 0.3));
-                                  newSummon.def = Math.floor(newSummon.def * (1 + numOpp * 0.3));
-                                  newSummon.baseAtk = newSummon.atk;
-                                  newSummon.baseDef = newSummon.def;
-                                  newSummon.imageFilter = 'drop-shadow(0 0 15px rgba(220,38,38,0.8))';
-                              }
+                              const numOpp = Object.keys(workingField).filter(k => k !== p && workingTeams[k]?.some(c=>c?.hp>0)).length;
+                              applyJuggernautSummonBonus(newSummon,numOpp);
                           } else if (isCampaign && p === 'p2') {
                               const summonerBase = CHARACTERS.find(c => c.id === char.id);
                               if (summonerBase) {
@@ -472,32 +468,7 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
                 // --- APPLICAZIONE BUFF JUGGERNAUT (Solo Modalità Juggernaut) ---
                 if (gameState.gameMode === 'juggernaut' && !gameState.isRoguelikeCoop && teams[juggPlayer] && teams[juggPlayer][0]) {
                     const numOpponents = Math.max(1, activeJugg.length - 1); // FIX: Assicura un valore valido
-                    const jugg = teams[juggPlayer][0];
-                    // Moltiplica enormemente HP per sopravvivere all'assalto combinato
-                    jugg.maxHp = Math.floor(jugg.maxHp * numOpponents * 1.5); 
-                    jugg.hp = jugg.maxHp;
-                    // Aumenta attacco e difesa del +40% per ogni avversario extra
-                    jugg.atk = Math.floor(jugg.atk * (1 + (numOpponents * 0.4)));
-                    jugg.def = Math.floor(jugg.def * (1 + (numOpponents * 0.4)));
-                    jugg.baseAtk = jugg.atk;
-                    jugg.baseDef = jugg.def;
-                    jugg.imageFilter = 'drop-shadow(0 0 30px rgba(220,38,38,1)) contrast(1.3) saturate(1.2)'; // Aura speciale potenziata
-                    jugg.isJuggernaut = true; // Flag per UI e logiche boss
-                    jugg.juggShieldHpThresholds = [0.75, 0.50, 0.25]; // Soglie scudo
-                    jugg.juggHitsRemaining = 0; // Contatore scudo
-                    jugg.shieldGrantedHits = 4; // Il Juggernaut riceve uno scudo da 4 colpi
-                    jugg.juggTurnCount = 0; // Contatore turni per la purificazione passiva
-
-                    // Aggiunta mossa esclusiva "Furia del Boss"
-                    jugg.moves.push({
-                        name: 'Furia del Boss',
-                        type: 'Oscuro',
-                        power: 40,
-                        targetCount: 4,
-                        cooldown: 3, // Sistema di ricarica
-                        currentCooldown: 0,
-                        desc: 'Un attacco esplosivo che colpisce tutti gli avversari in campo. Ricarica: 3 turni.'
-                    });
+                    setupJuggernaut(teams[juggPlayer][0],numOpponents);
                 }
             } else {
                 ['p1', 'p2', 'p3', 'p4'].forEach(p => {
@@ -549,6 +520,7 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
               // Nessuna vecchia istantanea deve interferire con gli ingressi di una nuova lotta.
               startOfTurnTeams:null,startOfTurnField:null,
               battleReport: accumulateBattleReport(createBattleReport(), teams, initialEvents, {countTurn:false}),
+              juggSynergy: gameState.gameMode === 'juggernaut' ? createJuggernautSynergy() : null,
               healingItemsUsed: {p1:0,p2:0,p3:0,p4:0,p5:0,p6:0,p7:0,p8:0},
               turnExpiresAt: null,
               actions: { p1: {}, p2: {}, p3: {}, p4: {}, p5: {}, p6: {}, p7: {}, p8: {} },
@@ -633,7 +605,8 @@ const { appMode, commandingIdx, ITEMS_DB, MOVES_DB, gameState, getActivePlayers,
             if(actionDetails.type === 'attack' &&
                 (!hyperPreviewMoves(activeCommandChar,pendingHyper,MOVES_DB)[actionDetails.moveIdx] ||
                  isMoveDisabled(activeCommandChar,
-                   hyperPreviewMoves(activeCommandChar,pendingHyper,MOVES_DB)[actionDetails.moveIdx]))){
+                   hyperPreviewMoves(activeCommandChar,pendingHyper,MOVES_DB)[actionDetails.moveIdx]) ||
+                 !canUseJuggernautSkill(activeCommandChar,hyperPreviewMoves(activeCommandChar,pendingHyper,MOVES_DB)[actionDetails.moveIdx]))){
                 isSubmittingActionRef.current=false;
                 return;
             }
@@ -852,6 +825,14 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             
             let workingTeams = JSON.parse(JSON.stringify(gameState.teams));
             let workingField = JSON.parse(JSON.stringify(gameState.field));
+            const juggSynergy=gameState.gameMode==='juggernaut'
+              ? {...createJuggernautSynergy(),...(gameState.juggSynergy||{})} : null;
+            const juggHittersThisTurn=new Set();
+            let synergyDamageActive=false;
+            for(const team of Object.values(workingTeams))for(const fighter of team||[]){
+              if(fighter?.isJuggernaut) fighter.juggCounterReady=false;
+              if(fighter)fighter.juggRoarThisTurn=false;
+            }
             const theaterScene=gameState.isCampaignBattle?gameState.theaterScene:null;
             const theaterTurnNumber=Number(gameState.battleReport?.turns||0)+1;
             const theaterCue=theaterTurnCue(theaterScene,theaterTurnNumber);
@@ -904,7 +885,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                   flameMoveDamageFactor(args[0],args[2],heatBurstActive)*
                   newcomerDamageFactor(args[0],args[1],args[2])*
                   theaterDamageMultiplier({scene:theaterScene,teams:workingTeams,
-                    attacker:args[0],target:args[1],turnNumber:theaterTurnNumber})));
+                    attacker:args[0],target:args[1],turnNumber:theaterTurnNumber})*
+                  (args[0]?.juggRoarThisTurn ? 0.85 : 1) *
+                  (synergyDamageActive && !args[0]?.isJuggernaut && args[1]?.isJuggernaut ? 1.15 : 1) *
+                  (args[0]?.juggNextAttackBoost ? 1.15 : 1)));
             };
             let workingFieldTraps = {...(gameState.fieldTraps||{})};
             let workingTrapSeen = JSON.parse(JSON.stringify(gameState.fieldTrapSeen||{}));
@@ -1019,6 +1003,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                       events.push({type:'text',text:`🛡️ ${item} protegge ${target.name}!`});
                 }
                 const hpBeforeDamage=target.hp;
+                const counterTrigger=target.isJuggernaut && target.juggCounterReady &&
+                  options.isEnemyTarget && (options.directAttack||options.isOffensiveMove) &&
+                  options.attacker && options.attacker!==target && options.attacker.hp>0 && dmg>0;
+                if(counterTrigger)dmg=Math.max(1,Math.floor(dmg*0.70));
                 let willSurvive = false;
                 if(useHeroSash(target,dmg,options)){
                     willSurvive=true;
@@ -1049,6 +1037,25 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 }
                 target.damageTakenThisTurn = (target.damageTakenThisTurn || 0) + dmg;
                 events.push({ type: 'damage', text: text, targetPlayer, targetIdx, newHp: target.hp });
+                if(target.isJuggernaut && target.hp>0 && target.hp<hpBeforeDamage){
+                  if(options.isEnemyTarget && options.attackerPlayer && !options.attacker?.isJuggernaut)
+                    juggHittersThisTurn.add(options.attackerPlayer);
+                  const unlocked=updateJuggernautThresholds(target,target.hp);
+                  for(const stage of unlocked){
+                    events.push({type:'juggernaut_phase',player:targetPlayer,idx:targetIdx,stage,
+                      text:'⚡ '+target.name+' entra nella fase '+stage+': '+
+                        (['','Dominio','Guardia Tirannica','Risveglio','Ultima Resistenza'][stage])+'!'});
+                  }
+                  const nextShield=activateNextJuggernautShield(target);
+                  if(nextShield)events.push(createRaidShieldUpdateEvent(targetPlayer,targetIdx,nextShield.hits,
+                    '🛡️ '+target.name+' attiva lo Scudo Assoluto del '+nextShield.threshold+'% ('+nextShield.hits+' colpi)!',true));
+                }
+                if(counterTrigger && target.hp>0 && options.attacker.hp>0){
+                  target.juggCounterReady=false;
+                  const recoil=Math.max(1,Math.floor((22*60*(target.atk/Math.max(1,options.attacker.def)))/85+2));
+                  applyDamage(options.attacker,recoil,options.attackerPlayer,options.attackerIdx,
+                    '⚔️ '+target.name+' contrattacca '+options.attacker.name+' con potenza 60: '+recoil+' danni!');
+                }
                 if(targetPlayer==='p2'&&target.id==='regista'&&target.theaterFinalBoss)
                     advanceTheaterFinalBossPhase({boss:target,events,applyStatBuff:applyBattleStatModifier});
                 if(targetPlayer==='p2' && target.id==='echomax' && target.isEchoRaidBoss)
@@ -1126,17 +1133,6 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     if (shield) events.push(createRaidShieldUpdateEvent(
                         targetPlayer, targetIdx, shield.hits,
                         `🛡️ ${target.name} raggiunge il ${shield.thresholdPercent}% di PS e attiva uno scudo da ${shield.hits} colpi!`, true));
-                } else if (target.juggShieldHpThresholds && target.juggShieldHpThresholds.length > 0) {
-                    let thresholdTriggered = false;
-                    while (target.juggShieldHpThresholds.length > 0 && (target.hp / target.maxHp) <= target.juggShieldHpThresholds[0]) {
-                        target.juggShieldHpThresholds.shift();
-                        thresholdTriggered = true;
-                    }
-                    if (thresholdTriggered) {
-                        const hitsToGrant = target.shieldGrantedHits || 4;
-                        target.juggHitsRemaining = hitsToGrant;
-                        events.push(createRaidShieldUpdateEvent(targetPlayer,targetIdx,hitsToGrant, `💥 ${target.name} si infuria! Uno Scudo Assoluto assorbirà i prossimi ${hitsToGrant} colpi! 💥`, true));
-                    }
                 }
 
                 // --- NUOVA LOGICA: RESURREZIONE CELL JR ---
@@ -1514,7 +1510,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 if (!immuneToStatDrops(char) && char.statuses && char.statuses.some(s => s.type === 'Elettrizzato')) effSpd = Math.floor(effSpd / 2);
                 
                 const move = action.type === 'attack' ? char.moves[action.moveIdx] : null;
-                let priority = (action.type === 'switch' || action.type === 'use_item') ? 6 : (move ? (move.priority || 0) : 0);
+                let priority = action.type==='juggernaut_synergy' ? 9 :
+                  (action.type === 'switch' || action.type === 'use_item') ? 6 : (move ? (move.priority || 0) : 0);
                 priority += rapidTransmutationPriority(char,move);
 
                 if (char.statuses && char.statuses.some(s => s.type === 'Ombra Rapida')) {
@@ -1817,7 +1814,27 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 continue;
               }
 
+              if(action.type==='juggernaut_synergy'){
+                const bossId=gameState.settings.juggernautPlayer||'p1';
+                const turn=(gameState.battleReport?.turns||0)+1;
+                if(gameState.gameMode==='juggernaut' && player!==bossId &&
+                  canActivateJuggernautSynergy(juggSynergy,turn) &&
+                  spendJuggernautSynergy(juggSynergy,action.effect,turn)){
+                  if(action.effect==='damage'){
+                    synergyDamageActive=true;
+                    events.push({type:'text',text:'🤝 COLPO COORDINATO! Gli sfidanti infliggono +15% danni al boss in questo turno!'});
+                  }else{
+                    events.push({type:'text',text:'🤝 FRANTUMA SCUDO! Il prossimo colpo allo scudo consumerà una carica aggiuntiva!'});
+                  }
+                }else events.push({type:'text',text:'La Sinergia non è ancora pronta o è già stata usata.'});
+                continue;
+              }
+
               if (action.type === 'attack' && move) {
+                if(move.currentCooldown>0 || !canUseJuggernautSkill(attacker,move)){
+                  events.push({type:'text',text:move.name+' non è ancora disponibile.'});
+                  continue;
+                }
                 if((move.targetMode==='revive'||move.targetMode==='ally') &&
                    !isLegalSupportTarget(
                      {gameMode:gameState.gameMode,settings:gameState.settings,
@@ -1855,6 +1872,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                   events.push({type:'text',text:`👥 Gemini copia la mossa ${remembered.name} di ${target.name}!`});
                 }
                 attacker.lastUsedMove={...move,remainingUses:null};
+                if(attacker.isJuggernaut && attacker.juggNextAttackBoost && (move.power||0)>0)
+                  attacker.juggNextAttackBoost=false; // applicazione rinviata: si consuma DOPO il calcolo del colpo
+
                 // Si registra solo ciò che il nemico ha DAVVERO mostrato;
                 // mai leggere comandi pendenti di giocatori avversari.
                 publicMovesForAi.push({type:'ai_public_move',player,charTeamIdx,
@@ -1865,6 +1885,32 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     move.currentCooldown = move.cooldown;
                 }
                 
+                if(move.juggSpecial && move.juggSpecial!=='fury'){
+                  const bossId=gameState.settings.juggernautPlayer||'p1';
+                  if(gameState.gameMode!=='juggernaut'||player!==bossId)continue;
+                  if(move.juggSpecial==='roar'){
+                    for(const p of activeMatchPlayers.filter(p=>p!==bossId))
+                      for(const idx of workingField[p]||[]){
+                        const other=workingTeams[p]?.[idx];
+                        if(other?.hp>0)other.juggRoarThisTurn=true;
+                      }
+                    events.push({type:'text',text:'📣 RUGGITO TIRANNICO! Gli sfidanti infliggono -15% danni per questo turno.'});
+                  } else if(move.juggSpecial==='counter'){
+                    attacker.juggCounterReady=true;
+                    events.push({type:'text',text:'⚔️ CONTRATTACCO SUPREMO! Il prossimo colpo diretto è ridotto del 30% e provoca una risposta di potenza 60.'});
+                  } else if(move.juggSpecial==='purge'){
+                    for(const [stat,base] of [['atk','baseAtk'],['def','baseDef'],['spd','baseSpd'],['spAtk','baseSpAtk'],['spDef','baseSpDef']]){
+                      if(Number.isFinite(attacker[base]) && attacker[stat]<attacker[base])attacker[stat]=attacker[base];
+                    }
+                    attacker.juggMidpointUsed=true;
+                    events.push({type:'text',text:'✨ RIPRISTINO DEL TIRANNO! Tutti i malus alle statistiche vengono annullati.'});
+                  } else if(move.juggSpecial==='empower'){
+                    attacker.juggNextAttackBoost=true;
+                    attacker.juggMidpointUsed=true;
+                    events.push({type:'text',text:'🔥 IMPULSO BRUTALE! Il prossimo attacco infliggerà +15% danni.'});
+                  }
+                  continue;
+                }
                 if (move.isCombo) {
                     const partnerIds = move.isCombo.filter(id => id !== attacker.id);
                     partnerIds.forEach(pId => {
@@ -2406,6 +2452,25 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
 let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                     applyDamage(t.char, recoilDmg, t.player, t.idx, `💥 La frantumazione dello scudo infligge ${recoilDmg} danni a ${t.char.name}!`);
                                  }
+                                    const nextQueued=activateNextJuggernautShield(t.char);
+                                    if(nextQueued)events.push(createRaidShieldUpdateEvent(t.player,t.idx,nextQueued.hits,
+                                      '🛡️ '+t.char.name+' attiva lo scudo in coda del '+nextQueued.threshold+'%!',true));
+                                }
+                                if(juggSynergy?.shieldPierce>0 && t.char.isJuggernaut && t.char.juggHitsRemaining>0){
+                                  juggSynergy.shieldPierce=0;
+                                  const extra=consumeRaidShieldHit(t.char);
+                                  if(extra?.absorbed){
+                                    events.push(createRaidShieldUpdateEvent(t.player,t.idx,extra.remaining,
+                                      '🤝 Frantuma Scudo! Un\'altra carica viene distrutta.'));
+                                    if(extra.broken){
+                                      events.push({type:'text',text:'🛡️ Lo scudo di '+t.char.name+' si infrange per la sinergia!'});
+                                      const recoil=Math.max(5,Math.floor(t.char.maxHp*.05));
+                                      applyDamage(t.char,recoil,t.player,t.idx,'💥 La rottura infligge '+recoil+' danni al boss!');
+                                      const nextQueued=activateNextJuggernautShield(t.char);
+                                      if(nextQueued)events.push(createRaidShieldUpdateEvent(t.player,t.idx,nextQueued.hits,
+                                        '🛡️ '+t.char.name+' attiva lo scudo in coda del '+nextQueued.threshold+'%!',true));
+                                    }
+                                  }
                                 }
                                 continue;
                             }
@@ -2514,17 +2579,6 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 if (shield) events.push(createRaidShieldUpdateEvent(
                                     t.player, t.idx, shield.hits,
                                     `🛡️ ${t.char.name} raggiunge il ${shield.thresholdPercent}% di PS e attiva uno scudo da ${shield.hits} colpi!`, true));
-                            } else if (t.char.juggShieldHpThresholds && t.char.juggShieldHpThresholds.length > 0) {
-                                let thresholdTriggered = false;
-                                while (t.char.juggShieldHpThresholds.length > 0 && ((t.char.hp - totalDmg) / t.char.maxHp) <= t.char.juggShieldHpThresholds[0]) {
-                                    t.char.juggShieldHpThresholds.shift();
-                                    thresholdTriggered = true;
-                                }
-                                if (thresholdTriggered) {
-                                    const hitsToGrant = t.char.shieldGrantedHits || 4;
-                                    t.char.juggHitsRemaining = hitsToGrant;
-                                    events.push(createRaidShieldUpdateEvent(t.player,t.idx,hitsToGrant, `💥 ${t.char.name} si infuria! Uno Scudo Assoluto assorbirà i prossimi ${hitsToGrant} colpi! 💥`, true));
-                                }
                             }
 
                             if (t.char.hp - totalDmg <= 0) break;
@@ -4051,6 +4105,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
             }
         }
 
+        if(juggSynergy && chargeJuggernautSynergy(juggSynergy,juggHittersThisTurn))
+          events.push({type:'text',text:'🤝 Due sfidanti hanno colpito il boss: Sinergia '+juggSynergy.charge+'/2!'});
         updateState({
           status: 'executing', 
           phaseStartedAt: Date.now(),
@@ -4058,7 +4114,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
           turnCalculationStartedAt: null,
           postExecStatus: nextStatus,
           winner,
-          survivalRound: currentSurvivalRound, 
+          survivalRound: currentSurvivalRound,
+          ...(juggSynergy ? {juggSynergy} : {}),
           teams: workingTeams,
           field: workingField,
           ...(gameState.isEchoFinalBattle?{echoFinalStage}:{}),
@@ -4144,7 +4201,10 @@ const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, set
                        currentDisplay[evt.player][evt.charTeamIdx].isHyper = true;
                        setDisplayTeams({ ...currentDisplay });
                    }
-                 } else if (evt.type === 'raid_shield_update') {
+                 } else if(evt.type==='juggernaut_phase'){
+                    const boss=currentDisplay?.[evt.player]?.[evt.idx];
+                    if(boss){boss.juggPhase=evt.stage;setDisplayTeams({...currentDisplay});}
+                } else if (evt.type === 'raid_shield_update') {
                     if (applyRaidShieldUpdateEvent(currentDisplay, evt)) {
                         setDisplayTeams({ ...currentDisplay });
                     }
