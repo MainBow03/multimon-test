@@ -9,6 +9,7 @@ export const THEATER_ACT_VI={
  ['Blaze the Cat','Porteremo le persone fuori, prima che il Regista chiuda le uscite.'],
  ['Danny Phantom','Io attraverso i muri. Ma le poltrone stanno diventando vere barriere.'],
  ['Star Butterfly','Clover! Copriamo il passaggio con le stelle giganti!'],
+ ['Stellarubia','Io porterò in volo le persone bloccate sopra le balconate. Non saranno comparse abbandonate!'],
  ['Clover (Totally Spies)','Mi piace quando abbiamo un piano che coinvolge un po’ di spettacolo.'],
  ['Coraline','La platea non deve vedere niente. Deve soltanto poter uscire.'],
  ['Il Caposcena','Non è prevista una fuga del pubblico! Siete tutti fuori contratto!'],
@@ -26,6 +27,8 @@ export const THEATER_ACT_VI={
  dialogue:[
  ['Daffy Duck','Finalmente è arrivato il momento del mio assolo leggendario!'],
  ['Tails','Daffy, se ti metti al centro della sala, tutti i riflettori seguiranno te.'],
+ ['Stellarubia','Ti auguro immensi applausi... anche se nessuno potrà vederti fare questa cosa meravigliosa!'],
+ ['Daffy Duck','È IL PARADOSSO ARTISTICO PIÙ CRUDELE DI SEMPRE!'],
  ['Daffy Duck','TUTTI?! È LA MIA OCCASIONE!'],
  ['Coraline','L’idea è tenerli occupati mentre gli altri passano dietro il palco.'],
  ['Daffy Duck','Aspetta. Non riceverò gli applausi?'],
@@ -51,6 +54,7 @@ export const THEATER_ACT_VI={
  ['La Prima Donna','Le vostre frasi sono gentili perché non avete mai conosciuto il silenzio della platea vuota.'],
  ['Sam (Totally Spies)','I riflettori stanno copiando i segnali delle nostre mosse. Tails, spezza il collegamento!'],
  ['Tails','Non posso farlo finché sono tutti accesi. Dobbiamo distruggerli uno alla volta.'],
+ ['Stellarubia','I miei Starbolt faranno del loro meglio! Stavolta non illumineranno il palco: spegneranno le luci ingiuste.'],
  ['Star Butterfly','Quindi prima le lampade e poi il concerto finale. Questo posso ricordarlo!'],
  ['La Prima Donna','ALLORA CHE L’ULTIMA ARIA VI TRAVOLGA!']
  ],
@@ -72,7 +76,8 @@ export const THEATER_ACT_VI={
  ['Tails','Tutte verdi. Se separiamo l’Occhio di Platea, la struttura può reggere da sola.'],
  ['Il Caposcena','La ragazza non deve uscire dal suo copione! Ordine del Regista!'],
  ['Nina','Non c’è scritto niente nel mio copione. È questo che hai sempre avuto paura di accettare.'],
- ['Star Butterfly','NINA! Noi siamo con te. Adesso scrivi tu la prima pagina.']
+ ['Star Butterfly','NINA! Noi siamo con te. Adesso scrivi tu la prima pagina.'],
+ ['Stellarubia','Ti aspettiamo dall’altro lato della porta, Nina. Nessuna persona deve avere paura di cominciare.']
  ],
  postDialogue:[
  ['Nina','La porta è aperta. Ho visto un vero cielo dal corridoio.'],
@@ -94,7 +99,8 @@ export const THEATER_ACT_VI={
  ['Nina','Non sono una storia. Sono io.'],
  ['Il Regista','Allora il mio ultimo spettacolo comincia con voi. LUCI!'],
  ['Sam (Totally Spies)','Riflettori prima, Regista dopo. Questa volta non seguiamo la sua regia!'],
- ['Star Butterfly','E SEVERIN! Il nostro finale sarà molto più bello del tuo!']
+ ['Star Butterfly','E SEVERIN! Il nostro finale sarà molto più bello del tuo!'],
+ ['Stellarubia','Perché sarà il finale scelto da tutti noi, non imposto da un solo uomo!']
  ],
  postDialogue:[
  ['Il Regista','I riflettori... non rispondono. La Platea ha smesso di guardare.'],
@@ -117,6 +123,8 @@ export const THEATER_ACT_VI={
  ['Clover (Totally Spies)','Sam, qualunque cosa succeda... questa volta seguirò il piano.'],
  ['Sam (Totally Spies)','No, Clover. Questa volta lo costruiremo insieme.'],
  ['Blaze the Cat','La sala è al sicuro. Nessuno spettatore è rimasto intrappolato.'],
+ ['Stellarubia','Ho controllato anche le balconate e i lampadari! Tutti al sicuro. E nessun popcorn è andato perduto.'],
+ ['Coraline','Incredibile. Anche la fine del mondo avrebbe i suoi popcorn con voi due.'],
  ['Danny Phantom','E non c’è più nessun posto in cui il Regista possa nascondere le sue catene.'],
  ['Il Regista','Se credete davvero nelle vostre scelte, allora affrontate la scelta finale!'],
  ['Star Butterfly','Una cosa ti sfugge: non hai mai avuto il diritto di scegliere il finale per noi.']
@@ -144,6 +152,7 @@ export const THEATER_ACT_VI={
  ['Nina','Severin, dovrai rispondere di ciò che hai fatto. Ma io non voglio essere la tua ultima scena.'],
  ['Il Regista','E che cosa sarai, Nina?'],
  ['Nina','Non lo so ancora. La pagina è bianca.'],
+ ['Stellarubia','Su Tamaran le storie migliori sono quelle che cominciano con nuovi amici. Ora ne hai tantissimi.'],
  ['Coraline','Allora direi che è un buon inizio.']
  ]}
  ]};
