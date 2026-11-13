@@ -33,6 +33,14 @@ export const VICTORY_EFFECTS=Object.freeze([
    hint:"L’arena piomba nella tempesta: sei fulmini illuminano il cielo a tempo, poi tutto si accende di elettricità.",tagline:"IL TUONO PRONUNCIA IL TUO NOME!",color:"#fef08a",accent:"#2563eb"},
   {id:"storybook",name:"Libro delle Leggende",icon:"📖",
    hint:"Un antico tomo si apre, le pagine si voltano da sole e il nome del vincitore entra nella leggenda.",tagline:"UN NUOVO CAPITOLO NELLA LEGGENDA!",color:"#fcd34d",accent:"#b45309"},
+  {id:"meteorcrown",name:"Corona Meteoritica",icon:"☄️",
+   hint:"Quattro meteore infuocate sfrecciano sopra l’arena; le scie si riuniscono in una corona astrale che scende sul vincitore.",tagline:"IL CIELO SI INCHINA AL CAMPIONE!",color:"#fdba74",accent:"#ea580c"},
+  {id:"roseeclipse",name:"Eclissi di Rose",icon:"🌘",
+   hint:"Il sole scompare dietro una luna nera, una corona di luce cremisi si accende e petali rosa cadono dal cielo.",tagline:"LA NOTTE FIORISCE PER IL VINCITORE!",color:"#f9a8d4",accent:"#be185d"},
+  {id:"royalcards",name:"Trionfo Reale",icon:"🃏",
+   hint:"Quattro carte giganti vengono distribuite e si aprono a ventaglio dietro al vincitore, fra scintille da prestigiatore.",tagline:"LA MANO VINCENTE È LA TUA!",color:"#fde68a",accent:"#7c3aed"},
+  {id:"mechaforge",name:"Forgia del Campione",icon:"⚙️",
+   hint:"Due ingranaggi mettono in moto una fucina futuristica; un martello d’energia colpisce l’incudine sprigionando scintille.",tagline:"LA VITTORIA È STATA FORGIATA!",color:"#93c5fd",accent:"#0f766e"},
 ]);
 const known=new Set(VICTORY_EFFECTS.map(x=>x.id));
 export function ownedVictoryEffects(profile){
