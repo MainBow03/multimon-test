@@ -22,7 +22,9 @@ import { consumeRaidShieldHit, createRaidShieldUpdateEvent, applyRaidShieldUpdat
 import { activateRoguelikeBossShield } from './roguelikeBossPower.js';
 import {setupJuggernaut, applyJuggernautSummonBonus, updateJuggernautThresholds,
   activateNextJuggernautShield, canUseJuggernautSkill, createJuggernautSynergy,
-  chargeJuggernautSynergy, canActivateJuggernautSynergy, spendJuggernautSynergy
+  chargeJuggernautSynergy, spendJuggernautSynergy, applyJuggernautMidpointChoice,
+  juggernautRoarDamageFactor, endJuggernautRoarTurn, mitigateJuggernautCounter,
+  JUGGERNAUT_ROAR_TURNS, JUGGERNAUT_COUNTER_HITS
 } from './juggernautSystem.js';
 import { createBattleReport, accumulateBattleReport } from './battleReport.js';
 import {createBattlePlaybackSnapshot,applySummonPlaybackEvent} from './battleSummonPlayback.js';
@@ -521,6 +523,7 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
               startOfTurnTeams:null,startOfTurnField:null,
               battleReport: accumulateBattleReport(createBattleReport(), teams, initialEvents, {countTurn:false}),
               juggSynergy: gameState.gameMode === 'juggernaut' ? createJuggernautSynergy() : null,
+              juggFreeChoices: {},
               healingItemsUsed: {p1:0,p2:0,p3:0,p4:0,p5:0,p6:0,p7:0,p8:0},
               turnExpiresAt: null,
               actions: { p1: {}, p2: {}, p3: {}, p4: {}, p5: {}, p6: {}, p7: {}, p8: {} },
@@ -577,6 +580,8 @@ const { appMode, commandingIdx, ITEMS_DB, MOVES_DB, gameState, getActivePlayers,
 
             // Il divieto dello Zaino in Ultimon vale anche per comandi vecchi o inviati a mano.
             if (actionDetails?.type === 'use_item' && !canUseBagItems(gameState)) return;
+            // La sinergia e la scelta del 50% ora sono gratuite, mai un'azione.
+            if (actionDetails?.type === 'juggernaut_synergy') return;
             if (isSubmittingActionRef.current) return; // FIX: Evita che i doppi click sovrascrivano le azioni precedenti!
             isSubmittingActionRef.current = true;
 
@@ -830,8 +835,13 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
             const juggHittersThisTurn=new Set();
             let synergyDamageActive=false;
             for(const team of Object.values(workingTeams))for(const fighter of team||[]){
-              if(fighter?.isJuggernaut) fighter.juggCounterReady=false;
-              if(fighter)fighter.juggRoarThisTurn=false;
+              if(fighter?.isJuggernaut){
+                fighter.juggCounterReady=false;
+                if(gameState.gameMode==='juggernaut'){
+                  fighter.juggCounterHitsRemaining=0;
+                  fighter.juggCounterUsed=false;
+                }
+              }
             }
             const theaterScene=gameState.isCampaignBattle?gameState.theaterScene:null;
             const theaterTurnNumber=Number(gameState.battleReport?.turns||0)+1;
@@ -886,13 +896,42 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                   newcomerDamageFactor(args[0],args[1],args[2])*
                   theaterDamageMultiplier({scene:theaterScene,teams:workingTeams,
                     attacker:args[0],target:args[1],turnNumber:theaterTurnNumber})*
-                  (args[0]?.juggRoarThisTurn ? 0.85 : 1) *
+                  juggernautRoarDamageFactor(
+                    workingTeams[gameState.settings?.juggernautPlayer||'p1']?.[0],
+                    gameState.gameMode==='juggernaut' &&
+                    !workingTeams[gameState.settings?.juggernautPlayer||'p1']?.includes(args[0])) *
                   (synergyDamageActive && !args[0]?.isJuggernaut && args[1]?.isJuggernaut ? 1.15 : 1) *
                   (args[0]?.juggNextAttackBoost ? 1.15 : 1)));
             };
             let workingFieldTraps = {...(gameState.fieldTraps||{})};
             let workingTrapSeen = JSON.parse(JSON.stringify(gameState.fieldTrapSeen||{}));
             const activeMatchPlayers = getActivePlayers();
+            // Le scelte sono state registrate dalla stanza prima della conferma
+            // delle mosse; hanno effetto all'inizio del turno SENZA occupare slot.
+            if(gameState.gameMode==='juggernaut'){
+              const bossRole=gameState.settings?.juggernautPlayer||'p1';
+              const boss=workingTeams[bossRole]?.[0];
+              const choice=gameState.juggFreeChoices||{};
+              if(boss?.hp>0 && choice.boss?.by===bossRole &&
+                 choice.boss?.phase===gameState.phaseStartedAt &&
+                 applyJuggernautMidpointChoice(boss,choice.boss.value)){
+                events.push({type:'text',text:choice.boss.value==='purge'
+                  ? '✨ RIPRISTINO DEL TIRANNO! Il boss annulla i malus alle statistiche senza perdere l’azione!'
+                  : '🔥 IMPULSO BRUTALE! Il prossimo attacco del boss infligge +15% danni, senza perdere l’azione!'});
+              }
+              if(boss?.hp>0 && choice.synergy?.by!==bossRole &&
+                activeMatchPlayers.includes(choice.synergy?.by) &&
+                choice.synergy?.phase===gameState.phaseStartedAt &&
+                spendJuggernautSynergy(juggSynergy,choice.synergy?.value,
+                  (gameState.battleReport?.turns||0)+1)){
+                if(choice.synergy.value==='damage'){
+                  synergyDamageActive=true;
+                  events.push({type:'text',text:'🤝 COLPO COORDINATO! +15% danni al boss per tutto il turno: nessuna azione consumata!'});
+                }else{
+                  events.push({type:'text',text:'🤝 FRANTUMA SCUDO! Il prossimo colpo assorbito consumerà una carica aggiuntiva, senza perdere l’azione!'});
+                }
+              }
+            }
 
             const handleFaint = (targetPlayer, targetIdx) => {
               const char = workingTeams[targetPlayer]?.[targetIdx];
@@ -1003,10 +1042,12 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                       events.push({type:'text',text:`🛡️ ${item} protegge ${target.name}!`});
                 }
                 const hpBeforeDamage=target.hp;
-                const counterTrigger=target.isJuggernaut && target.juggCounterReady &&
+                const canCounter=gameState.gameMode==='juggernaut' && target.isJuggernaut &&
                   options.isEnemyTarget && (options.directAttack||options.isOffensiveMove) &&
                   options.attacker && options.attacker!==target && options.attacker.hp>0 && dmg>0;
-                if(counterTrigger)dmg=Math.max(1,Math.floor(dmg*0.70));
+                const counterResult=canCounter ? mitigateJuggernautCounter(
+                  target,dmg,options.directHits??1) : null;
+                if(counterResult?.coveredHits) dmg=counterResult.damage;
                 let willSurvive = false;
                 if(useHeroSash(target,dmg,options)){
                     willSurvive=true;
@@ -1069,8 +1110,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                       '🛡️ '+target.name+' attiva il suo scudo raid da '+hitsToGrant+' colpi!',true));
                   }
                 }
-                if(counterTrigger && target.hp>0 && options.attacker.hp>0){
-                  target.juggCounterReady=false;
+                if(counterResult?.counter && target.hp>0 && options.attacker.hp>0){
                   const recoil=Math.max(1,Math.floor((22*60*(target.atk/Math.max(1,options.attacker.def)))/85+2));
                   applyDamage(options.attacker,recoil,options.attackerPlayer,options.attackerIdx,
                     '⚔️ '+target.name+' contrattacca '+options.attacker.name+' con potenza 60: '+recoil+' danni!');
@@ -1529,8 +1569,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 if (!immuneToStatDrops(char) && char.statuses && char.statuses.some(s => s.type === 'Elettrizzato')) effSpd = Math.floor(effSpd / 2);
                 
                 const move = action.type === 'attack' ? char.moves[action.moveIdx] : null;
-                let priority = action.type==='juggernaut_synergy' ? 9 :
-                  (action.type === 'switch' || action.type === 'use_item') ? 6 : (move ? (move.priority || 0) : 0);
+                let priority = (action.type === 'switch' || action.type === 'use_item') ? 6 : (move ? (move.priority || 0) : 0);
                 priority += rapidTransmutationPriority(char,move);
 
                 if (char.statuses && char.statuses.some(s => s.type === 'Ombra Rapida')) {
@@ -1833,22 +1872,6 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 continue;
               }
 
-              if(action.type==='juggernaut_synergy'){
-                const bossId=gameState.settings.juggernautPlayer||'p1';
-                const turn=(gameState.battleReport?.turns||0)+1;
-                if(gameState.gameMode==='juggernaut' && player!==bossId &&
-                  canActivateJuggernautSynergy(juggSynergy,turn) &&
-                  spendJuggernautSynergy(juggSynergy,action.effect,turn)){
-                  if(action.effect==='damage'){
-                    synergyDamageActive=true;
-                    events.push({type:'text',text:'🤝 COLPO COORDINATO! Gli sfidanti infliggono +15% danni al boss in questo turno!'});
-                  }else{
-                    events.push({type:'text',text:'🤝 FRANTUMA SCUDO! Il prossimo colpo allo scudo consumerà una carica aggiuntiva!'});
-                  }
-                }else events.push({type:'text',text:'La Sinergia non è ancora pronta o è già stata usata.'});
-                continue;
-              }
-
               if (action.type === 'attack' && move) {
                 if(move.currentCooldown>0 || !canUseJuggernautSkill(attacker,move)){
                   events.push({type:'text',text:move.name+' non è ancora disponibile.'});
@@ -1906,25 +1929,13 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                   const bossId=gameState.settings.juggernautPlayer||'p1';
                   if(gameState.gameMode!=='juggernaut'||player!==bossId)continue;
                   if(move.juggSpecial==='roar'){
-                    for(const p of activeMatchPlayers.filter(p=>p!==bossId))
-                      for(const idx of workingField[p]||[]){
-                        const other=workingTeams[p]?.[idx];
-                        if(other?.hp>0)other.juggRoarThisTurn=true;
-                      }
-                    events.push({type:'text',text:'📣 RUGGITO TIRANNICO! Gli sfidanti infliggono -15% danni per questo turno.'});
+                    attacker.juggRoarTurnsRemaining=JUGGERNAUT_ROAR_TURNS;
+                    events.push({type:'text',text:'📣 RUGGITO TIRANNICO! -20% ai danni degli sfidanti per questo turno e il prossimo!'});
                   } else if(move.juggSpecial==='counter'){
                     attacker.juggCounterReady=true;
-                    events.push({type:'text',text:'⚔️ CONTRATTACCO SUPREMO! Il prossimo colpo diretto è ridotto del 30% e provoca una risposta di potenza 60.'});
-                  } else if(move.juggSpecial==='purge'){
-                    for(const [stat,base] of [['atk','baseAtk'],['def','baseDef'],['spd','baseSpd'],['spAtk','baseSpAtk'],['spDef','baseSpDef']]){
-                      if(Number.isFinite(attacker[base]) && attacker[stat]<attacker[base])attacker[stat]=attacker[base];
-                    }
-                    attacker.juggMidpointUsed=true;
-                    events.push({type:'text',text:'✨ RIPRISTINO DEL TIRANNO! Tutti i malus alle statistiche vengono annullati.'});
-                  } else if(move.juggSpecial==='empower'){
-                    attacker.juggNextAttackBoost=true;
-                    attacker.juggMidpointUsed=true;
-                    events.push({type:'text',text:'🔥 IMPULSO BRUTALE! Il prossimo attacco infliggerà +15% danni.'});
+                    attacker.juggCounterHitsRemaining=JUGGERNAUT_COUNTER_HITS;
+                    attacker.juggCounterUsed=false;
+                    events.push({type:'text',text:'⚔️ CONTRATTACCO SUPREMO! I prossimi 2 colpi diretti sono ridotti del 30%; il boss reagisce una sola volta!'});
                   }
                   continue;
                 }
@@ -3354,6 +3365,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 isFirstAttackOfTurn = false;
             }
         } // Fine ciclo coda dei turni
+        if(gameState.gameMode==='juggernaut')
+          endJuggernautRoarTurn(workingTeams[gameState.settings?.juggernautPlayer||'p1']?.[0]);
         // Il colpo extra diventa disponibile SOLO dopo i KO di tutte e
         // tre le anime originali, poi ogni cinque turni della prima fase,
         // indipendentemente dalla normale azione, da Stordito e Ricarica.
@@ -4138,6 +4151,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
           winner,
           survivalRound: currentSurvivalRound,
           ...(juggSynergy ? {juggSynergy} : {}),
+          juggFreeChoices: {},
           teams: workingTeams,
           field: workingField,
           ...(gameState.isEchoFinalBattle?{echoFinalStage}:{}),
