@@ -20,9 +20,9 @@ test('Juggernaut: scale in 3/4/5 players, special stats and one-time setup',()=>
     assert.equal(char.def,Math.floor(100*scale.def));
     assert.equal(char.spAtk,Math.floor(80*scale.atk));
     assert.equal(char.spDef,Math.floor(80*scale.def));
-    assert.equal(char.moves.filter(m=>m.juggSpecial).length,5);
+    assert.equal(char.moves.filter(m=>m.juggSpecial).length,3);
     setupJuggernaut(char,Number(opponents));
-    assert.equal(char.moves.filter(m=>m.juggSpecial).length,5);
+    assert.equal(char.moves.filter(m=>m.juggSpecial).length,3);
   }
 });
 test('Juggernaut: one heavy hit never loses shield phases',()=>{
@@ -62,11 +62,11 @@ test('Juggernaut: skill gating and midpoint choice shared',()=>{
   assert.equal(canUseJuggernautSkill(c,skills.counter),false);
   updateJuggernautThresholds(c,c.maxHp*.49);
   assert.equal(canUseJuggernautSkill(c,skills.counter),true);
-  assert.equal(canUseJuggernautSkill(c,skills.purge),true);
-  assert.equal(canUseJuggernautSkill(c,skills.empower),true);
-  c.juggMidpointUsed=true;
-  assert.equal(canUseJuggernautSkill(c,skills.purge),false);
-  assert.equal(canUseJuggernautSkill(c,skills.empower),false);
+  // Le scelte del 50% ora sono gratuite, non mosse da selezionare.
+  assert.equal(skills.purge,undefined);
+  assert.equal(skills.empower,undefined);
+  assert.equal(canUseJuggernautSkill(c,{juggSpecial:'purge',juggOnceMidpoint:true}),false);
+  assert.equal(canUseJuggernautSkill(c,{juggSpecial:'empower',juggOnceMidpoint:true}),false);
   skills.roar.currentCooldown=2;
   assert.equal(canUseJuggernautSkill(c,skills.roar),false);
 });
@@ -105,7 +105,8 @@ test('Juggernaut: mode-isolated engine and UI integration',()=>{
   const result=readFileSync(new URL('../src/screens/battle/GameoverView.jsx',import.meta.url),'utf8');
   assert.match(engine,/setupJuggernaut\(teams\[juggPlayer\]\[0\],numOpponents\)/);
   assert.match(engine,/gameState\.gameMode === 'juggernaut' && !gameState\.isRoguelikeCoop/);
-  assert.match(engine,/juggernaut_synergy/);
+  assert.match(engine,/juggFreeChoices/);
+  assert.match(engine,/applyJuggernautMidpointChoice/);
   assert.match(engine,/juggHittersThisTurn/);
   assert.match(engine,/activateNextJuggernautShield/);
   assert.match(ui,/Frantuma Scudo/);

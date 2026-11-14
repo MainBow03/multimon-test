@@ -41,6 +41,7 @@ import { renderLobbyView } from './screens/battle/LobbyView.jsx';
 import { renderDraftingView } from './screens/battle/DraftingView.jsx';
 import { renderSwitchingPhaseView } from './screens/battle/SwitchingPhaseView.jsx';
 import { renderBattlingView } from './screens/battle/BattlingView.jsx';
+import {canQueueJuggernautFreeChoice} from './systems/juggernautSystem.js';
 import { renderGameoverView } from './screens/battle/GameoverView.jsx';
 import {VictoryCelebration} from './screens/battle/VictoryCelebration.jsx';
 import {victoryCelebrationForRoom} from './systems/victoryCosmetics.js';
@@ -1720,6 +1721,35 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               }
           };
 
+          // Abilità senza consumo del turno. In online la transazione impedisce
+          // doppie attivazioni concorrenti e scelte dopo il cambio fase.
+          const chooseJuggernautFreeChoice = async (kind,value) => {
+              if(!canQueueJuggernautFreeChoice(gameState,playerRole,kind,value))return false;
+              const phase=gameState.phaseStartedAt;
+              const choice={by:playerRole,value,phase};
+              if(appMode==='local_room'){
+                  await updateState({['juggFreeChoices.'+kind]:choice});
+                  return true;
+              }
+              if(appMode!=='online_room'||!roomId||!user?.uid)return false;
+              const ref=doc(db,'artifacts',appId,'public','data','rooms',roomId);
+              try{
+                  return await runTransaction(db,async tx=>{
+                      const snap=await tx.get(ref);
+                      if(!snap.exists())return false;
+                      const live=snap.data();
+                      if(live.phaseStartedAt!==phase ||
+                         live.playerUids?.[playerRole]!==user.uid ||
+                         !canQueueJuggernautFreeChoice(live,playerRole,kind,value))return false;
+                      tx.update(ref,{['juggFreeChoices.'+kind]:choice});
+                      return true;
+                  });
+              }catch(error){
+                  setSystemAlert('Impossibile attivare il potere gratuito: '+(error.message||error));
+                  return false;
+              }
+          };
+
           const commitAction = (...__args) => commitActionImpl({ appMode, commandingIdx, ITEMS_DB, MOVES_DB, gameState, getActivePlayers, isSubmittingActionRef, pendingHyper, playerRole, setActionMenuMode, setCommandingIdx, setPendingHyper, setPlayerRole, setSelectedMultiTargets, setTargetingMoveIdx, updateState:guardedCoopActionUpdate }, ...__args);
 
           const handleSelectMoveTarget = (...__args) => handleSelectMoveTargetImpl({ commandingIdx, commitAction, gameState, getActivePlayers, getTournamentMatchOpponents, MOVES_DB, pendingHyper, playerRole, selectedMultiTargets, setSelectedMultiTargets, targetingMoveIdx }, ...__args);
@@ -2125,7 +2155,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (gameState.status === 'battling' || gameState.status === 'executing') {
-  const __screen = renderBattlingView({ coopPendingAction, roomId, ownMasteryLevels: masteryVisibleLevels(getPlayerData()), ChevronRight, ITEMS_DB, appMode, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip: safeForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom:gameState.isTrainingBattle?leaveCombatLab:leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });
+  const __screen = renderBattlingView({ chooseJuggernautFreeChoice, coopPendingAction, roomId, ownMasteryLevels: masteryVisibleLevels(getPlayerData()), ChevronRight, ITEMS_DB, appMode, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip: safeForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom:gameState.isTrainingBattle?leaveCombatLab:leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });
   if (__screen !== undefined) return __screen;
 }
 
