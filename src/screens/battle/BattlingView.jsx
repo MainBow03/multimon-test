@@ -18,10 +18,10 @@ import {legalSupportTargets} from '../../systems/supportTargeting.js';
 import {ultimonIsFinalShowdown} from '../../systems/ultimonSystem.js';
 import {canUseBagItems} from '../../systems/bagItemPolicy.js';
 import {THEATER_RULES} from '../../data/theaterCampaign.js';
-import {canUseJuggernautSkill,canActivateJuggernautSynergy,JUGGERNAUT_PHASE_NAMES} from '../../systems/juggernautSystem.js';
+import {canUseJuggernautSkill,canQueueJuggernautFreeChoice,JUGGERNAUT_PHASE_NAMES} from '../../systems/juggernautSystem.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderBattlingView(ctx) {
-const { ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, appMode, actionMenuMode, combatLog, commandingIdx, commitAction, coopPendingAction, roomId, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
+const { chooseJuggernautFreeChoice, ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, appMode, actionMenuMode, combatLog, commandingIdx, commitAction, coopPendingAction, roomId, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
 if (gameState.status === 'battling' || gameState.status === 'executing') {
         const activeMatchPlayers = getActivePlayers();
         const grandFinale = ultimonIsFinalShowdown(gameState);
@@ -57,8 +57,9 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
         const juggPhase=juggCombatant?.juggPhase||1;
         const synergy=gameState.juggSynergy||{charge:0,coordinatedTurns:0};
         const synergyTurn=(gameState.battleReport?.turns||0)+1;
-        const synergyReady=isJuggernautBattle && playerRole!==juggernautPlayer &&
-          canActivateJuggernautSynergy(synergy,synergyTurn);
+        const synergyReady=canQueueJuggernautFreeChoice(gameState,playerRole,'synergy','damage');
+        const bossChoiceReady=canQueueJuggernautFreeChoice(gameState,playerRole,'boss','purge');
+        const freeChoice=gameState.juggFreeChoices||{};
         let bottomPlayers = [];
         let topPlayers = [];
         const isSpectatorState = playerRole === 'spectator';
@@ -623,11 +624,50 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                   </div>
                   <div className="max-w-5xl mx-auto mt-1 flex items-center justify-between gap-2 text-[11px] font-bold">
                     <span className="text-cyan-200">🤝 Sinergia sfidanti: {Math.min(2,synergy.charge||0)}/2 · Coordinazioni: {synergy.coordinatedTurns||0}</span>
-                    <span className="text-slate-300">{synergyReady?'PRONTA!':synergy.cooldownUntilTurn>synergyTurn?'Ricarica fino al turno '+synergy.cooldownUntilTurn:'Colpite in due nello stesso turno!'}</span>
+                    <span className="text-slate-300">{freeChoice.synergy?'POTERE SELEZIONATO':synergyReady?'PRONTA!':synergy.cooldownUntilTurn>synergyTurn?'Ricarica fino al turno '+synergy.cooldownUntilTurn:'Colpite in due nello stesso turno!'}</span>
                   </div>
                   <div role="progressbar" aria-label="Carica Sinergia di Squadra" aria-valuenow={Math.min(2,synergy.charge||0)} aria-valuemin={0} aria-valuemax={2} className="max-w-5xl mx-auto mt-1 h-1.5 bg-black/70 border border-cyan-500/25 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-sky-600 via-cyan-300 to-amber-300 transition-all duration-500" style={{width:(Math.min(2,synergy.charge||0)*50)+'%'}}/>
                   </div>
+                  {freeChoice.boss && <div className="mt-1 max-w-5xl mx-auto text-xs text-right font-black text-amber-200">
+                    👑 {freeChoice.boss.value==='purge'?'Ripristino del Tiranno':'Impulso Brutale'} selezionato · il boss può ancora attaccare
+                  </div>}
+                  {freeChoice.synergy && <div className="mt-1 max-w-5xl mx-auto text-xs text-right font-black text-cyan-200">
+                    🤝 {freeChoice.synergy.value==='damage'?'Colpo Coordinato':'Frantuma Scudo'} selezionato · nessuna azione persa
+                  </div>}
+                  {gameState.status==='battling' && !isPlayingEvents && (bossChoiceReady||synergyReady) &&
+                    <div className="mt-2 max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-xl bg-black/35 p-2 border border-white/10">
+                      {bossChoiceReady && <>
+                        <div className="sm:col-span-2 text-xs font-black text-center text-amber-200">
+                          👑 SCELTA UNICA DAL 50% DEI PS · gratuita · scegli prima di confermare l'attacco
+                        </div>
+                        <button onClick={()=>chooseJuggernautFreeChoice('boss','purge')}
+                          className="rounded-lg p-3 text-sm font-black border border-amber-400/60 bg-amber-950/65 hover:bg-amber-800/65 text-amber-100">
+                          ✨ Ripristino del Tiranno
+                          <span className="block text-[11px] mt-1 font-medium">Rimuove i malus alle statistiche</span>
+                        </button>
+                        <button onClick={()=>chooseJuggernautFreeChoice('boss','empower')}
+                          className="rounded-lg p-3 text-sm font-black border border-orange-400/60 bg-orange-950/65 hover:bg-orange-800/65 text-orange-100">
+                          🔥 Impulso Brutale
+                          <span className="block text-[11px] mt-1 font-medium">+15% danni sul prossimo attacco</span>
+                        </button>
+                      </>}
+                      {synergyReady && <>
+                        <div className="sm:col-span-2 text-xs font-black text-center text-cyan-200">
+                          🤝 SINERGIA PRONTA · gratuita · scegli prima di confermare l'attacco
+                        </div>
+                        <button onClick={()=>chooseJuggernautFreeChoice('synergy','damage')}
+                          className="rounded-lg p-3 text-sm font-black border border-sky-400/60 bg-sky-950/65 hover:bg-sky-800/65 text-sky-100">
+                          ⚡ Colpo Coordinato
+                          <span className="block text-[11px] mt-1 font-medium">+15% danni al boss nel turno</span>
+                        </button>
+                        <button onClick={()=>chooseJuggernautFreeChoice('synergy','shield')}
+                          className="rounded-lg p-3 text-sm font-black border border-cyan-400/60 bg-cyan-950/65 hover:bg-cyan-800/65 text-cyan-100">
+                          🛡️ Frantuma Scudo
+                          <span className="block text-[11px] mt-1 font-medium">Un'ulteriore carica rimossa dal prossimo colpo</span>
+                        </button>
+                      </>}
+                    </div>}
                 </section>}
 
                 {/* BATTLE ARENA */}
@@ -953,12 +993,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                                     );
                                                 })()}
                                                 {/* --------------------------- */}
-                                                {synergyReady && <div className="col-span-2 grid grid-cols-2 gap-2 p-2 rounded-xl border border-cyan-400/40 bg-cyan-950/50">
-                                                  <div className="col-span-2 text-center text-xs font-black text-cyan-200">🤝 SINERGIA PRONTA · scegli una tattica (consuma l'azione)</div>
-                                                  <button className="rounded-lg bg-sky-600/35 border border-sky-400/65 text-sky-100 font-black text-xs sm:text-sm p-3 hover:bg-sky-500/40" onClick={()=>commitAction({type:'juggernaut_synergy',effect:'damage'})}>⚡ Colpo Coordinato <span className="block text-[10px] font-medium">+15% danni questo turno</span></button>
-                                                  <button className="rounded-lg bg-amber-600/35 border border-amber-400/65 text-amber-100 font-black text-xs sm:text-sm p-3 hover:bg-amber-500/40" onClick={()=>commitAction({type:'juggernaut_synergy',effect:'shield'})}>🛡️ Frantuma Scudo <span className="block text-[10px] font-medium">−1 carica extra al prossimo colpo</span></button>
-                                                </div>}
                                                 {availableMoves.map((move, idx) => {
+                                                    if(move.juggOnceMidpoint) return null; // Dati legacy: ora si scelgono gratis nel pannello boss.
                                                     const moveLock=disabledMoveInfo(activeCommandChar,move);
                                                     let isDisabled = isMoveDisabled(activeCommandChar,move) ||
                                                       move.remainingUses === 0 || (move.currentCooldown && move.currentCooldown > 0) ||
