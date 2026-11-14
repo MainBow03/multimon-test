@@ -42,6 +42,11 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+      # GitHub Actions può impiegare alcuni secondi per rendere visibile
+      # il nuovo artifact github-pages alla API usata da deploy-pages.
+      # Un nuovo run (non un rerun dello stesso run) evita inoltre i duplicati.
+      - name: Attendi indicizzazione dell'archivio Pages
+        run: sleep 20
       - name: Pubblica
         id: deployment
         uses: actions/deploy-pages@v4
