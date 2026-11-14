@@ -8,6 +8,9 @@ export const JUGGERNAUT_PHASE_NAMES = Object.freeze([
   'Dominio', 'Guardia Tirannica', 'Risveglio', 'Ultima Resistenza'
 ]);
 export const JUGGERNAUT_SHIELD_HITS = 4;
+export const JUGGERNAUT_ROAR_TURNS = 2;
+export const JUGGERNAUT_ROAR_FACTOR = 0.80;
+export const JUGGERNAUT_COUNTER_HITS = 2;
 
 const move = (name, juggSpecial, desc, extra = {}) => ({
   name, juggSpecial, type: 'Oscuro', power: 0, target: 'self',
@@ -36,17 +39,17 @@ export function setupJuggernaut(boss, opponents) {
   boss.juggTurnCount = 0;
   boss.juggMidpointUsed = false;
   boss.juggCounterReady = false;
-  boss.juggRoarThisTurn = false;
+  boss.juggCounterHitsRemaining = 0;
+  boss.juggCounterUsed = false;
+  boss.juggRoarTurnsRemaining = 0;
   boss.juggNextAttackBoost = false;
   boss.imageFilter = 'drop-shadow(0 0 30px rgba(220,38,38,1)) contrast(1.3) saturate(1.2)';
   boss.moves ??= [];
   const extra = [
     {name:'Furia del Boss',type:'Oscuro',power:40,targetCount:8,cooldown:3,currentCooldown:0,
       desc:'Colpisce tutti gli sfidanti. Ricarica: 3 turni.',juggSpecial:'fury'},
-    move('Ruggito Tirannico','roar','Gli sfidanti infliggono il 15% di danni in meno in questo turno. Ricarica: 4 turni.',{cooldown:4,priority:7}),
-    move('Contrattacco Supremo','counter','Riduce del 30% il prossimo danno diretto subito nel turno e contrattacca con potenza 60. Ricarica: 4 turni.',{cooldown:4,priority:7,juggRequiredPhase:2}),
-    move('Ripristino del Tiranno','purge','Dal 50% dei PS: rimuove una sola volta tutti i malus alle statistiche.',{priority:7,juggRequiredPhase:3,juggOnceMidpoint:true}),
-    move('Impulso Brutale','empower','Dal 50% dei PS: in alternativa a Ripristino, il prossimo attacco infligge +15% danni.',{priority:7,juggRequiredPhase:3,juggOnceMidpoint:true})
+    move('Ruggito Tirannico','roar','Gli sfidanti infliggono il 20% di danni in meno per 2 turni (compreso quello di attivazione). Ricarica: 4 turni.',{cooldown:4,priority:7}),
+    move('Contrattacco Supremo','counter','Riduce del 30% i primi 2 colpi diretti ricevuti nel turno e contrattacca una sola volta con potenza 60. Ricarica: 4 turni.',{cooldown:4,priority:7,juggRequiredPhase:2})
   ];
   for (const skill of extra) if (!boss.moves.some(m => m.juggSpecial === skill.juggSpecial)) boss.moves.push(skill);
   return boss;
@@ -103,6 +106,9 @@ export function activateNextJuggernautShield(boss) {
 }
 export function canUseJuggernautSkill(boss, selectedMove) {
   if (!selectedMove?.juggSpecial) return true;
+  // Le vecchie mosse "Ripristino/Impulso" possono restare nei salvataggi:
+  // sono diventate scelte GRATUITE, non più azioni di combattimento.
+  if (selectedMove.juggOnceMidpoint || ['purge','empower'].includes(selectedMove.juggSpecial)) return false;
   return !!boss?.isJuggernaut &&
     (boss.juggPhase || 1) >= (selectedMove.juggRequiredPhase || 1) &&
     (!selectedMove.juggOnceMidpoint || !boss.juggMidpointUsed) &&
@@ -128,4 +134,68 @@ export function spendJuggernautSynergy(synergy, effect, turn) {
   synergy.cooldownUntilTurn = turn + 3;
   if (effect === 'shield') synergy.shieldPierce = 1;
   return true;
+}
+
+/** Le scelte gratuite vengono registrate sullo stato stanza, non fra le azioni. */
+export function canQueueJuggernautFreeChoice(room, role, kind, value) {
+  if (room?.gameMode !== 'juggernaut' || room.status !== 'battling' ||
+    !room.players?.[role] || room.isBot?.[role] || room.juggFreeChoices?.[kind]) return false;
+  const bossRole = room.settings?.juggernautPlayer || 'p1';
+  const boss = room.teams?.[bossRole]?.[0];
+  if (!boss?.isJuggernaut || boss.hp <= 0) return false;
+  if (!(room.field?.[role] || []).some(idx => room.teams?.[role]?.[idx]?.hp > 0)) return false;
+  if (kind === 'boss') return role === bossRole && (boss.juggPhase || 1) >= 3 &&
+    !boss.juggMidpointUsed && ['purge', 'empower'].includes(value);
+  if (kind === 'synergy') return role !== bossRole &&
+    canActivateJuggernautSynergy(room.juggSynergy, (room.battleReport?.turns || 0) + 1) &&
+    ['damage','shield'].includes(value);
+  return false;
+}
+
+export function applyJuggernautMidpointChoice(boss, kind) {
+  if (!boss?.isJuggernaut || boss.hp <= 0 || (boss.juggPhase || 1) < 3 ||
+    boss.juggMidpointUsed || !['purge','empower'].includes(kind)) return false;
+  if (kind === 'purge') {
+    for (const [stat,base] of [['atk','baseAtk'],['def','baseDef'],['spd','baseSpd'],
+      ['spAtk','baseSpAtk'],['spDef','baseSpDef']]) {
+      if (Number.isFinite(boss[base]) && Number.isFinite(boss[stat]) &&
+          boss[stat] < boss[base]) boss[stat] = boss[base];
+    }
+  } else {
+    boss.juggNextAttackBoost = true;
+  }
+  boss.juggMidpointUsed = true;
+  return true;
+}
+
+export function juggernautRoarDamageFactor(boss, isChallenger) {
+  return isChallenger && Number(boss?.juggRoarTurnsRemaining || 0) > 0
+    ? JUGGERNAUT_ROAR_FACTOR : 1;
+}
+
+export function endJuggernautRoarTurn(boss) {
+  if (!boss?.isJuggernaut) return 0;
+  boss.juggRoarTurnsRemaining = Math.max(0, Number(boss.juggRoarTurnsRemaining || 0) - 1);
+  return boss.juggRoarTurnsRemaining;
+}
+
+/** Le mosse multicolpo vengono aggregate dal motore: la riduzione si applica
+ *  proporzionalmente al numero di hit ancora coperti (massimo 2 in tutto).
+ *  Un'unica risposta viene emessa anche se il colpo è multiplo.
+ */
+export function mitigateJuggernautCounter(boss, damage, landedHits = 1) {
+  const initial = Math.max(0, Math.floor(Number(damage) || 0));
+  const hits = Math.max(1, Math.floor(Number(landedHits) || 1));
+  const charges = Math.max(0, Math.floor(Number(boss?.juggCounterHitsRemaining) || 0));
+  if (!boss?.isJuggernaut || !boss.juggCounterReady || charges <= 0 || initial <= 0) {
+    return {damage:initial, coveredHits:0, counter:false};
+  }
+  const coveredHits = Math.min(charges,hits);
+  boss.juggCounterHitsRemaining = charges - coveredHits;
+  const counter = !boss.juggCounterUsed;
+  boss.juggCounterUsed = true;
+  return {
+    damage:Math.max(1,Math.floor(initial*(1-0.30*coveredHits/hits))),
+    coveredHits,counter
+  };
 }
