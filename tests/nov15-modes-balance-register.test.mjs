@@ -17,6 +17,8 @@ test('Survival: nuove ondate élite, anomale e superboss con stats fisiche e spe
  assert.equal(survivalWaveKind(15),'elite');
  assert.equal(survivalWaveWeather(3).turns,5);
  assert.equal(survivalWaveWeather(5),null);
+ assert.equal(survivalWaveWeather(15).turns,5,'élites e meteo possono sovrapporsi');
+ assert.equal(survivalWaveWeather(30).turns,5,'anche un superboss può apparire con un meteo anomalo');
  const normal=prepareSurvivalEnemy(char(),4),elite=prepareSurvivalEnemy(char(),5);
  const superboss=prepareSurvivalEnemy(char(),10);
  assert.ok(elite.maxHp>normal.maxHp);
