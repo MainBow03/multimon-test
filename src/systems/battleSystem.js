@@ -27,6 +27,7 @@ import {setupJuggernaut, applyJuggernautSummonBonus, updateJuggernautThresholds,
   JUGGERNAUT_ROAR_TURNS, JUGGERNAUT_COUNTER_HITS
 } from './juggernautSystem.js';
 import { createBattleReport, accumulateBattleReport } from './battleReport.js';
+import {prepareSurvivalEnemy,survivalWaveKind,survivalWaveWeather,recoverSurvivalTeam} from './survivalWaves.js';
 import {createBattlePlaybackSnapshot,applySummonPlaybackEvent} from './battleSummonPlayback.js';
 import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
 import {echoFinalVictory,isEchoRaidAccuracyProtected,shouldApplyEchoRecharge} from './echoFinalSouls.js';
@@ -901,7 +902,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     gameState.gameMode==='juggernaut' &&
                     !workingTeams[gameState.settings?.juggernautPlayer||'p1']?.includes(args[0])) *
                   (synergyDamageActive && !args[0]?.isJuggernaut && args[1]?.isJuggernaut ? 1.15 : 1) *
-                  (args[0]?.juggNextAttackBoost ? 1.15 : 1)));
+                  (args[0]?.juggNextAttackBoost ? 1.15 : 1) *
+                  (gameState.gameMode==='survival' && !workingTeams[gameState.settings?.juggernautPlayer||'p2']?.includes(args[0])
+                    ?Math.max(1,Math.min(1.15,Number(gameState.survivalBattleBonus)||1)):1)));
             };
             let workingFieldTraps = {...(gameState.fieldTraps||{})};
             let workingTrapSeen = JSON.parse(JSON.stringify(gameState.fieldTrapSeen||{}));
@@ -3949,58 +3952,29 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 winner = gameState.players[juggPlayer]; 
             }
             else if (!hordeAlive) {
-                // Il nemico è morto! Creiamo un nuovo nemico invece di finire il gioco
+                // Ricompense e difficoltà variabili: anomalie ogni 3 ondate,
+                // élite ogni 5, superboss ogni 10. Un solo revive ogni 5.
+                const completed=currentSurvivalRound;
                 currentSurvivalRound++;
-                
-                const baseRoster = gameState.settings.fusionMode ? FUSION_CHARACTERS : CHARACTERS;
-                const draftable = baseRoster.filter(c => !c.isSummonOnly && !c.isSecretUnlock);
-                const nextEnemyBase = draftable[Math.floor(Math.random() * draftable.length)];
-                
-                // Scala la potenza del nemico in base al round (+5% stats ogni round)
-                const scale = 1 + (currentSurvivalRound * 0.05);
+                const baseRoster=gameState.settings.fusionMode?FUSION_CHARACTERS:CHARACTERS;
+                const draftable=baseRoster.filter(c=>!c.isSummonOnly&&!c.isSecretUnlock);
+                const nextEnemyBase=draftable[Math.floor(Math.random()*draftable.length)];
+                if(!nextEnemyBase)throw new Error('Il roster Sopravvivenza è vuoto.');
+                const nextEnemy=prepareSurvivalEnemy(nextEnemyBase,currentSurvivalRound);
+                const recovery=recoverSurvivalTeam(workingTeams,workingField,humansPlayers,completed);
+                workingTeams[juggPlayer]=[nextEnemy];workingField[juggPlayer]=[0];
+                workingWeather=survivalWaveWeather(currentSurvivalRound);
+                events.push({type:'text',text:'🌟 Ondata '+completed+' superata! Cura '+Math.round(recovery.healFraction*100)+
+                  '% sui superstiti.'+(recovery.revived?' '+recovery.revived.name+' rientra in gioco!':'')});
+                if(recovery.revived)events.push({type:'revive_to_field',player:recovery.revived.player,targetIdx:recovery.revived.index});
+                events.push({type:'text',text:'⚠️ '+(survivalWaveKind(currentSurvivalRound)==='superboss'?'SUPERBOSS':
+                  survivalWaveKind(currentSurvivalRound)==='elite'?'NEMICO ÉLITE':
+                  survivalWaveKind(currentSurvivalRound)==='anomaly'?'ARENA ANOMALA':'Nuovo nemico')+
+                  ' · ondata '+currentSurvivalRound+': '+nextEnemy.name+'!'});
+                // Si sceglie la ricompensa prima del combattimento senza consumare
+                // turni né perdere gli HP salvati.
+                nextStatus='survival_reward';
 
-                let nextEnemy = {
-                    ...JSON.parse(JSON.stringify(nextEnemyBase)),
-                    hp: Math.floor(nextEnemyBase.maxHp * scale),
-                    maxHp: Math.floor(nextEnemyBase.maxHp * scale),
-                    atk: Math.floor(nextEnemyBase.atk * scale),
-                    baseAtk: Math.floor(nextEnemyBase.atk * scale),
-                    def: Math.floor(nextEnemyBase.def * scale),
-                    baseDef: Math.floor(nextEnemyBase.def * scale),
-                    statuses: [],
-                    consecutiveProtect: 0,
-                    revealed: true,
-                    moves: nextEnemyBase.moves.filter(Boolean).map(m => ({ ...m, remainingUses: m.maxUses !== undefined ? m.maxUses : null }))
-                };
-
-                // Rigenera il team della CPU con il nuovo nemico
-                workingTeams[juggPlayer] = [nextEnemy];
-                workingField[juggPlayer] = [0]; 
-                
-                // Cura i personaggi dei giocatori in campo del 20% come premio (e rianima chi è morto in Co-op!)
-                humansPlayers.forEach(p => {
-                    if (workingTeams[p]) {
-                        workingTeams[p].forEach((char, idx) => {
-                            if (char && !char.isSummonOnly) {
-                                if (char.hp <= 0) {
-                                    char.hp = Math.max(1, Math.floor(char.maxHp * 0.2));
-                                    char.statuses = [];
-                                    if (workingField[p] && !workingField[p].includes(idx)) {
-                                        workingField[p].push(idx);
-                                    }
-                                } else {
-                                    const heal = Math.floor(char.maxHp * 0.2);
-                                    char.hp = Math.min(char.maxHp, char.hp + heal);
-                                }
-                            }
-                        });
-                    }
-                });
-
-                events.push({ type: 'text', text: `🌟 Round ${currentSurvivalRound - 1} superato! La squadra recupera il 20% dei PS! I caduti si rialzano!` });
-                events.push({ type: 'text', text: `⚠️ Un nuovo sfidante appare: ${nextEnemy.name} (Livello ${currentSurvivalRound})!` });
-
-                nextStatus = 'battling'; // Continua la lotta!
             }
         }
         // -----------------------------------------------
@@ -4150,6 +4124,12 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
           postExecStatus: nextStatus,
           winner,
           survivalRound: currentSurvivalRound,
+          ...(gameState.gameMode==='survival'&&nextStatus==='survival_reward'?{
+             survivalDecision:{round:currentSurvivalRound,kind:survivalWaveKind(currentSurvivalRound),
+               checkpoint:completed%5===0},
+             survivalBattleBonus:1,
+             ...(completed%5===0?{survivalLastCheckpoint:completed}:{})
+          }:{}),
           ...(juggSynergy ? {juggSynergy} : {}),
           juggFreeChoices: {},
           teams: workingTeams,
@@ -4304,6 +4284,8 @@ const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, set
                      updateState({ status: 'ultimon_result', events: [] });
                 } else if (gameState.postExecStatus === 'gameover') {
                      updateState({ status: 'gameover', events: [] });
+                } else if (gameState.postExecStatus === 'survival_reward') {
+                     updateState({ status: 'survival_reward', events: [] });
                 } else if (gameState.postExecStatus === 'intermission') {
                      updateState({ status: 'intermission', events: [] });
                 } else if (gameState.postExecStatus === 'switching_phase') {
