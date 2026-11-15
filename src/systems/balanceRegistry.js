@@ -37,7 +37,7 @@ export function balanceBattleSnapshot(room,role,now=Date.now()){
  const characters={},moves={},items={},held={};
  for(const e of entries){
    const char=own[e.idx];
-   if(!char||char.isSummonOnly||char.isEchoCopy||char.isZodiacSpirit)return null;
+   if(!char||char.isSummonOnly||char.isEchoCopy||char.isZodiacSpirit)continue;
    const played=safe(e.turnsOnField)>0||e.revealed||
       Object.keys(e.moveUses||{}).length>0;
    if(played&&voluntary.has(mode)){
