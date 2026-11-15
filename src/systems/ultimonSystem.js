@@ -92,6 +92,14 @@ const shuffle=(items,random=Math.random)=>{
  for(let i=list.length-1;i>0;i--){const j=Math.min(i,Math.floor(random()*(i+1)));[list[i],list[j]]=[list[j],list[i]];}
  return list;
 };
+export function ultimonRivalry(room,pair=room?.ultimon?.pair||[]){
+ const history=room?.ultimon?.history||[];
+ if(pair.length!==2)return null;
+ const previous=history.filter(r=>r.pair?.length===2&&pair.every(p=>r.pair.includes(p)));
+ if(!previous.length)return null;
+ const wins=Object.fromEntries(pair.map(p=>[p,previous.filter(r=>r.winner===p).length]));
+ return {matches:previous.length,wins,last:previous.at(-1)};
+}
 export function nextUltimonPair(room,random=Math.random){
  if(!['ultimon_showcase','ultimon_intro','ultimon_recap'].includes(room.status))
    throw new Error('Non è il momento di estrarre gli sfidanti.');
@@ -221,11 +229,29 @@ export function finishUltimonDuel(room){
    original.hp=remaining;
    if(prev>0&&remaining<=0){ko[p].push(original.name);stats[p].lost++;}
    if(remaining>0&&p===outcome.winner)
-     original.hp=Math.min(original.maxHp,remaining+Math.ceil(original.maxHp*.5));
+     original.hp=Math.min(original.maxHp,remaining+Math.ceil(original.maxHp*.30));
   }
   stats[p].matches++;
   if(p===outcome.winner)stats[p].wins++;
   else if(p===outcome.loser)stats[p].losses++;
+ }
+ // Se nessun combattente vincente è andato KO durante il duello,
+ // premia UN SOLO superstite: per impostazione predefinita quello più ferito.
+ const cleanVictory=!!outcome.winner&&ko[outcome.winner]?.length===0;
+ let bonusTarget=null;
+ if(cleanVictory){
+   const p=outcome.winner;
+   const selected=u.selected?.[p]||[];
+   const candidates=selected.filter(i=>rosters[p]?.[i]?.hp>0);
+   const chosen=u.recoveryChoice?.role===p&&candidates.includes(u.recoveryChoice.index)
+     ?u.recoveryChoice.index : candidates.sort((a,b)=>
+       rosters[p][a].hp/Math.max(1,rosters[p][a].maxHp)-
+       rosters[p][b].hp/Math.max(1,rosters[p][b].maxHp))[0];
+   if(chosen!==undefined){
+     const target=rosters[p][chosen];
+     target.hp=Math.min(target.maxHp,target.hp+Math.ceil(target.maxHp*.10));
+     bonusTarget={role:p,index:chosen,id:target.id,name:target.name};
+   }
  }
  if(outcome.winner)stats[outcome.winner].knockouts+=ko[outcome.loser]?.length||0;
  const newlyEliminated=u.pair.filter(p=>ultimonAlive(rosters,p)===0);
@@ -234,6 +260,7 @@ export function finishUltimonDuel(room){
  const champion=survivors.length===1?survivors[0]:null;
  const record={round:u.round,pair:[...u.pair],format:u.format,
   winner:outcome.winner,loser:outcome.loser,ko,eliminated:newlyEliminated,
+  cleanVictory,bonusTarget,turns:room.battleReport?.turns||0,
   surviving:Object.fromEntries(u.pair.map(p=>[p,ultimonAlive(rosters,p)]))};
  // Le eliminazioni definitive hanno una cerimonia dedicata prima del recap
  // o dei premi: un solo host avanza lo stato condiviso con una transazione.
@@ -242,6 +269,7 @@ export function finishUltimonDuel(room){
   phaseStartedAt:Date.now(),events:[],
   'ultimon.rosters':rosters,'ultimon.stats':stats,
   'ultimon.fighterStats':fighterStats,
+  'ultimon.recoveryChoice':null,
   'ultimon.history':[...u.history,record],'ultimon.eliminated':eliminated,
   'ultimon.champion':champion};
 }
@@ -271,4 +299,22 @@ export function ultimonLeaderboard(room){
   if(a.eliminatedRank!==b.eliminatedRank)return b.eliminatedRank-a.eliminatedRank;
   return b.wins-a.wins||b.knockouts-a.knockouts||a.role.localeCompare(b.role);
  });
+}
+
+/** Selezione esplicita del superstite premiato, prima che l'host chiuda il duello. */
+export function ultimonRecoveryChoicePatch(room,role,index){
+ if(room?.gameMode!=='ultimon'||room.status!=='ultimon_result')
+   throw new Error('Il duello non è pronto per il premio.');
+ const outcome=ultimonDuelOutcome(room);
+ if(!outcome?.winner||outcome.winner!==role)
+   throw new Error('Solo il vincitore può scegliere il bonus.');
+ const selected=room.ultimon?.selected?.[role]||[];
+ if(!Number.isInteger(index)||!selected.includes(index)||
+   !(room.ultimon?.rosters?.[role]?.[index]?.hp>0))
+   throw new Error('Scegli un Multimon superstite schierato.');
+ const combatIndex=selected.indexOf(index);
+ if(!(room.teams?.[role]?.[combatIndex]?.hp>0) ||
+   room.teams[role].some(c=>!(c.hp>0))) // vittoria pulita = nessun KO tra gli schierati
+   throw new Error('Il bonus richiede una vittoria senza perdite.');
+ return {['ultimon.recoveryChoice']:{role,index}};
 }
