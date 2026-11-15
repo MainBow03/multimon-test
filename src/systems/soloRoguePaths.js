@@ -28,9 +28,12 @@ export function soloPathEnemyCount(count,run,isBoss=false){
  return run.soloPath.kind==='safe'?1:Math.min(4,Math.max(2,count+1));
 }
 export function assignSoloTacticalRole(enemy,index,floor,run){
- if(!enemy||!run?.soloPath||run.soloPath.kind!=='dangerous'||
-   floor<run.soloPath.startFloor||floor>run.soloPath.endFloor)return enemy;
- const role=['guardian','hexer','finisher'][index%3];
+ const dangerous=run?.soloPath?.kind==='dangerous'&&
+   floor>=run.soloPath.startFloor&&floor<=run.soloPath.endFloor;
+ // Nei piani alti i ruoli tattici esistono anche sui percorsi normali;
+ // sui pericolosi sono disponibili sin dalle prime battaglie.
+ if(!enemy||(!dangerous&&floor<21))return enemy;
+ const role=['guardian','hexer','finisher'][(index+(floor>=21?Math.floor(floor/5):0))%3];
  enemy.rogueTacticalRole=role;
  if(role==='guardian')enemy.rogueGuardCharges=1;
  return enemy;
