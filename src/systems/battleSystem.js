@@ -28,6 +28,7 @@ import {setupJuggernaut, applyJuggernautSummonBonus, updateJuggernautThresholds,
 } from './juggernautSystem.js';
 import { createBattleReport, accumulateBattleReport } from './battleReport.js';
 import {prepareSurvivalEnemy,survivalWaveKind,survivalWaveWeather,recoverSurvivalTeam} from './survivalWaves.js';
+import {rogueTacticalDamageFactor,mitigateRogueGuardian,rogueHexerTriggers} from './soloRoguePaths.js';
 import {createBattlePlaybackSnapshot,applySummonPlaybackEvent} from './battleSummonPlayback.js';
 import { collectEchoSoul, expireEchoCopies } from './echoSoulLegion.js';
 import {echoFinalVictory,isEchoRaidAccuracyProtected,shouldApplyEchoRecharge} from './echoFinalSouls.js';
@@ -904,7 +905,9 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                   (synergyDamageActive && !args[0]?.isJuggernaut && args[1]?.isJuggernaut ? 1.15 : 1) *
                   (args[0]?.juggNextAttackBoost ? 1.15 : 1) *
                   (gameState.gameMode==='survival' && !workingTeams[gameState.settings?.juggernautPlayer||'p2']?.includes(args[0])
-                    ?Math.max(1,Math.min(1.15,Number(gameState.survivalBattleBonus)||1)):1)));
+                    ?Math.max(1,Math.min(1.15,Number(gameState.survivalBattleBonus)||1)):1) *
+                  (gameState.isRoguelikeBattle&&!gameState.isRoguelikeCoop
+                    ?rogueTacticalDamageFactor(args[0],workingTeams.p2):1)));
             };
             let workingFieldTraps = {...(gameState.fieldTraps||{})};
             let workingTrapSeen = JSON.parse(JSON.stringify(gameState.fieldTrapSeen||{}));
@@ -1041,6 +1044,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                       directAttack:true,superEffective:!!options.superEffective
                     });
                     dmg=reduced.damage;
+                    if(gameState.isRoguelikeBattle&&!gameState.isRoguelikeCoop){
+                      const guardian=mitigateRogueGuardian(target,dmg,true);
+                      dmg=guardian.damage;
+                      if(guardian.activated)events.push({type:'text',text:'🛡️ '+target.name+' (Guardiano) blocca il 20% del primo colpo!'});
+                    }
                     for(const item of reduced.activations)
                       events.push({type:'text',text:`🛡️ ${item} protegge ${target.name}!`});
                 }
@@ -1081,6 +1089,14 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 }
                 target.damageTakenThisTurn = (target.damageTakenThisTurn || 0) + dmg;
                 events.push({ type: 'damage', text: text, targetPlayer, targetIdx, newHp: target.hp });
+                if(gameState.isRoguelikeBattle&&!gameState.isRoguelikeCoop&&
+                   options.isEnemyTarget&&options.attacker&&hpBeforeDamage>target.hp&&
+                   rogueHexerTriggers(options.attacker,target)){
+                  target.statuses??=[];
+                  target.statuses.push({type:'Indebolito',turns:2,justApplied:true});
+                  events.push({type:'text',text:'🌀 '+options.attacker.name+' (Maledicente) indebolisce '+target.name+' per 2 turni!'});
+                  events.push({type:'status_update',targetPlayer,targetIdx,statuses:structuredClone(target.statuses)});
+                }
                 if(gameState.gameMode==='juggernaut' && target.isJuggernaut && target.hp>0 && target.hp<hpBeforeDamage){
                   if(options.isEnemyTarget && options.attackerPlayer && !options.attacker?.isJuggernaut){
                     juggHittersThisTurn.add(options.attackerPlayer);
