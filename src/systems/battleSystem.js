@@ -513,6 +513,7 @@ const { appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartT
             let nextState = {
               status: 'pre_battle',
               phaseStartedAt: Date.now(),
+              battleStartedAt: Date.now(),
               aiMemory: {},
               battleWeather: null,
               battleTailwind: {},
@@ -1666,6 +1667,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     workingHealingItemsUsed[player]=used+1;
                   }
                   workingInventory[player][itemId]-=1;
+                  const hpBeforeItem=recipient.hp;
 
                   if(itemDef.type==='revive'){
                     const amount=Math.max(1,Math.floor(recipient.maxHp*itemDef.value));
@@ -1706,6 +1708,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     events.push({type:'text',text:gameState.players[player]+' usa '+itemDef.name+
                       ' su '+recipient.name+': rigenerazione attiva per '+itemDef.turns+' turni!'});
                   }
+                  events.push({type:'battle_item_used',player,charTeamIdx,itemId,
+                    healing:Math.max(0,recipient.hp-hpBeforeItem)});
                   continue;
               }
 
@@ -4192,7 +4196,7 @@ const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, set
 
             for (let evt of gameState.events) {
                 // Marker statistici, non animazioni visibili.
-                if (evt.type === 'battle_actor' || evt.type === 'battle_actor_end' || evt.type === 'battle_move_used') continue;
+                if (evt.type === 'battle_actor' || evt.type === 'battle_actor_end' || evt.type === 'battle_move_used' || evt.type === 'battle_item_used') continue;
                 if (evt.text) {
                     setEventPlaybackText(evt.text);
                     
