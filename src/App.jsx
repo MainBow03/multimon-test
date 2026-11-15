@@ -41,6 +41,8 @@ import { renderLobbyView } from './screens/battle/LobbyView.jsx';
 import { renderDraftingView } from './screens/battle/DraftingView.jsx';
 import { renderSwitchingPhaseView } from './screens/battle/SwitchingPhaseView.jsx';
 import { renderBattlingView } from './screens/battle/BattlingView.jsx';
+import {SurvivalRewardView} from './screens/battle/SurvivalRewardView.jsx';
+import {claimSurvivalReward} from './systems/survivalWaves.js';
 import {canQueueJuggernautFreeChoice} from './systems/juggernautSystem.js';
 import { renderGameoverView } from './screens/battle/GameoverView.jsx';
 import {VictoryCelebration} from './screens/battle/VictoryCelebration.jsx';
