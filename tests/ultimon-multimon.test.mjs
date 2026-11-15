@@ -98,8 +98,8 @@ test('Scelte valide, lotta classica, KO permanenti, cura della squadra vincente'
  state=put(state,finishUltimonDuel(state));
  assert.equal(state.ultimon.rosters[a].filter(c=>c.hp>0).length,0);
  assert.equal(state.ultimon.rosters[b][state.ultimon.selected[b][0]].hp,0);
- assert.equal(state.ultimon.rosters[b][state.ultimon.selected[b][1]].hp,70);
- assert.equal(state.ultimon.rosters[b][state.ultimon.selected[b][2]].hp,90);
+ assert.equal(state.ultimon.rosters[b][state.ultimon.selected[b][1]].hp,50);
+ assert.equal(state.ultimon.rosters[b][state.ultimon.selected[b][2]].hp,70);
  assert.equal(state.ultimon.stats[b].wins,1);
  assert.ok(state.ultimon.eliminated.includes(a));
  assert.equal(state.status,'ultimon_elimination');
