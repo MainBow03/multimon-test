@@ -42,6 +42,8 @@ import { renderDraftingView } from './screens/battle/DraftingView.jsx';
 import { renderSwitchingPhaseView } from './screens/battle/SwitchingPhaseView.jsx';
 import { renderBattlingView } from './screens/battle/BattlingView.jsx';
 import {SurvivalRewardView} from './screens/battle/SurvivalRewardView.jsx';
+import {BalanceRegistryView} from './screens/hub/BalanceRegistryView.jsx';
+import {balanceBattleSnapshot} from './systems/balanceRegistry.js';
 import {claimSurvivalReward} from './systems/survivalWaves.js';
 import {canQueueJuggernautFreeChoice} from './systems/juggernautSystem.js';
 import { renderGameoverView } from './screens/battle/GameoverView.jsx';
@@ -1203,6 +1205,20 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               gameState.gameMode,gameState.isCampaignBattle,gameState.isRoguelikeBattle,
               gameState.isRoguelikeCoop,gameState.isTrainingBattle,gameState.players,
               gameState.isBot,gameState.playerUids,playerRole,playerName,user?.uid]);
+          // Registro distinto dal podio Carriera: conteggia soltanto battaglie
+          // concluse, deduplicando il report anche dopo reload e rientro.
+          useEffect(()=>{
+              if(!['gameover','ultimon_result'].includes(gameState.status)||
+                 gameState.isTrainingBattle||!playerName.trim())return;
+              const side=appMode==='local_room'?'p1':playerRole;
+              if(!/^p[1-8]$/.test(side||'')||gameState.isBot?.[side]||
+                 gameState.players?.[side]!==playerName)return;
+              if(appMode==='online_room'&&
+                 (!user?.uid||gameState.playerUids?.[side]!==user.uid))return;
+              const snapshot=balanceBattleSnapshot(gameState,side);
+              if(snapshot)updateLocalStats({battleBalance:snapshot});
+          },[gameState.status,gameState.battleReport,gameState.teams,
+              gameState.winner,gameState.gameMode,playerRole,appMode,playerName,user?.uid]);
           const getPlayerTitle = () => equippedMasteryTitle(getPlayerData(), [...CHARACTERS, ...FUSION_CHARACTERS]);
           // La guida viene mostrata solo al primo click, PRIMA di avviare
           // l'azione. Dopo la conferma si conserva la scelta sul cloud.
@@ -2158,6 +2174,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
   if (__screen !== undefined) return __screen;
 }
 
+    if(appMode==='balance_registry'){
+      return <BalanceRegistryView profile={getPlayerData()}
+        characters={[...CHARACTERS,...FUSION_CHARACTERS]} items={ITEMS_DB}
+        onBack={()=>setAppMode('menu')}/>;
+    }
     if (gameState.gameMode === 'survival' && gameState.status === 'survival_reward') {
       return <SurvivalRewardView room={gameState}
         onChoice={choice=>updateState(claimSurvivalReward(gameState,choice))}
