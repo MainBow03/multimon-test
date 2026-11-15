@@ -2,7 +2,8 @@
 export const survivalWaveKind=round=>round>0&&round%10===0?'superboss':
   round>0&&round%5===0?'elite':round>0&&round%3===0?'anomaly':'normal';
 export const survivalWaveWeather=round=>{
-  if(survivalWaveKind(round)!=='anomaly')return null;
+  // Il meteo ogni 3 ondate si somma a élite e superboss (es. 15 e 30).
+  if(!Number.isInteger(round)||round<1||round%3!==0)return null;
   return {type:['rainstorm','snowstorm','lush_grass'][Math.floor(round/3)%3],turns:5};
 };
 export function prepareSurvivalEnemy(base,round){

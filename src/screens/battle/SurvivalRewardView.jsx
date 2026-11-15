@@ -1,5 +1,5 @@
 import React from 'react';
-import {survivalWaveKind} from '../../systems/survivalWaves.js';
+import {survivalWaveKind,survivalWaveWeather} from '../../systems/survivalWaves.js';
 
 const labels={normal:'Nuovo sfidante',anomaly:'Arena Anomala',elite:'Nemico Élite',superboss:'SUPERBOSS'};
 export function SurvivalRewardView({room,onChoice,onExit,canChoose=true}){
@@ -20,7 +20,7 @@ export function SurvivalRewardView({room,onChoice,onExit,canChoose=true}){
        <h1 className="text-3xl sm:text-5xl font-black mt-2">Ondata {round}</h1>
        <p className="text-amber-300 mt-4 font-black text-lg">{labels[kind]}: {next?.name||'In arrivo'}</p>
        {room.survivalDecision?.checkpoint&&<p className="text-emerald-300 mt-2">🏕️ Traguardo ogni 5 ondate raggiunto!</p>}
-       {kind==='anomaly'&&<p className="text-cyan-200 mt-2">🌪️ L'arena cambia meteo per 5 turni.</p>}
+       {survivalWaveWeather(round)&&<p className="text-cyan-200 mt-2">🌪️ Arena anomala: il meteo cambia per 5 turni, anche contro élite e superboss!</p>}
        {kind==='elite'&&<p className="text-yellow-200 mt-2">⚡ Un combattente élite più resistente si prepara a entrare in campo.</p>}
        {kind==='superboss'&&<p className="text-rose-300 mt-2">👑 Il superboss è molto più resistente e pericoloso.</p>}
        <p className="text-slate-300 mt-4">Scegli una ricompensa prima di affrontare la prossima ondata. Non consuma il turno.</p>
