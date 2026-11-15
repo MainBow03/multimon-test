@@ -1,4 +1,5 @@
 import {maybeRogueEvent} from '../../systems/roguelikeEvents.js';
+import {awardSoloPathVictory} from '../../systems/soloRoguePaths.js';
 import { partitionCampaignUnlocks } from '../../systems/campaignRoster.js';
 import { BattleReportPanel } from '../../components/BattleReportPanel.jsx';
 import { JuggernautResults } from '../../components/JuggernautResults.jsx';
@@ -343,8 +344,9 @@ if (gameState.status === 'gameover') {
                                             nextBonus += 0.02; // Aumenta di 2% ogni piano superato senza reclutamenti
                                         }
                                         
-                                        return { ...p, rosterStats: nextStats, roster: nextRoster, floor: p.floor + 1, coins: (p.coins || 0) + earnedCoins, inventory: leftoverInventory, isMerchantNext: chanceMerchant, recruitBonus: nextBonus, encounteredEnemies: nextEnemies,
+                                        const progressed={ ...p, rosterStats: nextStats, roster: nextRoster, floor: p.floor + 1, coins: (p.coins || 0) + earnedCoins, inventory: leftoverInventory, isMerchantNext: chanceMerchant, recruitBonus: nextBonus, encounteredEnemies: nextEnemies,
                                             pendingEvent: maybeRogueEvent(p.floor + 1, p.maxFloor || 50, p.relics || [], Math.random, false, p.trainingUses || 0), lastEventResult:null };
+                                        return awardSoloPathVictory(progressed,p.floor);
                                     });
                                     setAppMode('roguelike_map');
                                     

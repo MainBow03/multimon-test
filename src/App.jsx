@@ -41,6 +41,10 @@ import { renderLobbyView } from './screens/battle/LobbyView.jsx';
 import { renderDraftingView } from './screens/battle/DraftingView.jsx';
 import { renderSwitchingPhaseView } from './screens/battle/SwitchingPhaseView.jsx';
 import { renderBattlingView } from './screens/battle/BattlingView.jsx';
+import {SurvivalRewardView} from './screens/battle/SurvivalRewardView.jsx';
+import {BalanceRegistryView} from './screens/hub/BalanceRegistryView.jsx';
+import {balanceBattleSnapshot} from './systems/balanceRegistry.js';
+import {claimSurvivalReward} from './systems/survivalWaves.js';
 import {canQueueJuggernautFreeChoice} from './systems/juggernautSystem.js';
 import { renderGameoverView } from './screens/battle/GameoverView.jsx';
 import {VictoryCelebration} from './screens/battle/VictoryCelebration.jsx';
@@ -76,7 +80,7 @@ import {ultimonLeaderboard} from './systems/ultimonSystem.js';
 import {beginUltimonIntroduction,ultimonIntroMonologuePatch,ultimonIntroEntrancePatch,advanceUltimonIntroduction,skipUltimonCurrentPresentation} from './systems/ultimonIntro.js';
 import {ownedUltimonEntrances} from './systems/ultimonCosmetics.js';
 import {ULTIMON_STAGES,createUltimonShowcase,identityPatch,nextUltimonPair,
-  revealUltimonFormat,pickPatch,startUltimonDuel,finishUltimonDuel,finishUltimonElimination,
+  revealUltimonFormat,pickPatch,startUltimonDuel,finishUltimonDuel,finishUltimonElimination,ultimonRecoveryChoicePatch,
   ultimonIsFinalShowdown} from './systems/ultimonSystem.js';
 
         import { onAuthStateChanged } from 'firebase/auth';
@@ -906,7 +910,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                           for (let i = 1; i <= roundsSurvived; i++) {
                               calculatedCoins += Math.min(10, i + 2);
                           }
-                          coinsToReward = calculatedCoins;
+                          coinsToReward = calculatedCoins + Math.max(0,Number(gameState.survivalTreasury)||0);
                           statsUpdates.maxSurvivalRound = roundsSurvived;
                       } else {
                           if (gameState.gameMode === 'multipla') {
@@ -1201,6 +1205,20 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               gameState.gameMode,gameState.isCampaignBattle,gameState.isRoguelikeBattle,
               gameState.isRoguelikeCoop,gameState.isTrainingBattle,gameState.players,
               gameState.isBot,gameState.playerUids,playerRole,playerName,user?.uid]);
+          // Registro distinto dal podio Carriera: conteggia soltanto battaglie
+          // concluse, deduplicando il report anche dopo reload e rientro.
+          useEffect(()=>{
+              if(!['gameover','ultimon_result'].includes(gameState.status)||
+                 gameState.isTrainingBattle||!playerName.trim())return;
+              const side=appMode==='local_room'?'p1':playerRole;
+              if(!/^p[1-8]$/.test(side||'')||gameState.isBot?.[side]||
+                 gameState.players?.[side]!==playerName)return;
+              if(appMode==='online_room'&&
+                 (!user?.uid||gameState.playerUids?.[side]!==user.uid))return;
+              const snapshot=balanceBattleSnapshot(gameState,side);
+              if(snapshot)updateLocalStats({battleBalance:snapshot});
+          },[gameState.status,gameState.battleReport,gameState.teams,
+              gameState.winner,gameState.gameMode,playerRole,appMode,playerName,user?.uid]);
           const getPlayerTitle = () => equippedMasteryTitle(getPlayerData(), [...CHARACTERS, ...FUSION_CHARACTERS]);
           // La guida viene mostrata solo al primo click, PRIMA di avviare
           // l'azione. Dopo la conferma si conserva la scelta sul cloud.
@@ -1635,6 +1653,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
             room=>identityPatch(room,role,name,color),role);
           const ultimonPick=(role,indices)=>ultimonMutation(['ultimon_pick'],
             room=>pickPatch(room,role,indices),role);
+          const ultimonRecovery=(role,index)=>ultimonMutation(['ultimon_result'],
+            room=>ultimonRecoveryChoicePatch(room,role,index),role);
           const ultimonSpeech=(role,monologue)=>ultimonMutation(['ultimon_intro'],
             room=>ultimonIntroMonologuePatch(room,role,monologue),role);
           const ultimonEntrance=(role,effectId)=>ultimonMutation(['ultimon_intro'],
@@ -2144,7 +2164,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
       return <UltimonView key={gameState.status+':'+(gameState.ultimon?.round||0)}
         room={gameState} appMode={appMode} playerRole={playerRole}
         canHost={appMode==='local_room'||playerRole==='p1'||canRecoverRoom(gameState,playerRole)}
-        onBan={ultimonBan} onIdentity={ultimonIdentity} onPick={ultimonPick} onSpeech={ultimonSpeech}
+        onBan={ultimonBan} onIdentity={ultimonIdentity} onPick={ultimonPick} onRecovery={ultimonRecovery} onSpeech={ultimonSpeech}
         onEntrance={ultimonEntrance} ownedEntrances={ownedUltimonEntrances(getPlayerData())}
         onHost={ultimonHostAction} onExit={leaveRoom}/>;
     }
@@ -2153,6 +2173,43 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
   const __screen = renderSwitchingPhaseView({ Loader2, LogOut, TYPE_STYLES, appMode, gameState, getActivePlayers, getTournamentMatchOpponents, leaveRoom, playerRole, renderHealthBar, setPlayerRole, setShowLeaveConfirm, chooseReplacement, forceCompleteSwitches, canForceSwitch: appMode==='local_room'||canRecoverRoom(gameState,playerRole) });
   if (__screen !== undefined) return __screen;
 }
+
+    if(appMode==='balance_registry'){
+      return <BalanceRegistryView profile={getPlayerData()}
+        characters={[...CHARACTERS,...FUSION_CHARACTERS]} items={ITEMS_DB}
+        onBack={()=>setAppMode('menu')}/>;
+    }
+    if (gameState.gameMode === 'survival' && gameState.status === 'survival_reward') {
+      const chooseSurvivalReward=async choice=>{
+        if(appMode!=='online_room'){
+          const patch=claimSurvivalReward(gameState,choice);
+          setCommandingIdx(0);setActionMenuMode('moves');
+          return updateState(patch);
+        }
+        if(!roomId||!user?.uid||!playerRole)return false;
+        const ref=doc(db,'artifacts',appId,'public','data','rooms',roomId);
+        try{
+          const changed=await runTransaction(db,async tx=>{
+            const snap=await tx.get(ref);
+            if(!snap.exists())return false;
+            const live=snap.data();
+            if(live.phaseStartedAt!==gameState.phaseStartedAt||
+               live.playerUids?.[playerRole]!==user.uid||
+               live.isBot?.[playerRole])return false;
+            tx.update(ref,claimSurvivalReward(live,choice));
+            return true;
+          });
+          if(changed){setCommandingIdx(0);setActionMenuMode('moves');}
+          return changed;
+        }catch(error){
+          setSystemAlert('Sopravvivenza: '+(error.message||error));
+          return false;
+        }
+      };
+      return <SurvivalRewardView room={gameState}
+        canChoose={appMode!=='online_room'||Boolean(user?.uid&&gameState.playerUids?.[playerRole]===user.uid)}
+        onChoice={chooseSurvivalReward} onExit={leaveRoom}/>;
+    }
 
     if (gameState.status === 'battling' || gameState.status === 'executing') {
   const __screen = renderBattlingView({ chooseJuggernautFreeChoice, coopPendingAction, roomId, ownMasteryLevels: masteryVisibleLevels(getPlayerData()), ChevronRight, ITEMS_DB, appMode, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip: safeForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom:gameState.isTrainingBattle?leaveCombatLab:leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });

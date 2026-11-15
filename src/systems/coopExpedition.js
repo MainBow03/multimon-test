@@ -245,7 +245,7 @@ export function nextCoopFloor(room,roster,applyOnEnter=null,random=Math.random){
     applyOnEnter(c,p,idx,teams,field,events,room);
    }
   }
- return {status:'pre_battle',phaseStartedAt:Date.now(),turnExpiresAt:null,
+ return {status:'pre_battle',phaseStartedAt:Date.now(),battleStartedAt:Date.now(),turnExpiresAt:null,
   coopTrade:null,coopTradeLastResult:null,
   teams,field,events,postExecStatus:'battling',battleWeather:null,battleTailwind:{},
   startOfTurnTeams:null,startOfTurnField:null,

@@ -34,7 +34,7 @@ function register(report,player,idx,char){
     report.entries[key]={
       player,idx:Number(idx),id:char.id||'',name:char.name||'Multimon',
       img:char.img||'',damageDealt:0,damageTaken:0,healing:0,turnsOnField:0,
-      moveUses:{},revealed:!!char.revealed,
+      moveUses:{},itemUses:{},revealed:!!char.revealed,
       kos:0,shieldsBroken:0,passiveActivations:0
     };
   }
@@ -100,7 +100,19 @@ export function accumulateBattleReport(previous, teamsAtTurnStart, events, {coun
       actor=null;
       continue;
     }
-    if(event.type==='battle_move_used'){
+    if(event.type==='battle_item_used'){
+     const entry=report.entries[battleKey(event.player,event.charTeamIdx)];
+     if(entry&&event.itemId){
+       entry.itemUses||={};
+       const old=entry.itemUses[event.itemId]||{uses:0,healed:0};
+       entry.itemUses[event.itemId]={
+         uses:integer(old.uses)+1,
+         healed:integer(old.healed)+integer(event.healing)
+       };
+     }
+     continue;
+   }
+   if(event.type==='battle_move_used'){
       const entry=report.entries[battleKey(event.player,event.charTeamIdx)];
       const move=typeof event.moveName==='string'?event.moveName.trim():'';
       if(entry&&move){

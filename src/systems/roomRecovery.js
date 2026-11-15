@@ -189,7 +189,7 @@ export function nextPhaseAfterExecution(room,players,now=Date.now()){
    events:[],phaseStartedAt:now};
  let post=room.postExecStatus||'battling';
  const replacement=getRequiredSwitches(room,players);
- if(post!=='gameover'&&post!=='intermission'&&post!=='ultimon_result'&&replacement.any)post='switching_phase';
+ if(post!=='gameover'&&post!=='intermission'&&post!=='ultimon_result'&&post!=='survival_reward'&&replacement.any)post='switching_phase';
  const winner=post==='battling'?resolveMultiplayerWinner(room,players):null;
  if(winner)post='gameover';
  return {status:post,events:[],phaseStartedAt:now,

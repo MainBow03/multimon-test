@@ -1,6 +1,6 @@
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 import React,{useEffect,useState} from 'react';
-import {ULTIMON_COLORS,ultimonPlayers,ultimonAlive,ultimonActive,ultimonLeaderboard,ultimonDuelOutcome,ultimonPicksReady,ultimonIsFinalShowdown} from '../../systems/ultimonSystem.js';
+import {ULTIMON_COLORS,ultimonPlayers,ultimonAlive,ultimonActive,ultimonLeaderboard,ultimonDuelOutcome,ultimonPicksReady,ultimonIsFinalShowdown,ultimonRivalry} from '../../systems/ultimonSystem.js';
 import {ultimonRewardForPlace} from '../../systems/ultimonRewards.js';
 import {ultimonTeamMvp} from '../../systems/ultimonMvp.js';
 import {UltimonIntroView} from './UltimonIntroView.jsx';
@@ -50,7 +50,7 @@ function ResultCard({room,summary=false}){
       </div>)}
    </div>}
    {last&&last.eliminated.length>0&&<p className="ultimon-eliminated">💀 Eliminate: {last.eliminated.map(p=>u.identities[p]?.name).join(' · ')}</p>}
-   {last&&winner&&<p className="ultimon-heal">💚 Ai Multimon schierati e sopravvissuti della squadra vincente sono stati restituiti fino al 50% dei PS massimi.</p>}
+   {last&&winner&&<p className="ultimon-heal">💚 I superstiti schierati della squadra vincente recuperano il 30% dei PS massimi.{last.bonusTarget?' Vittoria perfetta! '+last.bonusTarget.name+' ottiene un ulteriore 10%.':''}</p>}
  </section>;
 }
 
@@ -130,7 +130,7 @@ function EliminationCeremony({room,standings,step}){
   </section>;
 }
 
-export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onSpeech,onEntrance,onHost,onExit,ownedEntrances=[],canHost=false}){
+export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onRecovery,onSpeech,onEntrance,onHost,onExit,ownedEntrances=[],canHost=false}){
  const stage=room.status,u=room.ultimon||{},pair=u.pair||[];
  const isLocal=appMode==='local_room',isHost=!!canHost;
  const available=ultimonPlayers(room);
@@ -184,6 +184,13 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onS
  const finaleColors=finalTwo.map(role=>u.identities?.[role]?.color||'#a78bfa');
  const finaleName=role=>u.identities?.[role]?.name||room.players?.[role]||'Squadra';
  const finaleHero=role=>(u.rosters?.[role]||[]).find(c=>c?.hp>0&&c.img);
+ const rivalry=ultimonRivalry(room,pair);
+ const outcome=stage==='ultimon_result'?ultimonDuelOutcome(room):null;
+ const winnerRole=outcome?.winner;
+ const selectableRecovery=(winnerRole&&room.teams?.[winnerRole]?.every(c=>c.hp>0))
+   ?(u.selected?.[winnerRole]||[]).filter((idx,j)=>room.teams?.[winnerRole]?.[j]?.hp>0):[];
+ const canChooseRecovery=stage==='ultimon_result'&&selectableRecovery.length>0&&
+   (isLocal||playerRole===winnerRole);
  const button=(text,action,disabled=false)=>
   <button type="button" className="ultimon-action" onClick={()=>onHost(action)} disabled={disabled||!isHost}>{text}</button>;
  const canPick=ultimonPicksReady(room);
@@ -332,6 +339,14 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onS
            <small>{revealed?room.players[p]:'ESTRAZIONE…'}</small>
          </div>)}
        </div>
+       {revealed&&rivalry&&<div className="ultimon-result-card" role="status" style={{marginTop:'1rem'}}>
+          <h3>🔥 DUELLO DELLA VENDETTA!</h3>
+          <p>Queste due squadre si sono già affrontate {rivalry.matches} {rivalry.matches===1?'volta':'volte'}.</p>
+          <p>Precedenti: {pair.map(p=>(u.identities?.[p]?.name||room.players[p])+' '+rivalry.wins[p]+' vittorie').join(' · ')}</p>
+          <small>Ultimo confronto: round {rivalry.last.round}, {rivalry.last.format}v{rivalry.last.format},
+            {rivalry.last.turns?' '+rivalry.last.turns+' turni,':''}
+            {' vincitore '+(u.identities?.[rivalry.last.winner]?.name||'nessuno')}.</small>
+        </div>}
        {revealed&&isHost&&button('🎰 Sorteggia il formato della battaglia','format')}
        {!revealed&&<p className="ultimon-tension">I nomi stanno per essere rivelati…</p>}
        {revealed&&!isHost&&<p>In attesa del formato scelto dall’host…</p>}
@@ -371,6 +386,23 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onS
      </section>}
      {stage==='ultimon_result'&&<>
         <ResultCard room={room}/>
+        {canChooseRecovery&&<section className="ultimon-customizer" style={{margin:'1rem auto'}}>
+          <h3>💚 Vittoria perfetta! Scegli chi riceve +10% PS extra</h3>
+          <p>La scelta è gratuita, oltre al 30% di cura per tutti i superstiti schierati.
+            Se non scegli, il premio va automaticamente al superstite più ferito.</p>
+          <div className="ultimon-pick-grid">
+            {selectableRecovery.map(index=>{
+              const fighter=u.rosters[winnerRole][index];
+              return <button key={index} type="button" className={'ultimon-pick-fighter '+(u.recoveryChoice?.role===winnerRole&&u.recoveryChoice.index===index?'ultimon-pick-fighter--chosen':'')}
+                onClick={()=>onRecovery(winnerRole,index)}>
+                {fighter.img&&<img src={fighter.img} onError={onMultimonImageError} alt={fighter.name}/>}
+                <strong>{fighter.name}</strong>
+                <small>{Math.ceil(room.teams[winnerRole][u.selected[winnerRole].indexOf(index)].hp)} PS rimasti</small>
+                {u.recoveryChoice?.role===winnerRole&&u.recoveryChoice.index===index&&<b>✓ PREMIO SCELTO</b>}
+              </button>;
+            })}
+          </div>
+        </section>}
         <div className="ultimon-center">{isHost?button('📜 Mostra il verdetto e aggiorna la classifica','resolve'):
           <p>In attesa del verdetto ufficiale…</p>}</div>
        </>}

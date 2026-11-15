@@ -191,6 +191,8 @@ if (appMode === 'menu') {
                             <span className="text-2xl">⚡</span>
                             <span>Laboratorio di Potenziamento <span className="block text-xs font-semibold text-cyan-100/85">Punti Forza: {playerData.strengthPoints||0} · ATK / DEF / VEL</span></span>
                         </button>
+                        <button type="button" onClick={()=>setAppMode('balance_registry')}
+                          className="w-full mt-3 bg-gradient-to-r from-indigo-900 to-cyan-900 hover:brightness-110 text-white font-black py-3 rounded-xl border border-cyan-400/50">📈 Registro di Bilanciamento · Dati per modalità</button>
                         <div className="grid grid-cols-2 gap-3 mt-3">
                             <button onClick={()=>startWithModeGuide('shop',()=>{ if(!playerName.trim()) setSystemAlert("Inserisci il tuo nome per usare lo Shop!"); else setAppMode('shop'); })} className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 text-sm shadow-md">
                                  <ShoppingCart size={20}/> Negozio

@@ -2,6 +2,7 @@ import {ZodiacSpiritPicker} from '../../components/ZodiacSpiritPicker.jsx';
 import {RoguelikeEventView} from './RoguelikeEventView.jsx';
 import {ROGUE_RELICS,applySoloRogueChoice,applyRogueEntryMoss,rogueAdvancedEnemyPool} from '../../systems/roguelikeEvents.js';
 import {empowerRoguelikeBoss} from '../../systems/roguelikeBossPower.js';
+import {SOLO_PATH_CHOICES,needsSoloPathChoice,chooseSoloPath,soloPathEnemyCount,assignSoloTacticalRole} from '../../systems/soloRoguePaths.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderRoguelikeMapView(ctx) {
 const { CHARACTERS, ChevronRight, Coins, Heart, ITEMS_DB, LogOut, Swords, Users, appMode, initialGameState, applyOnEnterPassive, playerName, renderHealthBar, roguelikeState, setAppMode, setGameState, setPlayerRole, setRoguelikeState, setSystemAlert, updateLocalStats } = ctx;
@@ -17,6 +18,26 @@ if (appMode === 'roguelike_map') {
                     coins={roguelikeState.coins || 0} relics={roguelikeState.relics || []} trainingUses={roguelikeState.trainingUses || 0}
                     onChoice={choice => setRoguelikeState(p => applySoloRogueChoice(p,choice,CHARACTERS))}/>
             </main>;
+        }
+
+        // Ogni cinque piani scegli un percorso, senza rinunciare agli
+        // eventi casuali esistenti. Scelta salvata nella run.
+        if(needsSoloPathChoice(roguelikeState)){
+          return <main className="min-h-screen bg-slate-950 text-white p-5 sm:p-10 flex flex-col items-center justify-center">
+            <section className="max-w-4xl w-full rounded-3xl border border-fuchsia-500/60 bg-slate-900 p-5 sm:p-9 shadow-2xl">
+              <p className="text-xs uppercase tracking-widest text-amber-300 font-black">✦ BIVIO DEL MULTIVERSO · PIANO {roguelikeState.floor} ✦</p>
+              <h1 className="text-3xl sm:text-4xl font-black mt-3">Scegli il tuo sentiero</h1>
+              <p className="text-slate-300 mt-3">Il percorso scelto influenzerà i prossimi combattimenti normali. I sentieri si ricongiungono al prossimo checkpoint.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                {SOLO_PATH_CHOICES.map(path=><button type="button" key={path.id}
+                   className={'rounded-2xl p-6 border-2 text-left hover:-translate-y-1 transition-transform '+(path.id==='dangerous'?'border-rose-500/70 bg-rose-950/45':'border-emerald-500/70 bg-emerald-950/40')}
+                   onClick={()=>setRoguelikeState(p=>chooseSoloPath(p,path.id,CHARACTERS))}>
+                  <h2 className="text-xl font-black">{path.id==='dangerous'?'⚔️':'💚'} {path.name}</h2>
+                  <p className="mt-3 text-sm text-slate-200">{path.desc}</p>
+                </button>)}
+              </div>
+            </section>
+          </main>;
         }
 
         // --- SCHERMATA MERCANTE VAGABONDO ---
@@ -137,6 +158,7 @@ if (appMode === 'roguelike_map') {
             if (roguelikeState.floor >= 15) enemyCount = 2;
             if (roguelikeState.floor >= 35) enemyCount = 3;
             if (isBossFloor) enemyCount = 1; // 1 Solo nemico se è il Boss del piano
+            enemyCount=soloPathEnemyCount(enemyCount,roguelikeState,isBossFloor);
 
             let availableEnemies = CHARACTERS.filter(c => !c.isSummonOnly && (isFinalBossFloor ? c.price === 350 || c.isSecretUnlock || c.id === 'cell' || c.id === 'trigon' || c.id === 'gaster' : !c.isSecretUnlock));
             
@@ -149,7 +171,7 @@ if (appMode === 'roguelike_map') {
             
             const shuffledEnemies = [...availableEnemies].sort(() => 0.5 - Math.random());
             
-            const enemyTeam = shuffledEnemies.slice(0, enemyCount).map(base => {
+            const enemyTeam = shuffledEnemies.slice(0, enemyCount).map((base,enemyIndex) => {
                 // Nuovo sistema a scaglioni: 0% per 1-10, 5% per 11-20, 10% per 21-30, ecc.
                 const tier = Math.floor((roguelikeState.floor - 1) / 10);
                 const scale = 1 + (tier * 0.05); 
@@ -165,6 +187,7 @@ if (appMode === 'roguelike_map') {
                     e.imageFilter = 'drop-shadow(0 0 15px rgba(234,179,8,1))';
                 }
                 if (isBossFloor) empowerRoguelikeBoss(e);
+                assignSoloTacticalRole(e,enemyIndex,roguelikeState.floor,roguelikeState);
                 return e;
             });
 
@@ -205,6 +228,7 @@ if (appMode === 'roguelike_map') {
             }
             state.events=initialEvents;
             state.status = 'pre_battle';
+            state.battleStartedAt=Date.now();
             setGameState(state);
             setRoguelikeState(p => ({...p,nextBattlePower:1,lastEventResult:null}));
             setPlayerRole('p1');
@@ -258,6 +282,9 @@ if (appMode === 'roguelike_map') {
                 </div>}
                 {(roguelikeState.nextBattlePower||1)>1&&<p className="mb-3 max-w-3xl text-sm text-center text-amber-200 border border-amber-500/30 bg-amber-950/30 rounded-xl px-4 py-3">🥋 Allenamento offensivo: +20% danni nella prossima battaglia.</p>}
                 {roguelikeState.lastEventResult && <p className="mb-4 max-w-3xl text-sm text-center text-emerald-200 bg-emerald-950/40 border border-emerald-600/40 rounded-xl p-3">{roguelikeState.lastEventResult}</p>}
+                {roguelikeState.lastRouteResult && <p className="mb-4 max-w-3xl text-sm text-center text-amber-200 bg-amber-950/40 border border-amber-600/40 rounded-xl p-3">{roguelikeState.lastRouteResult}</p>}
+                {roguelikeState.soloPath&&roguelikeState.floor>=roguelikeState.soloPath.startFloor&&roguelikeState.floor<=roguelikeState.soloPath.endFloor&&
+                  <p className="mb-4 text-sm font-bold text-fuchsia-200">🗺️ Percorso attivo: {roguelikeState.soloPath.kind==='safe'?'Sentiero Sicuro':'Sentiero Pericoloso'} ({roguelikeState.soloPath.endFloor-roguelikeState.floor+1} incontri previsti)</p>}
                 {roguelikeState.roster.includes('lucy')&&<div className="w-full max-w-2xl mb-5">
                   <ZodiacSpiritPicker value={roguelikeState.zodiacSpiritId}
                     onChange={spiritId=>setRoguelikeState(old=>({...old,zodiacSpiritId:spiritId}))}/>
