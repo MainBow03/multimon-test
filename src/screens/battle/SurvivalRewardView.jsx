@@ -2,7 +2,7 @@ import React from 'react';
 import {survivalWaveKind} from '../../systems/survivalWaves.js';
 
 const labels={normal:'Nuovo sfidante',anomaly:'Arena Anomala',elite:'Nemico Élite',superboss:'SUPERBOSS'};
-export function SurvivalRewardView({room,onChoice,onExit}){
+export function SurvivalRewardView({room,onChoice,onExit,canChoose=true}){
  const round=room.survivalRound||1;
  const kind=survivalWaveKind(round);
  const next=(room.teams?.[room.settings?.juggernautPlayer||'p2']||[])[0];
@@ -10,7 +10,7 @@ export function SurvivalRewardView({room,onChoice,onExit}){
  const choose=async choice=>{
    if(busy)return;
    setBusy(true);
-   try{await onChoice(choice);}
+   try{const success=await onChoice(choice);if(success===false)setBusy(false);}
    catch(error){console.error('Ricompensa Sopravvivenza:',error);setBusy(false);}
  };
  return <main className="min-h-screen bg-slate-950 text-white p-5 sm:p-10 flex flex-col items-center justify-center">
@@ -25,18 +25,19 @@ export function SurvivalRewardView({room,onChoice,onExit}){
        {kind==='superboss'&&<p className="text-rose-300 mt-2">👑 Il superboss è molto più resistente e pericoloso.</p>}
        <p className="text-slate-300 mt-4">Scegli una ricompensa prima di affrontare la prossima ondata. Non consuma il turno.</p>
      </header>
+     {!canChoose&&<p className="text-center text-amber-200 font-bold mt-6">In attesa della scelta di un partecipante autorizzato…</p>}
      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-8">
-       <button type="button" disabled={busy} onClick={()=>choose('heal')}
+       <button type="button" disabled={busy||!canChoose} onClick={()=>choose('heal')}
          className="p-5 rounded-2xl border border-emerald-500/60 bg-emerald-950/45 hover:bg-emerald-900/60 disabled:opacity-50 text-left">
          <strong className="text-xl block">💚 Riposo</strong>
          <span className="block text-sm mt-2 text-emerald-100">+10% PS massimi ai Multimon ancora vivi</span>
        </button>
-       <button type="button" disabled={busy} onClick={()=>choose('power')}
+       <button type="button" disabled={busy||!canChoose} onClick={()=>choose('power')}
          className="p-5 rounded-2xl border border-orange-500/60 bg-orange-950/45 hover:bg-orange-900/60 disabled:opacity-50 text-left">
          <strong className="text-xl block">🔥 Potenza</strong>
          <span className="block text-sm mt-2 text-orange-100">+10% danni dei giocatori per la prossima ondata</span>
        </button>
-       <button type="button" disabled={busy} onClick={()=>choose('coins')}
+       <button type="button" disabled={busy||!canChoose} onClick={()=>choose('coins')}
          className="p-5 rounded-2xl border border-amber-500/60 bg-amber-950/45 hover:bg-amber-900/60 disabled:opacity-50 text-left">
          <strong className="text-xl block">🪙 Bottino</strong>
          <span className="block text-sm mt-2 text-amber-100">+10 monete al premio finale della sessione</span>
