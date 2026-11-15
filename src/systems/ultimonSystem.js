@@ -186,7 +186,7 @@ export function startUltimonDuel(room,applyOnEnter){
    }
   }
  }
- return {status:'pre_battle',phaseStartedAt:Date.now(),
+ return {status:'pre_battle',phaseStartedAt:Date.now(),battleStartedAt:Date.now(),
   'ultimon.selected':selected,teams,field,events,
   settings:{...room.settings,fieldSize:format},
   battleWeather:null,battleTailwind:{},fieldTraps:{},fieldTrapSeen:{},aiMemory:{},
