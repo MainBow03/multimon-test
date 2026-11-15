@@ -76,7 +76,7 @@ import {ultimonLeaderboard} from './systems/ultimonSystem.js';
 import {beginUltimonIntroduction,ultimonIntroMonologuePatch,ultimonIntroEntrancePatch,advanceUltimonIntroduction,skipUltimonCurrentPresentation} from './systems/ultimonIntro.js';
 import {ownedUltimonEntrances} from './systems/ultimonCosmetics.js';
 import {ULTIMON_STAGES,createUltimonShowcase,identityPatch,nextUltimonPair,
-  revealUltimonFormat,pickPatch,startUltimonDuel,finishUltimonDuel,finishUltimonElimination,
+  revealUltimonFormat,pickPatch,startUltimonDuel,finishUltimonDuel,finishUltimonElimination,ultimonRecoveryChoicePatch,
   ultimonIsFinalShowdown} from './systems/ultimonSystem.js';
 
         import { onAuthStateChanged } from 'firebase/auth';
@@ -1635,6 +1635,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
             room=>identityPatch(room,role,name,color),role);
           const ultimonPick=(role,indices)=>ultimonMutation(['ultimon_pick'],
             room=>pickPatch(room,role,indices),role);
+          const ultimonRecovery=(role,index)=>ultimonMutation(['ultimon_result'],
+            room=>ultimonRecoveryChoicePatch(room,role,index),role);
           const ultimonSpeech=(role,monologue)=>ultimonMutation(['ultimon_intro'],
             room=>ultimonIntroMonologuePatch(room,role,monologue),role);
           const ultimonEntrance=(role,effectId)=>ultimonMutation(['ultimon_intro'],
@@ -2144,7 +2146,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
       return <UltimonView key={gameState.status+':'+(gameState.ultimon?.round||0)}
         room={gameState} appMode={appMode} playerRole={playerRole}
         canHost={appMode==='local_room'||playerRole==='p1'||canRecoverRoom(gameState,playerRole)}
-        onBan={ultimonBan} onIdentity={ultimonIdentity} onPick={ultimonPick} onSpeech={ultimonSpeech}
+        onBan={ultimonBan} onIdentity={ultimonIdentity} onPick={ultimonPick} onRecovery={ultimonRecovery} onSpeech={ultimonSpeech}
         onEntrance={ultimonEntrance} ownedEntrances={ownedUltimonEntrances(getPlayerData())}
         onHost={ultimonHostAction} onExit={leaveRoom}/>;
     }
