@@ -1,5 +1,5 @@
 import React from 'react';
-import {survivalWaveKind} from '../../systems/survivalWaves.js';
+import {survivalWaveKind,survivalWaveWeather} from '../../systems/survivalWaves.js';
 
 const labels={normal:'Nuovo sfidante',anomaly:'Arena Anomala',elite:'Nemico Élite',superboss:'SUPERBOSS'};
 export function SurvivalRewardView({room,onChoice,onExit,canChoose=true}){
