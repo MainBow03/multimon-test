@@ -228,6 +228,7 @@ if (appMode === 'roguelike_map') {
             }
             state.events=initialEvents;
             state.status = 'pre_battle';
+            state.battleStartedAt=Date.now();
             setGameState(state);
             setRoguelikeState(p => ({...p,nextBattlePower:1,lastEventResult:null}));
             setPlayerRole('p1');
