@@ -279,6 +279,7 @@ export function MenuDashboard({ctx}){
      </div>
      <div className="mm-dash-card-grid mm-dash-profile-actions">
       {card('📊','Statistiche complete','Carriera, preferenze, vittorie e record.',()=>guarded('stats','stats','alle statistiche'),'blue')}
+      {card('📈','Registro di Bilanciamento','Vittorie, tempi, Multimon e mosse suddivisi per modalità.',()=>setAppMode('balance_registry'),'cyan')}
       {card('🏅','Prestigi e Padronanza','Gestisci progressi, cornici e titoli.',()=>guarded('stats','mastery','ai prestigi'),'purple')}
      </div>
     </>}
