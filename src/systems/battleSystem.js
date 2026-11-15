@@ -3986,7 +3986,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 workingWeather=survivalWaveWeather(currentSurvivalRound);
                 events.push({type:'text',text:'🌟 Ondata '+completed+' superata! Cura '+Math.round(recovery.healFraction*100)+
                   '% sui superstiti.'+(recovery.revived?' '+recovery.revived.name+' rientra in gioco!':'')});
-                if(recovery.revived)events.push({type:'revive_to_field',player:recovery.revived.player,targetIdx:recovery.revived.index});
+                if(recovery.revived&&workingField[recovery.revived.player]?.includes(recovery.revived.index))
+                  events.push({type:'revive_to_field',player:recovery.revived.player,targetIdx:recovery.revived.index});
                 events.push({type:'text',text:'⚠️ '+(survivalWaveKind(currentSurvivalRound)==='superboss'?'SUPERBOSS':
                   survivalWaveKind(currentSurvivalRound)==='elite'?'NEMICO ÉLITE':
                   survivalWaveKind(currentSurvivalRound)==='anomaly'?'ARENA ANOMALA':'Nuovo nemico')+
