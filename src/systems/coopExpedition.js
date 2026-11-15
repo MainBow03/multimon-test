@@ -1,5 +1,6 @@
 import {maybeRogueEvent,canChooseRogueEvent,applyCoopRogueChoice,getRogueEvent,applyRogueEntryMoss,rogueAdvancedEnemyPool} from './roguelikeEvents.js';
 import {empowerRoguelikeBoss} from './roguelikeBossPower.js';
+import {createBattleReport} from './battleReport.js';
 // Funzioni pure per la spedizione co-op. La stanza Firestore è la sola fonte di verità.
 export const COOP_HUMANS=['p1','p2','p3'];
 export const COOP_BOSS='p4';
@@ -257,7 +258,7 @@ export function nextCoopFloor(room,roster,applyOnEnter=null,random=Math.random){
   winner:null,rogueRelics:[...relics],rogueDawnUsed:false,aiMemory:{},
   coopRun:{...room.coopRun,nextBattlePower:1,lastRecruit:null,lastCoins:0},
   // Start fresh combat reports on each floor.
-  battleReport:{version:1,turns:0,entries:{}}};
+  battleReport:createBattleReport()};
 }
 
 
