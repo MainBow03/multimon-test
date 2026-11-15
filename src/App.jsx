@@ -2180,9 +2180,35 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
         onBack={()=>setAppMode('menu')}/>;
     }
     if (gameState.gameMode === 'survival' && gameState.status === 'survival_reward') {
+      const chooseSurvivalReward=async choice=>{
+        if(appMode!=='online_room'){
+          const patch=claimSurvivalReward(gameState,choice);
+          setCommandingIdx(0);setActionMenuMode('moves');
+          return updateState(patch);
+        }
+        if(!roomId||!user?.uid||!playerRole)return false;
+        const ref=doc(db,'artifacts',appId,'public','data','rooms',roomId);
+        try{
+          const changed=await runTransaction(db,async tx=>{
+            const snap=await tx.get(ref);
+            if(!snap.exists())return false;
+            const live=snap.data();
+            if(live.phaseStartedAt!==gameState.phaseStartedAt||
+               live.playerUids?.[playerRole]!==user.uid||
+               live.isBot?.[playerRole])return false;
+            tx.update(ref,claimSurvivalReward(live,choice));
+            return true;
+          });
+          if(changed){setCommandingIdx(0);setActionMenuMode('moves');}
+          return changed;
+        }catch(error){
+          setSystemAlert('Sopravvivenza: '+(error.message||error));
+          return false;
+        }
+      };
       return <SurvivalRewardView room={gameState}
-        onChoice={choice=>updateState(claimSurvivalReward(gameState,choice))}
-        onExit={leaveRoom}/>;
+        canChoose={appMode!=='online_room'||Boolean(user?.uid&&gameState.playerUids?.[playerRole]===user.uid)}
+        onChoice={chooseSurvivalReward} onExit={leaveRoom}/>;
     }
 
     if (gameState.status === 'battling' || gameState.status === 'executing') {
