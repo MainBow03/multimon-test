@@ -908,7 +908,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                           for (let i = 1; i <= roundsSurvived; i++) {
                               calculatedCoins += Math.min(10, i + 2);
                           }
-                          coinsToReward = calculatedCoins;
+                          coinsToReward = calculatedCoins + Math.max(0,Number(gameState.survivalTreasury)||0);
                           statsUpdates.maxSurvivalRound = roundsSurvived;
                       } else {
                           if (gameState.gameMode === 'multipla') {
@@ -2157,6 +2157,12 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
   const __screen = renderSwitchingPhaseView({ Loader2, LogOut, TYPE_STYLES, appMode, gameState, getActivePlayers, getTournamentMatchOpponents, leaveRoom, playerRole, renderHealthBar, setPlayerRole, setShowLeaveConfirm, chooseReplacement, forceCompleteSwitches, canForceSwitch: appMode==='local_room'||canRecoverRoom(gameState,playerRole) });
   if (__screen !== undefined) return __screen;
 }
+
+    if (gameState.gameMode === 'survival' && gameState.status === 'survival_reward') {
+      return <SurvivalRewardView room={gameState}
+        onChoice={choice=>updateState(claimSurvivalReward(gameState,choice))}
+        onExit={leaveRoom}/>;
+    }
 
     if (gameState.status === 'battling' || gameState.status === 'executing') {
   const __screen = renderBattlingView({ chooseJuggernautFreeChoice, coopPendingAction, roomId, ownMasteryLevels: masteryVisibleLevels(getPlayerData()), ChevronRight, ITEMS_DB, appMode, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip: safeForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom:gameState.isTrainingBattle?leaveCombatLab:leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });
