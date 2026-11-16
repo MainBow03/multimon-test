@@ -23,3 +23,54 @@ export function migrateTheaterStellarubia(state,characters=[]){
     lastUnlocked:[...new Set([...(state.lastUnlocked||[]),'stellarubia'])]
   },changed:true};
 }
+
+
+// Reclute aggiunte alla storia dopo il rilascio originale.
+// Il checkpoint mantiene l'indice della PROSSIMA missione da giocare:
+// se è almeno N, la missione N è già stata completata.
+// completed=true copre anche il salvataggio del finale, fermo alla missione 36.
+export const THEATER_NEW_RECRUITS=Object.freeze([
+  {id:'shrek',afterMission:11},
+  {id:'perla',afterMission:17},
+  {id:'whisper',afterMission:23}
+]);
+
+export function migrateTheaterNewRecruits(state,characters=[]){
+  if(!state||!Array.isArray(state.roster))return {state,changed:false,added:[]};
+  const byId=new Map(characters.filter(c=>c?.id).map(c=>[c.id,c]));
+  const sector=Number(state.sectorIdx);
+  const mission=Number(state.missionIdx);
+  const progress=Number.isInteger(sector)&&Number.isInteger(mission)&&sector>=0&&
+    mission>=0?sector*6+mission:0;
+  const completed=state.completed===true;
+  const roster=[...state.roster];
+  const stats={...(state.rosterStats||{})};
+  const added=[];
+  let changed=false;
+  for(const recruit of THEATER_NEW_RECRUITS){
+    if(!completed&&progress<recruit.afterMission)continue;
+    const character=byId.get(recruit.id);
+    if(!character||!Number.isFinite(character.maxHp))continue;
+    if(!roster.includes(recruit.id)){
+      roster.push(recruit.id);
+      added.push(recruit.id);
+      changed=true;
+    }
+    // Non curare personaggi già presenti: anche 0 PS è un dato valido.
+    // Se l'ID esisteva senza statistiche, recupera solo il dato mancante.
+    if(!Number.isFinite(Number(stats[recruit.id]))||stats[recruit.id]===undefined||
+       stats[recruit.id]===null){
+      stats[recruit.id]=character.maxHp;
+      changed=true;
+    }
+  }
+  return {state:changed?{...state,roster,rosterStats:stats}:state,changed,added};
+}
+
+// Un solo passaggio (e un solo salvataggio) per la vecchia correzione
+// di Stellarubia e i tre nuovi personaggi.
+export function migrateTheaterRecruits(state,characters=[]){
+  const old=migrateTheaterStellarubia(state,characters);
+  const current=migrateTheaterNewRecruits(old.state,characters);
+  return {state:current.state,changed:old.changed||current.changed,added:current.added};
+}
