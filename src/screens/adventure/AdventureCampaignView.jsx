@@ -16,21 +16,21 @@ const hp=(m,chars)=>{
 };
 const img=(src,alt,css='')=>src?<img src={src} alt={alt} className={css} onError={onMultimonImageError}/>:null;
 
-function AdventureWorld3D({save,onWalk,onNear,onInteract,paused=false}){
+function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,paused=false}){
  const canvas=useRef(null),player=useRef({...save.position}),saveRef=useRef(save);
- const buttons=useRef(new Set()),callbacks=useRef({onWalk,onNear,onInteract,paused});
+ const buttons=useRef(new Set()),callbacks=useRef({onWalk,onNear,onInteract,onBlocked,paused});
  const travelRef=useRef(save.travelSerial||0);
  useEffect(()=>{
-  saveRef.current=save;callbacks.current={onWalk,onNear,onInteract,paused};
+  saveRef.current=save;callbacks.current={onWalk,onNear,onInteract,onBlocked,paused};
   if((save.travelSerial||0)!==travelRef.current){
    player.current={...save.position};travelRef.current=save.travelSerial||0;
   }
- },[save,onWalk,onNear,onInteract,paused]);
+ },[save,onWalk,onNear,onInteract,onBlocked,paused]);
  useEffect(()=>{
   const el=canvas.current;if(!el)return;
   const graphics=createAdventureWorldRenderer(el,saveRef.current);
   const keys=buttons.current;
-  const before=performance.now();let previous=before,frame=0,lastSaved=before,prevNearest=null,alive=true;
+  const before=performance.now();let previous=before,frame=0,lastSaved=before,lastBlocked=0,prevNearest=null,alive=true;
   const focus=()=>!(document.activeElement instanceof HTMLInputElement)&&
      !(document.activeElement instanceof HTMLTextAreaElement);
   const interact=()=>{
@@ -65,6 +65,10 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,paused=false}){
        current.z+lateral/length*speed*dt);
      // Position is managed in the renderer for smooth 60 FPS camera motion.
      player.current=next.position;
+     if(next.blocked&&now-lastBlocked>2800){
+       callbacks.current.onBlocked?.(next.requiresBadge);
+       lastBlocked=now;
+     }
      saveRef.current={...saveRef.current,position:next.position};
      if(now-lastSaved>950){callbacks.current.onWalk({...next.position});lastSaved=now;}
     }
@@ -212,7 +216,7 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
  return <main className="adv-root">
   <AdventureWorld3D key={'world-'+save.badges.join(',')+'-'+save.chests.length+'-'+save.defeated.length}
    save={save} onWalk={position=>update(p=>p?.started?{...p,position}:p)} onNear={setNearby}
-   onInteract={handleInteraction} paused={paused}/>
+   onInteract={handleInteraction} onBlocked={badge=>showMessage('🔒 Il portale è chiuso! Devi conquistare '+badge+'.')} paused={paused}/>
   <div className="adv-overlay">
    <header className="adv-hud-header">
     <button type="button" className="adv-back" onClick={onBack} title="Torna al menu senza perdere i progressi">← <span>MENU</span></button>
