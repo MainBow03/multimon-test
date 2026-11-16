@@ -3,7 +3,7 @@ import { completeCampaign, getCompletedCampaigns, isCampaignUnlocked } from './c
 import {recoverMissingEchoCompletion,CAMPAIGN_REPLAY_RESET_PREFIX} from './echoCompletionRecovery.js';
 import { ECHO_ID, ECHO_STARTERS } from '../data/echoCampaign.js';
 import {THEATER_ID,THEATER_STARTERS} from '../data/theaterCampaign.js';
-import {migrateTheaterStellarubia} from './theaterRecruitMigration.js';
+import {migrateTheaterRecruits} from './theaterRecruitMigration.js';
 import { isTournamentEligibleCharacter, sanitizeTournamentSave } from './tournamentEligibility.js';
 import {rememberSelectedCampaign} from './lastCampaignSelection.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
@@ -52,7 +52,7 @@ const { CHARACTERS, CAMPAIGNS, getCampaignStoryCharacters, setActiveCampaignId, 
                       if(campId === THEATER_ID){
                         // Aggiorna anche le partite della quarta campagna avviate
                         // prima del cambio di reclutamento nella missione 8.
-                        const migration=migrateTheaterStellarubia(parsed,CHARACTERS);
+                        const migration=migrateTheaterRecruits(parsed,CHARACTERS);
                         if(migration.changed){
                           parsed=migration.state;
                           localStorage.setItem(`multiverse_rpg_campaign_save_${campId}`,JSON.stringify(parsed));
