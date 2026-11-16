@@ -414,7 +414,11 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     <div className="bg-slate-800/80 p-2 rounded-lg w-full mb-2 backdrop-blur-sm text-center shadow-lg z-10">
                         <div className="font-bold text-xs truncate text-gray-400 uppercase tracking-widest">{gameState.players[teamPlayer]}</div>
                         <div className="font-bold text-sm truncate text-gray-100 mb-1">
-                            {char.name} 
+                            {char.name}
+                            {gameState.isAdventureBattle&&Number.isFinite(char.adventureLevel)&&
+                              <span className="ml-1 rounded-md border border-yellow-300/60 bg-yellow-900/60 px-1.5 py-0.5 text-[10px] font-black text-yellow-200">
+                                LV {char.adventureLevel}
+                              </span>}
                             {char.isZodiacSpirit && <span className="block text-[10px] font-bold text-violet-200">✦ Spirito Stellare di {gameState.players?.[char.zodiacOwner]||'Lucy'}</span>}
                             {char.hakiGuardTurns>0 && <span className="block text-[10px] text-amber-200 font-bold">🛡️ Haki: {char.hakiGuardTurns} turni</span>}
                             {char.strawHatGuardPoint>0 && <span className="block text-[10px] text-emerald-200 font-bold">🛡️ Guard Point pronto</span>}
@@ -683,7 +687,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     )}
                     
                     {(!isEventBattle||gameState.isTournamentEvent)&&<button onClick={() => gameState.isTournamentEvent ? leaveRoom() : (playerRole === 'spectator'||gameState.isTrainingBattle) ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-4 left-4 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
-                         <LogOut size={16} /> {gameState.isTournamentEvent?'← Torneo':gameState.isTrainingBattle?'← Laboratorio':playerRole === 'spectator' ? 'Esci' : 'Resa'}
+                         <LogOut size={16} /> {gameState.isTournamentEvent?'← Torneo':gameState.isAdventureBattle?'← Mondo 3D':gameState.isTrainingBattle?'← Laboratorio':playerRole === 'spectator' ? 'Esci' : 'Resa'}
                     </button>}
 
                     {/* PULSANTE TOGGLE REGISTRO BATTAGLIA */}

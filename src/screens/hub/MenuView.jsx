@@ -105,6 +105,10 @@ if (appMode === 'menu') {
                     </div>
 
                     <div className="pt-4 border-t border-slate-800">
+                         <button onClick={()=>setAppMode('adventure_world')}
+                           className="w-full mb-3 bg-gradient-to-r from-cyan-700 via-emerald-600 to-teal-700 hover:brightness-110 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 border border-emerald-300/60 shadow-lg">
+                           🌍 Campagna 3D · Mondo Aperto · Palestre · Starter
+                         </button>
                          <button onClick={()=>startWithModeGuide('campaign',()=>setAppMode('campaign_select'))} className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-0.5 mb-3">
                              <BookOpen size={20}/> Modalità Campagne
                          </button>
