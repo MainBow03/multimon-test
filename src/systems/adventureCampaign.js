@@ -222,7 +222,8 @@ export function adventureGiveXp(member,amount,characters){
   exp-=adventureExpRequired(level);level++;levels++;
  }
  const afterMax=adventureMaxHp(base,level);
- hp=Math.min(afterMax,hp+afterMax-beforeMax);
+ // Il level-up aumenta anche la barra massima, ma non rianima un KO.
+ if(hp>0)hp=Math.min(afterMax,hp+afterMax-beforeMax);
  return {member:{...member,level,exp,hp},levels};
 }
 export function adventureFinishBattle(save,room,characters,{recruit=false}={}){
