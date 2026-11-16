@@ -19,7 +19,13 @@ const img=(src,alt,css='')=>src?<img src={src} alt={alt} className={css} onError
 function AdventureWorld3D({save,onWalk,onNear,onInteract,paused=false}){
  const canvas=useRef(null),player=useRef({...save.position}),saveRef=useRef(save);
  const buttons=useRef(new Set()),callbacks=useRef({onWalk,onNear,onInteract,paused});
- useEffect(()=>{saveRef.current=save;callbacks.current={onWalk,onNear,onInteract,paused};},[save,onWalk,onNear,onInteract,paused]);
+ const travelRef=useRef(save.travelSerial||0);
+ useEffect(()=>{
+  saveRef.current=save;callbacks.current={onWalk,onNear,onInteract,paused};
+  if((save.travelSerial||0)!==travelRef.current){
+   player.current={...save.position};travelRef.current=save.travelSerial||0;
+  }
+ },[save,onWalk,onNear,onInteract,paused]);
  useEffect(()=>{
   const el=canvas.current;if(!el)return;
   const graphics=createAdventureWorldRenderer(el,saveRef.current);
