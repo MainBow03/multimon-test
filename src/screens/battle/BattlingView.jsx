@@ -414,7 +414,11 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     <div className="bg-slate-800/80 p-2 rounded-lg w-full mb-2 backdrop-blur-sm text-center shadow-lg z-10">
                         <div className="font-bold text-xs truncate text-gray-400 uppercase tracking-widest">{gameState.players[teamPlayer]}</div>
                         <div className="font-bold text-sm truncate text-gray-100 mb-1">
-                            {char.name} 
+                            {char.name}
+                            {gameState.isAdventureBattle&&Number.isFinite(char.adventureLevel)&&
+                              <span className="ml-1 rounded-md border border-yellow-300/60 bg-yellow-900/60 px-1.5 py-0.5 text-[10px] font-black text-yellow-200">
+                                LV {char.adventureLevel}
+                              </span>}
                             {char.isZodiacSpirit && <span className="block text-[10px] font-bold text-violet-200">✦ Spirito Stellare di {gameState.players?.[char.zodiacOwner]||'Lucy'}</span>}
                             {char.hakiGuardTurns>0 && <span className="block text-[10px] text-amber-200 font-bold">🛡️ Haki: {char.hakiGuardTurns} turni</span>}
                             {char.strawHatGuardPoint>0 && <span className="block text-[10px] text-emerald-200 font-bold">🛡️ Guard Point pronto</span>}
