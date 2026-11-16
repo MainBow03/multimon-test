@@ -2487,7 +2487,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
             {renderView()}
             <RoomSyncBanner active={Boolean(roomId&&(appMode==='online_room'||appMode==='roguelike_coop_lobby'))}
               fromCache={roomSync.fromCache} lastServerAt={roomSync.lastServerAt} error={roomSync.error}/>
-            {gameState.isTrainingBattle&&appMode==='local_room'&&
+            {gameState.isTrainingBattle&&!gameState.isAdventureBattle&&appMode==='local_room'&&
               ['battling','executing'].includes(gameState.status)&&
               <CombatLabTelemetry room={gameState} combatLog={combatLog}
                 onEdit={editCombatLab} getMultiplier={getMultiplier}
