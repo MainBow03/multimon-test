@@ -972,8 +972,10 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                       playerUid: user?.uid||null,
                       gameState: appMode === 'local_room' ? gameState : null
                   }));
-              } else if (appMode === 'menu') {
-                  localStorage.removeItem('multiverse_rpg_session');
+              } else if (appMode === 'menu' || appMode === 'adventure_world') {
+                  // Uscendo da uno scontro della Campagna 3D non ripristinare
+                  // per errore la vecchia stanza locale dopo un refresh.
+                  localStorage.removeItem(ROOM_SESSION_KEY);
               }
           }, [appMode, roomId, playerRole, gameState, user?.uid]);
           
