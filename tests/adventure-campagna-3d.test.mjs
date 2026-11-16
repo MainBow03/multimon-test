@@ -193,6 +193,6 @@ test('Wiring 3D: render WebGL, mobile, App bridge, menu nuovo e nessun pacchetto
  assert.match(css,/adv-mobile-controls/);
  assert.match(app,/adventureBattleRoom\(adventureState/);
  assert.match(app,/adventureFinishBattle\(adventureState/);
- assert.match(menu,/Campagna 3D/);
+ assert.match(menu,/card\('🌍','Campagna','Mondo 3D aperto/);
  assert.match(classic,/Campagna 3D/);
 });
