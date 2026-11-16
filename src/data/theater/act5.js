@@ -40,10 +40,13 @@ export const THEATER_ACT_V={
  ["Nina","È sempre così gentile quando vuole qualcosa?"],
  ["Coraline","Finché non dici di no."],
  ["Sam (Totally Spies)","La parete dietro di lei è falsa. Restate accanto a me."],
+ ["Whisper","Le tracce dei prigionieri passano da lì. Il Regista usa questo muro come scorciatoia per le scenografie."],
+ ["Shrek","Se è un muro finto, posso aprirlo io. State indietro."],
  ["Coraline","Nina, non darle ascolto. La porta giusta è quella senza maniglia."]
  ],
  postDialogue:[
  ["Nina","Eccola. La macchina vecchia esiste davvero."],
+ ["Perla","Ed è stata costruita per essere riparata. Vedete? Ogni modulo si può sostituire senza spegnere gli altri."],
  ["Sam (Totally Spies)","È piena di polvere, ma i cavi non sono tagliati."],
  ["Coraline","Vuoi restare qui, Nina?"],
  ["Nina","No. Voglio vedere se funziona."],
@@ -60,6 +63,8 @@ export const THEATER_ACT_V={
  ["Star Butterfly","Una scala già molto instabile."],
  ["Stellarubia","Posso volare sopra la balconata e vedere se ci sono persone dall'altra parte."],
  ["Sam (Totally Spies)","Bene. Danny, apri la serratura dall'interno. Stellarubia, avvisa quando sono liberi."],
+ ["Whisper","Io controllo i corridoi: le guardie non si aspettano che un fantasma passi tra i fondali."],
+ ["Shrek","E io tengo occupate quelle che guardano le porte."],
  ["Il Caposcena","Il salvataggio non è in programma! Bloccate la sala!"],
  ["Danny Phantom","Certo che qui non approvano mai le modifiche alla sceneggiatura."],
  ["Coraline","Ora. Muoviamoci."]
@@ -69,6 +74,7 @@ export const THEATER_ACT_V={
  ["Hatsune Miku","Mi facevano ripetere la stessa nota. Ma ne ho trovata una che la macchina non riesce a fermare."],
  ["Sam (Totally Spies)","È perfetto. C'è un vecchio generatore che potremmo avviare con il suono."],
  ["Tails","Voglio vederlo. Sul serio. Ci sono ingranaggi o è solo magia?"],
+ ["Perla","Ingranaggi, cavi e un sistema di sicurezza da rifare. Ti mostro gli schemi dopo."],
  ["Star Butterfly","Domande da fare dopo aver mangiato qualcosa. Siete stati chiusi lì dentro!"],
  ["Stellarubia","Ho già preparato un'accoglienza musicale."],
  ["Hatsune Miku","Apprezzo il pensiero. Ma per favore, non un'altra canzone in questo momento."],
@@ -127,6 +133,9 @@ export const THEATER_ACT_V={
  {title:'La prova generale',boss:['caposcena','riflettore','primadonna','riflettore'],sceneRule:'spotlight',
  dialogue:[
  ["Sam (Totally Spies)","Quattro generatori. Tails e Miku ne avviano due. Danny e Blaze proteggono le uscite."],
+ ["Perla","Io controllo che i quattro collegamenti siano sincronizzati. Niente improvvisazioni vicino al nucleo."],
+ ["Whisper","Posso segnalare se qualcuno prova ad attraversare i corridoi di servizio!"],
+ ["Shrek","Mi occupo della porta principale. Quella non la passa nessuno."],
  ["Clover (Totally Spies)","Io con chi vado?"],
  ["Sam (Totally Spies)","Con me. Tu conosci i passaggi dell'ala ovest."],
  ["Clover (Totally Spies)","Va bene. E grazie."],
