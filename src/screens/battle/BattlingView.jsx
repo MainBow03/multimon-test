@@ -683,7 +683,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     )}
                     
                     {(!isEventBattle||gameState.isTournamentEvent)&&<button onClick={() => gameState.isTournamentEvent ? leaveRoom() : (playerRole === 'spectator'||gameState.isTrainingBattle) ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-4 left-4 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
-                         <LogOut size={16} /> {gameState.isTournamentEvent?'← Torneo':gameState.isTrainingBattle?'← Laboratorio':playerRole === 'spectator' ? 'Esci' : 'Resa'}
+                         <LogOut size={16} /> {gameState.isTournamentEvent?'← Torneo':gameState.isAdventureBattle?'← Mondo 3D':gameState.isTrainingBattle?'← Laboratorio':playerRole === 'spectator' ? 'Esci' : 'Resa'}
                     </button>}
 
                     {/* PULSANTE TOGGLE REGISTRO BATTAGLIA */}
