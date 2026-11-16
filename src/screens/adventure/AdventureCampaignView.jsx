@@ -375,6 +375,7 @@ export function AdventureBattleResult({room,save,characters,onContinue,onExit}){
    <h1>{won?'Sfida superata!':'La squadra si ritira'}</h1>
    <p>{won?'Hai superato lo scontro contro '+result.name+'. I tuoi Multimon guadagnano esperienza e monete.':
     'Ritornerai al tuo ultimo Centro di Cura. I progressi e gli Emblemi conquistati restano tuoi.'}</p>
+   {won&&result.kind==='gym'&&<p className="adv-leader-farewell">«{ADVENTURE_ZONES[result.zone]?.afterGym}»</p>}
    {won&&result.kind==='gym'&&<div className="adv-earned-emblem">
     <span>◆</span><strong>{ADVENTURE_ZONES[result.zone]?.badge}</strong><small>NUOVO EMBLEMA · PERCORSO SBLOCCATO</small>
    </div>}
