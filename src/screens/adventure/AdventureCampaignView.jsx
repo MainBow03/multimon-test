@@ -206,7 +206,7 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
  const travel=i=>{
   if(!canTravel(i)){showMessage('Devi sbloccare questo percorso con gli Emblemi.');return;}
   const x=ADVENTURE_ZONES[i].center-10,z=adventureRoadZ(x);
-  update(p=>({...p,position:{x,z}}));setPanel(null);
+  update(p=>({...p,position:{x,z},travelSerial:(p.travelSerial||0)+1}));setPanel(null);
  };
  const paused=!!panel||!!dialog||!!battleTarget||help||confirmReset||unlockIntro;
  return <main className="adv-root">
