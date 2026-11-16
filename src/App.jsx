@@ -43,6 +43,8 @@ import { renderSwitchingPhaseView } from './screens/battle/SwitchingPhaseView.js
 import { renderBattlingView } from './screens/battle/BattlingView.jsx';
 import {SurvivalRewardView} from './screens/battle/SurvivalRewardView.jsx';
 import {BalanceRegistryView} from './screens/hub/BalanceRegistryView.jsx';
+import {AdventureCampaignView,AdventureBattleResult} from './screens/adventure/AdventureCampaignView.jsx';
+import {ADVENTURE_SAVE_KEY,sanitizeAdventureSave,adventureBattleRoom,adventureFinishBattle} from './systems/adventureCampaign.js';
 import {balanceBattleSnapshot} from './systems/balanceRegistry.js';
 import {claimSurvivalReward} from './systems/survivalWaves.js';
 import {canQueueJuggernautFreeChoice} from './systems/juggernautSystem.js';
@@ -153,6 +155,18 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const [roomId, setRoomId] = useState(sessionRef.current?.roomId || null);
           const [playerRole, setPlayerRole] = useState(sessionRef.current?.playerRole || null); 
           const [gameState, setGameState] = useState(sessionRef.current?.gameState || initialGameState());
+          const [adventureState,setAdventureState]=useState(()=>{
+            try{
+              const raw=localStorage.getItem(ADVENTURE_SAVE_KEY);
+              return raw?sanitizeAdventureSave(JSON.parse(raw),CHARACTERS):null;
+            }catch(error){console.error('Campagna 3D: salvataggio non leggibile',error);return null;}
+          });
+          useEffect(()=>{
+            try{
+              if(adventureState?.started)localStorage.setItem(ADVENTURE_SAVE_KEY,JSON.stringify(adventureState));
+              else localStorage.removeItem(ADVENTURE_SAVE_KEY);
+            }catch(error){console.error('Campagna 3D: salvataggio non riuscito',error);}
+          },[adventureState]);
            const [roomSync,setRoomSync]=useState({fromCache:false,lastServerAt:0,error:false});
           
           const [displayTeams, setDisplayTeams] = useState({ p1: [], p2: [], p3: [], p4: [], p5: [], p6: [], p7: [], p8: [] }); 
@@ -1974,6 +1988,52 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
     const withdrawCoopTrade=tradeId=>coopRoomAction(['coop_camp'],false,
       room=>cancelCoopTrade(room,playerRole,Date.now(),tradeId));
 
+    // La modalità open world è autonoma: i combattimenti usano il motore
+    // standard, ma EXP, monete e squadra NON toccano le altre campagne.
+    const startAdventureEncounter=entity=>{
+      try{
+        if(!adventureState?.started)throw new Error('Scegli prima uno starter.');
+        const room=adventureBattleRoom(adventureState,entity,CHARACTERS,initialGameState,playerName||'Viaggiatore');
+        // Stessa attivazione delle passive iniziali della Roguelike: nessun
+        // draft aggiuntivo e nessun turno gratuito per l'avversario.
+        const events=[];
+        for(const side of ['p1','p2'])for(const index of room.field[side]){
+          const c=room.teams[side]?.[index];
+          if(c?.passive?.type==='on_enter'&&(c.passiveUses||0)<(c.passive.maxUses||1)){
+            c.passiveUses=(c.passiveUses||0)+1;
+            applyOnEnterPassive(c,side,index,room.teams,room.field,events,
+              room.gameMode,room.settings,false);
+          }
+        }
+        room.events=events;
+        setGameState(room);
+        setPlayerRole('p1');
+        setCommandingIdx(0);setActionMenuMode('moves');
+        setTargetingMoveIdx(null);setSelectedMultiTargets([]);
+        setIsPlayingEvents(false);
+        setDisplayTeams(room.teams);setDisplayField(room.field);
+        setAppMode('local_room');
+      }catch(error){
+        setSystemAlert('Campagna 3D: '+(error.message||error));
+      }
+    };
+    const returnAdventureWorld=()=>{
+      setGameState(initialGameState());
+      setPlayerRole(null);setCommandingIdx(-1);
+      setAppMode('adventure_world');
+    };
+    const finishAdventureEncounter=recruit=>{
+      try{
+        const result=adventureFinishBattle(adventureState,gameState,CHARACTERS,{recruit});
+        if(result.duplicate)throw new Error('Questa battaglia è già stata registrata.');
+        setAdventureState(result.save);
+        setGameState(initialGameState());setPlayerRole(null);setCommandingIdx(-1);
+        setAppMode('adventure_world');
+      }catch(error){
+        setSystemAlert('Non riesco a concludere lo scontro: '+(error.message||error));
+      }
+    };
+
     // --- RENDERERS ---
 
     const renderView = () => {
@@ -2007,6 +2067,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                 setShowLeaveConfirm:()=>{},setTargetingMoveIdx:()=>{},
                 targetingMoveIdx:null,timeLeft:0
               })}/>;
+        }
+        if (appMode === 'adventure_world') {
+          return <AdventureCampaignView state={adventureState} characters={CHARACTERS}
+             onUpdate={setAdventureState} onStartBattle={startAdventureEncounter}
+             onBack={()=>setAppMode('menu')} onRestart={()=>setAdventureState(null)}/>;
         }
         if (appMode === 'menu') {
   const __screen = renderMenuView({ BarChart, BookOpen, CHARACTERS, GridIcon, IS_PREVIEW, ImageIcon, Shield, ShoppingCart, Swords, Target, Trophy, Upload, Users, Wifi, appMode, getDefaultAvatar, getPlayerData, handleAvatarUpload, handleCreateRoguelikeCoop, handleCreateRoom, handleJoinRoom, handleLocalStart, handleSurvivalStart, handleVsCpuStart, onlineUsers, playerAvatarUrl, playerName, playerTitle: getPlayerTitle(), roguelikeState, roomIdInput, roomInvitations, useClassicMenu, onMenuStyleChange, sessionId, setAppMode, setPlayerAvatarUrl, setPlayerName, setRoguelikeDraftChoices, setRoguelikeState, setRoomIdInput, setShowOnlinePlayers, setSystemAlert, startWithModeGuide });
@@ -2212,7 +2277,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
     }
 
     if (gameState.status === 'battling' || gameState.status === 'executing') {
-  const __screen = renderBattlingView({ chooseJuggernautFreeChoice, coopPendingAction, roomId, ownMasteryLevels: masteryVisibleLevels(getPlayerData()), ChevronRight, ITEMS_DB, appMode, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip: safeForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom:gameState.isTrainingBattle?leaveCombatLab:leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });
+  const __screen = renderBattlingView({ chooseJuggernautFreeChoice, coopPendingAction, roomId, ownMasteryLevels: masteryVisibleLevels(getPlayerData()), ChevronRight, ITEMS_DB, appMode, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip: safeForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom:gameState.isAdventureBattle?returnAdventureWorld:gameState.isTrainingBattle?leaveCombatLab:leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });
   if (__screen !== undefined) return __screen;
 }
 
@@ -2227,6 +2292,10 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
         onFinalizeEvent={closeCoopEventVote} onExit={leaveRoom} personalProfile={getPlayerData()}/>;
     }
 
+    if(gameState.status==='gameover'&&gameState.isAdventureBattle){
+      return <AdventureBattleResult room={gameState} save={adventureState} characters={CHARACTERS}
+        onContinue={finishAdventureEncounter} onExit={returnAdventureWorld}/>;
+    }
     if (gameState.status === 'gameover'&&gameState.isTrainingBattle){
       return <CombatLabResult room={gameState} onReplay={()=>startCombatLab(gameState.trainingLab?.config)}
         onEdit={leaveCombatLab}
