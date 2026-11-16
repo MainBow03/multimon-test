@@ -11,27 +11,27 @@ export const ADVENTURE_STARTERS=Object.freeze([
 ]);
 export const ADVENTURE_ZONES=Object.freeze([
  {id:'alba',name:'Valle dell’Alba',short:'Valle Alba',biome:'meadow',range:[0,34],center:15,
-  badge:'Emblema Smeraldo',gym:'Flora',title:'Custode del Germoglio',level:9,
+  badge:'Emblema Smeraldo',gym:'Flora',beforeGym:"Qui non vince chi corre più forte. I miei Multimon sanno aspettare. Vediamo se sai cambiare piano.",afterGym:"Hai capito il ritmo del campo. L'Emblema Smeraldo te lo sei guadagnato.",title:'Custode del Germoglio',level:9,
   leaderTeam:['roserade','groot'],trainers:['finn','ponygon'],
   wild:['groot','yoshi','rainbowdash','spongebob'],desc:'Prati luminosi, ponti e i primi allenatori.',color:'#5ddd9f'},
  {id:'braci',name:'Sentiero delle Braci',short:'Braci',biome:'autumn',range:[34,68],center:49,
-  badge:'Emblema Scintilla',gym:'Kael',title:'Campione delle Fiamme',level:15,
+  badge:'Emblema Scintilla',gym:'Kael',beforeGym:"Il sentiero si scalda, eh? Le sfide migliori iniziano quando tutto cambia all'improvviso.",afterGym:"Non male! Hai tenuto testa al fuoco senza perdere la testa.",title:'Campione delle Fiamme',level:15,
   leaderTeam:['spyro','natsu'],trainers:['wario','pyra'],
   wild:['spyro','zuko','bowser','gaston'],desc:'Boschi d’autunno, forni e sentieri aranciati.',color:'#fba963'},
  {id:'cascate',name:'Lago delle Cascate',short:'Cascate',biome:'water',range:[68,102],center:83,
-  badge:'Emblema Onda',gym:'Nerea',title:'Maestra delle Correnti',level:22,
+  badge:'Emblema Onda',gym:'Nerea',beforeGym:"Non sempre la corrente va dove pensi. Se ti irrigidisci, hai già perso.",afterGym:"Hai trovato la tua corrente. Ora seguila.",title:'Maestra delle Correnti',level:22,
   leaderTeam:['katara','lapis','juvia'],trainers:['spongebob','patrick'],
   wild:['lapis','juvia','katara','aang'],desc:'Canali azzurri, pontili e rocce levigate.',color:'#5bc5f5'},
  {id:'neve',name:'Picchi di Cristallo',short:'Cristallo',biome:'snow',range:[102,136],center:117,
-  badge:'Emblema Brina',gym:'Eira',title:'Signora del Gelo',level:29,
+  badge:'Emblema Brina',gym:'Eira',beforeGym:"Non inseguire la prima occasione che vedi. Sul ghiaccio, un passo sbagliato basta.",afterGym:"Hai capito quando rallentare. Il freddo non ti ha fermato.",title:'Signora del Gelo',level:29,
   leaderTeam:['weiss','elsa','jackfrost'],trainers:['reghiaccio','yukionna'],
   wild:['elsa','reghiaccio','yukionna','weiss'],desc:'Abeti innevati e un passo di montagna.',color:'#abd9ff'},
  {id:'astrale',name:'Giardino Astrale',short:'Astrale',biome:'magic',range:[136,170],center:151,
-  badge:'Emblema Stella',gym:'Lyra',title:'Voce delle Costellazioni',level:36,
+  badge:'Emblema Stella',gym:'Lyra',beforeGym:"Non guardare soltanto l'avversario. Guarda la squadra che hai portato fin qui.",afterGym:"I tuoi compagni si fidano di te. È questa la tua forza.",title:'Voce delle Costellazioni',level:36,
   leaderTeam:['perla','garnet','superboy'],trainers:['corvina','marceline'],
   wild:['gardevoir','kirby','neon','miku'],desc:'Giardini fluttuanti e torri illuminate.',color:'#bc9afb'},
  {id:'vulcano',name:'Corona del Vulcano',short:'Vulcano',biome:'volcanic',range:[170,204],center:185,
-  badge:'Emblema Corona',gym:'Rokan',title:'Re della Forgia',level:44,
+  badge:'Emblema Corona',gym:'Rokan',beforeGym:"Questa porta si apre solo a chi non si è fermato lungo la strada. Mostrami cosa hai imparato.",afterGym:"La tua squadra regge il calore della Forgia. Ora puoi affrontare la Lega.",title:'Re della Forgia',level:44,
   leaderTeam:['shrek','bowser','goku'],trainers:['kratos','meliodas'],
   wild:['shrek','goku','kratos','godzilla'],desc:'Canyon di lava e l’ultima Palestra.',color:'#ff8776'}
 ]);
@@ -93,7 +93,7 @@ export function adventureEntities(){
   const z=ADVENTURE_ZONES[i],x=z.center;
   result.push({id:z.id+':gym',kind:'gym',name:'Palestra di '+z.gym,zone:i,
    x:x+11,z:adventureRoadZ(x+11)+9,level:z.level,
-   title:z.title,party:z.leaderTeam});
+   title:z.title,dialogue:z.beforeGym,afterVictory:z.afterGym,party:z.leaderTeam});
   for(let j=0;j<2;j++){
    const tx=x-5+j*12;
    result.push({id:adventureEncounterId(z.id,'trainer',j),kind:'trainer',
