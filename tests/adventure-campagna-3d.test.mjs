@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {CHARACTERS} from '../src/data/characters.js';
 import {initialGameState} from '../src/systems/gameState.js';
+import {buildAdventureMesh} from '../src/screens/adventure/AdventureWorldRenderer.js';
 import {
  ADVENTURE_ZONES,ADVENTURE_CHAMPION,ADVENTURE_ENTITIES,ADVENTURE_STARTERS,
  createAdventureSave,sanitizeAdventureSave,adventureMove,adventureRoadZ,adventureNearby,
@@ -176,6 +177,17 @@ test('3D: salvataggi migrati senza dati falsi, pressione positiva nel diario',()
  assert.ok(changed.position.x<68);
  assert.match(adventureQuest(player),/Valle/);
  assert.match(adventureQuest({...player,badges:ADVENTURE_ZONES.map(z=>z.id)}),/Lega/);
+});
+test('3D: tutte le mesh del mondo sono renderizzabili, senza vertici infiniti o NaN',()=>{
+ const open=buildAdventureMesh(player);
+ assert.ok(open instanceof Float32Array);
+ assert.ok(open.length>100000);
+ assert.equal(open.length%27,0,'ogni triangolo contiene 3 vertici RGB + normale');
+ for(let i=0;i<open.length;i++)
+   assert.ok(Number.isFinite(open[i]),'coordinata o colore 3D non valido all’indice '+i);
+ const unlocked=buildAdventureMesh({...player,badges:ADVENTURE_ZONES.map(z=>z.id)});
+ assert.ok(unlocked.length>0);
+ assert.notEqual(open.length,unlocked.length,'i portali devono cambiare dopo gli Emblemi');
 });
 test('Wiring 3D: render WebGL, mobile, App bridge, menu nuovo e nessun pacchetto CDN',()=>{
  const file=p=>readFileSync(new URL(p,import.meta.url),'utf8');
