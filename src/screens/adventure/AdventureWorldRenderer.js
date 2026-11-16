@@ -1,6 +1,6 @@
 // Renderer tridimensionale autonomo: mesh reali, prospettiva, depth test,
 // luci, nebbia e camera inseguitrice. Nessuna libreria esterna/CDN.
-import {ADVENTURE_ENTITIES,ADVENTURE_ZONES,adventureRoadZ,adventureZoneIndex} from '../../systems/adventureCampaign.js';
+import {ADVENTURE_ENTITIES,ADVENTURE_ZONES,ADVENTURE_CHAMPION,adventureRoadZ,adventureZoneIndex} from '../../systems/adventureCampaign.js';
 
 const palette={
  meadow:{ground:'#498e67',leaf:'#52b984',leaf2:'#2e966b',trunk:'#715845',rock:'#8ca4a1',road:'#ead5a1'},
