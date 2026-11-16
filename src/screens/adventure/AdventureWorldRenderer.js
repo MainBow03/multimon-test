@@ -186,6 +186,23 @@ export function buildAdventureMesh(save){
   m.cylinder(x,0,adventureRoadZ(x)-4,.13,3,'#f3e9da',6);
   m.diamond(x,3.35,adventureRoadZ(x)-4,.65,z.color);
  }
+ // Sei portali fisici: l'arco si illumina quando viene conquistato
+ // l'Emblema della regione e il muro sigillato scompare.
+ for(let i=0;i<ADVENTURE_ZONES.length;i++){
+  const zone=ADVENTURE_ZONES[i],x=zone.range[1]-.6,z=adventureRoadZ(x);
+  const open=(save?.badges||[]).includes(zone.id);
+  for(const dz of [-4.85,4.85]){
+   m.box(x,0,z+dz,1.3,5.5,1.3,'#d6e2ef');
+   m.box(x,5.35,z+dz,1.8,.35,1.7,zone.color);
+   m.diamond(x,6.25,z+dz,.47,zone.color);
+  }
+  m.box(x,5.55,z,1.15,.8,9.7,'#354962');
+  m.box(x,6.4,z,1.15,.16,9.7,zone.color);
+  if(!open){
+    m.box(x,.05,z,.27,4.5,8.1,'#bc536a');
+    m.diamond(x,3.2,z,1.3,'#ffca9d');
+  }else m.diamond(x,3.25,z,.7,'#87f1c0');
+ }
  for(const e of ADVENTURE_ENTITIES){
   if(e.kind==='gym')addGym(m,e);
   else if(e.kind==='shop'||e.kind==='inn')addHouse(m,e,e.kind);
