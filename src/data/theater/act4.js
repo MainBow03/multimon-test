@@ -81,10 +81,13 @@ export const THEATER_ACT_IV={
  ["Ganyu","Sono diciannove notti. Nessuno dorme."],
  ["Coraline","Aspetta. Il sole è dipinto sul fondale."],
  ["Sam (Totally Spies)","E la luce arriva da sotto la piazza. È un enorme proiettore."],
+ ["Perla","Una lampada alimentata dall'Occhio di Platea. Possiamo spegnerla senza togliere energia alle case."],
+ ["Whisper","Oh, sì. E qualcuno potrebbe spiegarmi come si dorme con un sole finto acceso tutto il giorno?"],
  ["Stellarubia","Non avevo mai visto una stella così triste."],
  ["Ganyu","La Prima Donna dice che il tramonto rovina l'atmosfera."],
  ["La Prima Donna","Il pubblico merita una sera perfetta!"],
  ["Danny Phantom","La cabina è sotto quella scala. Posso raggiungerla."],
+ ["Shrek","La scala la reggo io. Basta che non la facciate diventare un altro ponte girevole."],
  ["Ganyu","Io terrò aperta la via per le famiglie. Voi spegnete la luce."],
  ["Star Butterfly","Questa volta sono d'accordo con un tramonto. Basta che arrivi davvero."]
  ],
@@ -96,10 +99,14 @@ export const THEATER_ACT_IV={
  ["Stellarubia","E la prossima alba sarà tutta vostra."],
  ["Coraline","Purché nessuno la metta in programma alle 21:17."]
  ]},
- {title:'Un ruolo per Clover',boss:['clover','primadonna','riflettore'],sceneRule:'curtain',
+ {title:'Un ruolo per Clover',boss:['clover','primadonna','riflettore'],unlock:['whisper'],sceneRule:'curtain',
  dialogue:[
  ["Clover (Totally Spies)","Fermatevi. Se entrate là, il Regista richiude le quarantasette persone."],
  ["Sam (Totally Spies)","Ho visto le porte che hai aperto. Non portano fuori. Portano in un'altra ala."],
+ ["Whisper","Confermo! Ho attraversato quel fondale. Si torna nello stesso corridoio. Tre volte, per essere precisi."],
+ ["Coraline","E tu chi saresti?"],
+ ["Whisper","Whisper! Esperto di Yo-kai, già scritturato come fantasma comico. Poi ho scoperto che le persone erano prigioniere per davvero."],
+ ["Shrek","Almeno a te hanno dato una parte da fantasma. Io dovevo fare il mostro."],
  ["Clover (Totally Spies)","No. Era scritto che le avrebbe liberate."],
  ["Il Regista","Ho scritto che avrei aperto la galleria. E l'ho fatto."],
  ["Clover (Totally Spies)","Quindi mi hai usata."],
@@ -114,11 +121,16 @@ export const THEATER_ACT_IV={
  postDialogue:[
  ["Clover (Totally Spies)","Ditemi che li avete trovati."],
  ["Sam (Totally Spies)","No. Le porte erano vuote quando siamo arrivati."],
+ ["Whisper","Le hanno spostate durante il combattimento. Sento ancora una traccia oltre le scenografie."],
  ["Clover (Totally Spies)","Allora devo scoprire dove li ha portati."],
  ["Sam (Totally Spies)","Vuoi fare tutto da sola un'altra volta?"],
  ["Clover (Totally Spies)","Non so più a chi chiedere aiuto."],
  ["Coraline","Se cambi idea, sai dove siamo. Ma dovrai dirci la verità."],
- ["Clover (Totally Spies)","...Va bene."]
+ ["Clover (Totally Spies)","...Va bene."],
+ ["Sam (Totally Spies)","Whisper, riesci a seguire quella traccia senza farti trovare dalle guardie?"],
+ ["Whisper","Naturalmente! Sono un fantasma di grande esperienza. E potrei anche farmi accompagnare, per sicurezza."],
+ ["Perla","Andremo insieme. Quelle tracce potrebbero condurci alle altre persone."],
+ ["Whisper","Ottimo! Allora mi unisco alla squadra. Non ho nessuna voglia di tornare in costume a fare 'Buuu'."]
  ]},
  {title:'La ragazza senza finale',boss:['caposcena','riflettore','riflettore'],sceneRule:'spotlight',
  dialogue:[
