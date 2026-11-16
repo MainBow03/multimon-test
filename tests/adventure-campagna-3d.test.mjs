@@ -105,7 +105,7 @@ test('3D: punti esperienza, livelli e PS conservati; i KO non si rianimano al le
  assert.ok(grown.member.hp>20);
  const knockout=adventureGiveXp({...low,hp:0},600,CHARACTERS);
  assert.ok(knockout.member.level>5);
- assert.ok(knockout.member.hp>0,'un livello può ridare la differenza di HP senza cure esterne?');
+ assert.equal(knockout.member.hp,0,'il level-up non deve rianimare un Multimon KO');
  assert.ok(grown.member.hp<=adventureMaxHp(index.get('jake'),grown.member.level));
 });
 test('3D: premio allenatore ed emblema palestra una sola volta, senza azzerare progressi',()=>{
