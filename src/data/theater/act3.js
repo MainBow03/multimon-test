@@ -12,6 +12,7 @@ export const THEATER_ACT_III={
  ["Il Caposcena","Blaze! Riporta subito le comparse alla piazza!"],
  ["Blaze the Cat","Sei arrivato fin qui a cercarle? Bella perdita di tempo."],
  ["Star Butterfly","Ottimo, non gli piaci nemmeno tu. Possiamo andare d'accordo."],
+ ["Shrek","Quando gli ordini non piacciono a nessuno, di solito è il momento di smettere di darli."],
  ["Stellarubia","Blaze, lassù c'è un bambino sul tetto! Lo prendo io?"],
  ["Blaze the Cat","Prendi lui. Io tengo lontano il Caposcena."],
  ["Coraline","E noi copriamo entrambe."]
@@ -95,7 +96,7 @@ export const THEATER_ACT_III={
  ["Coraline","A patto che non tocchi le nostre mappe."],
  ["Daffy Duck","Naturalmente. Mi bastano i titoli di testa."]
  ]},
- {title:'L’archivio delle scene mai girate',boss:['caposcena','riflettore'],sceneRule:'curtain',
+ {title:'L’archivio delle scene mai girate',boss:['caposcena','riflettore'],unlock:['perla'],sceneRule:'curtain',
  dialogue:[
  ["Coraline","Sono tutti libri vuoti. Perché tenerli in un archivio?"],
  ["Nina","Non sono vuoti. Siete voi che non sapete leggerli."],
@@ -106,6 +107,12 @@ export const THEATER_ACT_III={
  ["Coraline","E tu come ti chiami?"],
  ["Nina","Nina. E non voglio essere trascinata fuori da qui da qualche eroina."],
  ["Tails","Tranquilla. Sto solo guardando quei cavi. Sono molto più vecchi del resto del Teatro."],
+ ["Perla","Non toccarli. Ho seguito quei collegamenti fino qui: trasportano energia, anche quando le luci sono spente."],
+ ["Coraline","Perla? Eri nascosta nell'archivio?"],
+ ["Perla","Cercavo i progetti della macchina. Il Caposcena mi ha chiusa qui quando mi sono rifiutata di consegnarglieli."],
+ ["Shrek","E io che pensavo che la mia prigione fosse brutta. Qui non c'è nemmeno una finestra."],
+ ["Tails","Hai trovato uno schema? Posso dare un'occhiata?"],
+ ["Perla","Certo. Ma prima togli le mani da quel cavo."],
  ["Nina","Quella macchina funzionava prima di tutti i riflettori. Severin l'ha chiusa."],
  ["Stellarubia","Ti piacerebbe mostrarcela? Possiamo chiedere a qualcuno di accompagnarci."],
  ["Nina","No. Non oggi. Ma posso dirvi dove cercare."],
@@ -117,6 +124,11 @@ export const THEATER_ACT_III={
  ["Sam (Totally Spies)","E per riconoscerla?"],
  ["Nina","Ha una porta che non si apre con le chiavi."],
  ["Star Butterfly","Abbiamo già esperienza con le porte impossibili."],
+ ["Perla","Sul retro degli schemi c'è un percorso di manutenzione. Posso mostrarvelo."],
+ ["Sam (Totally Spies)","Vieni con noi, allora. Ci servono quegli appunti e qualcuno che li sappia leggere."],
+ ["Perla","Va bene. Ma niente scorciatoie improvvisate vicino ai generatori."],
+ ["Star Butterfly","Ecco, Tails: qualcuno che ti capisce."],
+ ["Tails","Io non improvviso vicino ai generatori!"],
  ["Coraline","Torneremo, Nina. Solo se vorrai parlarci."],
  ["Nina","...Vedremo."]
  ]},
@@ -132,12 +144,14 @@ export const THEATER_ACT_III={
  ["Nina","Severin, ti prego. Non farlo ancora."],
  ["Il Regista","Se spengo questa luce, vedrete cosa succede."],
  ["Tails","La frequenza di Nina sta crollando! Riaccendila!"],
+ ["Perla","Il collegamento di riserva! Se lo stacchi così, rischi di mandare tutto in sovraccarico!"],
  ["Stellarubia","Basta! Non devi metterla in pericolo per farci ascoltare!"],
  ["Il Regista","Adesso capite perché non posso semplicemente spegnere tutto?"]
  ],
  postDialogue:[
  ["Star Butterfly","Non voglio lasciare quelle persone prigioniere. Ma non possiamo far sparire Nina."],
  ["Sam (Totally Spies)","Allora ci serve un'altra fonte di energia."],
+ ["Perla","L'archivio conserva ancora i piani della rete precedente. Non li hanno distrutti."],
  ["Tails","I vecchi cavi della biblioteca potrebbero portarci a quella macchina."],
  ["Coraline","Nina ha detto che il Regista la teneva nascosta. Adesso sappiamo perché dobbiamo trovarla."],
  ["Nina","Severin non vuole che guardiate indietro. Ma io sì."],
