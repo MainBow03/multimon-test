@@ -3923,6 +3923,18 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                     `${char.name} subisce ${psnDmg} danni a causa del veleno!`);
             });
             if (poisonResult.progressed) updateStatusUI(target.player, target.charTeamIdx);
+            if(char.hp<=0)continue;
+            // Marciume Scarlatto: 4 turni REALI con 6/9/12/15% PS max
+            // dal turno successivo all'applicazione. Non si accumula.
+            const rot=royalRotTick(char);
+            if(rot.damage>0){
+              applyDamage(char,rot.damage,target.player,target.charTeamIdx,
+                '🌺 Marciume Scarlatto: '+char.name+' perde '+rot.damage+
+                ' PS (la condizione riduce le cure ricevute del 50%)!');
+              updateStatusUI(target.player,target.charTeamIdx);
+              if(rot.expired)events.push({type:'text',
+                text:'🌷 Il Marciume Scarlatto su '+char.name+' è terminato.'});
+            }
 
             const soulDamage = getDistortedSoulDamage(char);
             if (soulDamage > 0 && char.hp > 0) {
@@ -3950,6 +3962,12 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 }
             }
 
+            if(char.hp>0&&royalMedusaAgility(char)){
+              events.push({type:'text',text:'🪼 Agilità della Medusa: '+char.name+
+                ' aumenta la Velocità del 10% alla fine del turno!',
+                isPassive:true,passiveChar:char.name,
+                passiveName:char.passive?.name});
+            }
             char.damageTakenLastTurn = char.damageTakenThisTurn || 0;
             char.damageTakenThisTurn = 0;
         }
