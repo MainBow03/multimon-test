@@ -5,7 +5,7 @@ import {ADVENTURE_ZONES,ADVENTURE_ENTITIES,ADVENTURE_STARTERS,ADVENTURE_CHAMPION
  adventureGymCheck,createAdventureSave,adventureQuest,adventureMaxHp,adventureUsePotion,
  adventureShop,adventureHeal,adventureChest,adventureSwap,adventureExpRequired,
  adventureGuide,ADVENTURE_MAX_PARTY} from '../../systems/adventureCampaign.js';
-import {ADVENTURE_STORY_TITLE,ADVENTURE_RIVAL_NAME,adventureNextStoryScene,adventureMarkStorySeen} from '../../data/adventureStory.js';
+import {ADVENTURE_STORY_TITLE,ADVENTURE_STORY,ADVENTURE_RIVAL_NAME,adventureNextStoryScene,adventureMarkStorySeen} from '../../data/adventureStory.js';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 import './AdventureCampaign.css';
 
@@ -174,21 +174,51 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
  const [panel,setPanel]=useState(null),[nearby,setNearby]=useState(null),[dialog,setDialog]=useState(null);
  const [battleTarget,setBattleTarget]=useState(null),[toast,setToast]=useState(null),[help,setHelp]=useState(false);
  const [confirmReset,setConfirmReset]=useState(false);
+ const [scene,setScene]=useState(null);
+ const worldPosition=useRef(state?.position||{x:5,z:0});
+ const travelRef=useRef(state?.travelSerial||0);
  const save=state;
  const update=fn=>onUpdate(prev=>typeof fn==='function'?fn(prev):fn);
  const showMessage=msg=>{setToast(msg);};
  useEffect(()=>{if(toast){const handle=setTimeout(()=>setToast(null),4300);return ()=>clearTimeout(handle)}},[toast]);
  const unlockIntro=save&&!save.welcomed;
+ const currentZoneId=save?.started?adventureZone(save.position.x).id:null;
+ useEffect(()=>{
+   if(!save?.started||!save.welcomed||scene||panel||dialog||battleTarget||help||confirmReset)return;
+   const upcoming=adventureNextStoryScene(save,currentZoneId);
+   if(upcoming)setScene({...upcoming,index:0});
+ },[save?.welcomed,save?.finished,save?.storySeen?.join('|'),save?.badges?.join('|'),
+     currentZoneId,scene,panel,dialog,battleTarget,help,confirmReset]);
+ useEffect(()=>{
+   if(save?.started&&(save.travelSerial||0)!==travelRef.current){
+     worldPosition.current={...save.position};travelRef.current=save.travelSerial||0;
+   }
+ },[save?.travelSerial]);
+ const finishScene=()=>{
+   if(!scene)return;
+   update(p=>adventureMarkStorySeen(p,scene.id));
+   setScene(null);
+ };
+ const advanceScene=()=>{
+   if(!scene)return;
+   if(scene.index+1<scene.lines.length)setScene({...scene,index:scene.index+1});
+   else finishScene();
+ };
  if(!save?.started)return <AdventureStarter characters={characters} onStart={id=>onUpdate(createAdventureSave(id,characters))}
    onBack={onBack}/>;
  const zone=adventureZone(save.position.x),next=ADVENTURE_ZONES[save.badges.length];
- const currentQuest=adventureQuest(save);
+ const currentQuest=adventureQuest(save),guide=adventureGuide(save);
  const showPanel=p=>{setPanel(p);setBattleTarget(null);setDialog(null)};
  const canTravel=i=>i<=save.badges.length&&i<=5;
  const handleInteraction=(entity,position)=>{
-  if(panel||dialog||battleTarget||help)return;
+  if(panel||dialog||battleTarget||help||scene)return;
   update(p=>({...p,position}));
-  if(entity.kind==='npc'){setDialog({speaker:entity.name,text:entity.dialogue});return;}
+  if(entity.kind==='npc'){
+    const speech=entity.id==='professor'&&save.badges.length>0?
+      'Ottimo lavoro! Hai '+save.badges.length+' Emblemi. '+currentQuest+' Segui la bussola per raggiungere la prossima tappa.':
+      entity.dialogue;
+    setDialog({speaker:entity.name,text:speech});return;
+   }
   if(entity.kind==='chest'){
    update(p=>adventureChest(p,entity));showMessage('🎁 +55 monete e una Pozione!');return;
   }
@@ -215,10 +245,11 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
   const x=ADVENTURE_ZONES[i].center-10,z=adventureRoadZ(x);
   update(p=>({...p,position:{x,z},travelSerial:(p.travelSerial||0)+1}));setPanel(null);
  };
- const paused=!!panel||!!dialog||!!battleTarget||help||confirmReset||unlockIntro;
+ const paused=!!panel||!!dialog||!!scene||!!battleTarget||help||confirmReset||unlockIntro;
  return <main className="adv-root">
   <AdventureWorld3D key={'world-'+save.badges.join(',')+'-'+save.chests.length+'-'+save.defeated.length}
    save={save} onWalk={position=>update(p=>p?.started?{...p,position}:p)} onNear={setNearby}
+   onPosition={position=>{worldPosition.current={...position}}}
    onInteract={handleInteraction} onBlocked={badge=>showMessage('🔒 Il portale è chiuso! Devi conquistare '+badge+'.')} paused={paused}/>
   <div className="adv-overlay">
    <header className="adv-hud-header">
@@ -236,7 +267,7 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
      <span>✦ MISSIONE ATTUALE</span><strong>{currentQuest}</strong>
      <div className="adv-quest-bottom"><span>🪙 {save.coins}</span><span>🏆 {save.gymWins||0} Palestre</span></div>
     </aside>
-    {nearby&&!paused&&<button type="button" className="adv-interact-pill" onClick={()=>handleInteraction(nearby,save.position)}>
+    {nearby&&!paused&&<button type="button" className="adv-interact-pill" onClick={()=>handleInteraction(nearby,worldPosition.current)}>
       <kbd>E</kbd><span>{symbol[nearby.kind]} <b>{nearby.name}</b><small>{nearby.kind==='wild'?'Incontro selvatico':nearby.kind==='gym'?'Sfida capopalestra':nearby.kind==='inn'?'Cura gratuita':nearby.kind==='chest'?'Apri scrigno':'Interagisci'}</small></span>
      </button>}
     <nav className="adv-toolbar" aria-label="Strumenti di avventura">
@@ -250,6 +281,26 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
    <div className="adv-compass">N <span>✧</span> E <small>WASD / FRECCE · E interagisci · SHIFT corri</small></div>
   </div>
   {toast&&<div className="adv-toast" role="status">{toast}</div>}
+  {scene&&<div className="adv-modal-wrap adv-story-wrap">
+   <section className="adv-modal adv-story-modal" aria-label={scene.title} role="dialog" aria-modal="true">
+    <div className="adv-story-kicker">✦ {ADVENTURE_STORY_TITLE}</div>
+    <h2>{scene.title}</h2>
+    <div className="adv-story-progress">{scene.lines.map((entry,i)=><span key={i}
+       className={i<=scene.index?'adv-story-progress-active':''}/>)}</div>
+    <div className="adv-story-dialogue">
+      <div className="adv-story-avatar">✦</div>
+      <div><strong>{scene.lines[scene.index]?.speaker}</strong>
+       <p>{scene.lines[scene.index]?.text}</p></div>
+    </div>
+    <div className="adv-story-buttons">
+     <span>{scene.index+1} / {scene.lines.length}</span>
+     <button className="adv-ghost" onClick={finishScene}>Salta dialogo</button>
+     <button className="adv-primary" onClick={advanceScene}>
+      {scene.index+1===scene.lines.length?'PROSEGUI L’AVVENTURA →':'CONTINUA →'}
+     </button>
+    </div>
+   </section>
+  </div>}
   {unlockIntro&&<div className="adv-modal-wrap">
    <section className="adv-modal adv-intro">
     <div className="adv-modal-kicker">✦ EPISODIO I · IL PRIMO PASSO</div>
