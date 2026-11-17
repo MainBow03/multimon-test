@@ -44,7 +44,11 @@ export function royalPotionCanTarget(attacker,player,targetPlayer,targetIdx,isEn
 export function royalPotionApply(attacker,target,targetPlayer,targetIdx,random=Math.random,blocked=false){
  const token=targetPlayer+':'+targetIdx;
  if(!royalPotionCanTarget(attacker,null,targetPlayer,targetIdx,true))return null;
- const status=ROYAL_YZMA_STATUSES[Math.floor(clamp(random(),0,.999999)*ROYAL_YZMA_STATUSES.length)];
+ // Al 100% concede un nuovo status quando il nemico può riceverne
+ // almeno uno, anche se aveva già una condizione da un'altra fonte.
+ const available=ROYAL_YZMA_STATUSES.filter(type=>!(target.statuses||[]).some(s=>s.type===type));
+ if(!available.length||blocked||target.passive?.immuneToNegativeStatuses)return null;
+ const status=available[Math.floor(clamp(random(),0,.999999)*available.length)];
  if(!royalStatus(target,status,{blocked,turns:status==='Infatuato'?4:status==='Congelato'?2:3}))return null;
  attacker.royalPotionVictims??=[];
  attacker.royalPotionVictims.push(token);
