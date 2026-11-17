@@ -412,8 +412,9 @@ const makeProgram=(gl)=>{
  if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program)||'Motore 3D non disponibile');
  return program;
 };
-const playerGeometry=(p,time,starterColor='#ffd890')=>{
+const playerGeometry=(p,time,starter='sonic')=>{
  const m=new Mesh(),sway=Math.sin(time*9)*.13;
+ const bob=Math.sin(time*9)*.045;
  // Shadow ground plane.
  m.sphere(p.x,.13,p.z,1.0,.08,.65,'#547367',4,8);
  // Boots, cloak, arms, head and scarf.
@@ -422,17 +423,42 @@ const playerGeometry=(p,time,starterColor='#ffd890')=>{
  m.cone(p.x,.62,p.z,.78,1.48,'#344d8f',8);
  m.box(p.x-.82,1.04+sway,p.z,.32,.92,.32,'#f4d4b5');
  m.box(p.x+.82,1.04-sway,p.z,.32,.92,.32,'#f4d4b5');
- m.sphere(p.x,2.25,p.z,.48,.5,.48,'#ffd6b5',5,9);
- m.sphere(p.x,2.6,p.z-.15,.5,.29,.52,'#3a334b',5,7);
- m.cone(p.x,2.62,p.z-.05,.54,.71,'#536eb8',8);
- m.box(p.x,1.53,p.z+.47,.8,.22,.23,'#ffd890');
- // Starter companion follows behind the player.
+ m.sphere(p.x,2.25+bob,p.z,.48,.5,.48,'#ffd6b5',5,9);
+ m.sphere(p.x,2.6+bob,p.z-.15,.5,.29,.52,'#3a334b',5,7);
+ m.cone(p.x,2.62+bob,p.z-.05,.54,.71,'#536eb8',8);
+ m.box(p.x,1.53+bob,p.z+.47,.8,.22,.23,'#ffd890');
+ // Faccina e zaino a contrasto: il personaggio è riconoscibile da lontano.
+ m.sphere(p.x-.2,2.3+bob,p.z+.42,.078,.09,.035,'#2b3549',4,6);
+ m.sphere(p.x+.2,2.3+bob,p.z+.42,.078,.09,.035,'#2b3549',4,6);
+ m.box(p.x,.88,p.z-.55,.68,1,.36,'#d7a46a');
+ m.box(p.x,1.1,p.z-.77,.5,.23,.15,'#ffe7b0');
+ // Ogni starter ha un compagno geometrico diverso, anziché il solito blob.
  const fx=p.x-2.1,fz=p.z-1.25;
- m.sphere(fx,.6+Math.sin(time*6)*.12,fz,.72,.58,.72,starterColor,6,9);
- m.cone(fx-.42,1.08,fz,.27,.6,starterColor,5);
- m.cone(fx+.42,1.08,fz,.27,.6,starterColor,5);
- m.sphere(fx-.22,.68,fz+.62,.09,.1,.06,'#1a2638',4,6);
- m.sphere(fx+.22,.68,fz+.62,.09,.1,.06,'#1a2638',4,6);
+ const y=.55+Math.sin(time*5.8)*.1;
+ if(starter==='sonic'){
+   m.sphere(fx,y+.12,fz,.7,.65,.7,'#3989da',6,10);
+   for(let i=0;i<5;i++){
+     const a=i*Math.PI*2/5;
+     m.cone(fx+Math.cos(a)*.48,y+.2,fz+Math.sin(a)*.48,.39,.87,'#276bc4',6);
+   }
+   m.sphere(fx,y-.28,fz+.56,.43,.34,.26,'#e9ca9d',5,8);
+   m.box(fx-.35,.1,fz+.25,.55,.22,.45,'#ed564e');
+   m.box(fx+.35,.1,fz+.25,.55,.22,.45,'#ed564e');
+ }else if(starter==='starbutterfly'){
+   m.sphere(fx,y+.17,fz,.65,.68,.65,'#f4c5e4',6,10);
+   m.cone(fx,y+.44,fz,.72,.77,'#edafef',9);
+   m.sphere(fx,y-.17,fz+.53,.42,.34,.2,'#ffe5c8',5,8);
+   m.diamond(fx,y+1.4,fz,.33,'#fdf0a7');
+   m.sphere(fx-.48,y+.4,fz,.2,.22,.2,'#fcd8e8');
+   m.sphere(fx+.48,y+.4,fz,.2,.22,.2,'#fcd8e8');
+ }else{
+   m.box(fx,y-.35,fz,1.55,1.2,1.26,'#e9c957');
+   m.sphere(fx-.54,y+.63,fz,.27,.45,.26,'#edce66',5,7);
+   m.sphere(fx+.54,y+.63,fz,.27,.45,.26,'#edce66',5,7);
+   m.sphere(fx,y-.11,fz+.67,.42,.24,.20,'#f7da84',5,8);
+ }
+ m.sphere(fx-.24,y+.12,fz+.69,.095,.115,.06,'#1a2638',4,6);
+ m.sphere(fx+.24,y+.12,fz+.69,.095,.115,.06,'#1a2638',4,6);
  return new Float32Array(m.data);
 };
 export function createAdventureWorldRenderer(canvas,save){
@@ -488,8 +514,7 @@ export function createAdventureWorldRenderer(canvas,save){
   gl.clearColor(skyRgb[0],skyRgb[1],skyRgb[2],1);
   gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
   bind(worldBuffer);gl.drawArrays(gl.TRIANGLES,0,worldLength);
-  const companionColor=starter==='jake'?'#efd46e':starter==='starbutterfly'?'#e8a9ee':'#84caff';
-  const dynamic=playerGeometry(p,t,companionColor);
+  const dynamic=playerGeometry(p,t,starter);
   gl.bindBuffer(gl.ARRAY_BUFFER,dynamicBuffer);gl.bufferData(gl.ARRAY_BUFFER,dynamic,gl.DYNAMIC_DRAW);
   bind(dynamicBuffer);gl.drawArrays(gl.TRIANGLES,0,dynamic.length/9);
  }
