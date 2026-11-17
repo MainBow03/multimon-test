@@ -462,11 +462,13 @@ const makeShader=(gl,type,source)=>{
  if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(shader)||'Shader 3D non disponibile');
  return shader;
 };
-const makeProgram=(gl)=>{
+const makeProgram=(gl,vertex=vertexShader,fragment=fragmentShader)=>{
  const program=gl.createProgram();
- gl.attachShader(program,makeShader(gl,gl.VERTEX_SHADER,vertexShader));
- gl.attachShader(program,makeShader(gl,gl.FRAGMENT_SHADER,fragmentShader));
+ const vs=makeShader(gl,gl.VERTEX_SHADER,vertex);
+ const fs=makeShader(gl,gl.FRAGMENT_SHADER,fragment);
+ gl.attachShader(program,vs);gl.attachShader(program,fs);
  gl.linkProgram(program);
+ gl.deleteShader(vs);gl.deleteShader(fs);
  if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program)||'Motore 3D non disponibile');
  return program;
 };
