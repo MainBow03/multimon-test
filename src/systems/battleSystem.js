@@ -2964,6 +2964,11 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             }
                         }
 
+                        if (attackSucceeded && move.royalGrantPriority && !isEnemyTarget &&
+                            t.char.hp>0 && royalGrantPriority(t.char)){
+                          events.push({type:'text',text:'👑 Oh Mio Sire: '+t.char.name+
+                            ' riceve priorità +1 alla prossima azione offensiva!'});
+                        }
                         if (move.copyRandomEnemyType && t.char.hp > 0) {
                             let possibleEnemies = [];
                             const activeMatchPlayers = getActivePlayers();
@@ -3065,6 +3070,28 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 }
                             }
                         }
+                        // Effetti speciali: Marciume (4 turni, cure dimezzate)
+                        // e Pozione Misteriosa (un nuovo status casuale per bersaglio).
+                        if(attackSucceeded && isEnemyTarget && !isFirstHitProtection &&
+                           t.char.hp>0 && move.royalScarletRot){
+                          if(royalApplyRot(t.char,blockedEnemyPassive(t.char))){
+                            updateStatusUI(t.player,t.idx);
+                            events.push({type:'text',text:'🌺 Marciume Scarlatto: '+t.char.name+
+                              ' è infetto per 4 turni e riceve il 50% di cure in meno!'});
+                          } else events.push({type:'text',text:'🌺 '+t.char.name+
+                            ' è già affetto da Marciume o resiste alla condizione.'});
+                        }
+                        if(attackSucceeded && isEnemyTarget && !isFirstHitProtection &&
+                           t.char.hp>0 && move.royalPotion &&
+                           t.char.hp<victimHpBeforeHit){
+                          const potion=royalPotionApply(attacker,t.char,t.player,t.idx,
+                            Math.random,blockedEnemyPassive(t.char));
+                          if(potion){
+                            updateStatusUI(t.player,t.idx);
+                            events.push({type:'text',text:'🧪 Pozione Misteriosa di '+attacker.name+
+                              ': '+t.char.name+' ottiene '+potion+'!'});
+                          }
+                        }
                         // Lo spray scatta immediatamente appena una mossa
                         // applica un malus, senza attendere il prossimo turno.
                         const sprayCured=activateNeutralizingSpray(t.char);
@@ -3074,6 +3101,74 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                         }
                     }
                 } // FINE CICLO SUI BERSAGLI (resolvedTargets)
+                // Fuoco Fatato: la fiamma si espande soltanto se esiste
+                // un ALTRO avversario attivo; danni fissi, non a sé stessi.
+                if(attackSucceeded && move.royalSplash>0){
+                  const allOthers=attackingFoes.flatMap(ep=>(workingField[ep]||[])
+                    .map(idx=>({ep,idx,char:workingTeams[ep]?.[idx]})))
+                    .filter(x=>x.char?.hp>0 && !resolvedTargets.some(t=>
+                      t.player===x.ep&&t.idx===x.idx));
+                  if(allOthers.length){
+                    const extra=allOthers[Math.floor(Math.random()*allOthers.length)];
+                    applyDamage(extra.char,move.royalSplash,extra.ep,extra.idx,
+                      '🔥 Fuoco Fatato si espande: '+extra.char.name+
+                      ' perde '+move.royalSplash+' PS!',
+                      {isOffensiveMove:true,isEnemyTarget:true,attacker,
+                       attackerPlayer:player,attackerIdx:charTeamIdx,move,royalSplash:true});
+                  }
+                }
+                // Sciame: un solo servitore attivo per sovrano. Lo stato
+                // entra nella squadra autorevole ed è riprodotto via evento.
+                if(attackSucceeded&&move.royalJellySummonChance&&
+                   Math.random()<move.royalJellySummonChance &&
+                   royalMedusaCanSummon(attacker,workingTeams[player],
+                     workingField[player],charTeamIdx)){
+                  const base=CHARACTERS.find(c=>c.id==='medusaservitore');
+                  const summoned=royalBuildMedusaSummon(base,charTeamIdx);
+                  if(summoned){
+                    workingTeams[player].push(summoned);
+                    const newIdx=workingTeams[player].length-1;
+                    workingField[player].push(newIdx);
+                    events.push({type:'summon',player,newChar:structuredClone(summoned),
+                      fieldIdx:newIdx,text:'🪼 Sciame di Meduse: '+attacker.name+
+                        ' evoca una Medusa Servitore a sua difesa!'});
+                  }
+                }
+                // Nebbia Velenifica: precisione aumentata al team e ridotta
+                // a tutti gli avversari realmente presenti in campo.
+                if(attackSucceeded&&move.royalMist){
+                  const friends=activeMatchPlayers.filter(p=>!attackingFoes.includes(p));
+                  const collect=roles=>roles.flatMap(role=>(workingField[role]||[])
+                    .map(idx=>workingTeams[role]?.[idx]).filter(c=>c?.hp>0));
+                  const changed=royalMistTargets(collect(friends),
+                    collect(attackingFoes),c=>
+                      blockedEnemyPassive(c)||isEchoRaidAccuracyProtected(c));
+                  if(changed.allies.length||changed.enemies.length)
+                    events.push({type:'text',text:'🌫️ Nebbia Velenifica! Precisione degli alleati +10% ('+
+                      changed.allies.length+'), avversari −10% ('+changed.enemies.length+')!'});
+                }
+                // La Leva Sbagliata reagisce a un NUOVO status ottenuto
+                // dall'attacco nemico, non al meteo, ai refresh o allo status
+                // già presente prima dell'azione.
+                for(const [key,before] of yzmaWatch){
+                  const split=key.lastIndexOf(':'),role=key.slice(0,split),
+                    idx=Number(key.slice(split+1)),yzma=workingTeams[role]?.[idx];
+                  if(!yzma||yzma.hp<=0||yzma.passive?.type!=='wrong_lever')continue;
+                  const applied=royalNewNegativeStatuses(yzma,before);
+                  for(const status of applied){
+                    const immune=attacker.passive?.immuneTypes?.includes('Veleno')||
+                      attacker.passive?.immuneToType==='Veleno'||
+                      getMultiplier('Veleno',attacker.types)===0;
+                    if(immune||attacker.hp<=0)continue;
+                    applyDamage(attacker,80,player,charTeamIdx,
+                      '🧪 Leva Sbagliata! '+yzma.name+
+                      ' tenta la fuga e colpisce per errore '+attacker.name+
+                      ': 80 danni Veleno per '+status+'!',
+                      {isOffensiveMove:true,isEnemyTarget:true,
+                       attacker:yzma,attackerPlayer:role,attackerIdx:idx,
+                       move:{name:'Leva Sbagliata!',type:'Veleno',power:80}});
+                  }
+                }
                 if (futureStrikeDealtDamage && consumeFutureStrike(attacker)) {
                     events.push({ type: 'text', text: `🔮 ${attacker.name} sfrutta Futuro Infrangibile: il suo attacco ha inflitto +25% danni!`,
                         isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
