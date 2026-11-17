@@ -373,30 +373,88 @@ export function buildAdventureMesh(save){
  adventureObjectiveBeacon(m,save);
  return new Float32Array(m.data);
 }
+// Toon shading eseguito sulla vera geometria 3D: tre bande di luce
+// senza il gradiente piatto del precedente Lambert. Le facce mantengono
+// i colori regionali; la luce calda e le ombre blu/viola danno forma ai volumi.
+export const ADVENTURE_TOON_STYLE=Object.freeze({
+ lightDirection:[-.45,.88,.32],bands:[.32,.57,.79],
+ outlineThreshold:.17,outlineDarkness:.76
+});
+export const adventureToonLightBand=diffuse=>
+ diffuse>=ADVENTURE_TOON_STYLE.bands[2]?1.2:
+ diffuse>=ADVENTURE_TOON_STYLE.bands[1]?1.04:
+ diffuse>=ADVENTURE_TOON_STYLE.bands[0]?.76:.57;
 const vertexShader=`
 attribute vec3 aPosition;
 attribute vec3 aColor;
 attribute vec3 aNormal;
 uniform mat4 uProjectionView;
 uniform mat4 uView;
+uniform vec3 uCameraPosition;
 varying vec3 vColor;
 varying float vFog;
+varying float vDiffuse;
+varying float vRim;
 void main(){
  vec4 p=uView*vec4(aPosition,1.0);
  gl_Position=uProjectionView*vec4(aPosition,1.0);
- float light=clamp(dot(normalize(aNormal),normalize(vec3(-0.45,0.92,0.36)))*0.34+0.74,0.42,1.2);
- vColor=aColor*light;
- vFog=clamp(((-p.z)-31.0)/123.0,0.0,0.95);
+ vec3 normal=normalize(aNormal);
+ vec3 sun=normalize(vec3(-0.45,0.88,0.32));
+ vDiffuse=clamp(dot(normal,sun)*.5+.5,0.0,1.0);
+ vec3 toEye=normalize(uCameraPosition-aPosition);
+ vRim=pow(1.0-clamp(dot(normal,toEye),0.0,1.0),3.0);
+ vColor=aColor;
+ vFog=clamp(((-p.z)-38.0)/132.0,0.0,0.89);
 }
 `;
 const fragmentShader=`
 precision mediump float;
 varying vec3 vColor;
 varying float vFog;
+varying float vDiffuse;
+varying float vRim;
 uniform vec3 uFogColor;
 void main(){
- vec3 color=mix(vColor,uFogColor,vFog);
- gl_FragColor=vec4(color,1.0);
+ float band= vDiffuse>.79?1.20:(vDiffuse>.57?1.04:(vDiffuse>.32?.76:.57));
+ // Silhouette cartoon: ombre fredde nette, riflessi caldi dipinti.
+ vec3 shade=mix(vec3(.69,.75,1.02),vec3(1.06,1.015,.91),step(.57,vDiffuse));
+ vec3 inked=vColor*shade*band;
+ inked=mix(inked,vec3(.96,.93,.78),min(.14,vRim*.14));
+ vec3 finalColor=mix(inked,uFogColor,vFog);
+ gl_FragColor=vec4(clamp(finalColor,0.0,1.0),1.0);
+}
+`;
+// Bordo d'inchiostro in post-process. Si disattiva automaticamente se
+// la GPU non supporta i framebuffer: la campagna rimane giocabile.
+const inkVertexShader=`
+attribute vec2 aScreen;
+varying vec2 vUv;
+void main(){
+ vUv=aScreen*.5+.5;
+ gl_Position=vec4(aScreen,0.0,1.0);
+}
+`;
+const inkFragmentShader=`
+precision mediump float;
+varying vec2 vUv;
+uniform sampler2D uScene;
+uniform vec2 uPixel;
+void main(){
+ vec3 base=texture2D(uScene,vUv).rgb;
+ vec3 left=texture2D(uScene,vUv-vec2(uPixel.x,0.0)).rgb;
+ vec3 right=texture2D(uScene,vUv+vec2(uPixel.x,0.0)).rgb;
+ vec3 above=texture2D(uScene,vUv+vec2(0.0,uPixel.y)).rgb;
+ vec3 below=texture2D(uScene,vUv-vec2(0.0,uPixel.y)).rgb;
+ vec3 horizontal=abs(left-right);
+ vec3 vertical=abs(above-below);
+ float contrast=max(dot(horizontal,vec3(.299,.587,.114)),
+                    dot(vertical,vec3(.299,.587,.114)));
+ float chroma=max(length(horizontal),length(vertical))*.45;
+ float edge=smoothstep(.17,.38,max(contrast,chroma));
+ // Gamma delicata: colori saturi senza sovraesporre i volti e la neve.
+ vec3 cartoon=pow(base,vec3(.94));
+ cartoon=mix(cartoon,vec3(.055,.09,.17),edge*.76);
+ gl_FragColor=vec4(cartoon,1.0);
 }
 `;
 const makeShader=(gl,type,source)=>{
