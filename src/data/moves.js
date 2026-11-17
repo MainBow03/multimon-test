@@ -5,6 +5,7 @@ import {STRAW_HAT_MOVES} from './strawHatCrewMoves.js';
 import {GEM_FLAME_MOVES} from './gemFlameMoves.js';
 import {BERRY_FRILLISH_MOVES} from './berryFrillishMoves.js';
 import {NEW_TRIO_MOVES} from './flinsGanyuCoraline.js';
+import {ROYAL_POISON_MOVES} from './royalPoisonMoves.js';
 
 export const MOVES_DB = {
   ...NEW_TRIO_MOVES,
