@@ -52,11 +52,11 @@ class Mesh{
  prismRoof(x,y,z,w,h,d,hex){
   const a=[x-w/2,y,z-d/2],b=[x+w/2,y,z-d/2],c=[x+w/2,y,z+d/2],e=[x-w/2,y,z+d/2];
   const roof1=[x,y+h,z-d/2],roof2=[x,y+h,z+d/2];
-  this.quad(a,b,roof1,roof1,color(hex,.9));
-  this.quad(e,roof2,roof1,a,color(hex,1.06));
-  this.quad(b,c,roof2,roof1,color(hex,.85));
-  this.triangle(a,roof1,e,color(hex,.98));
-  this.triangle(c,roof2,b,color(hex,.98));
+  // Tetto a due falde: due rettangoli e due triangoli senza degenerazioni.
+  this.quad(a,e,roof2,roof1,color(hex,1.06));
+  this.quad(b,roof1,roof2,c,color(hex,.9));
+  this.triangle(a,roof1,b,color(hex,.92));
+  this.triangle(e,c,roof2,color(hex,.88));
  }
  cylinder(x,y,z,r,h,hex,n=8){
   const c=color(hex),top=color(hex,1.1);
@@ -85,6 +85,14 @@ class Mesh{
     const A=p(a,u),B=p(a,v),C=p(b,v),D=p(b,u);
     this.quad(A,B,C,D,color(hex,.9+(j%3)*.07));
    }
+  }
+ }
+ ring(x,y,z,r,thickness,hex,segments=18){
+  const shade=color(hex);
+  for(let i=0;i<segments;i++){
+   const a=i*2*Math.PI/segments,b=(i+1)*2*Math.PI/segments;
+   const pt=(radius,angle)=>[x+Math.cos(angle)*radius,y,z+Math.sin(angle)*radius];
+   this.quad(pt(r,a),pt(r+thickness,a),pt(r+thickness,b),pt(r,b),shade);
   }
  }
  diamond(x,y,z,r,hex){
@@ -145,6 +153,100 @@ const addPerson=(m,x,z,hex,variant=0)=>{
  m.box(x+.26,0,z,.34,.6,.4,'#253855');
  m.sphere(x,2.13,z,.22,.17,.23,hex,4,6);
 };
+// Monumenti visibili da lontano: ogni regione ha una silhouette unica.
+// La strada centrale rimane sgombra per non ostacolare la navigazione.
+const biomeLandmarks=(m,zone,index)=>{
+ const z=ADVENTURE_ZONES[index],c=z.color,x=z.center+4,d=-16.5;
+ if(index===0){
+  // Fontana di Piazza Alba, giardino fiorito e campanile.
+  m.cylinder(x,0,d,3,.65,'#d2e5de',12);
+  m.cylinder(x,.7,d,2.55,.4,'#7cc5cf',12);
+  m.cylinder(x,1,d,.7,2.8,'#faf3d6',8);
+  m.sphere(x,3.9,d,.86,.8,.86,'#bdf1d2',6,9);
+  m.ring(x,.9,d,2.5,.25,'#e1f3e1');
+  for(let i=0;i<12;i++){
+   const a=i*Math.PI/6;
+   m.sphere(x+Math.cos(a)*4,.3,d+Math.sin(a)*4,.35,.35,.35,['#fa91b6','#ffe7a2','#ffffff'][i%3],4,6);
+  }
+  m.cylinder(x-6,0,d-3,1.3,5.1,'#e7e2c9',8);
+  m.cone(x-6,5.1,d-3,1.6,2.5,'#76a99d',8);
+ }else if(index===1){
+  // Forgia con canne fumarie e metallo incandescente.
+  m.box(x,0,d,8,3.3,5.2,'#69515a');
+  m.prismRoof(x,3.2,d,9,2.5,5.6,'#b84f39');
+  for(let i=0;i<3;i++){
+   m.cylinder(x-2.7+i*2.7,3,d-1,.6,4+i*.5,'#4f3c48',8);
+   m.sphere(x-2.7+i*2.7,8+i*.5,d-1,1.3,.7,1.1,'#e7bba7',4,8);
+  }
+  m.cylinder(x,0,d+5.3,2,.4,'#262f3b',10);
+  m.cylinder(x,.43,d+5.3,1.7,.15,'#d47746',10);
+  m.diamond(x,1.7,d+5.3,.7,'#ffbe78');
+ }else if(index===2){
+  // Cascata in più salti, argini e ponticello in legno.
+  for(let i=0;i<4;i++){
+   m.box(x-4+i*2.3,0,d-4+i*.5,2.6,4.7+i*.6,2.8,'#738b96');
+  }
+  for(let i=0;i<3;i++){
+   m.box(x-2.5+i*2,1.7,d-2.3,1.55,4.1,.22,'#69c6e8');
+   m.box(x-2.5+i*2,.65,d+.1,2.1,.08,4.5,'#52aecf');
+  }
+  m.box(x,0,d+6,8,.22,2.4,'#d5bb93');
+  for(const bx of [-3,-1,1,3]){
+   m.cylinder(x+bx,0,d+7,.12,1.15,'#f1deb1',6);
+  }
+  m.box(x,1.1,d+7,8,.13,.15,'#f4e1b6');
+ }else if(index===3){
+  // Osservatorio dei sensori, cristalli e torri innevate.
+  m.cylinder(x,0,d,3.8,3.4,'#819aa9',12);
+  m.sphere(x,4.3,d,3.2,2.2,3.2,'#e8f5ff',7,12);
+  m.cylinder(x,6,d,.18,2.9,'#fafcff',8);
+  m.diamond(x,9,d,.85,'#9fe7ff');
+  for(let i=0;i<9;i++){
+   const a=i*2*Math.PI/9;
+   m.cone(x+Math.cos(a)*6,0,d+Math.sin(a)*6,.6,1.4+i%3*1.2,'#d4f7ff',6);
+  }
+ }else if(index===4){
+  // Anello astrale sospeso e padiglione della costellazione.
+  m.cylinder(x,0,d,4,.75,'#42365f',12);
+  m.ring(x,.9,d,3.1,.35,'#d3b1f3',24);
+  m.ring(x,1.05,d,2,.2,'#78dce7',24);
+  m.cylinder(x,.9,d,.2,6,'#e8c5fb',8);
+  m.diamond(x,7.9,d,2.3,'#ebceff');
+  for(let i=0;i<8;i++){
+   const a=i*Math.PI/4;
+   const px=x+Math.cos(a)*5,pz=d+Math.sin(a)*5;
+   m.cone(px,0,pz,.85,1.7+i%3,'#b8a1ed',6);
+   m.diamond(px,2.6+i%3,pz,.5,i%2===0?'#8beaf6':'#f6b8ec');
+  }
+ }else{
+  // Vulcano/forgia con colonne di basalto e un cratere arancione.
+  for(let i=0;i<10;i++){
+   const a=i*Math.PI/5,r=5+(i%2);
+   m.cylinder(x+Math.cos(a)*r,0,d+Math.sin(a)*r,.8,3.5+(i%4)*1.6,'#514d60',7);
+  }
+  m.cylinder(x,.1,d,4.8,1.1,'#403848',12);
+  m.cylinder(x,1.21,d,3.5,.3,'#dd673f',12);
+  m.ring(x,1.5,d,3.1,.28,'#ffc27b',20);
+  m.cone(x,1.2,d,2.5,3.1,'#8b414a',9);
+  m.diamond(x,5.4,d,1.1,'#ffcb87');
+ }
+ // Sentiero decorativo verso il monumento, dalla strada principale.
+ for(let j=0;j<8;j++){
+  const depth=adventureRoadZ(x)-4.4-j*1.1;
+  m.box(x,.07,depth,1.35,.1,.86,index===3?'#e4f6f7':'#c6b9a9');
+ }
+};
+// Un segnale di navigazione fisico: faro colorato sopra il prossimo bersaglio.
+const adventureObjectiveBeacon=(m,save)=>{
+ const target=adventureNextObjective(save);
+ if(!target||target.kind==='complete')return;
+ const colorHex=target.kind==='gym'?'#ffd57f':target.kind==='champion'?'#f6cbff':
+   target.kind==='rival'?'#ea9aff':'#8ffff0';
+ m.cylinder(target.x,0,target.z,.06,7,'#daf5ea',5);
+ m.diamond(target.x,7.9,target.z,.92,colorHex);
+ m.ring(target.x,.18,target.z,1.45,.18,colorHex,14);
+ m.ring(target.x,.2,target.z,2.15,.10,colorHex,18);
+};
 export function buildAdventureMesh(save){
  const m=new Mesh(),rng=rand(2241039);
  // Procedural world made of actual 3D faces. Long continuous area.
@@ -176,6 +278,7 @@ export function buildAdventureMesh(save){
  }
  for(let i=0;i<ADVENTURE_ZONES.length;i++){
   const z=ADVENTURE_ZONES[i],pal=palette[z.biome];
+  biomeLandmarks(m,z,i);
   for(let t=0;t<95;t++){
    const x=z.range[0]+rng()*34,depth=-22+rng()*44;
    if(Math.abs(depth-adventureRoadZ(x))<5.8)continue;
@@ -206,9 +309,11 @@ export function buildAdventureMesh(save){
   }else m.diamond(x,3.25,z,.7,'#87f1c0');
  }
  for(const e of ADVENTURE_ENTITIES){
+  if((['trainer','rival'].includes(e.kind)&&save?.defeated?.includes(e.id)))continue;
   if(e.kind==='gym')addGym(m,e);
   else if(e.kind==='shop'||e.kind==='inn')addHouse(m,e,e.kind);
-  else if(e.kind==='trainer'||e.kind==='npc')addPerson(m,e.x,e.z,e.kind==='npc'?'#7f8fef':'#dd8c5d',e.zone%2);
+  else if(e.kind==='trainer'||e.kind==='npc'||e.kind==='rival')
+   addPerson(m,e.x,e.z,e.kind==='npc'?'#7f8fef':e.kind==='rival'?'#ac7cdb':'#dd8c5d',(e.zone||0)%2);
   else if(e.kind==='wild'){
    const p=ADVENTURE_ZONES[e.zone],c=p.color;
    m.sphere(e.x,.75,e.z,.72,.68,.72,c,5,7);
@@ -236,6 +341,7 @@ export function buildAdventureMesh(save){
  m.cylinder(c.x,13,c.z,.22,3,'#f2e9b9');
  m.diamond(c.x,17,c.z,1.65,'#f7de88');
  addPerson(m,c.x,c.z+6,'#a477dd');
+ adventureObjectiveBeacon(m,save);
  return new Float32Array(m.data);
 }
 const vertexShader=`
