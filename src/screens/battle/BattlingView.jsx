@@ -223,7 +223,11 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
             let isTargetable = false;
             if (targetingMoveIdx !== null && !isDead && activeCommandChar) {
                     const move = availableMoves[targetingMoveIdx];
-                    if (move.targetMode === 'ally' || move.targetMode === 'team') {
+                    if (move.targetMode === 'any') {
+                            // Yzma può mirare un nemico O un alleato: il motore
+                            // infligge uno status solo al nemico e cura l'alleato.
+                            isTargetable = activeMatchPlayers.includes(teamPlayer);
+                    } else if (move.targetMode === 'ally' || move.targetMode === 'team') {
                             let myTeamPlayers = [playerRole];
                             if (gameState.gameMode === 'multipla') {
                                 myTeamPlayers = ['p1', 'p2'].includes(playerRole) ? ['p1', 'p2'] : ['p3', 'p4'];
