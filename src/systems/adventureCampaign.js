@@ -95,8 +95,19 @@ export function adventureEntities(){
   dialogue:'Ogni percorso nasconde incontri inattesi. Allenati, aiuta chi trovi e conquista i sei Emblemi. La vera avventura comincia adesso!'},
  {id:'inn:0',kind:'inn',name:'Centro di Cura',x:5,z:adventureRoadZ(5)+7},
  {id:'shop:0',kind:'shop',name:'Bottega di Alba',x:10,z:adventureRoadZ(10)+7}];
+ const regionPeople=[
+  {name:'Meccanico Teo',text:'Il generatore della Valle lampeggia da quando sono caduti i sei portali. Flora conserva la chiave per stabilizzarlo.'},
+  {name:'Fabbra Mira',text:'Le fonderie hanno perso corrente. Kael tiene la sua chiave nella Palestra, ma Nox controlla chi tenta di arrivarci.'},
+  {name:'Barcaiola Ondina',text:'Ho trovato un segnale dentro il vecchio condotto sotto il lago. La rete è stata fermata per evitare un sovraccarico.'},
+  {name:'Tecnica Brina',text:'I sensori parlano chiaro: Iris ordinò lo spegnimento per salvare tutti. La prossima traccia è nel Giardino Astrale.'},
+  {name:'Archivista Selene',text:'Ho studiato le sei chiavi: bisogna attivarle in sequenza. Perla e Lyra conoscono l’ordine esatto.'},
+  {name:'Guardiano della Forgia',text:'La sesta chiave riposa con Rokan. Se Nox si mette di mezzo, affrontalo: vuole essere certo che tu comprenda il rischio.'}
+ ];
  for(let i=0;i<ADVENTURE_ZONES.length;i++){
   const z=ADVENTURE_ZONES[i],x=z.center;
+  const px=x-12;
+  result.push({id:'guide:'+z.id,kind:'npc',name:regionPeople[i].name,
+    zone:i,x:px,z:adventureRoadZ(px)+5.6,dialogue:regionPeople[i].text});
   result.push({id:z.id+':gym',kind:'gym',name:'Palestra di '+z.gym,zone:i,
    x:x+11,z:adventureRoadZ(x+11)+9,level:z.level,
    title:z.title,dialogue:z.beforeGym,afterVictory:z.afterGym,party:z.leaderTeam});
