@@ -1,6 +1,7 @@
 // CAMPAGNA 3D — progressione autosalvata, separata dalle campagne a episodi.
 // Tutti gli scontri usano il motore classico di Multimon (CPU, tipi, passive, mosse).
 import {createBattleReport} from './battleReport.js';
+import {ADVENTURE_RIVAL_ZONES} from '../data/adventureStory.js';
 
 export const ADVENTURE_SAVE_KEY='multimon_avventura_3d_v1';
 export const ADVENTURE_MAX_PARTY=6;
@@ -54,7 +55,7 @@ export function createAdventureSave(starterId,characters=[]){
  return {version:1,started:true,finished:false,starterId,position:{x:5,z:adventureRoadZ(5)},
   facing:0,party:[{id:starterId,level:5,exp:0,hp:null}],
   reserve:[],coins:120,potions:4,revives:1,badges:[],
-  defeated:[],chests:[],wildBattles:0,trainerWins:0,gymWins:0,
+  defeated:[],chests:[],storySeen:[],wildBattles:0,trainerWins:0,rivalWins:0,gymWins:0,
   chapter:'L’inizio di un’avventura',lastMessage:'Il professor Orion ti aspetta davanti al villaggio.',
   lastBattleId:null,checkpointZone:0,playSeconds:0,createdAt:Date.now()};
 }
@@ -68,7 +69,7 @@ export function sanitizeAdventureSave(raw,characters=[]){
   }));
  const party=members(raw.party,6),reserve=members(raw.reserve,24);
  if(!party.length)return null;
- const badges=[...new Set((raw.badges||[]).filter(x=>ADVENTURE_ZONES.some(z=>z.id===x)))];
+ const badges=[...new Set((Array.isArray(raw.badges)?raw.badges:[]).filter(x=>ADVENTURE_ZONES.some(z=>z.id===x)))];
  const maxX=Math.min(217,34*(badges.length+1)-1);
  const x=clamp(finite(raw.position?.x,5),0,maxX);
  return {...raw,version:1,started:true,finished:!!raw.finished,
@@ -77,9 +78,14 @@ export function sanitizeAdventureSave(raw,characters=[]){
   party,reserve,coins:clamp(Math.floor(finite(raw.coins)),0,999999),
   potions:clamp(Math.floor(finite(raw.potions)),0,99),
   revives:clamp(Math.floor(finite(raw.revives)),0,99),
-  badges,defeated:[...new Set(raw.defeated||[])],
-  chests:[...new Set(raw.chests||[])],wildBattles:Math.max(0,Math.floor(finite(raw.wildBattles))),
+  badges,defeated:[...new Set((Array.isArray(raw.defeated)?raw.defeated:[]).filter(id=>typeof id==='string'))],
+  chests:[...new Set((Array.isArray(raw.chests)?raw.chests:[]).filter(id=>typeof id==='string'))],
+  storySeen:Array.isArray(raw.storySeen)?[...new Set(raw.storySeen.filter(id=>typeof id==='string'))]:
+    // Già oltre la regione: non riprodurre tutti i filmati del passato.
+    badges.flatMap(id=>['arrival:'+id,'badge:'+id]),
+  wildBattles:Math.max(0,Math.floor(finite(raw.wildBattles))),
   trainerWins:Math.max(0,Math.floor(finite(raw.trainerWins))),
+  rivalWins:Math.max(0,Math.floor(finite(raw.rivalWins))),
   gymWins:Math.max(0,Math.floor(finite(raw.gymWins))),
   checkpointZone:clamp(Math.floor(finite(raw.checkpointZone)),0,5),
   playSeconds:Math.max(0,Math.floor(finite(raw.playSeconds)))};
@@ -89,8 +95,19 @@ export function adventureEntities(){
   dialogue:'Ogni percorso nasconde incontri inattesi. Allenati, aiuta chi trovi e conquista i sei Emblemi. La vera avventura comincia adesso!'},
  {id:'inn:0',kind:'inn',name:'Centro di Cura',x:5,z:adventureRoadZ(5)+7},
  {id:'shop:0',kind:'shop',name:'Bottega di Alba',x:10,z:adventureRoadZ(10)+7}];
+ const regionPeople=[
+  {name:'Meccanico Teo',text:'Il generatore della Valle lampeggia da quando sono caduti i sei portali. Flora conserva la chiave per stabilizzarlo.'},
+  {name:'Fabbra Mira',text:'Le fonderie hanno perso corrente. Kael tiene la sua chiave nella Palestra, ma Nox controlla chi tenta di arrivarci.'},
+  {name:'Barcaiola Ondina',text:'Ho trovato un segnale dentro il vecchio condotto sotto il lago. La rete è stata fermata per evitare un sovraccarico.'},
+  {name:'Tecnica Brina',text:'I sensori parlano chiaro: Iris ordinò lo spegnimento per salvare tutti. La prossima traccia è nel Giardino Astrale.'},
+  {name:'Archivista Selene',text:'Ho studiato le sei chiavi: bisogna attivarle in sequenza. Perla e Lyra conoscono l’ordine esatto.'},
+  {name:'Guardiano della Forgia',text:'La sesta chiave riposa con Rokan. Se Nox si mette di mezzo, affrontalo: vuole essere certo che tu comprenda il rischio.'}
+ ];
  for(let i=0;i<ADVENTURE_ZONES.length;i++){
   const z=ADVENTURE_ZONES[i],x=z.center;
+  const px=x-12;
+  result.push({id:'guide:'+z.id,kind:'npc',name:regionPeople[i].name,
+    zone:i,x:px,z:adventureRoadZ(px)+5.6,dialogue:regionPeople[i].text});
   result.push({id:z.id+':gym',kind:'gym',name:'Palestra di '+z.gym,zone:i,
    x:x+11,z:adventureRoadZ(x+11)+9,level:z.level,
    title:z.title,dialogue:z.beforeGym,afterVictory:z.afterGym,party:z.leaderTeam});
@@ -101,6 +118,16 @@ export function adventureEntities(){
     zone:i,x:tx,z:adventureRoadZ(tx)+(j===0?-5:5),level:Math.max(5,z.level-3+j),
     party:[z.trainers[j],...(i>=2?[z.wild[(j+i)%z.wild.length]]:[])],
     dialogue:['Vedo una bella squadra! Ti va una sfida?','Vediamo se sei pronto per la prossima Palestra!'][j]});
+  }
+  if(ADVENTURE_RIVAL_ZONES.includes(i)){
+   const rx=x+3;
+   result.push({id:adventureEncounterId(z.id,'rival',0),kind:'rival',
+     name:'Nox · Viaggiatore dei Portali',zone:i,x:rx,z:adventureRoadZ(rx)-2,
+     level:z.level+2,party:i===1?['metalsonic','poisonivy']:
+       i===3?['weiss','superboy','miku']:['garnet','meliodas','reboo'],
+     dialogue:i===1?'Dimostrami che non consegnerai le chiavi senza fare domande.':
+       i===3?'I sensori hanno ragione, ma serve qualcuno capace di fermarsi.':
+       'Se vincerai, ti accompagnerò fino alla Lega.'});
   }
   for(let j=0;j<4;j++){
    const tx=x-8+j*6;
@@ -127,7 +154,7 @@ export function adventureNearby(position,save,radius=4.4){
  const currentZone=adventureZoneIndex(position.x);
  return ADVENTURE_ENTITIES.filter(e=>adventureDistance(position,e)<=radius&&
   // Never show already-completed one-time encounters as interactable.
-  !(e.kind==='trainer'&&save.defeated.includes(e.id))&&
+  !(['trainer','rival'].includes(e.kind)&&save.defeated.includes(e.id))&&
   !(e.kind==='gym'&&save.badges.includes(ADVENTURE_ZONES[e.zone].id))&&
   !(e.kind==='chest'&&save.chests.includes(e.id))&&
   !(e.kind==='champion'&&save.finished))
@@ -148,7 +175,18 @@ export function adventureGymCheck(save,entity){
      return {ok:false,message:'Devi conquistare le Palestre precedenti.'};
    if(save.badges.includes(z.id))return {ok:false,message:'Questo Emblema è già tuo.'};
    const victories=(save.defeated||[]).filter(id=>id.startsWith(z.id+':trainer:')).length;
-   if(victories<2)return {ok:false,message:'Dimostra di conoscere il percorso: sconfiggi entrambi gli allenatori della zona ('+victories+'/2).'};
+   if(victories<2)return {ok:false,message:'Prima devi battere entrambi gli allenatori di '+z.name+' ('+victories+'/2). Apri la bussola della missione per trovarli.'};
+   const rivalId=adventureEncounterId(z.id,'rival',0);
+   if(ADVENTURE_RIVAL_ZONES.includes(entity.zone)&&!save.defeated.includes(rivalId))
+     return {ok:false,message:'Nox ti aspetta lungo il percorso. Affrontalo prima della Palestra di '+z.gym+'.'};
+ }
+ if(entity.kind==='rival'){
+   const z=ADVENTURE_ZONES[entity.zone];
+   if(!z||ADVENTURE_ZONES.slice(0,entity.zone).some(g=>!save.badges.includes(g.id)))
+     return {ok:false,message:'Non hai ancora raggiunto il capitolo in cui Nox ti sfida.'};
+   const victories=(save.defeated||[]).filter(id=>id.startsWith(z.id+':trainer:')).length;
+   if(victories<2)return {ok:false,message:'Nox ti aspetta, ma prima affronta i due allenatori del percorso ('+victories+'/2).'};
+   if(save.defeated.includes(entity.id))return {ok:false,message:'Hai già superato la prova di Nox.'};
  }
  if(entity.kind==='champion'){
    if(save.badges.length<6)return {ok:false,message:'La Lega richiede tutti e sei gli Emblemi.'};
@@ -178,7 +216,9 @@ export function adventureFighter(base,member){
  return fighter;
 }
 export function adventureBattleRoom(save,entity,characters,initialGameState,trainerName='Viaggiatore'){
- if(!['wild','trainer','gym','champion'].includes(entity?.kind))throw new Error('Sfida non valida');
+ if(!['wild','trainer','rival','gym','champion'].includes(entity?.kind))throw new Error('Sfida non valida');
+ if(['trainer','rival'].includes(entity.kind)&&save.defeated.includes(entity.id))
+   throw new Error('Questo avversario è già stato sconfitto.');
  const check=adventureGymCheck(save,entity);
  if(!check.ok)throw new Error(check.message);
  const byId=new Map(characters.map(c=>[c.id,c]));
@@ -208,7 +248,7 @@ export function adventureBattleRoom(save,entity,characters,initialGameState,trai
   inventory:{...base.inventory,p1:{},p2:{}},
   settings:{...base.settings,teamSize:Math.max(heroes.length,enemies.length),
    fieldSize:1,maxPlayers:2,rentalMode:true,draftBattle:false,sharedDraft:false},
-  cpuStyles:{p2:entity.kind==='gym'||entity.kind==='champion'?'tactical':'aggressive'}
+  cpuStyles:{p2:['gym','champion','rival'].includes(entity.kind)?'tactical':'aggressive'}
  };
 }
 export function adventureGiveXp(member,amount,characters){
@@ -244,8 +284,10 @@ export function adventureFinishBattle(save,room,characters,{recruit=false}={}){
  });
  if(won){
   xp=encounter.kind==='champion'?1200:encounter.kind==='gym'?240+encounter.level*5:
+   encounter.kind==='rival'?175+encounter.level*5:
    encounter.kind==='trainer'?90+encounter.level*4:40+encounter.level*2;
   coins=encounter.kind==='champion'?1200:encounter.kind==='gym'?350:
+   encounter.kind==='rival'?220:
    encounter.kind==='trainer'?90+encounter.level*3:24+encounter.level;
   next.party=next.party.map(m=>{
     const gain=m.hp>0?xp:Math.floor(xp*.35);
@@ -262,8 +304,10 @@ export function adventureFinishBattle(save,room,characters,{recruit=false}={}){
       next.chapter='La strada verso '+(ADVENTURE_ZONES[encounter.zone+1]?.name||'la Lega del Multiverso');
     }
   }
-  if(encounter.kind==='trainer'&&!next.defeated.includes(encounter.id)){
-   next.defeated.push(encounter.id);next.trainerWins=(next.trainerWins||0)+1;
+  if(['trainer','rival'].includes(encounter.kind)&&!next.defeated.includes(encounter.id)){
+   next.defeated.push(encounter.id);
+   if(encounter.kind==='trainer')next.trainerWins=(next.trainerWins||0)+1;
+   else next.rivalWins=(next.rivalWins||0)+1;
   }
   if(encounter.kind==='wild'){
    next.wildBattles=(next.wildBattles||0)+1;
@@ -284,6 +328,7 @@ export function adventureFinishBattle(save,room,characters,{recruit=false}={}){
   const z=ADVENTURE_ZONES[Math.min(next.checkpointZone||0,Math.max(0,next.badges.length))]||ADVENTURE_ZONES[0];
   const start=z.center-10;
   next.position={x:start,z:adventureRoadZ(start)};
+  next.travelSerial=(next.travelSerial||0)+1;
   next.party=next.party.map(m=>({...m,hp:Math.max(1,Math.ceil(adventureMaxHp(characters.find(c=>c.id===m.id),m.level)*.55))}));
   next.lastMessage='La squadra si è ritirata al Centro di Cura. Hai perso '+loss+' monete, ma non i progressi.';
  }
@@ -291,8 +336,9 @@ export function adventureFinishBattle(save,room,characters,{recruit=false}={}){
   champion:won&&encounter.kind==='champion',recruit:won&&recruit&&encounter.kind==='wild'};
 }
 export function adventureHeal(save,characters){
- return {...save,party:save.party.map(m=>({...m,hp:adventureMaxHp(characters.find(c=>c.id===m.id),m.level)})),
-  lastMessage:'Il Centro di Cura ha rimesso in forma tutti i tuoi Multimon!'};
+ const restore=m=>({...m,hp:adventureMaxHp(characters.find(c=>c.id===m.id),m.level)});
+ return {...save,party:save.party.map(restore),reserve:(save.reserve||[]).map(restore),
+  lastMessage:'Il Centro di Cura ha guarito tutta la squadra e la riserva!'};
 }
 export function adventureUsePotion(save,index,characters,revive=false){
  const member=save.party?.[index],base=characters.find(c=>c.id===member?.id);
@@ -312,6 +358,7 @@ export function adventureShop(save,item){
  const catalog={potion:{price:45,key:'potions',name:'Pozione'},revive:{price:135,key:'revives',name:'Cristallo di Rinascita'}};
  const selected=catalog[item];
  if(!selected||save.coins<selected.price)return {save,error:'Monete insufficienti'};
+ if((save[selected.key]||0)>=99)return {save,error:'Non puoi portarne più di 99.'};
  return {save:{...save,coins:save.coins-selected.price,
    [selected.key]:(save[selected.key]||0)+1,
    lastMessage:selected.name+' acquistato!'},error:null};
@@ -328,17 +375,64 @@ export function adventureSwap(save,source,index){
   if(!reserve[index]||party.length>=ADVENTURE_MAX_PARTY)return save;
   party.push(...reserve.splice(index,1));
  }else{
-  if(!party[index]||party.length<=1)return save;
+  if(!party[index]||party.length<=1||reserve.length>=24)return save;
   reserve.push(...party.splice(index,1));
  }
  return {...save,party,reserve,lastMessage:'Squadra aggiornata: modifiche salvate.'};
 }
+export function adventureNextObjective(save){
+ if(!save?.started)return null;
+ if(save.finished)return {id:'completed',kind:'complete',name:'Campione del Multiverso',x:214,z:0,
+   description:'Hai ripristinato il Cuore dei Portali. Puoi esplorare liberamente.'};
+ const zone=ADVENTURE_ZONES[Math.min(5,save.badges.length)];
+ if(save.badges.length>=6)return ADVENTURE_CHAMPION;
+ const wins=(save.defeated||[]).filter(id=>id.startsWith(zone.id+':trainer:')).length;
+ if(wins<2)return ADVENTURE_ENTITIES.find(e=>e.kind==='trainer'&&e.zone===save.badges.length&&!save.defeated.includes(e.id));
+ if(ADVENTURE_RIVAL_ZONES.includes(save.badges.length)){
+   const nox=ADVENTURE_ENTITIES.find(e=>e.kind==='rival'&&e.zone===save.badges.length);
+   if(!save.defeated.includes(nox.id))return nox;
+ }
+ return ADVENTURE_ENTITIES.find(e=>e.kind==='gym'&&e.zone===save.badges.length);
+}
+export function adventureGuide(save,position=save?.position){
+ const target=adventureNextObjective(save);
+ if(!target)return null;
+ const dx=target.x-(position?.x||0),dz=target.z-(position?.z||0);
+ const distance=Math.round(Math.hypot(dx,dz));
+ const degree=Math.atan2(dz,dx)*180/Math.PI;
+ const direction=Math.abs(dx)>=Math.abs(dz)*1.5?(dx>=0?'AVANTI':'INDIETRO'):
+   Math.abs(dz)>=Math.abs(dx)*1.5?(dz>=0?'A DESTRA':'A SINISTRA'):
+   dx>=0?(dz>=0?'AVANTI + DESTRA':'AVANTI + SINISTRA'):
+   (dz>=0?'INDIETRO + DESTRA':'INDIETRO + SINISTRA');
+ const kind=target.kind;
+ const action=kind==='trainer'?'Sfida l’allenatore':kind==='rival'?'Affronta Nox':
+   kind==='gym'?'Conquista l’Emblema':kind==='champion'?'Sfida Iris alla Lega':'Esplora';
+ const tip=kind==='trainer'?'Segui la strada chiara e cerca l’icona ⚔️. Premi E oppure PARLA quando sei vicino.':
+   kind==='rival'?'Nox è sul percorso principale: è una sfida obbligatoria prima della Palestra.':
+   kind==='gym'?'La Palestra è un edificio con una gemma brillante. Cura il team prima di sfidarla.':
+   kind==='champion'?'Attraversa il sesto portale, raggiungi il palazzo e parla con Iris.':
+   'Ora puoi visitare tutte le regioni.';
+ return {target,action,distance,direction,angle:degree,tip,
+   progress:save.badges.length+' / 6 Emblemi',zone:target.zone===undefined?'Lega':ADVENTURE_ZONES[target.zone]?.name};
+}
 export function adventureQuest(save){
  if(!save?.started)return 'Scegli uno starter per cominciare.';
- if(save.finished)return 'Sei Campione del Multiverso! Esplora liberamente il mondo.';
- const index=save.badges.length;
- if(index>=6)return 'Raggiungi la Lega oltre la Corona del Vulcano e sfida Iris.';
- const zone=ADVENTURE_ZONES[index],wins=save.defeated.filter(id=>id.startsWith(zone.id+':trainer:')).length;
- return wins<2?'Raggiungi '+zone.name+' e sconfiggi i due allenatori ('+wins+'/2).':
-  'Sfida '+zone.gym+' nella Palestra di '+zone.name+' per l’'+zone.badge+'.';
+ if(save.finished)return 'Il Cuore dei Portali è ripartito. Sei il Campione del Multiverso!';
+ const target=adventureNextObjective(save);
+ if(target?.kind==='champion')return 'Raggiungi la Lega attraverso il sesto portale e affronta Iris.';
+ if(target?.kind==='trainer'){
+  const z=ADVENTURE_ZONES[target.zone],wins=save.defeated.filter(id=>id.startsWith(z.id+':trainer:')).length;
+  return 'Nella '+z.name+': sconfiggi i due allenatori ('+wins+'/2). Prossimo: '+target.name+'.';
+ }
+ if(target?.kind==='rival')return 'Nox ti aspetta nella '+ADVENTURE_ZONES[target.zone].name+'. Sconfiggilo per accedere alla Palestra.';
+ if(target?.kind==='gym')return 'Sfida '+ADVENTURE_ZONES[target.zone].gym+' e conquista '+ADVENTURE_ZONES[target.zone].badge+'.';
+ return 'Segui la bussola e scopri la tua prossima missione.';
+}
+// Uscire dalla battaglia NON cancella danni o permette di saltare i rivali:
+// è un ritiro con ritorno al checkpoint e perdita moderata di monete.
+export function adventureRetreat(save,room,characters){
+ if(!room?.isAdventureBattle)return save;
+ if(room?.battleReport?.id&&save.lastBattleId===room.battleReport.id)return save;
+ const abandoned={...room,status:'gameover',winner:room.players?.p2||'Avversario'};
+ return adventureFinishBattle(save,abandoned,characters).save;
 }

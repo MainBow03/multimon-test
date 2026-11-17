@@ -4,11 +4,12 @@ import {ADVENTURE_ZONES,ADVENTURE_ENTITIES,ADVENTURE_STARTERS,ADVENTURE_CHAMPION
  adventureRoadZ,adventureMove,adventureNearby,adventureZoneIndex,adventureZone,
  adventureGymCheck,createAdventureSave,adventureQuest,adventureMaxHp,adventureUsePotion,
  adventureShop,adventureHeal,adventureChest,adventureSwap,adventureExpRequired,
- ADVENTURE_MAX_PARTY} from '../../systems/adventureCampaign.js';
+ adventureGuide,ADVENTURE_MAX_PARTY} from '../../systems/adventureCampaign.js';
+import {ADVENTURE_STORY_TITLE,ADVENTURE_STORY,ADVENTURE_RIVAL_NAME,adventureNextStoryScene,adventureMarkStorySeen} from '../../data/adventureStory.js';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 import './AdventureCampaign.css';
 
-const symbol={gym:'🏛️',trainer:'⚔️',wild:'✦',npc:'💬',inn:'✚',shop:'🛒',chest:'🎁',champion:'🏆'};
+const symbol={gym:'🏛️',trainer:'⚔️',rival:'🌓',wild:'✦',npc:'💬',inn:'✚',shop:'🛒',chest:'🎁',champion:'🏆'};
 const getChar=(chars,id)=>chars.find(c=>c.id===id);
 const hp=(m,chars)=>{
  const base=getChar(chars,m.id),max=base?adventureMaxHp(base,m.level):100;
@@ -16,16 +17,16 @@ const hp=(m,chars)=>{
 };
 const img=(src,alt,css='')=>src?<img src={src} alt={alt} className={css} onError={onMultimonImageError}/>:null;
 
-function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,paused=false}){
+function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,onPosition,paused=false}){
  const canvas=useRef(null),player=useRef({...save.position}),saveRef=useRef(save);
- const buttons=useRef(new Set()),callbacks=useRef({onWalk,onNear,onInteract,onBlocked,paused});
+ const buttons=useRef(new Set()),callbacks=useRef({onWalk,onNear,onInteract,onBlocked,onPosition,paused});
  const travelRef=useRef(save.travelSerial||0);
  useEffect(()=>{
-  saveRef.current=save;callbacks.current={onWalk,onNear,onInteract,onBlocked,paused};
+  saveRef.current=save;callbacks.current={onWalk,onNear,onInteract,onBlocked,onPosition,paused};
   if((save.travelSerial||0)!==travelRef.current){
    player.current={...save.position};travelRef.current=save.travelSerial||0;
   }
- },[save,onWalk,onNear,onInteract,onBlocked,paused]);
+ },[save,onWalk,onNear,onInteract,onBlocked,onPosition,paused]);
  useEffect(()=>{
   const el=canvas.current;if(!el)return;
   const graphics=createAdventureWorldRenderer(el,saveRef.current);
@@ -41,7 +42,7 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,paused=false}
   };
   const keydown=e=>{
    const name=e.key.toLowerCase();
-   if(!focus())return;
+   if(!focus()||callbacks.current.paused)return;
    if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','shift','e',' ','enter'].includes(name)){
      if(!callbacks.current.paused&&['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','e',' '].includes(name))e.preventDefault();
      if(name==='e'&&!e.repeat){interact();return;}
@@ -54,7 +55,8 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,paused=false}
   const tick=now=>{
    if(!alive)return;
    const dt=Math.min(.05,(now-previous)/1000);previous=now;
-   if(!callbacks.current.paused){
+   if(callbacks.current.paused)keys.clear();
+   else{
     const forward=Number(keys.has('w')||keys.has('arrowup'))-Number(keys.has('s')||keys.has('arrowdown'));
     const lateral=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'));
     if(forward||lateral){
@@ -65,6 +67,7 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,paused=false}
        current.z+lateral/length*speed*dt);
      // Position is managed in the renderer for smooth 60 FPS camera motion.
      player.current=next.position;
+     callbacks.current.onPosition?.(next.position);
      if(next.blocked&&now-lastBlocked>2800){
        callbacks.current.onBlocked?.(next.requiresBadge);
        lastBlocked=now;
@@ -97,7 +100,7 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,paused=false}
    <div className="adv-dpad">
     {[['w','↑','north'],['a','←','west'],['s','↓','south'],['d','→','east']].map(([k,label,dir])=>
      <button type="button" aria-label={dir} className={'adv-pad adv-pad-'+dir} key={k}
-       onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);key(k,true);}}
+       onPointerDown={e=>{if(callbacks.current.paused)return;e.currentTarget.setPointerCapture(e.pointerId);key(k,true);}}
        onPointerUp={()=>key(k,false)} onPointerCancel={()=>key(k,false)}
        onLostPointerCapture={()=>key(k,false)}>{label}</button>)}
    </div>
@@ -122,7 +125,7 @@ function AdventureStarter({characters,onStart,onBack}){
    <div className="adv-starter-title">
     <span className="adv-eyebrow">MULTIMON · UNA NUOVA AVVENTURA</span>
     <h1>Il mondo ti aspetta<span className="adv-glint">✦</span></h1>
-    <p>Sei portali. Sei capipalestra. Una sola Lega. Prima di partire, scegli chi combatterà al tuo fianco.</p>
+    <p>Quando la rete dei sei portali si è spenta, le regioni sono rimaste isolate. Scopri il mistero, incontra Nox e riporta la luce al Multiverso. Prima scegli il tuo compagno di viaggio.</p>
    </div>
    <div className="adv-starter-cards">
     {ADVENTURE_STARTERS.map(c=>{
@@ -171,21 +174,51 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
  const [panel,setPanel]=useState(null),[nearby,setNearby]=useState(null),[dialog,setDialog]=useState(null);
  const [battleTarget,setBattleTarget]=useState(null),[toast,setToast]=useState(null),[help,setHelp]=useState(false);
  const [confirmReset,setConfirmReset]=useState(false);
+ const [scene,setScene]=useState(null);
+ const worldPosition=useRef(state?.position||{x:5,z:0});
+ const travelRef=useRef(state?.travelSerial||0);
  const save=state;
  const update=fn=>onUpdate(prev=>typeof fn==='function'?fn(prev):fn);
  const showMessage=msg=>{setToast(msg);};
  useEffect(()=>{if(toast){const handle=setTimeout(()=>setToast(null),4300);return ()=>clearTimeout(handle)}},[toast]);
  const unlockIntro=save&&!save.welcomed;
+ const currentZoneId=save?.started?adventureZone(save.position.x).id:null;
+ useEffect(()=>{
+   if(!save?.started||!save.welcomed||scene||panel||dialog||battleTarget||help||confirmReset)return;
+   const upcoming=adventureNextStoryScene(save,currentZoneId);
+   if(upcoming)setScene({...upcoming,index:0});
+ },[save?.welcomed,save?.finished,save?.storySeen?.join('|'),save?.badges?.join('|'),
+     currentZoneId,scene,panel,dialog,battleTarget,help,confirmReset]);
+ useEffect(()=>{
+   if(save?.started&&(save.travelSerial||0)!==travelRef.current){
+     worldPosition.current={...save.position};travelRef.current=save.travelSerial||0;
+   }
+ },[save?.travelSerial]);
+ const finishScene=()=>{
+   if(!scene)return;
+   update(p=>adventureMarkStorySeen(p,scene.id));
+   setScene(null);
+ };
+ const advanceScene=()=>{
+   if(!scene)return;
+   if(scene.index+1<scene.lines.length)setScene({...scene,index:scene.index+1});
+   else finishScene();
+ };
  if(!save?.started)return <AdventureStarter characters={characters} onStart={id=>onUpdate(createAdventureSave(id,characters))}
    onBack={onBack}/>;
  const zone=adventureZone(save.position.x),next=ADVENTURE_ZONES[save.badges.length];
- const currentQuest=adventureQuest(save);
+ const currentQuest=adventureQuest(save),guide=adventureGuide(save);
  const showPanel=p=>{setPanel(p);setBattleTarget(null);setDialog(null)};
  const canTravel=i=>i<=save.badges.length&&i<=5;
  const handleInteraction=(entity,position)=>{
-  if(panel||dialog||battleTarget||help)return;
+  if(panel||dialog||battleTarget||help||scene)return;
   update(p=>({...p,position}));
-  if(entity.kind==='npc'){setDialog({speaker:entity.name,text:entity.dialogue});return;}
+  if(entity.kind==='npc'){
+    const speech=entity.id==='professor'&&save.badges.length>0?
+      'Ottimo lavoro! Hai '+save.badges.length+' Emblemi. '+currentQuest+' Segui la bussola per raggiungere la prossima tappa.':
+      entity.dialogue;
+    setDialog({speaker:entity.name,text:speech});return;
+   }
   if(entity.kind==='chest'){
    update(p=>adventureChest(p,entity));showMessage('🎁 +55 monete e una Pozione!');return;
   }
@@ -212,10 +245,11 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
   const x=ADVENTURE_ZONES[i].center-10,z=adventureRoadZ(x);
   update(p=>({...p,position:{x,z},travelSerial:(p.travelSerial||0)+1}));setPanel(null);
  };
- const paused=!!panel||!!dialog||!!battleTarget||help||confirmReset||unlockIntro;
+ const paused=!!panel||!!dialog||!!scene||!!battleTarget||help||confirmReset||unlockIntro;
  return <main className="adv-root">
   <AdventureWorld3D key={'world-'+save.badges.join(',')+'-'+save.chests.length+'-'+save.defeated.length}
    save={save} onWalk={position=>update(p=>p?.started?{...p,position}:p)} onNear={setNearby}
+   onPosition={position=>{worldPosition.current={...position}}}
    onInteract={handleInteraction} onBlocked={badge=>showMessage('🔒 Il portale è chiuso! Devi conquistare '+badge+'.')} paused={paused}/>
   <div className="adv-overlay">
    <header className="adv-hud-header">
@@ -228,12 +262,24 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
        style={{background:save.badges.includes(z.id)?z.color:'#25334b',boxShadow:save.badges.includes(z.id)?'0 0 9px '+z.color:'none'}}/>)}</div>
     </div>
    </header>
+   {guide&&<div className="adv-route-guide" aria-label="Indicazioni per la prossima missione">
+      <div className="adv-route-guide-icon" aria-hidden="true">
+       {img(getChar(characters,guide.target.party?.[0])?.img,guide.target.name)||'🧭'}
+      </div>
+      <div className="adv-route-guide-copy">
+       <span>PROSSIMA TAPPA <b>· {guide.distance} m · {guide.direction}</b></span>
+       <strong>{symbol[guide.target.kind]||'✦'} {guide.target.name}</strong>
+       <small>{guide.tip}</small>
+      </div>
+      <button type="button" onClick={()=>setPanel('map')} title="Apri la mappa e i punti sbloccati">MAPPA ↗</button>
+     </div>}
    <div className="adv-hud-lower">
     <aside className="adv-quest-panel">
      <span>✦ MISSIONE ATTUALE</span><strong>{currentQuest}</strong>
-     <div className="adv-quest-bottom"><span>🪙 {save.coins}</span><span>🏆 {save.gymWins||0} Palestre</span></div>
+     <div className="adv-quest-bottom"><span>🪙 {save.coins}</span><span>🏆 {save.gymWins||0} Palestre</span>
+      <span>🐾 {save.party.length} alleati</span></div>
     </aside>
-    {nearby&&!paused&&<button type="button" className="adv-interact-pill" onClick={()=>handleInteraction(nearby,save.position)}>
+    {nearby&&!paused&&<button type="button" className="adv-interact-pill" onClick={()=>handleInteraction(nearby,worldPosition.current)}>
       <kbd>E</kbd><span>{symbol[nearby.kind]} <b>{nearby.name}</b><small>{nearby.kind==='wild'?'Incontro selvatico':nearby.kind==='gym'?'Sfida capopalestra':nearby.kind==='inn'?'Cura gratuita':nearby.kind==='chest'?'Apri scrigno':'Interagisci'}</small></span>
      </button>}
     <nav className="adv-toolbar" aria-label="Strumenti di avventura">
@@ -244,14 +290,41 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
      <button onClick={()=>setHelp(true)} title="Comandi">❔</button>
     </nav>
    </div>
-   <div className="adv-compass">N <span>✧</span> E <small>WASD / FRECCE · E interagisci · SHIFT corri</small></div>
+   <div className="adv-route-progress" aria-label="Percorso delle sei regioni">
+      {ADVENTURE_ZONES.map((region,i)=><div className={'adv-route-step '+(save.badges.includes(region.id)?'adv-route-done ':'')+
+        (adventureZoneIndex(save.position.x)===i?'adv-route-current':'')} key={region.id}
+        title={region.name+' · '+region.badge}>
+        <span style={{background:save.badges.includes(region.id)?region.color:undefined}}>{save.badges.includes(region.id)?'✓':i+1}</span>
+       </div>)}
+    </div>
+    <div className="adv-compass">N <span>✧</span> E <small>WASD / FRECCE · E interagisci · SHIFT corri</small></div>
   </div>
   {toast&&<div className="adv-toast" role="status">{toast}</div>}
+  {scene&&<div className="adv-modal-wrap adv-story-wrap">
+   <section className="adv-modal adv-story-modal" aria-label={scene.title} role="dialog" aria-modal="true">
+    <div className="adv-story-kicker">✦ {ADVENTURE_STORY_TITLE}</div>
+    <h2>{scene.title}</h2>
+    <div className="adv-story-progress">{scene.lines.map((entry,i)=><span key={i}
+       className={i<=scene.index?'adv-story-progress-active':''}/>)}</div>
+    <div className="adv-story-dialogue">
+      <div className="adv-story-avatar">✦</div>
+      <div><strong>{scene.lines[scene.index]?.speaker}</strong>
+       <p>{scene.lines[scene.index]?.text}</p></div>
+    </div>
+    <div className="adv-story-buttons">
+     <span>{scene.index+1} / {scene.lines.length}</span>
+     <button className="adv-ghost" onClick={finishScene}>Salta dialogo</button>
+     <button className="adv-primary" onClick={advanceScene}>
+      {scene.index+1===scene.lines.length?'PROSEGUI L’AVVENTURA →':'CONTINUA →'}
+     </button>
+    </div>
+   </section>
+  </div>}
   {unlockIntro&&<div className="adv-modal-wrap">
    <section className="adv-modal adv-intro">
     <div className="adv-modal-kicker">✦ EPISODIO I · IL PRIMO PASSO</div>
     <h2>Benvenuto nella Valle dell'Alba</h2>
-    <p>«Sono il professor Orion. Davanti a te ci sono sei regioni, ognuna con una Palestra. Allenati sui percorsi, stringi amicizia con nuovi Multimon e conquista gli Emblemi. La Lega del Multiverso ti aspetta oltre il vulcano.»</p>
+    <p>«Sono Orion. La notte in cui i portali si sono spenti, sei villaggi sono rimasti isolati. Ciascun capopalestra custodisce un Emblema che può ripristinare un collegamento. Ma Nox teme che riaccendere la rete possa causare un altro disastro. Ti spiegherò tutto prima della prima Palestra.»</p>
     <div className="adv-intro-steps"><span>⚡ Esplora</span><span>⚔️ Combatti</span><span>🏅 Conquista</span></div>
     <button className="adv-primary" onClick={()=>update(p=>({...p,welcomed:true,lastMessage:'Il viaggio è iniziato. Raggiungi i primi allenatori!'}))}>INIZIA L'AVVENTURA →</button>
    </section>
@@ -266,12 +339,19 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
    <section className="adv-modal adv-battle-preview">
     <div className="adv-modal-kicker">{battleTarget.kind==='gym'?'🏛️ SFIDA PALESTRA':
       battleTarget.kind==='champion'?'🏆 LEGA DEL MULTIVERSO':
-      battleTarget.kind==='trainer'?'⚔️ ALLENATORE':'✦ INCONTRO SELVATICO'}</div>
+      battleTarget.kind==='trainer'?'⚔️ ALLENATORE':battleTarget.kind==='rival'?'🌓 SFIDA DI NOX':'✦ INCONTRO SELVATICO'}</div>
     <h2>{battleTarget.name}</h2>
     <p>{battleTarget.dialogue||(
      battleTarget.kind==='wild'?'Un Multimon selvatico è comparso sul percorso!':
      battleTarget.kind==='gym'?'Conquista l’Emblema e apri il portale della regione successiva.':
      'Una battaglia decisiva per il destino del Multiverso.')}</p>
+    {battleTarget.level&&<div className="adv-battle-tip">
+      <span>⚡ Livello avversario: <strong>{battleTarget.level}</strong></span>
+      <span>🐾 Media squadra: <strong>{Math.round(save.party.reduce((n,c)=>n+c.level,0)/Math.max(1,save.party.length))}</strong></span>
+      <small>{save.party.length<2&&battleTarget.party?.length>1?
+        'Consiglio: prima di affrontare una squadra numerosa, recluta almeno un Multimon selvatico.':
+        'Consiglio: puoi curare gli alleati al Centro di Cura prima dello scontro.'}</small>
+    </div>}
     <div className="adv-enemy-line">{battleTarget.party?.map((id,i)=>{
      const c=getChar(characters,id);return <div key={id+i}>{img(c?.img,c?.name)}<strong>{c?.name||id}</strong><small>LV. {battleTarget.level+i*(battleTarget.kind==='gym'?1:0)}</small></div>;
     })}</div>
@@ -306,10 +386,10 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
         className={'adv-region-row '+(unlocked?'':'adv-region-locked')}>
         <div className="adv-region-number" style={{borderColor:z.color,color:z.color}}>{done?'✓':i+1}</div>
         <div><strong>{z.name}</strong><small>{z.desc} · Capopalestra {z.gym}</small></div>
-        <span>{done?'🏅 EMblema':unlocked?'RAGGIUNGI →':'🔒'}</span>
+        <span>{done?'🏅 OTTENUTO':unlocked?'VIAGGIA →':'🔒'}</span>
        </button>;
       })}</div>
-      <div className="adv-map-legend">🏆 Lega del Multiverso · sbloccata dopo sei Emblemi</div>
+      <div className="adv-map-legend">🧭 Prossima tappa: <strong>{guide?.target?.name}</strong> · {guide?.distance} metri · {guide?.direction}.<br/>🏆 Lega del Multiverso · sbloccata dopo sei Emblemi</div>
     </>}
     {panel==='bag'&&<>
       <h2>Il tuo zaino</h2><p>Le cure funzionano tra una battaglia e l’altra. Per usare una Pozione scegli un Multimon nel pannello Squadra.</p>
@@ -340,7 +420,18 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
       <div className="adv-emblem-list">{ADVENTURE_ZONES.map(z=><div key={z.id} className={save.badges.includes(z.id)?'adv-emblem-earned':''}>
        <span style={{color:z.color}}>◆</span><strong>{z.badge}</strong><small>{save.badges.includes(z.id)?'CONQUISTATO':'DA CONQUISTARE'}</small>
       </div>)}</div>
-      <p>Ultimo evento: {save.lastMessage}</p>
+      <h3>📖 {ADVENTURE_STORY_TITLE}</h3>
+       <p>Il viaggio serve a riattivare i sei portali in sicurezza. Nox non vuole impedirti di vincere: teme che ripeterai l'errore che ha causato il blackout.</p>
+       <div className="adv-story-journal">
+        {Object.entries(ADVENTURE_STORY).filter(([id])=>(save.storySeen||[]).includes(id)).map(([id,chapter])=>
+         <div key={id}><strong>{chapter.title}</strong><small>{chapter.lines.at(-1)?.text}</small></div>)}
+        {!(save.storySeen||[]).length&&<p>Ascolta Orion e visita le regioni per scoprire la storia.</p>}
+       </div>
+       <div className="adv-journal-hint">
+        <strong>🧭 Obiettivo:</strong> {currentQuest}
+        <small>{guide?.distance} m · {guide?.direction} · {guide?.tip}</small>
+       </div>
+       <p>Ultimo evento: {save.lastMessage}</p>
       <button className="adv-danger-link" onClick={()=>setConfirmReset(true)}>Ricomincia l'avventura</button>
     </>}
     {help&&<>
@@ -349,7 +440,10 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
       <p><kbd>W A S D</kbd> o <kbd>Frecce</kbd> per muoverti lungo i percorsi 3D.</p>
       <p><kbd>SHIFT</kbd> per correre. <kbd>E</kbd> per parlare, sfidare o aprire gli scrigni.</p>
       <p>📱 Su tablet usa la croce direzionale e il pulsante PARLA.</p>
-      <p>⚔️ Sconfiggi i due allenatori di ogni regione per accedere alla Palestra. Il nuovo Emblema apre il percorso seguente.</p>
+      <p>🎯 La barra "Prossima tappa" mostra il bersaglio, la distanza e la direzione. In 3D cerca il <strong>faro luminoso verticale</strong> sopra l'obiettivo; sulla mappa puoi spostarti nelle regioni già sbloccate.</p>
+      <p>⚔️ Sconfiggi i due allenatori di ogni regione. Nelle Braci, ai Picchi e nel Vulcano devi battere anche <strong>Nox</strong> prima del capopalestra.</p>
+      <p>🏛️ Gli Emblemi aprono uno dopo l’altro i portali di pietra. Se il portale è rosso, ti manca la sfida della regione.</p>
+      <p>💚 I Centri di Cura sono gratuiti e guariscono anche la riserva; puoi comprare Pozioni e Cristalli nelle Botteghe.</p>
       <p>✦ Vinci gli incontri selvatici per poter reclutare altri Multimon. Il team contiene massimo sei alleati, poi c'è la riserva.</p>
       <p>💾 Il salvataggio è automatico su questo browser. Torna al menu quando vuoi.</p>
      </div>
@@ -383,6 +477,12 @@ export function AdventureBattleResult({room,save,characters,onContinue,onExit}){
    {won&&result.kind==='gym'&&<div className="adv-earned-emblem">
     <span>◆</span><strong>{ADVENTURE_ZONES[result.zone]?.badge}</strong><small>NUOVO EMBLEMA · PERCORSO SBLOCCATO</small>
    </div>}
+   {won&&result.kind==='rival'&&<div className="adv-rival-victory">
+    <strong>🌓 Nox:</strong> {result.zone===1?
+      'Forse ho giudicato troppo in fretta. Non significa che il pericolo sia sparito. Ci vediamo al prossimo portale.':
+      result.zone===3?'Hai capito quello che volevo dimostrare. Ora cerchiamo la verità sul comando di Iris.':
+      'Ho perso, ma ho imparato qualcosa. Non riapriremo tutto insieme: ti aiuterò a sincronizzare il Cuore.'}
+   </div>}
    {won&&result.kind==='champion'&&<div className="adv-earned-emblem"><strong>🌟 CAMPIONE DEL MULTIVERSO 🌟</strong><small>HAI COMPLETATO LA LEGA!</small></div>}
    {canRecruit&&<div className="adv-capture-card">
     {img(fighter?.img,fighter?.name||result.species)}
@@ -397,7 +497,7 @@ export function AdventureBattleResult({room,save,characters,onContinue,onExit}){
      {canRecruit?'PROSEGUI SENZA RECLUTARE':'TORNA AL MONDO 3D →'}
     </button>
    </div>
-   <button className="adv-result-menu" onClick={onExit}>Torna al menu senza incassare questa battaglia</button>
+   <button className="adv-result-menu" onClick={onExit}>Ritirati al Centro di Cura (non incassi premi; perdi il 12% delle monete)</button>
   </div>
  </main>;
 }

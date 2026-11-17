@@ -1,6 +1,6 @@
 // Renderer tridimensionale autonomo: mesh reali, prospettiva, depth test,
 // luci, nebbia e camera inseguitrice. Nessuna libreria esterna/CDN.
-import {ADVENTURE_ENTITIES,ADVENTURE_ZONES,ADVENTURE_CHAMPION,adventureRoadZ,adventureZoneIndex} from '../../systems/adventureCampaign.js';
+import {ADVENTURE_ENTITIES,ADVENTURE_ZONES,ADVENTURE_CHAMPION,adventureRoadZ,adventureZoneIndex,adventureNextObjective} from '../../systems/adventureCampaign.js';
 
 const palette={
  meadow:{ground:'#498e67',leaf:'#52b984',leaf2:'#2e966b',trunk:'#715845',rock:'#8ca4a1',road:'#ead5a1'},
@@ -44,18 +44,19 @@ class Mesh{
   const c=color(hex),light=color(hex,1.07),dark=color(hex,.78);
   const a=[x-w/2,y,z-d/2],b=[x+w/2,y,z-d/2],c1=[x+w/2,y,z+d/2],d1=[x-w/2,y,z+d/2],
     a1=[x-w/2,y+h,z-d/2],b1=[x+w/2,y+h,z-d/2],c2=[x+w/2,y+h,z+d/2],d2=[x-w/2,y+h,z+d/2];
-  this.quad(a,b,b1,a1,c);this.quad(c1,d1,d2,c2,c);
-  this.quad(b,c1,c2,b1,dark);this.quad(d1,a,a1,d2,dark);
-  this.quad(a1,b1,c2,d2,light);
+  // Facce rivolte all'esterno: i tetti e le strade ricevono finalmente luce.
+  this.quad(a,a1,b1,b,c);this.quad(c1,c2,d2,d1,c);
+  this.quad(b,b1,c2,c1,dark);this.quad(d1,d2,a1,a,dark);
+  this.quad(d2,c2,b1,a1,light);
  }
  prismRoof(x,y,z,w,h,d,hex){
   const a=[x-w/2,y,z-d/2],b=[x+w/2,y,z-d/2],c=[x+w/2,y,z+d/2],e=[x-w/2,y,z+d/2];
   const roof1=[x,y+h,z-d/2],roof2=[x,y+h,z+d/2];
-  this.quad(a,b,roof1,roof1,color(hex,.9));
-  this.quad(e,roof2,roof1,a,color(hex,1.06));
-  this.quad(b,c,roof2,roof1,color(hex,.85));
-  this.triangle(a,roof1,e,color(hex,.98));
-  this.triangle(c,roof2,b,color(hex,.98));
+  // Tetto a due falde: due rettangoli e due triangoli senza degenerazioni.
+  this.quad(a,e,roof2,roof1,color(hex,1.06));
+  this.quad(b,roof1,roof2,c,color(hex,.9));
+  this.triangle(a,roof1,b,color(hex,.92));
+  this.triangle(e,c,roof2,color(hex,.88));
  }
  cylinder(x,y,z,r,h,hex,n=8){
   const c=color(hex),top=color(hex,1.1);
@@ -86,6 +87,14 @@ class Mesh{
    }
   }
  }
+ ring(x,y,z,r,thickness,hex,segments=18){
+  const shade=color(hex);
+  for(let i=0;i<segments;i++){
+   const a=i*2*Math.PI/segments,b=(i+1)*2*Math.PI/segments;
+   const pt=(radius,angle)=>[x+Math.cos(angle)*radius,y,z+Math.sin(angle)*radius];
+   this.quad(pt(r,a),pt(r+thickness,a),pt(r+thickness,b),pt(r,b),shade);
+  }
+ }
  diamond(x,y,z,r,hex){
   for(let i=0;i<6;i++){
    const a=i*Math.PI/3,b=(i+1)*Math.PI/3;
@@ -105,8 +114,8 @@ const addTree=(m,x,z,pal,size=1,kind='meadow')=>{
   m.cone(x,.8*size,z,.96*size,3.2*size,pal.leaf2,7);
   m.cone(x,2.1*size,z,.55*size,1.6*size,pal.leaf,7);
  }else{
-  m.sphere(x,h*size*.62+1.2*size,z,1.4*size,1.1*size,1.3*size,pal.leaf,5,8);
-  m.sphere(x+.65*size,h*size*.62+.9*size,z+.3*size,1.08*size,.85*size,.9*size,pal.leaf2,5,7);
+  m.sphere(x,h*.62+1.2*size,z,1.4*size,1.1*size,1.3*size,pal.leaf,5,8);
+  m.sphere(x+.65*size,h*.62+.9*size,z+.3*size,1.08*size,.85*size,.9*size,pal.leaf2,5,7);
  }
 };
 const addGym=(m,e)=>{
@@ -144,13 +153,108 @@ const addPerson=(m,x,z,hex,variant=0)=>{
  m.box(x+.26,0,z,.34,.6,.4,'#253855');
  m.sphere(x,2.13,z,.22,.17,.23,hex,4,6);
 };
+// Monumenti visibili da lontano: ogni regione ha una silhouette unica.
+// La strada centrale rimane sgombra per non ostacolare la navigazione.
+const biomeLandmarks=(m,zone,index)=>{
+ const z=ADVENTURE_ZONES[index],c=z.color,x=z.center+4,d=-16.5;
+ if(index===0){
+  // Fontana di Piazza Alba, giardino fiorito e campanile.
+  m.cylinder(x,0,d,3,.65,'#d2e5de',12);
+  m.cylinder(x,.7,d,2.55,.4,'#7cc5cf',12);
+  m.cylinder(x,1,d,.7,2.8,'#faf3d6',8);
+  m.sphere(x,3.9,d,.86,.8,.86,'#bdf1d2',6,9);
+  m.ring(x,.9,d,2.5,.25,'#e1f3e1');
+  for(let i=0;i<12;i++){
+   const a=i*Math.PI/6;
+   m.sphere(x+Math.cos(a)*4,.3,d+Math.sin(a)*4,.35,.35,.35,['#fa91b6','#ffe7a2','#ffffff'][i%3],4,6);
+  }
+  m.cylinder(x-6,0,d-3,1.3,5.1,'#e7e2c9',8);
+  m.cone(x-6,5.1,d-3,1.6,2.5,'#76a99d',8);
+ }else if(index===1){
+  // Forgia con canne fumarie e metallo incandescente.
+  m.box(x,0,d,8,3.3,5.2,'#69515a');
+  m.prismRoof(x,3.2,d,9,2.5,5.6,'#b84f39');
+  for(let i=0;i<3;i++){
+   m.cylinder(x-2.7+i*2.7,3,d-1,.6,4+i*.5,'#4f3c48',8);
+   m.sphere(x-2.7+i*2.7,8+i*.5,d-1,1.3,.7,1.1,'#e7bba7',4,8);
+  }
+  m.cylinder(x,0,d+5.3,2,.4,'#262f3b',10);
+  m.cylinder(x,.43,d+5.3,1.7,.15,'#d47746',10);
+  m.diamond(x,1.7,d+5.3,.7,'#ffbe78');
+ }else if(index===2){
+  // Cascata in più salti, argini e ponticello in legno.
+  for(let i=0;i<4;i++){
+   m.box(x-4+i*2.3,0,d-4+i*.5,2.6,4.7+i*.6,2.8,'#738b96');
+  }
+  for(let i=0;i<3;i++){
+   m.box(x-2.5+i*2,1.7,d-2.3,1.55,4.1,.22,'#69c6e8');
+   m.box(x-2.5+i*2,.65,d+.1,2.1,.08,4.5,'#52aecf');
+  }
+  m.box(x,0,d+6,8,.22,2.4,'#d5bb93');
+  for(const bx of [-3,-1,1,3]){
+   m.cylinder(x+bx,0,d+7,.12,1.15,'#f1deb1',6);
+  }
+  m.box(x,1.1,d+7,8,.13,.15,'#f4e1b6');
+ }else if(index===3){
+  // Osservatorio dei sensori, cristalli e torri innevate.
+  m.cylinder(x,0,d,3.8,3.4,'#819aa9',12);
+  m.sphere(x,4.3,d,3.2,2.2,3.2,'#e8f5ff',7,12);
+  m.cylinder(x,6,d,.18,2.9,'#fafcff',8);
+  m.diamond(x,9,d,.85,'#9fe7ff');
+  for(let i=0;i<9;i++){
+   const a=i*2*Math.PI/9;
+   m.cone(x+Math.cos(a)*6,0,d+Math.sin(a)*6,.6,1.4+i%3*1.2,'#d4f7ff',6);
+  }
+ }else if(index===4){
+  // Anello astrale sospeso e padiglione della costellazione.
+  m.cylinder(x,0,d,4,.75,'#42365f',12);
+  m.ring(x,.9,d,3.1,.35,'#d3b1f3',24);
+  m.ring(x,1.05,d,2,.2,'#78dce7',24);
+  m.cylinder(x,.9,d,.2,6,'#e8c5fb',8);
+  m.diamond(x,7.9,d,2.3,'#ebceff');
+  for(let i=0;i<8;i++){
+   const a=i*Math.PI/4;
+   const px=x+Math.cos(a)*5,pz=d+Math.sin(a)*5;
+   m.cone(px,0,pz,.85,1.7+i%3,'#b8a1ed',6);
+   m.diamond(px,2.6+i%3,pz,.5,i%2===0?'#8beaf6':'#f6b8ec');
+  }
+ }else{
+  // Vulcano/forgia con colonne di basalto e un cratere arancione.
+  for(let i=0;i<10;i++){
+   const a=i*Math.PI/5,r=5+(i%2);
+   m.cylinder(x+Math.cos(a)*r,0,d+Math.sin(a)*r,.8,3.5+(i%4)*1.6,'#514d60',7);
+  }
+  m.cylinder(x,.1,d,4.8,1.1,'#403848',12);
+  m.cylinder(x,1.21,d,3.5,.3,'#dd673f',12);
+  m.ring(x,1.5,d,3.1,.28,'#ffc27b',20);
+  m.cone(x,1.2,d,2.5,3.1,'#8b414a',9);
+  m.diamond(x,5.4,d,1.1,'#ffcb87');
+ }
+ // Sentiero decorativo verso il monumento, dalla strada principale.
+ for(let j=0;j<8;j++){
+  const depth=adventureRoadZ(x)-4.4-j*1.1;
+  m.box(x,.07,depth,1.35,.1,.86,index===3?'#e4f6f7':'#c6b9a9');
+ }
+};
+// Un segnale di navigazione fisico: faro colorato sopra il prossimo bersaglio.
+const adventureObjectiveBeacon=(m,save)=>{
+ const target=adventureNextObjective(save);
+ if(!target||target.kind==='complete')return;
+ const colorHex=target.kind==='gym'?'#ffd57f':target.kind==='champion'?'#f6cbff':
+   target.kind==='rival'?'#ea9aff':'#8ffff0';
+ m.cylinder(target.x,0,target.z,.06,7,'#daf5ea',5);
+ m.diamond(target.x,7.9,target.z,.92,colorHex);
+ m.ring(target.x,.18,target.z,1.45,.18,colorHex,14);
+ m.ring(target.x,.2,target.z,2.15,.10,colorHex,18);
+};
 export function buildAdventureMesh(save){
  const m=new Mesh(),rng=rand(2241039);
  // Procedural world made of actual 3D faces. Long continuous area.
  for(let x=-8;x<230;x+=4)for(let z=-24;z<25;z+=4){
   const i=adventureZoneIndex(x),zone=ADVENTURE_ZONES[i],pal=palette[zone.biome];
   const shade=.93+rng()*.15;
-  m.quad([x,0,z],[x+4,0,z],[x+4,0,z+4],[x,0,z+4],color(pal.ground,shade));
+  // La normale del terreno punta verso il cielo, anziché sottoterra.
+  m.quad([x,0,z+4],[x+4,0,z+4],[x+4,0,z],[x,0,z],color(pal.ground,shade));
   if(rng()<.28&&Math.abs(z-adventureRoadZ(x+2))>6){
     const cx=x+1+rng()*2,cz=z+1+rng()*2;
     m.sphere(cx,.17,cz,.45+rng()*.45,.22,.4+rng()*.4,pal.leaf2,4,6);
@@ -163,6 +267,15 @@ export function buildAdventureMesh(save){
   m.box(x,.035,z,1.45,.055,6.9,pal.road);
   if(Math.floor(x*2)%7===0)m.box(x,.09,z,1.12,.05,.12,'#fbf1d7');
  }
+ // Silhouette di nuvole volumetriche distanti, diverse secondo il clima.
+ for(let i=0;i<ADVENTURE_ZONES.length;i++){
+   const cx=ADVENTURE_ZONES[i].center+2,kind=ADVENTURE_ZONES[i].biome;
+   const cloud=kind==='volcanic'?'#d1a9a4':kind==='snow'?'#f8feff':'#f5fbff';
+   for(const shift of [-12,12]){
+     m.sphere(cx+shift,18+(i%3)*2,shift>0?-22:21,4.2,1.2,1.9,cloud,4,7);
+     m.sphere(cx+shift+2,19.1+(i%3)*2,shift>0?-22:21,3.1,1.45,2.1,cloud,4,7);
+   }
+ }
  // Water channel / magma and grass decorations.
  for(let x=68;x<102;x+=3){
   m.box(x,.07,-18,3.1,.045,5,'#4aa9d6');
@@ -172,8 +285,29 @@ export function buildAdventureMesh(save){
   m.box(x,.08,18,3.9,.09,5,'#dd694a');
   m.box(x,.13,18,2.3,.035,.6,'#ffb769');
  }
+ // Bordi stradali e fiori minuti: più profondità al terreno, senza
+ // bloccare i comandi né appesantire troppo la scena.
+ for(let x=4;x<215;x+=2.3){
+  const z=adventureRoadZ(x),zone=ADVENTURE_ZONES[adventureZoneIndex(x)];
+  const pal=palette[zone.biome];
+  if(Math.floor(x/2.3)%4===0){
+   for(const side of [-1,1]){
+    m.cylinder(x,.05,z+side*4.25,.08,.52,'#d7cfb3',6);
+    m.sphere(x,.66,z+side*4.25,.22,.25,.22,zone.color,4,6);
+   }
+  }
+  for(let j=0;j<3;j++){
+    const seed=x*17+j*43,side=j%2===0?-1:1;
+    const zz=z+side*(7.2+Math.abs(Math.sin(seed))*7);
+    const xx=x+.7*Math.cos(seed*2);
+    m.cylinder(xx,.06,zz,.045,.25,pal.leaf2,5);
+    m.sphere(xx,.36,zz,.19,.18,.19,
+      ['#ffe5a9','#e5a4cf','#d2f5fa'][Math.floor(seed)%3],4,5);
+  }
+ }
  for(let i=0;i<ADVENTURE_ZONES.length;i++){
   const z=ADVENTURE_ZONES[i],pal=palette[z.biome];
+  biomeLandmarks(m,z,i);
   for(let t=0;t<95;t++){
    const x=z.range[0]+rng()*34,depth=-22+rng()*44;
    if(Math.abs(depth-adventureRoadZ(x))<5.8)continue;
@@ -204,9 +338,11 @@ export function buildAdventureMesh(save){
   }else m.diamond(x,3.25,z,.7,'#87f1c0');
  }
  for(const e of ADVENTURE_ENTITIES){
+  if((['trainer','rival'].includes(e.kind)&&save?.defeated?.includes(e.id)))continue;
   if(e.kind==='gym')addGym(m,e);
   else if(e.kind==='shop'||e.kind==='inn')addHouse(m,e,e.kind);
-  else if(e.kind==='trainer'||e.kind==='npc')addPerson(m,e.x,e.z,e.kind==='npc'?'#7f8fef':'#dd8c5d',e.zone%2);
+  else if(e.kind==='trainer'||e.kind==='npc'||e.kind==='rival')
+   addPerson(m,e.x,e.z,e.kind==='npc'?'#7f8fef':e.kind==='rival'?'#ac7cdb':'#dd8c5d',(e.zone||0)%2);
   else if(e.kind==='wild'){
    const p=ADVENTURE_ZONES[e.zone],c=p.color;
    m.sphere(e.x,.75,e.z,.72,.68,.72,c,5,7);
@@ -234,6 +370,7 @@ export function buildAdventureMesh(save){
  m.cylinder(c.x,13,c.z,.22,3,'#f2e9b9');
  m.diamond(c.x,17,c.z,1.65,'#f7de88');
  addPerson(m,c.x,c.z+6,'#a477dd');
+ adventureObjectiveBeacon(m,save);
  return new Float32Array(m.data);
 }
 const vertexShader=`
@@ -256,8 +393,9 @@ const fragmentShader=`
 precision mediump float;
 varying vec3 vColor;
 varying float vFog;
+uniform vec3 uFogColor;
 void main(){
- vec3 color=mix(vColor,vec3(0.69,0.82,0.89),vFog);
+ vec3 color=mix(vColor,uFogColor,vFog);
  gl_FragColor=vec4(color,1.0);
 }
 `;
@@ -274,8 +412,9 @@ const makeProgram=(gl)=>{
  if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program)||'Motore 3D non disponibile');
  return program;
 };
-const playerGeometry=(p,time,starterColor='#ffd890')=>{
+const playerGeometry=(p,time,starter='sonic')=>{
  const m=new Mesh(),sway=Math.sin(time*9)*.13;
+ const bob=Math.sin(time*9)*.045;
  // Shadow ground plane.
  m.sphere(p.x,.13,p.z,1.0,.08,.65,'#547367',4,8);
  // Boots, cloak, arms, head and scarf.
@@ -284,17 +423,42 @@ const playerGeometry=(p,time,starterColor='#ffd890')=>{
  m.cone(p.x,.62,p.z,.78,1.48,'#344d8f',8);
  m.box(p.x-.82,1.04+sway,p.z,.32,.92,.32,'#f4d4b5');
  m.box(p.x+.82,1.04-sway,p.z,.32,.92,.32,'#f4d4b5');
- m.sphere(p.x,2.25,p.z,.48,.5,.48,'#ffd6b5',5,9);
- m.sphere(p.x,2.6,p.z-.15,.5,.29,.52,'#3a334b',5,7);
- m.cone(p.x,2.62,p.z-.05,.54,.71,'#536eb8',8);
- m.box(p.x,1.53,p.z+.47,.8,.22,.23,'#ffd890');
- // Starter companion follows behind the player.
+ m.sphere(p.x,2.25+bob,p.z,.48,.5,.48,'#ffd6b5',5,9);
+ m.sphere(p.x,2.6+bob,p.z-.15,.5,.29,.52,'#3a334b',5,7);
+ m.cone(p.x,2.62+bob,p.z-.05,.54,.71,'#536eb8',8);
+ m.box(p.x,1.53+bob,p.z+.47,.8,.22,.23,'#ffd890');
+ // Faccina e zaino a contrasto: il personaggio è riconoscibile da lontano.
+ m.sphere(p.x-.2,2.3+bob,p.z+.42,.078,.09,.035,'#2b3549',4,6);
+ m.sphere(p.x+.2,2.3+bob,p.z+.42,.078,.09,.035,'#2b3549',4,6);
+ m.box(p.x,.88,p.z-.55,.68,1,.36,'#d7a46a');
+ m.box(p.x,1.1,p.z-.77,.5,.23,.15,'#ffe7b0');
+ // Ogni starter ha un compagno geometrico diverso, anziché il solito blob.
  const fx=p.x-2.1,fz=p.z-1.25;
- m.sphere(fx,.6+Math.sin(time*6)*.12,fz,.72,.58,.72,starterColor,6,9);
- m.cone(fx-.42,1.08,fz,.27,.6,starterColor,5);
- m.cone(fx+.42,1.08,fz,.27,.6,starterColor,5);
- m.sphere(fx-.22,.68,fz+.62,.09,.1,.06,'#1a2638',4,6);
- m.sphere(fx+.22,.68,fz+.62,.09,.1,.06,'#1a2638',4,6);
+ const y=.55+Math.sin(time*5.8)*.1;
+ if(starter==='sonic'){
+   m.sphere(fx,y+.12,fz,.7,.65,.7,'#3989da',6,10);
+   for(let i=0;i<5;i++){
+     const a=i*Math.PI*2/5;
+     m.cone(fx+Math.cos(a)*.48,y+.2,fz+Math.sin(a)*.48,.39,.87,'#276bc4',6);
+   }
+   m.sphere(fx,y-.28,fz+.56,.43,.34,.26,'#e9ca9d',5,8);
+   m.box(fx-.35,.1,fz+.25,.55,.22,.45,'#ed564e');
+   m.box(fx+.35,.1,fz+.25,.55,.22,.45,'#ed564e');
+ }else if(starter==='starbutterfly'){
+   m.sphere(fx,y+.17,fz,.65,.68,.65,'#f4c5e4',6,10);
+   m.cone(fx,y+.44,fz,.72,.77,'#edafef',9);
+   m.sphere(fx,y-.17,fz+.53,.42,.34,.2,'#ffe5c8',5,8);
+   m.diamond(fx,y+1.4,fz,.33,'#fdf0a7');
+   m.sphere(fx-.48,y+.4,fz,.2,.22,.2,'#fcd8e8');
+   m.sphere(fx+.48,y+.4,fz,.2,.22,.2,'#fcd8e8');
+ }else{
+   m.box(fx,y-.35,fz,1.55,1.2,1.26,'#e9c957');
+   m.sphere(fx-.54,y+.63,fz,.27,.45,.26,'#edce66',5,7);
+   m.sphere(fx+.54,y+.63,fz,.27,.45,.26,'#edce66',5,7);
+   m.sphere(fx,y-.11,fz+.67,.42,.24,.20,'#f7da84',5,8);
+ }
+ m.sphere(fx-.24,y+.12,fz+.69,.095,.115,.06,'#1a2638',4,6);
+ m.sphere(fx+.24,y+.12,fz+.69,.095,.115,.06,'#1a2638',4,6);
  return new Float32Array(m.data);
 };
 export function createAdventureWorldRenderer(canvas,save){
@@ -316,7 +480,8 @@ export function createAdventureWorldRenderer(canvas,save){
   color:gl.getAttribLocation(program,'aColor'),
   normal:gl.getAttribLocation(program,'aNormal'),
   pv:gl.getUniformLocation(program,'uProjectionView'),
-  view:gl.getUniformLocation(program,'uView')
+  view:gl.getUniformLocation(program,'uView'),
+  fog:gl.getUniformLocation(program,'uFogColor')
  };
  const bind=buffer=>{
   gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
@@ -328,18 +493,28 @@ export function createAdventureWorldRenderer(canvas,save){
  };
  function render(p,t=0,starter='sonic'){
   if(disposed)return;
-  const rect=canvas.getBoundingClientRect(),ratio=Math.min(1.6,window.devicePixelRatio||1);
+  const rect=canvas.getBoundingClientRect(),ratio=Math.min(
+    window.matchMedia?.('(pointer: coarse)').matches?1.25:1.8,window.devicePixelRatio||1);
   const w=Math.max(2,Math.round(rect.width*ratio)),h=Math.max(2,Math.round(rect.height*ratio));
   if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}
   const eye=[p.x-15,16,p.z+15],target=[p.x+7,1.5,p.z];
   const v=look(eye,target),proj=persp(1.02,w/h,.1,220);
+  const paletteByZone={
+    meadow:['#b6e5ec','#d6eeec'],autumn:['#f0c9ae','#f2ddd1'],
+    water:['#b8ddf0','#d1edff'],snow:['#d3eafb','#e7f8ff'],
+    magic:['#ccb9ef','#e1d8fa'],volcanic:['#dcaaa2','#e7c8bd']
+  };
+  const scene=ADVENTURE_ZONES[adventureZoneIndex(p.x)];
+  const [sky,fog]=paletteByZone[scene.biome];
+  const skyRgb=rgb(sky);
   gl.useProgram(program);
   gl.uniformMatrix4fv(loc.pv,false,new Float32Array(mul(proj,v)));
   gl.uniformMatrix4fv(loc.view,false,new Float32Array(v));
-  gl.clearColor(.69,.82,.89,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  gl.uniform3fv(loc.fog,new Float32Array(rgb(fog)));
+  gl.clearColor(skyRgb[0],skyRgb[1],skyRgb[2],1);
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
   bind(worldBuffer);gl.drawArrays(gl.TRIANGLES,0,worldLength);
-  const companionColor=starter==='jake'?'#efd46e':starter==='starbutterfly'?'#e8a9ee':'#84caff';
-  const dynamic=playerGeometry(p,t,companionColor);
+  const dynamic=playerGeometry(p,t,starter);
   gl.bindBuffer(gl.ARRAY_BUFFER,dynamicBuffer);gl.bufferData(gl.ARRAY_BUFFER,dynamic,gl.DYNAMIC_DRAW);
   bind(dynamicBuffer);gl.drawArrays(gl.TRIANGLES,0,dynamic.length/9);
  }
