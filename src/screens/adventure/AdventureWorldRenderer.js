@@ -267,6 +267,15 @@ export function buildAdventureMesh(save){
   m.box(x,.035,z,1.45,.055,6.9,pal.road);
   if(Math.floor(x*2)%7===0)m.box(x,.09,z,1.12,.05,.12,'#fbf1d7');
  }
+ // Silhouette di nuvole volumetriche distanti, diverse secondo il clima.
+ for(let i=0;i<ADVENTURE_ZONES.length;i++){
+   const cx=ADVENTURE_ZONES[i].center+2,kind=ADVENTURE_ZONES[i].biome;
+   const cloud=kind==='volcanic'?'#d1a9a4':kind==='snow'?'#f8feff':'#f5fbff';
+   for(const shift of [-12,12]){
+     m.sphere(cx+shift,18+(i%3)*2,shift>0?-22:21,4.2,1.2,1.9,cloud,4,7);
+     m.sphere(cx+shift+2,19.1+(i%3)*2,shift>0?-22:21,3.1,1.45,2.1,cloud,4,7);
+   }
+ }
  // Water channel / magma and grass decorations.
  for(let x=68;x<102;x+=3){
   m.box(x,.07,-18,3.1,.045,5,'#4aa9d6');
@@ -275,6 +284,26 @@ export function buildAdventureMesh(save){
  for(let x=170;x<205;x+=4){
   m.box(x,.08,18,3.9,.09,5,'#dd694a');
   m.box(x,.13,18,2.3,.035,.6,'#ffb769');
+ }
+ // Bordi stradali e fiori minuti: più profondità al terreno, senza
+ // bloccare i comandi né appesantire troppo la scena.
+ for(let x=4;x<215;x+=2.3){
+  const z=adventureRoadZ(x),zone=ADVENTURE_ZONES[adventureZoneIndex(x)];
+  const pal=palette[zone.biome];
+  if(Math.floor(x/2.3)%4===0){
+   for(const side of [-1,1]){
+    m.cylinder(x,.05,z+side*4.25,.08,.52,'#d7cfb3',6);
+    m.sphere(x,.66,z+side*4.25,.22,.25,.22,zone.color,4,6);
+   }
+  }
+  for(let j=0;j<3;j++){
+    const seed=x*17+j*43,side=j%2===0?-1:1;
+    const zz=z+side*(7.2+Math.abs(Math.sin(seed))*7);
+    const xx=x+.7*Math.cos(seed*2);
+    m.cylinder(xx,.06,zz,.045,.25,pal.leaf2,5);
+    m.sphere(xx,.36,zz,.19,.18,.19,
+      ['#ffe5a9','#e5a4cf','#d2f5fa'][Math.floor(seed)%3],4,5);
+  }
  }
  for(let i=0;i<ADVENTURE_ZONES.length;i++){
   const z=ADVENTURE_ZONES[i],pal=palette[z.biome];
@@ -364,8 +393,9 @@ const fragmentShader=`
 precision mediump float;
 varying vec3 vColor;
 varying float vFog;
+uniform vec3 uFogColor;
 void main(){
- vec3 color=mix(vColor,vec3(0.69,0.82,0.89),vFog);
+ vec3 color=mix(vColor,uFogColor,vFog);
  gl_FragColor=vec4(color,1.0);
 }
 `;
@@ -424,7 +454,8 @@ export function createAdventureWorldRenderer(canvas,save){
   color:gl.getAttribLocation(program,'aColor'),
   normal:gl.getAttribLocation(program,'aNormal'),
   pv:gl.getUniformLocation(program,'uProjectionView'),
-  view:gl.getUniformLocation(program,'uView')
+  view:gl.getUniformLocation(program,'uView'),
+  fog:gl.getUniformLocation(program,'uFogColor')
  };
  const bind=buffer=>{
   gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
@@ -436,15 +467,26 @@ export function createAdventureWorldRenderer(canvas,save){
  };
  function render(p,t=0,starter='sonic'){
   if(disposed)return;
-  const rect=canvas.getBoundingClientRect(),ratio=Math.min(1.6,window.devicePixelRatio||1);
+  const rect=canvas.getBoundingClientRect(),ratio=Math.min(
+    window.matchMedia?.('(pointer: coarse)').matches?1.25:1.8,window.devicePixelRatio||1);
   const w=Math.max(2,Math.round(rect.width*ratio)),h=Math.max(2,Math.round(rect.height*ratio));
   if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}
   const eye=[p.x-15,16,p.z+15],target=[p.x+7,1.5,p.z];
   const v=look(eye,target),proj=persp(1.02,w/h,.1,220);
+  const paletteByZone={
+    meadow:['#b6e5ec','#d6eeec'],autumn:['#f0c9ae','#f2ddd1'],
+    water:['#b8ddf0','#d1edff'],snow:['#d3eafb','#e7f8ff'],
+    magic:['#ccb9ef','#e1d8fa'],volcanic:['#dcaaa2','#e7c8bd']
+  };
+  const scene=ADVENTURE_ZONES[adventureZoneIndex(p.x)];
+  const [sky,fog]=paletteByZone[scene.biome];
+  const skyRgb=rgb(sky);
   gl.useProgram(program);
   gl.uniformMatrix4fv(loc.pv,false,new Float32Array(mul(proj,v)));
   gl.uniformMatrix4fv(loc.view,false,new Float32Array(v));
-  gl.clearColor(.69,.82,.89,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  gl.uniform3fv(loc.fog,new Float32Array(rgb(fog)));
+  gl.clearColor(skyRgb[0],skyRgb[1],skyRgb[2],1);
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
   bind(worldBuffer);gl.drawArrays(gl.TRIANGLES,0,worldLength);
   const companionColor=starter==='jake'?'#efd46e':starter==='starbutterfly'?'#e8a9ee':'#84caff';
   const dynamic=playerGeometry(p,t,companionColor);
