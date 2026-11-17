@@ -44,7 +44,7 @@ import { renderBattlingView } from './screens/battle/BattlingView.jsx';
 import {SurvivalRewardView} from './screens/battle/SurvivalRewardView.jsx';
 import {BalanceRegistryView} from './screens/hub/BalanceRegistryView.jsx';
 import {AdventureCampaignView,AdventureBattleResult} from './screens/adventure/AdventureCampaignView.jsx';
-import {ADVENTURE_SAVE_KEY,sanitizeAdventureSave,adventureBattleRoom,adventureFinishBattle} from './systems/adventureCampaign.js';
+import {ADVENTURE_SAVE_KEY,sanitizeAdventureSave,adventureBattleRoom,adventureFinishBattle,adventureRetreat} from './systems/adventureCampaign.js';
 import {balanceBattleSnapshot} from './systems/balanceRegistry.js';
 import {claimSurvivalReward} from './systems/survivalWaves.js';
 import {canQueueJuggernautFreeChoice} from './systems/juggernautSystem.js';
@@ -2020,6 +2020,12 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
       }
     };
     const returnAdventureWorld=()=>{
+      // Nessuna fuga gratuita: si torna al Centro di Cura con una lieve
+      // penalità, anche premendo "Esci" durante lo scontro o al risultato.
+      if(gameState.isAdventureBattle&&adventureState?.started){
+        try{setAdventureState(prev=>adventureRetreat(prev,gameState,CHARACTERS));}
+        catch(error){console.error('Ritiro dalla Campagna 3D:',error);}
+      }
       setGameState(initialGameState());
       setPlayerRole(null);setCommandingIdx(-1);
       setAppMode('adventure_world');
