@@ -263,7 +263,9 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
     </div>
    </header>
    {guide&&<div className="adv-route-guide" aria-label="Indicazioni per la prossima missione">
-      <div className="adv-route-guide-icon" aria-hidden="true">🧭</div>
+      <div className="adv-route-guide-icon" aria-hidden="true">
+       {img(getChar(characters,guide.target.party?.[0])?.img,guide.target.name)||'🧭'}
+      </div>
       <div className="adv-route-guide-copy">
        <span>PROSSIMA TAPPA <b>· {guide.distance} m · {guide.direction}</b></span>
        <strong>{symbol[guide.target.kind]||'✦'} {guide.target.name}</strong>
@@ -274,7 +276,8 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
    <div className="adv-hud-lower">
     <aside className="adv-quest-panel">
      <span>✦ MISSIONE ATTUALE</span><strong>{currentQuest}</strong>
-     <div className="adv-quest-bottom"><span>🪙 {save.coins}</span><span>🏆 {save.gymWins||0} Palestre</span></div>
+     <div className="adv-quest-bottom"><span>🪙 {save.coins}</span><span>🏆 {save.gymWins||0} Palestre</span>
+      <span>🐾 {save.party.length} alleati</span></div>
     </aside>
     {nearby&&!paused&&<button type="button" className="adv-interact-pill" onClick={()=>handleInteraction(nearby,worldPosition.current)}>
       <kbd>E</kbd><span>{symbol[nearby.kind]} <b>{nearby.name}</b><small>{nearby.kind==='wild'?'Incontro selvatico':nearby.kind==='gym'?'Sfida capopalestra':nearby.kind==='inn'?'Cura gratuita':nearby.kind==='chest'?'Apri scrigno':'Interagisci'}</small></span>
