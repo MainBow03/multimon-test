@@ -2,6 +2,12 @@
 // Le linee sono scritte per il carattere, i poteri o la storia del personaggio.
 // Una riga per ciascun ID registrato: il test controlla la copertura del roster.
 export const ULTIMON_ENTRANCE_LINES = Object.freeze({
+  "malefica": "Le fiamme del mio regno hanno un colore che non dimenticherete: avvelenato, smeraldo e maledetto.",
+  "yzma": "Una pozione, una leva, un piano perfetto! Non interrompetemi mentre faccio storia. KRONK!",
+  "lavender": "La nebbia si infittisce e il branco ha fiutato la sfida. Fate spazio ai miei artigli.",
+  "remedusa": "Le profondità obbediscono alla mia corona. Meduse, preparate la scorta reale!",
+  "malenia": "Ogni colpo è una promessa e ogni ferita mi rende più determinata. La fioritura attende.",
+  "medusaservitore": "Oh mio sire! Il suo fedelissimo servitore è pronto a prendere il colpo al posto vostro!",
   "flins": "Questa lanterna illumina il cammino. Non preoccupatevi: conosco anche la strada per vincere.",
   "ganyu": "Ho visto tante montagne innevate, ma nessuna sfida come quella che mi aspetta qui.",
   "coraline": "L'altra porta era più inquietante. Non avete idea di quanto sia diventata coraggiosa.",
