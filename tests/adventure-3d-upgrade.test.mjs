@@ -76,7 +76,10 @@ test('Percorsi: tre veri scontri con Nox e accesso alla Palestra solo dopo gli a
   const gym=byId(zone.id+':gym');
   assert.ok(rival.party.length>=2);
   for(const id of rival.party)assert.ok(CHARACTERS.some(c=>c.id===id),'Nox usa un personaggio inesistente: '+id);
+  const early={...starter,badges:ADVENTURE_ZONES.slice(0,i).map(z=>z.id),defeated:[]};
+  assert.match(adventureGymCheck(early,rival).message,/prima affronta i due allenatori/);
   const ready={...starter,badges:ADVENTURE_ZONES.slice(0,i).map(z=>z.id),defeated:defeatedTrainers(i)};
+  assert.equal(adventureGymCheck(ready,rival).ok,true);
   assert.match(adventureGymCheck(ready,gym).message,/Nox/);
   assert.equal(adventureNextObjective(ready).id,rival.id);
   const fight=adventureBattleRoom(ready,rival,CHARACTERS,initialGameState,'Viaggiatore');
