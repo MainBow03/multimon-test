@@ -1096,6 +1096,29 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 }
                 target.damageTakenThisTurn = (target.damageTakenThisTurn || 0) + dmg;
                 events.push({ type: 'damage', text: text, targetPlayer, targetIdx, newHp: target.hp });
+                if(options.isEnemyTarget&&options.attacker&&options.attacker!==target&&
+                   hpBeforeDamage>target.hp&&(options.directAttack||options.isOffensiveMove)){
+                  const source=options.attacker,actualDamage=hpBeforeDamage-target.hp;
+                  if(source.passive?.type==='goddess_of_rot'&&source.hp>0){
+                    const healed=royalHeal(source,Math.floor(actualDamage*.15));
+                    if(healed>0)events.push({type:'damage',
+                      text:'🌺 Dea del Marciume: '+source.name+' assorbe '+healed+' PS!',
+                      targetPlayer:options.attackerPlayer,targetIdx:options.attackerIdx,
+                      newHp:source.hp,isPassive:true,passiveChar:source.name,passiveName:'Dea del Marciume'});
+                  }
+                  if(target.hp>0&&!options.royalSplash){
+                    const blocked=blockedEnemyPassive(target);
+                    const curse=royalCursedFlames(source,target,Math.random,blocked);
+                    const wolf=royalWolfVenom(source,target,options.move,Math.random,blocked);
+                    if(curse||wolf){
+                      updateStatusUI(targetPlayer,targetIdx);
+                      events.push({type:'text',
+                        text:(curse?'🔥 Fiamme Maledette: '+target.name+' è '+curse+'!':
+                          '🐺 Veleno del Lupo! '+target.name+' è avvelenato!'),
+                        isPassive:true,passiveChar:source.name,passiveName:source.passive?.name});
+                    }
+                  }
+                }
                 if(gameState.isRoguelikeBattle&&!gameState.isRoguelikeCoop&&
                    options.isEnemyTarget&&options.attacker&&hpBeforeDamage>target.hp&&
                    rogueHexerTriggers(options.attacker,target)){
