@@ -42,7 +42,7 @@ export const ROYAL_POISON_CHARACTERS=[
    img:'https://i.pinimg.com/1200x/88/98/60/889860ff33614368f4839526525aa317.jpg',
    passive:{name:'Per il Mio Re',type:'bodyguard',protectAlly:'Re Medusa',
      desc:'Se un nemico mira Re Medusa con un colpo singolo, la Medusa intercetta l’attacco al suo posto. Non intercetta gli attacchi ad area.'},
-   moveNames:['Zip Zap','Oh Mio Sire','Gelatina Appiccicosa','Puntura del Servitore'],
+   moveNames:['Zip Zap','Oh Mio Sire','Gelatina Appiccicosa','Puntura Reale'],
    isSummonOnly:true
   }
 ];
