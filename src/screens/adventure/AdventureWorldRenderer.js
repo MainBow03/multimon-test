@@ -1,6 +1,6 @@
 // Renderer tridimensionale autonomo: mesh reali, prospettiva, depth test,
 // luci, nebbia e camera inseguitrice. Nessuna libreria esterna/CDN.
-import {ADVENTURE_ENTITIES,ADVENTURE_ZONES,ADVENTURE_CHAMPION,adventureRoadZ,adventureZoneIndex} from '../../systems/adventureCampaign.js';
+import {ADVENTURE_ENTITIES,ADVENTURE_ZONES,ADVENTURE_CHAMPION,adventureRoadZ,adventureZoneIndex,adventureNextObjective} from '../../systems/adventureCampaign.js';
 
 const palette={
  meadow:{ground:'#498e67',leaf:'#52b984',leaf2:'#2e966b',trunk:'#715845',rock:'#8ca4a1',road:'#ead5a1'},
@@ -44,9 +44,10 @@ class Mesh{
   const c=color(hex),light=color(hex,1.07),dark=color(hex,.78);
   const a=[x-w/2,y,z-d/2],b=[x+w/2,y,z-d/2],c1=[x+w/2,y,z+d/2],d1=[x-w/2,y,z+d/2],
     a1=[x-w/2,y+h,z-d/2],b1=[x+w/2,y+h,z-d/2],c2=[x+w/2,y+h,z+d/2],d2=[x-w/2,y+h,z+d/2];
-  this.quad(a,b,b1,a1,c);this.quad(c1,d1,d2,c2,c);
-  this.quad(b,c1,c2,b1,dark);this.quad(d1,a,a1,d2,dark);
-  this.quad(a1,b1,c2,d2,light);
+  // Facce rivolte all'esterno: i tetti e le strade ricevono finalmente luce.
+  this.quad(a,a1,b1,b,c);this.quad(c1,c2,d2,d1,c);
+  this.quad(b,b1,c2,c1,dark);this.quad(d1,d2,a1,a,dark);
+  this.quad(d2,c2,b1,a1,light);
  }
  prismRoof(x,y,z,w,h,d,hex){
   const a=[x-w/2,y,z-d/2],b=[x+w/2,y,z-d/2],c=[x+w/2,y,z+d/2],e=[x-w/2,y,z+d/2];
@@ -105,8 +106,8 @@ const addTree=(m,x,z,pal,size=1,kind='meadow')=>{
   m.cone(x,.8*size,z,.96*size,3.2*size,pal.leaf2,7);
   m.cone(x,2.1*size,z,.55*size,1.6*size,pal.leaf,7);
  }else{
-  m.sphere(x,h*size*.62+1.2*size,z,1.4*size,1.1*size,1.3*size,pal.leaf,5,8);
-  m.sphere(x+.65*size,h*size*.62+.9*size,z+.3*size,1.08*size,.85*size,.9*size,pal.leaf2,5,7);
+  m.sphere(x,h*.62+1.2*size,z,1.4*size,1.1*size,1.3*size,pal.leaf,5,8);
+  m.sphere(x+.65*size,h*.62+.9*size,z+.3*size,1.08*size,.85*size,.9*size,pal.leaf2,5,7);
  }
 };
 const addGym=(m,e)=>{
@@ -150,7 +151,8 @@ export function buildAdventureMesh(save){
  for(let x=-8;x<230;x+=4)for(let z=-24;z<25;z+=4){
   const i=adventureZoneIndex(x),zone=ADVENTURE_ZONES[i],pal=palette[zone.biome];
   const shade=.93+rng()*.15;
-  m.quad([x,0,z],[x+4,0,z],[x+4,0,z+4],[x,0,z+4],color(pal.ground,shade));
+  // La normale del terreno punta verso il cielo, anziché sottoterra.
+  m.quad([x,0,z+4],[x+4,0,z+4],[x+4,0,z],[x,0,z],color(pal.ground,shade));
   if(rng()<.28&&Math.abs(z-adventureRoadZ(x+2))>6){
     const cx=x+1+rng()*2,cz=z+1+rng()*2;
     m.sphere(cx,.17,cz,.45+rng()*.45,.22,.4+rng()*.4,pal.leaf2,4,6);
