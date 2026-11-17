@@ -526,6 +526,9 @@ export function createAdventureWorldRenderer(canvas,save){
   canvas.getContext('webgl',{antialias:true,alpha:false,powerPreference:'low-power'});
  if(!gl)return createAdventureFallbackRenderer(canvas,save);
  let program,worldBuffer,dynamicBuffer,worldLength,disposed=false;
+ // Il pass di contorno è opzionale, per tablet/vecchie GPU. La scena 3D
+ // toon resta funzionante anche se non si possono creare framebuffers.
+ let ink=null,inkDisabled=false,inkWidth=0,inkHeight=0;
  try{
   program=makeProgram(gl);
   worldBuffer=gl.createBuffer();dynamicBuffer=gl.createBuffer();
@@ -541,6 +544,7 @@ export function createAdventureWorldRenderer(canvas,save){
   normal:gl.getAttribLocation(program,'aNormal'),
   pv:gl.getUniformLocation(program,'uProjectionView'),
   view:gl.getUniformLocation(program,'uView'),
+  eye:gl.getUniformLocation(program,'uCameraPosition'),
   fog:gl.getUniformLocation(program,'uFogColor')
  };
  const bind=buffer=>{
@@ -551,25 +555,76 @@ export function createAdventureWorldRenderer(canvas,save){
    gl.vertexAttribPointer(attr,3,gl.FLOAT,false,36,offset*4);
   }
  };
+ // Render to texture + 5-tap edge detection produce inked silhouettes.
+ // Fragmente immediati (no CDN, no third-party shader library).
+ try{
+  const inkProgram=makeProgram(gl,inkVertexShader,inkFragmentShader);
+  const inkBuffer=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,inkBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  const texture=gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D,texture);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  const depth=gl.createRenderbuffer();
+  const framebuffer=gl.createFramebuffer();
+  ink={program:inkProgram,buffer:inkBuffer,texture,depth,framebuffer,
+   screen:gl.getAttribLocation(inkProgram,'aScreen'),
+   scene:gl.getUniformLocation(inkProgram,'uScene'),
+   pixel:gl.getUniformLocation(inkProgram,'uPixel')};
+ }catch(error){
+  console.warn('Campagna 3D: bordi cartoon non disponibili, uso toon shading senza postprocess.',error);
+  inkDisabled=true;
+ }
+ const resizeInk=(w,h)=>{
+  // Un limite di memoria evita crash di driver WebGL su schermi grandi.
+  if(!ink||inkDisabled||w*h>3000000||
+     w>gl.getParameter(gl.MAX_TEXTURE_SIZE)||h>gl.getParameter(gl.MAX_TEXTURE_SIZE))return false;
+  if(inkWidth===w&&inkHeight===h)return true;
+  try{
+   gl.bindTexture(gl.TEXTURE_2D,ink.texture);
+   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+   gl.bindRenderbuffer(gl.RENDERBUFFER,ink.depth);
+   gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,w,h);
+   gl.bindFramebuffer(gl.FRAMEBUFFER,ink.framebuffer);
+   gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,ink.texture,0);
+   gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,ink.depth);
+   const complete=gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE;
+   gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+   if(!complete){inkDisabled=true;return false;}
+   inkWidth=w;inkHeight=h;return true;
+  }catch(error){
+   gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+   console.warn('Campagna 3D: framebuffer cartoon non disponibile.',error);
+   inkDisabled=true;return false;
+  }
+ };
  function render(p,t=0,starter='sonic'){
   if(disposed)return;
   const rect=canvas.getBoundingClientRect(),ratio=Math.min(
     window.matchMedia?.('(pointer: coarse)').matches?1.25:1.8,window.devicePixelRatio||1);
   const w=Math.max(2,Math.round(rect.width*ratio)),h=Math.max(2,Math.round(rect.height*ratio));
-  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}
+  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
   const eye=[p.x-15,16,p.z+15],target=[p.x+7,1.5,p.z];
   const v=look(eye,target),proj=persp(1.02,w/h,.1,220);
   const paletteByZone={
-    meadow:['#b6e5ec','#d6eeec'],autumn:['#f0c9ae','#f2ddd1'],
-    water:['#b8ddf0','#d1edff'],snow:['#d3eafb','#e7f8ff'],
-    magic:['#ccb9ef','#e1d8fa'],volcanic:['#dcaaa2','#e7c8bd']
+    meadow:['#b9e8f0','#d6f7ec'],autumn:['#ffcfaa','#fff0d1'],
+    water:['#a0e1f7','#c7f5f9'],snow:['#b9e1fc','#f4faff'],
+    magic:['#d5b5fa','#eee0ff'],volcanic:['#eba39a','#ffd6b8']
   };
   const scene=ADVENTURE_ZONES[adventureZoneIndex(p.x)];
   const [sky,fog]=paletteByZone[scene.biome];
   const skyRgb=rgb(sky);
+  const withInk=resizeInk(w,h);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,withInk?ink.framebuffer:null);
+  gl.viewport(0,0,w,h);
+  gl.enable(gl.DEPTH_TEST);
   gl.useProgram(program);
   gl.uniformMatrix4fv(loc.pv,false,new Float32Array(mul(proj,v)));
   gl.uniformMatrix4fv(loc.view,false,new Float32Array(v));
+  gl.uniform3fv(loc.eye,new Float32Array(eye));
   gl.uniform3fv(loc.fog,new Float32Array(rgb(fog)));
   gl.clearColor(skyRgb[0],skyRgb[1],skyRgb[2],1);
   gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
@@ -577,10 +632,31 @@ export function createAdventureWorldRenderer(canvas,save){
   const dynamic=playerGeometry(p,t,starter);
   gl.bindBuffer(gl.ARRAY_BUFFER,dynamicBuffer);gl.bufferData(gl.ARRAY_BUFFER,dynamic,gl.DYNAMIC_DRAW);
   bind(dynamicBuffer);gl.drawArrays(gl.TRIANGLES,0,dynamic.length/9);
+  if(withInk){
+   gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+   gl.disable(gl.DEPTH_TEST);
+   gl.useProgram(ink.program);
+   gl.bindBuffer(gl.ARRAY_BUFFER,ink.buffer);
+   gl.enableVertexAttribArray(ink.screen);
+   gl.vertexAttribPointer(ink.screen,2,gl.FLOAT,false,0,0);
+   gl.activeTexture(gl.TEXTURE0);
+   gl.bindTexture(gl.TEXTURE_2D,ink.texture);
+   gl.uniform1i(ink.scene,0);
+   gl.uniform2f(ink.pixel,1/w,1/h);
+   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+   gl.disableVertexAttribArray(ink.screen);
+   gl.enable(gl.DEPTH_TEST);
+  }
  }
  return {render,dispose(){
-  disposed=true;gl.deleteBuffer(worldBuffer);gl.deleteBuffer(dynamicBuffer);
+  disposed=true;
+  gl.deleteBuffer(worldBuffer);gl.deleteBuffer(dynamicBuffer);
   gl.deleteProgram(program);
+  if(ink){
+   gl.deleteBuffer(ink.buffer);gl.deleteTexture(ink.texture);
+   gl.deleteRenderbuffer(ink.depth);gl.deleteFramebuffer(ink.framebuffer);
+   gl.deleteProgram(ink.program);
+  }
  }};
 }
 // Accessible 2D fallback for browsers/devices without WebGL. Movement, gyms,
