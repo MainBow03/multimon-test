@@ -295,6 +295,10 @@ export function generateStrategicCpuActions({
         continue;
       }
       for(const enemy of enemies){
+        // Pozione Misteriosa non è più utilizzabile sullo stesso
+        // avversario dopo che Yzma gli ha già applicato uno status.
+        if(move.royalPotion&&(char.royalPotionVictims||[]).includes(
+            enemy.player+':'+enemy.idx))continue;
         const mult=multiplierOf(getMultiplier,move.type,enemy.char.types);
         const dmg=strength(char,move,enemy.char,mult);
         const killChance=move.power>0&&mult>0&&
