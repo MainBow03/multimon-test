@@ -45,9 +45,9 @@ function setup(n=6,size=5){
  return state;
 }
 
-test('TUTTI i 240 Multimon, comprese le 19 fusioni, hanno frasi originali specifiche e non duplicate',()=>{
+test('TUTTI i Multimon, comprese le 19 fusioni, hanno frasi originali specifiche e non duplicate',()=>{
  const ids=characters.map(c=>c.id);
- assert.equal(ids.length,240);
+ assert.ok(ids.length>=240,'Il roster può crescere: nessun Multimon già registrato deve scomparire.');
  assert.equal(new Set(ids).size,ids.length);
  assert.equal(Object.keys(ULTIMON_ENTRANCE_LINES).length,ids.length);
  assert.deepEqual(Object.keys(ULTIMON_ENTRANCE_LINES).sort(),ids.sort());
