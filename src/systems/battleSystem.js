@@ -323,7 +323,7 @@ const { CHARACTERS } = ctx;
                           const rTarget = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
                           const sType = char.passive.applyStatusToRandomEnemy.type;
                           
-                          const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'].includes(sType);
+                          const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'].includes(sType);
                           if (isNegative && (rTarget.char.passive?.immuneToNegativeStatuses || blockedEnemyPassive(rTarget.char) || (sType==='Accecato'&&isEchoRaidAccuracyProtected(rTarget.char)))) {
                               eventsArr.push({ type: 'text', text: `🛡️ ${char.name} attiva ${char.passive.name}, ma ${rTarget.char.name} è immune a ${sType} grazie a ${rTarget.char.passive?.name||'Scudo Anti-Magia'}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                           } else {
@@ -1299,7 +1299,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
 
                         // AGGIUNTO: GESTIONE PURIFICAZIONE STATUS (es. Zazan - Corazza Mutante)
                         if (target.passive.removeNegativeStatuses) {
-                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'];
+                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'];
                             const originalLength = target.statuses.length;
                             target.statuses = target.statuses.filter(s => !negatives.includes(s.type));
                             
@@ -2944,7 +2944,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                         }
 
                         if (move.removeNegativeStatuses) {
-                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'];
+                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'];
                             const originalLength = t.char.statuses.length;
                             t.char.statuses = t.char.statuses.filter(s => !negatives.includes(s.type));
                             if (t.char.statuses.length < originalLength) {
@@ -3022,7 +3022,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 events.push({type:'text',text:'🛡️ Aura Suprema: Echomax è immune all’accecamento e ai cali di Precisione!'});
                                 continue;
                             }
-                            const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'].includes(effect.type);
+                            const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'].includes(effect.type);
                             
                             // FIX CRITICO: Se la mossa non ha una "chance" specificata, assumiamo che sia 1.0 (100% garantita)!
                             const chanceToApply = boostedStatusChance(attacker,effect.chance !== undefined ? effect.chance : 1.0);
@@ -3739,7 +3739,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                     if (enemy && enemy.hp > 0 && Math.random() < char.passive.enemyStatusEffect.chance) {
                                         const sType = char.passive.enemyStatusEffect.type;
                                         
-                                        const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'].includes(sType);
+                                        const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'].includes(sType);
                                         if (isNegative && (enemy.passive?.immuneToNegativeStatuses || blockedEnemyPassive(enemy) || (sType==='Accecato'&&isEchoRaidAccuracyProtected(enemy)))) {
                                             return; 
                                         }
@@ -3814,7 +3814,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                     char.juggTurnCount = 0; // Reset contatore
                     if(restoreEchoRaidAccuracy(char))
                         events.push({type:'text',text:'🎯 Aura Suprema: Echomax ripristina la Precisione al 100% dopo due turni!'});
-                    const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'];
+                    const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'];
                     const hasNegative = char.statuses.some(s => negatives.includes(s.type));
                     if (hasNegative) {
                         char.statuses = char.statuses.filter(s => !negatives.includes(s.type));
