@@ -2879,7 +2879,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                         }
                         if (attacker.passive.healPercent) {
                             const healAmount = Math.max(1, Math.floor(attacker.maxHp * attacker.passive.healPercent));
-                            attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmount);
+                            royalHeal(attacker,healAmount);
                             events.push({ type: 'damage', text: `✨ ${attacker.name} manda K.O. l'avversario e attiva ${attacker.passive.name}! Recupera ${healAmount} PS!`, targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp, isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
                         }
                     }
@@ -3356,7 +3356,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             healFactor = move.selfHealRandom.min + Math.random() * (move.selfHealRandom.max - move.selfHealRandom.min);
                         }
                         const healAmount = Math.floor(attacker.maxHp * healFactor);
-                        attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmount);
+                        royalHeal(attacker,healAmount);
                         events.push({ type: 'damage', text: `${attacker.name} recupera ${healAmount} HP!`, targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp });
                     }
                 }
@@ -3376,7 +3376,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 }
                                 if (effect.heal) {
                                     const healAmount = Math.max(1, Math.floor(attacker.maxHp * effect.heal));
-                                    attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmount);
+                                    royalHeal(attacker,healAmount);
                                     events.push({ type: 'damage', text: `✨ ${attacker.name} attiva ${attacker.passive.name}! Recupera ${healAmount} PS!`, targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp, isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
                                 }
                             }
@@ -3417,7 +3417,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 applyDamage(attacker, dmg, player, charTeamIdx, `${attacker.name} sacrifica ${dmg} HP per la mossa combinata!`);
                             } else {
                                 const healAmount = Math.floor(attacker.maxHp * eff.selfHeal);
-                                attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmount);
+                                royalHeal(attacker,healAmount);
                                 events.push({ type: 'damage', text: `${attacker.name} recupera ${healAmount} HP!`, targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp });
                             }
                         }
@@ -3446,7 +3446,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                         applyDamage(partner, dmg, player, partnerTeamIdx, `${partner.name} sacrifica ${dmg} HP per la mossa combinata!`);
                                     } else {
                                         const healAmount = Math.floor(partner.maxHp * eff.selfHeal);
-                                        partner.hp = Math.min(partner.maxHp, partner.hp + healAmount);
+                                        royalHeal(partner,healAmount);
                                         events.push({ type: 'damage', text: `${partner.name} recupera ${healAmount} HP grazie alla Mossa Combinata!`, targetPlayer: player, targetIdx: partnerTeamIdx, newHp: partner.hp });
                                     }
                                 }
@@ -3472,7 +3472,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 
                                 if (move.selfHeal) {
                                     const pHealAmount = Math.floor(partner.maxHp * move.selfHeal);
-                                    partner.hp = Math.min(partner.maxHp, partner.hp + pHealAmount);
+                                    royalHeal(partner,pHealAmount);
                                     events.push({ type: 'damage', text: `${partner.name} recupera ${pHealAmount} HP grazie alla Mossa Combinata!`, targetPlayer: player, targetIdx: partnerTeamIdx, newHp: partner.hp });
                                 }
                             }
@@ -3608,9 +3608,18 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 events.push({type:'text',text:`🕳️ ${char.name} è libero dalla Prigione Sotterranea!`});
               }
             }
+            const beforeSprout=char.hp;
             const sproutAtEnd=activateHealingSprout(char);
-            if(sproutAtEnd)events.push({type:'damage',targetPlayer:target.player,targetIdx:target.charTeamIdx,newHp:char.hp,
-              text:`🌱 ${char.name} recupera ${sproutAtEnd} PS grazie al Germoglio Curativo!`});
+            if(sproutAtEnd){
+              const actualHeal=char.hp-beforeSprout;
+              // Il germoglio si consuma come sempre, ma Marciume dimezza
+              // anche le cure automatiche date dagli strumenti.
+              if(actualHeal>0&&char.statuses?.some(st=>st.type==='Marciume'))
+                char.hp=beforeSprout+Math.floor(actualHeal*.5);
+              events.push({type:'damage',targetPlayer:target.player,
+                targetIdx:target.charTeamIdx,newHp:char.hp,
+                text:`🌱 ${char.name} recupera ${char.hp-beforeSprout} PS grazie al Germoglio Curativo!`});
+            }
             const sprayAtEnd=activateNeutralizingSpray(char);
             if(sprayAtEnd.length){
                 updateStatusUI(target.player,target.charTeamIdx);
@@ -3635,7 +3644,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             hPercent = char.passive.healPercentRandom.min + Math.random() * (char.passive.healPercentRandom.max - char.passive.healPercentRandom.min);
                         }
                         const healAmount = Math.max(1, Math.floor(char.maxHp * hPercent));
-                        char.hp = Math.min(char.maxHp, char.hp + healAmount);
+                        royalHeal(char,healAmount);
                         events.push({ type: 'damage', text: `✨ ${char.name} attiva ${char.passive.name}: recupera ${healAmount} PS!`, targetPlayer: target.player, targetIdx: target.charTeamIdx, newHp: char.hp, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                     }
                     if (char.passive.healLowestAllyPercent) {
@@ -3669,7 +3678,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
 
                         if (lowestAlly) {
                             const healAmount = Math.max(1, Math.floor(lowestAlly.char.maxHp * char.passive.healLowestAllyPercent));
-                            lowestAlly.char.hp = Math.min(lowestAlly.char.maxHp, lowestAlly.char.hp + healAmount);
+                            royalHeal(lowestAlly.char,healAmount);
                             events.push({ type: 'damage', text: `✨ ${char.name} attiva ${char.passive.name}! ${lowestAlly.char.name} recupera ${healAmount} PS!`, targetPlayer: lowestAlly.p, targetIdx: lowestAlly.idx, newHp: lowestAlly.char.hp, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                         }
                     }
@@ -3930,7 +3939,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
             if (regenIdx !== -1) {
                 if (char.hp > 0 && char.hp < char.maxHp) {
                     const healAmount = Math.max(1, Math.floor(char.maxHp * (char.statuses[regenIdx].healFactor || 0.15)));
-                    char.hp = Math.min(char.maxHp, char.hp + healAmount);
+                    royalHeal(char,healAmount);
                     events.push({ type: 'damage', text: `✨ ${char.name} rigenera ${healAmount} PS grazie alla Pozione!`, targetPlayer: target.player, targetIdx: target.charTeamIdx, newHp: char.hp });
                 }
                 char.statuses[regenIdx].turns -= 1;
@@ -3955,7 +3964,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 const outcome=snowstormOutcome(char,true);
                 if (outcome.damage) applyDamage(char,outcome.damage,target.player,target.charTeamIdx,`❄️ ${char.name} perde ${outcome.damage} PS per la neve!`);
                 if (char.hp > 0 && outcome.heal) {
-                    char.hp=Math.min(char.maxHp,char.hp+outcome.heal);
+                    royalHeal(char,outcome.heal);
                     events.push({type:'damage',text:`❄️ ${char.name} attiva Resistenza al Freddo e recupera ${outcome.heal} PS!`,targetPlayer:target.player,targetIdx:target.charTeamIdx,newHp:char.hp,isPassive:true,passiveChar:char.name,passiveName:char.passive.name});
                 }
             }
