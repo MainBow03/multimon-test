@@ -9,7 +9,7 @@ import {ADVENTURE_STORY_TITLE,ADVENTURE_STORY,ADVENTURE_RIVAL_NAME,adventureNext
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 import './AdventureCampaign.css';
 
-const symbol={gym:'🏛️',trainer:'⚔️',wild:'✦',npc:'💬',inn:'✚',shop:'🛒',chest:'🎁',champion:'🏆'};
+const symbol={gym:'🏛️',trainer:'⚔️',rival:'🌓',wild:'✦',npc:'💬',inn:'✚',shop:'🛒',chest:'🎁',champion:'🏆'};
 const getChar=(chars,id)=>chars.find(c=>c.id===id);
 const hp=(m,chars)=>{
  const base=getChar(chars,m.id),max=base?adventureMaxHp(base,m.level):100;
@@ -125,7 +125,7 @@ function AdventureStarter({characters,onStart,onBack}){
    <div className="adv-starter-title">
     <span className="adv-eyebrow">MULTIMON · UNA NUOVA AVVENTURA</span>
     <h1>Il mondo ti aspetta<span className="adv-glint">✦</span></h1>
-    <p>Sei portali. Sei capipalestra. Una sola Lega. Prima di partire, scegli chi combatterà al tuo fianco.</p>
+    <p>Quando la rete dei sei portali si è spenta, le regioni sono rimaste isolate. Scopri il mistero, incontra Nox e riporta la luce al Multiverso. Prima scegli il tuo compagno di viaggio.</p>
    </div>
    <div className="adv-starter-cards">
     {ADVENTURE_STARTERS.map(c=>{
@@ -262,6 +262,15 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
        style={{background:save.badges.includes(z.id)?z.color:'#25334b',boxShadow:save.badges.includes(z.id)?'0 0 9px '+z.color:'none'}}/>)}</div>
     </div>
    </header>
+   {guide&&<div className="adv-route-guide" aria-label="Indicazioni per la prossima missione">
+      <div className="adv-route-guide-icon" aria-hidden="true">🧭</div>
+      <div className="adv-route-guide-copy">
+       <span>PROSSIMA TAPPA <b>· {guide.distance} m · {guide.direction}</b></span>
+       <strong>{symbol[guide.target.kind]||'✦'} {guide.target.name}</strong>
+       <small>{guide.tip}</small>
+      </div>
+      <button type="button" onClick={()=>setPanel('map')} title="Apri la mappa e i punti sbloccati">MAPPA ↗</button>
+     </div>}
    <div className="adv-hud-lower">
     <aside className="adv-quest-panel">
      <span>✦ MISSIONE ATTUALE</span><strong>{currentQuest}</strong>
@@ -278,7 +287,14 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
      <button onClick={()=>setHelp(true)} title="Comandi">❔</button>
     </nav>
    </div>
-   <div className="adv-compass">N <span>✧</span> E <small>WASD / FRECCE · E interagisci · SHIFT corri</small></div>
+   <div className="adv-route-progress" aria-label="Percorso delle sei regioni">
+      {ADVENTURE_ZONES.map((region,i)=><div className={'adv-route-step '+(save.badges.includes(region.id)?'adv-route-done ':'')+
+        (adventureZoneIndex(save.position.x)===i?'adv-route-current':'')} key={region.id}
+        title={region.name+' · '+region.badge}>
+        <span style={{background:save.badges.includes(region.id)?region.color:undefined}}>{save.badges.includes(region.id)?'✓':i+1}</span>
+       </div>)}
+    </div>
+    <div className="adv-compass">N <span>✧</span> E <small>WASD / FRECCE · E interagisci · SHIFT corri</small></div>
   </div>
   {toast&&<div className="adv-toast" role="status">{toast}</div>}
   {scene&&<div className="adv-modal-wrap adv-story-wrap">
@@ -305,7 +321,7 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
    <section className="adv-modal adv-intro">
     <div className="adv-modal-kicker">✦ EPISODIO I · IL PRIMO PASSO</div>
     <h2>Benvenuto nella Valle dell'Alba</h2>
-    <p>«Sono il professor Orion. Davanti a te ci sono sei regioni, ognuna con una Palestra. Allenati sui percorsi, stringi amicizia con nuovi Multimon e conquista gli Emblemi. La Lega del Multiverso ti aspetta oltre il vulcano.»</p>
+    <p>«Sono Orion. La notte in cui i portali si sono spenti, sei villaggi sono rimasti isolati. Ciascun capopalestra custodisce un Emblema che può ripristinare un collegamento. Ma Nox teme che riaccendere la rete possa causare un altro disastro. Ti spiegherò tutto prima della prima Palestra.»</p>
     <div className="adv-intro-steps"><span>⚡ Esplora</span><span>⚔️ Combatti</span><span>🏅 Conquista</span></div>
     <button className="adv-primary" onClick={()=>update(p=>({...p,welcomed:true,lastMessage:'Il viaggio è iniziato. Raggiungi i primi allenatori!'}))}>INIZIA L'AVVENTURA →</button>
    </section>
@@ -320,12 +336,19 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
    <section className="adv-modal adv-battle-preview">
     <div className="adv-modal-kicker">{battleTarget.kind==='gym'?'🏛️ SFIDA PALESTRA':
       battleTarget.kind==='champion'?'🏆 LEGA DEL MULTIVERSO':
-      battleTarget.kind==='trainer'?'⚔️ ALLENATORE':'✦ INCONTRO SELVATICO'}</div>
+      battleTarget.kind==='trainer'?'⚔️ ALLENATORE':battleTarget.kind==='rival'?'🌓 SFIDA DI NOX':'✦ INCONTRO SELVATICO'}</div>
     <h2>{battleTarget.name}</h2>
     <p>{battleTarget.dialogue||(
      battleTarget.kind==='wild'?'Un Multimon selvatico è comparso sul percorso!':
      battleTarget.kind==='gym'?'Conquista l’Emblema e apri il portale della regione successiva.':
      'Una battaglia decisiva per il destino del Multiverso.')}</p>
+    {battleTarget.level&&<div className="adv-battle-tip">
+      <span>⚡ Livello avversario: <strong>{battleTarget.level}</strong></span>
+      <span>🐾 Media squadra: <strong>{Math.round(save.party.reduce((n,c)=>n+c.level,0)/Math.max(1,save.party.length))}</strong></span>
+      <small>{save.party.length<2&&battleTarget.party?.length>1?
+        'Consiglio: prima di affrontare una squadra numerosa, recluta almeno un Multimon selvatico.':
+        'Consiglio: puoi curare gli alleati al Centro di Cura prima dello scontro.'}</small>
+    </div>}
     <div className="adv-enemy-line">{battleTarget.party?.map((id,i)=>{
      const c=getChar(characters,id);return <div key={id+i}>{img(c?.img,c?.name)}<strong>{c?.name||id}</strong><small>LV. {battleTarget.level+i*(battleTarget.kind==='gym'?1:0)}</small></div>;
     })}</div>
@@ -360,10 +383,10 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
         className={'adv-region-row '+(unlocked?'':'adv-region-locked')}>
         <div className="adv-region-number" style={{borderColor:z.color,color:z.color}}>{done?'✓':i+1}</div>
         <div><strong>{z.name}</strong><small>{z.desc} · Capopalestra {z.gym}</small></div>
-        <span>{done?'🏅 EMblema':unlocked?'RAGGIUNGI →':'🔒'}</span>
+        <span>{done?'🏅 OTTENUTO':unlocked?'VIAGGIA →':'🔒'}</span>
        </button>;
       })}</div>
-      <div className="adv-map-legend">🏆 Lega del Multiverso · sbloccata dopo sei Emblemi</div>
+      <div className="adv-map-legend">🧭 Prossima tappa: <strong>{guide?.target?.name}</strong> · {guide?.distance} metri · {guide?.direction}.<br/>🏆 Lega del Multiverso · sbloccata dopo sei Emblemi</div>
     </>}
     {panel==='bag'&&<>
       <h2>Il tuo zaino</h2><p>Le cure funzionano tra una battaglia e l’altra. Per usare una Pozione scegli un Multimon nel pannello Squadra.</p>
