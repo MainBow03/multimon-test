@@ -50,6 +50,11 @@ import { isRainyWeather, RAINSTORM_TURNS, tryStartRainstorm, weatherMoveFactor, 
 import {TAILWIND_TURNS,tailwindAllies,tailwindSpeedFactor,startTailwind,advanceTailwind,
   LUSH_GRASS_TURNS,isLushGrass,lushGrassHeal} from './battleFieldEffects.js';
 import { resolvePoisonEndTurn } from './battleStatusTurns.js';
+import {royalStatusSnapshot,royalNewNegativeStatuses,royalStatus,royalCursedFlames,
+ royalWolfVenom,royalPotionCanTarget,royalPotionApply,royalStatusDamageBonus,
+ royalEffectiveMove,royalRotHealingAmount,royalHeal,royalApplyRot,royalRotTick,
+ royalMedusaAgility,royalGrantPriority,royalConsumePriority,royalMedusaCanSummon,
+ royalBuildMedusaSummon,royalMistTargets} from './royalPoisonSystem.js';
 import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense, endRefractionTurn, snowstormOutcome, randomBuff, randomDebuff, daffyCelebration } from './championEffects.js';
 import { ignoresShields, immuneToStatDrops, powerForAccordo, effectiveTaserPower,
   incomingRockEnchantmentFactor, affectedOpponents, addStickyTrap, trapEntries,
@@ -778,6 +783,7 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             let pwr = move.power * getHeldPowerFactor(attacker, move) * offensiveHeldFactor(attacker,defender,move);
             if (attacker.passive?.type === 'ghost_rockstar' && move.type === 'Suono') pwr *= 1.25;
             pwr *= qilinDamageFactor(attacker,move);
+            pwr *= royalStatusDamageBonus(attacker,defender,move);
             if (move.speedScaling) pwr += Math.floor(attacker.spd / 3);
             
             // --- GESTIONE PASSIVE: POTENZIAMENTO MOSSE ---
@@ -1591,6 +1597,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 const move = action.type === 'attack' ? char.moves[action.moveIdx] : null;
                 let priority = (action.type === 'switch' || action.type === 'use_item') ? 6 : (move ? (move.priority || 0) : 0);
                 priority += rapidTransmutationPriority(char,move);
+                // La Medusa Servitore dona +1 solo alla prossima azione offensiva.
+                priority += royalConsumePriority(char,action);
 
                 if (char.statuses && char.statuses.some(s => s.type === 'Ombra Rapida')) {
                     priority += 2;
@@ -1900,6 +1908,16 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                   events.push({type:'text',text:move.name+' non è ancora disponibile.'});
                   continue;
                 }
+                if(move.royalPotion && action.targetPlayer && action.targetIdx!==undefined){
+                  const foes=affectedOpponents(player,gameState.gameMode,
+                    activeMatchPlayers,getTournamentMatchOpponents,gameState.settings);
+                  if(!royalPotionCanTarget(attacker,player,action.targetPlayer,action.targetIdx,
+                      foes.includes(action.targetPlayer))){
+                    events.push({type:'text',text:'🧪 Pozione Misteriosa: '+attacker.name+
+                      ' ha già applicato una pozione a questo avversario.'});
+                    continue;
+                  }
+                }
                 if((move.targetMode==='revive'||move.targetMode==='ally') &&
                    !isLegalSupportTarget(
                      {gameMode:gameState.gameMode,settings:gameState.settings,
@@ -2062,6 +2080,17 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     continue;
                 }
 
+                // Traccia ogni status nuovo dato a Yzma da questa azione nemica.
+                const yzmaWatch=new Map();
+                const attackingFoes=affectedOpponents(player,gameState.gameMode,
+                  activeMatchPlayers,getTournamentMatchOpponents,gameState.settings);
+                for(const ep of attackingFoes){
+                  (workingField[ep]||[]).forEach(idx=>{
+                    const target=workingTeams[ep]?.[idx];
+                    if(target?.id==='yzma'&&target.hp>0)
+                      yzmaWatch.set(ep+':'+idx,royalStatusSnapshot(target));
+                  });
+                }
                 let resolvedTargets = [];
 
                 if (move.targetCount && move.targetCount >= 4) {
@@ -2290,7 +2319,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     // --- END REDIRECT BODYGUARD LOGIC ---
 
                     // --- CHECK ALLY TARGET FOR IMMUNITIES ---
-                    const isAllyTargeted = move.targetMode === 'team' || move.targetMode === 'team_smart_heal' || move.targetMode === 'ally' || move.targetMode === 'revive' || move.target === 'self';
+                    const isAllyTargeted = move.targetMode === 'team' || move.targetMode === 'team_smart_heal' || move.targetMode === 'ally' || move.targetMode === 'revive' || move.target === 'self' ||
+                       (move.royalPotion && !attackingFoes.includes(t.player));
 
                     let multiplier = isAllyTargeted ? 1 : getMultiplier(move.type, t.char.types);
                     let isImmuneDueToPassive = false;
@@ -2538,6 +2568,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             if(move.bonusIfSlowed)currentMoveForDmg={...currentMoveForDmg,power:effectiveTaserPower(t.char)};
                             if(move.spoutLowHpPower)
                               currentMoveForDmg={...currentMoveForDmg,power:frillishSpoutPower(t.char,move)};
+                            currentMoveForDmg=royalEffectiveMove(currentMoveForDmg,t.char);
                             let isCritical = false;
                             let critMultiplier = 1.0;
 
@@ -2601,9 +2632,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
 
                             if (isFirstHitProtection) hitDmg = Math.max(1,Math.floor(hitDmg * firstHitProtectionFactor(t.char,true)));
                             // --- GESTIONE CURE SU ALLEATI CON DANNO (es. Tempesta di Farfalle) ---
-                            if (!isEnemyTarget && move.healAlliesByDamage) {
-                                const healAmount = hitDmg;
-                                t.char.hp = Math.min(t.char.maxHp, t.char.hp + healAmount);
+                            if (!isEnemyTarget && (move.healAlliesByDamage||move.royalPotion)) {
+                                const healAmount = royalHeal(t.char,hitDmg);
                                 events.push({ type: 'damage', text: `✨ ${attacker.name} usa ${move.name} su ${t.char.name}! La magia lo cura di ${healAmount} PS!${effectivenessText}`, targetPlayer: t.player, targetIdx: t.idx, newHp: t.char.hp });
                                 attackSucceeded = true;
                                 break; // Usciamo dal loop dei colpi multipli (le cure sono istantanee)
