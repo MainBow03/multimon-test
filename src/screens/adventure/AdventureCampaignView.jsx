@@ -4,7 +4,8 @@ import {ADVENTURE_ZONES,ADVENTURE_ENTITIES,ADVENTURE_STARTERS,ADVENTURE_CHAMPION
  adventureRoadZ,adventureMove,adventureNearby,adventureZoneIndex,adventureZone,
  adventureGymCheck,createAdventureSave,adventureQuest,adventureMaxHp,adventureUsePotion,
  adventureShop,adventureHeal,adventureChest,adventureSwap,adventureExpRequired,
- ADVENTURE_MAX_PARTY} from '../../systems/adventureCampaign.js';
+ adventureGuide,ADVENTURE_MAX_PARTY} from '../../systems/adventureCampaign.js';
+import {ADVENTURE_STORY_TITLE,ADVENTURE_RIVAL_NAME,adventureNextStoryScene,adventureMarkStorySeen} from '../../data/adventureStory.js';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 import './AdventureCampaign.css';
 
@@ -16,16 +17,16 @@ const hp=(m,chars)=>{
 };
 const img=(src,alt,css='')=>src?<img src={src} alt={alt} className={css} onError={onMultimonImageError}/>:null;
 
-function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,paused=false}){
+function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,onPosition,paused=false}){
  const canvas=useRef(null),player=useRef({...save.position}),saveRef=useRef(save);
- const buttons=useRef(new Set()),callbacks=useRef({onWalk,onNear,onInteract,onBlocked,paused});
+ const buttons=useRef(new Set()),callbacks=useRef({onWalk,onNear,onInteract,onBlocked,onPosition,paused});
  const travelRef=useRef(save.travelSerial||0);
  useEffect(()=>{
-  saveRef.current=save;callbacks.current={onWalk,onNear,onInteract,onBlocked,paused};
+  saveRef.current=save;callbacks.current={onWalk,onNear,onInteract,onBlocked,onPosition,paused};
   if((save.travelSerial||0)!==travelRef.current){
    player.current={...save.position};travelRef.current=save.travelSerial||0;
   }
- },[save,onWalk,onNear,onInteract,onBlocked,paused]);
+ },[save,onWalk,onNear,onInteract,onBlocked,onPosition,paused]);
  useEffect(()=>{
   const el=canvas.current;if(!el)return;
   const graphics=createAdventureWorldRenderer(el,saveRef.current);
@@ -41,7 +42,7 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,paused=false}
   };
   const keydown=e=>{
    const name=e.key.toLowerCase();
-   if(!focus())return;
+   if(!focus()||callbacks.current.paused)return;
    if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','shift','e',' ','enter'].includes(name)){
      if(!callbacks.current.paused&&['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','e',' '].includes(name))e.preventDefault();
      if(name==='e'&&!e.repeat){interact();return;}
@@ -54,7 +55,8 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,paused=false}
   const tick=now=>{
    if(!alive)return;
    const dt=Math.min(.05,(now-previous)/1000);previous=now;
-   if(!callbacks.current.paused){
+   if(callbacks.current.paused)keys.clear();
+   else{
     const forward=Number(keys.has('w')||keys.has('arrowup'))-Number(keys.has('s')||keys.has('arrowdown'));
     const lateral=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'));
     if(forward||lateral){
@@ -65,6 +67,7 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,paused=false}
        current.z+lateral/length*speed*dt);
      // Position is managed in the renderer for smooth 60 FPS camera motion.
      player.current=next.position;
+     callbacks.current.onPosition?.(next.position);
      if(next.blocked&&now-lastBlocked>2800){
        callbacks.current.onBlocked?.(next.requiresBadge);
        lastBlocked=now;
@@ -97,7 +100,7 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,paused=false}
    <div className="adv-dpad">
     {[['w','↑','north'],['a','←','west'],['s','↓','south'],['d','→','east']].map(([k,label,dir])=>
      <button type="button" aria-label={dir} className={'adv-pad adv-pad-'+dir} key={k}
-       onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);key(k,true);}}
+       onPointerDown={e=>{if(callbacks.current.paused)return;e.currentTarget.setPointerCapture(e.pointerId);key(k,true);}}
        onPointerUp={()=>key(k,false)} onPointerCancel={()=>key(k,false)}
        onLostPointerCapture={()=>key(k,false)}>{label}</button>)}
    </div>
