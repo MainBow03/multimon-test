@@ -254,7 +254,7 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
   <div className="adv-overlay">
    <header className="adv-hud-header">
     <button type="button" className="adv-back" onClick={onBack} title="Torna al menu senza perdere i progressi">← <span>MENU</span></button>
-    <div className="adv-hud-place"><span className="adv-hud-place-kicker">✧ CAMPAGNA · MONDO APERTO</span>
+    <div className="adv-hud-place"><span className="adv-hud-place-kicker">✧ CAMPAGNA · MONDO 3D CARTOON</span>
      <strong>{zone.name}</strong><small>{zone.desc}</small></div>
     <div className="adv-hud-badges" aria-label="Emblemi ottenuti">
      <span>EMBLEMI</span><strong>{save.badges.length}<small>/6</small></strong>
