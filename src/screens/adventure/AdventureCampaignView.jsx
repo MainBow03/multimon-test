@@ -417,7 +417,18 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
       <div className="adv-emblem-list">{ADVENTURE_ZONES.map(z=><div key={z.id} className={save.badges.includes(z.id)?'adv-emblem-earned':''}>
        <span style={{color:z.color}}>◆</span><strong>{z.badge}</strong><small>{save.badges.includes(z.id)?'CONQUISTATO':'DA CONQUISTARE'}</small>
       </div>)}</div>
-      <p>Ultimo evento: {save.lastMessage}</p>
+      <h3>📖 {ADVENTURE_STORY_TITLE}</h3>
+       <p>Il viaggio serve a riattivare i sei portali in sicurezza. Nox non vuole impedirti di vincere: teme che ripeterai l'errore che ha causato il blackout.</p>
+       <div className="adv-story-journal">
+        {Object.entries(ADVENTURE_STORY).filter(([id])=>(save.storySeen||[]).includes(id)).map(([id,chapter])=>
+         <div key={id}><strong>{chapter.title}</strong><small>{chapter.lines.at(-1)?.text}</small></div>)}
+        {!(save.storySeen||[]).length&&<p>Ascolta Orion e visita le regioni per scoprire la storia.</p>}
+       </div>
+       <div className="adv-journal-hint">
+        <strong>🧭 Obiettivo:</strong> {currentQuest}
+        <small>{guide?.distance} m · {guide?.direction} · {guide?.tip}</small>
+       </div>
+       <p>Ultimo evento: {save.lastMessage}</p>
       <button className="adv-danger-link" onClick={()=>setConfirmReset(true)}>Ricomincia l'avventura</button>
     </>}
     {help&&<>
@@ -426,7 +437,10 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
       <p><kbd>W A S D</kbd> o <kbd>Frecce</kbd> per muoverti lungo i percorsi 3D.</p>
       <p><kbd>SHIFT</kbd> per correre. <kbd>E</kbd> per parlare, sfidare o aprire gli scrigni.</p>
       <p>📱 Su tablet usa la croce direzionale e il pulsante PARLA.</p>
-      <p>⚔️ Sconfiggi i due allenatori di ogni regione per accedere alla Palestra. Il nuovo Emblema apre il percorso seguente.</p>
+      <p>🎯 La barra "Prossima tappa" mostra il bersaglio, la distanza e la direzione. In 3D cerca il <strong>faro luminoso verticale</strong> sopra l'obiettivo; sulla mappa puoi spostarti nelle regioni già sbloccate.</p>
+      <p>⚔️ Sconfiggi i due allenatori di ogni regione. Nelle Braci, ai Picchi e nel Vulcano devi battere anche <strong>Nox</strong> prima del capopalestra.</p>
+      <p>🏛️ Gli Emblemi aprono uno dopo l’altro i portali di pietra. Se il portale è rosso, ti manca la sfida della regione.</p>
+      <p>💚 I Centri di Cura sono gratuiti e guariscono anche la riserva; puoi comprare Pozioni e Cristalli nelle Botteghe.</p>
       <p>✦ Vinci gli incontri selvatici per poter reclutare altri Multimon. Il team contiene massimo sei alleati, poi c'è la riserva.</p>
       <p>💾 Il salvataggio è automatico su questo browser. Torna al menu quando vuoi.</p>
      </div>
@@ -460,6 +474,12 @@ export function AdventureBattleResult({room,save,characters,onContinue,onExit}){
    {won&&result.kind==='gym'&&<div className="adv-earned-emblem">
     <span>◆</span><strong>{ADVENTURE_ZONES[result.zone]?.badge}</strong><small>NUOVO EMBLEMA · PERCORSO SBLOCCATO</small>
    </div>}
+   {won&&result.kind==='rival'&&<div className="adv-rival-victory">
+    <strong>🌓 Nox:</strong> {result.zone===1?
+      'Forse ho giudicato troppo in fretta. Non significa che il pericolo sia sparito. Ci vediamo al prossimo portale.':
+      result.zone===3?'Hai capito quello che volevo dimostrare. Ora cerchiamo la verità sul comando di Iris.':
+      'Ho perso, ma ho imparato qualcosa. Non riapriremo tutto insieme: ti aiuterò a sincronizzare il Cuore.'}
+   </div>}
    {won&&result.kind==='champion'&&<div className="adv-earned-emblem"><strong>🌟 CAMPIONE DEL MULTIVERSO 🌟</strong><small>HAI COMPLETATO LA LEGA!</small></div>}
    {canRecruit&&<div className="adv-capture-card">
     {img(fighter?.img,fighter?.name||result.species)}
@@ -474,7 +494,7 @@ export function AdventureBattleResult({room,save,characters,onContinue,onExit}){
      {canRecruit?'PROSEGUI SENZA RECLUTARE':'TORNA AL MONDO 3D →'}
     </button>
    </div>
-   <button className="adv-result-menu" onClick={onExit}>Torna al menu senza incassare questa battaglia</button>
+   <button className="adv-result-menu" onClick={onExit}>Ritirati al Centro di Cura (non incassi premi; perdi il 12% delle monete)</button>
   </div>
  </main>;
 }
