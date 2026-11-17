@@ -3644,7 +3644,10 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             hPercent = char.passive.healPercentRandom.min + Math.random() * (char.passive.healPercentRandom.max - char.passive.healPercentRandom.min);
                         }
                         const healAmount = Math.max(1, Math.floor(char.maxHp * hPercent));
-                        royalHeal(char,healAmount);
+                        // Preserva il comportamento originale di Bulma e
+                        // Mecha Johnny, applicando solo il modificatore Rot.
+                        if(char.statuses?.some(st=>st.type==='Marciume'))royalHeal(char,healAmount);
+                        else char.hp = Math.min(char.maxHp, char.hp + healAmount);
                         events.push({ type: 'damage', text: `✨ ${char.name} attiva ${char.passive.name}: recupera ${healAmount} PS!`, targetPlayer: target.player, targetIdx: target.charTeamIdx, newHp: char.hp, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                     }
                     if (char.passive.healLowestAllyPercent) {
