@@ -1714,7 +1714,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                   }else if(itemDef.type==='heal'){
                     const amount=Math.max(1,Math.floor(recipient.maxHp*itemDef.value));
                     const before=recipient.hp;
-                    recipient.hp=Math.min(recipient.maxHp,recipient.hp+amount);
+                    royalHeal(recipient,amount);
                     events.push({type:'damage',targetPlayer,targetIdx,newHp:recipient.hp,
                       text:gameState.players[player]+' usa '+itemDef.name+' su '+recipient.name+
                         ': recuperati '+(recipient.hp-before)+' PS!'});
@@ -2777,9 +2777,13 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                         }
 
                         if (move.drain && totalDmg > 0 && attacker.hp > 0) {
-                            const healAmount = Math.max(1, Math.floor(totalDmg * move.drain));
-                            attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmount);
-                            events.push({ type: 'damage', text: `${attacker.name} assorbe energia e recupera ${healAmount} HP!`, targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp });
+                            // Malenia recupera PS sui danni REALI, non sul danno
+                            // teorico se il bersaglio aveva pochi PS residui.
+                            const realDamage=attacker.id==='malenia'
+                              ? Math.max(0,victimHpBeforeHit-t.char.hp) : totalDmg;
+                            const healAmount = royalHeal(attacker,
+                              Math.max(1,Math.floor(realDamage*move.drain)));
+                            if(healAmount>0)events.push({ type: 'damage', text: `${attacker.name} assorbe energia e recupera ${healAmount} HP!`, targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp });
                         }
 
                         if (move.targetStatDebuff && !isFirstHitProtection && t.char.hp > 0 && !immuneToStatDrops(t.char)) {
@@ -2889,12 +2893,13 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                         if (move.targetMode === 'team_smart_heal') {
                             const aliveAlliesCount = workingField[t.player].filter(idx => workingTeams[t.player][idx].hp > 0).length;
                             const healFactor = aliveAlliesCount === 1 ? (move.healAlone || move.heal) : (move.healTeam || move.heal);
-                            const healAmount = Math.max(1, Math.floor(t.char.maxHp * healFactor));
-                            t.char.hp = Math.min(t.char.maxHp, t.char.hp + healAmount);
+                            const healAmount = royalHeal(t.char,Math.max(1,Math.floor(t.char.maxHp*healFactor)));
                             events.push({ type: 'damage', text: `✨ ${t.char.name} recupera ${healAmount} PS!`, targetPlayer: t.player, targetIdx: t.idx, newHp: t.char.hp });
                         } else if (move.heal) {
-                            const healAmount = Math.max(1, Math.floor(t.char.maxHp * move.heal));
-                            t.char.hp = Math.min(t.char.maxHp, t.char.hp + healAmount);
+                            const healAmount = wasDead
+                              ? Math.max(1,Math.floor(t.char.maxHp*move.heal))
+                              : royalHeal(t.char,Math.max(1,Math.floor(t.char.maxHp*move.heal)));
+                            if(wasDead)t.char.hp=Math.min(t.char.maxHp,healAmount);
                             
                             // FIX: Stampa l'azione della mossa se è una resurrezione, così il registro è chiaro!
                             if (wasDead && move.targetMode === 'revive') {
@@ -3614,8 +3619,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
 
             const leftoversHeal=getHeldEndTurnHeal(char);
             if(leftoversHeal && char.hp<char.maxHp){
-                char.hp=Math.min(char.maxHp,char.hp+leftoversHeal);
-                events.push({type:'damage',text:`🍲 ${char.name} recupera ${leftoversHeal} PS grazie agli Avanzi!`,
+                const actualHeal=royalHeal(char,leftoversHeal);
+                events.push({type:'damage',text:`🍲 ${char.name} recupera ${actualHeal} PS grazie agli Avanzi!`,
                     targetPlayer:target.player,targetIdx:target.charTeamIdx,newHp:char.hp});
             }
 
