@@ -141,9 +141,10 @@ test('Lavender: mossa Lotta velenosa al 35%, nebbia di precisione, Morso a 130 s
  assert.equal(wolf.acc,1.1);assert.equal(ally.acc,1.1);assert.equal(enemy.acc,.9);
  const bite=MOVES_DB['Morso del Basilisco'];
  assert.equal(bite.targetCount,2);
- assert.equal(royalEffectiveMove(bite,foe),bite);
- royalStatus(foe,'Avvelenato');
- assert.equal(royalEffectiveMove(bite,foe).power,130);
+ const freshTarget=fresh('shrek');
+ assert.equal(royalEffectiveMove(bite,freshTarget),bite);
+ royalStatus(freshTarget,'Avvelenato');
+ assert.equal(royalEffectiveMove(bite,freshTarget).power,130);
  assert.equal(bite.power,50,'non muta la definizione originale della mossa');
 });
 test('Re Medusa: end-turn speed 10%, minion unique per king, bodyguard e +1 priorità',()=>{
