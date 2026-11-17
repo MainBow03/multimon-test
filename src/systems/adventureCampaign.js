@@ -180,6 +180,14 @@ export function adventureGymCheck(save,entity){
    if(ADVENTURE_RIVAL_ZONES.includes(entity.zone)&&!save.defeated.includes(rivalId))
      return {ok:false,message:'Nox ti aspetta lungo il percorso. Affrontalo prima della Palestra di '+z.gym+'.'};
  }
+ if(entity.kind==='rival'){
+   const z=ADVENTURE_ZONES[entity.zone];
+   if(!z||ADVENTURE_ZONES.slice(0,entity.zone).some(g=>!save.badges.includes(g.id)))
+     return {ok:false,message:'Non hai ancora raggiunto il capitolo in cui Nox ti sfida.'};
+   const victories=(save.defeated||[]).filter(id=>id.startsWith(z.id+':trainer:')).length;
+   if(victories<2)return {ok:false,message:'Nox ti aspetta, ma prima affronta i due allenatori del percorso ('+victories+'/2).'};
+   if(save.defeated.includes(entity.id))return {ok:false,message:'Hai già superato la prova di Nox.'};
+ }
  if(entity.kind==='champion'){
    if(save.badges.length<6)return {ok:false,message:'La Lega richiede tutti e sei gli Emblemi.'};
    if(save.finished)return {ok:false,message:'Hai già conquistato la Lega del Multiverso!'};
