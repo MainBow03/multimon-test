@@ -7,6 +7,7 @@ import {GEM_FLAME_CHARACTERS} from './gemFlameCharacters.js';
 import {BERRY_FRILLISH_CHARACTERS} from './berryFrillishCharacters.js';
 import {NEW_TRIO_CHARACTERS} from './flinsGanyuCoraline.js';
 import {THEATER_CHARACTERS} from './theaterActors.js';
+import {ROYAL_POISON_CHARACTERS} from './royalPoisonCharacters.js';
 
 export const CHARACTERS = [
   ...THEATER_CHARACTERS,
