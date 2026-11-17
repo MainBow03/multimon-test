@@ -390,3 +390,123 @@
  .adv-route-progress{top:124px}
  .adv-modal{max-height:95dvh}
 }
+
+/* ── CAMPAGNA 3D · CARTOON CEL-SHADING / COMIC-BOOK ART DIRECTION ──
+   La pelle WebGL usa il toon shader; l'HUD condivide l'inchiostro,
+   i colori vivaci e le ombre a stacco senza cambiare le interazioni. */
+.adv-root{
+ --adv-ink:#172640;
+ --adv-stroke:#fef4d9;
+ --adv-comic-shadow:0 5px 0 #172640,0 12px 28px #09162f83;
+}
+.adv-world{background:#9fdaeb}
+.adv-world:after{
+ content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+ background-image:radial-gradient(#14273f 0.8px,transparent 0.8px);
+ background-size:14px 14px;opacity:.065;
+ mask-image:linear-gradient(90deg,#0006,transparent 34%,transparent 68%,#0006);
+}
+.adv-sun{
+ box-shadow:0 0 0 5px #fff1bb55,0 0 0 13px #fff4b028,0 0 45px 22px #ffe7ac77;
+}
+.adv-hud-place{
+ border:3px solid #fff0ca;
+ background:linear-gradient(135deg,#21577fe9,#254078ee 54%,#573c7fe5);
+ box-shadow:var(--adv-comic-shadow),inset 0 2px 0 #ffffff38;
+ transform:rotate(-.65deg);
+}
+.adv-hud-place-kicker{
+ color:#ffe7a1;font-weight:1000;text-shadow:0 2px 0 #14233a;
+}
+.adv-hud-place strong{
+ text-shadow:2px 3px 0 #101d3a,0 0 20px #fff4c638;
+ letter-spacing:.01em;
+}
+.adv-hud-place small{color:#e3faff}
+.adv-hud-badges,.adv-back,.adv-quest-panel,.adv-toolbar{
+ border:2px solid #f8eac7;
+ box-shadow:var(--adv-comic-shadow);
+}
+.adv-hud-badges{background:linear-gradient(155deg,#314f84ed,#1b375eea)}
+.adv-hud-badges>strong{text-shadow:2px 3px 0 #0b203d}
+.adv-back{
+ background:#f9e7a2;color:#182945;
+ border-color:#172640;
+ text-shadow:none;
+ font-weight:1000!important;
+}
+.adv-back:hover{background:#fff2c8!important}
+.adv-quest-panel{
+ background:linear-gradient(135deg,#254a60f2,#172e52f0);
+ border-color:#c5f5df;
+}
+.adv-quest-panel>span{color:#ffe59a}
+.adv-quest-panel>strong{text-shadow:1px 2px 0 #061b31}
+.adv-interact-pill{
+ border:3px solid #1d304d;
+ background:linear-gradient(145deg,#ffeb9b,#f8b75c);
+ color:#1c2a41;
+ box-shadow:0 6px 0 #8b5a38,0 10px 28px #1d294f90;
+ transform:rotate(-1deg);
+}
+.adv-interact-pill b,.adv-interact-pill small{color:#1d3043}
+.adv-interact-pill kbd{
+ border:2px solid #23344d;background:#fff9e6;
+ box-shadow:0 3px 0 #915c30;
+}
+.adv-toolbar{background:#1a375ce8}
+.adv-toolbar button{
+ border:2px solid #789db1;
+ background:linear-gradient(145deg,#387d9f,#285279);
+ box-shadow:0 3px 0 #0c2949;
+}
+.adv-toolbar button:hover{background:#459bad;transform:translateY(-2px)}
+.adv-route-guide,.adv-route-progress{
+ border:2px solid #f4dfa8;
+ box-shadow:0 5px 0 #172640,0 12px 26px #17264080;
+}
+.adv-route-progress{background:#233e62e8}
+.adv-route-step span{border-width:2px}
+.adv-route-current span{box-shadow:0 0 0 2px #162b45,0 0 14px #ffda79aa!important}
+.adv-compass{text-shadow:1px 2px 0 #13233b,0 1px 8px #13233b}
+.adv-pad{
+ background:linear-gradient(145deg,#65bddd,#286798);
+ border:3px solid #f1f0d9;
+ border-bottom:5px solid #152c4f;
+ box-shadow:0 6px 0 #172640,0 12px 22px #09192d77;
+}
+.adv-pad:active{
+ background:#78dac2;transform:translateY(4px);box-shadow:0 2px 0 #172640;
+}
+.adv-action-touch{
+ background:linear-gradient(145deg,#ffe496,#ffb35d);
+ border:4px solid #24334c;box-shadow:0 6px 0 #794c2d,0 11px 28px #17264099;
+ color:#1e2d49;
+}
+.adv-action-touch:active{transform:translateY(4px);box-shadow:0 2px 0 #794c2d}
+.adv-modal{
+ border:3px solid #ffedc9;
+ box-shadow:0 7px 0 #162b45,0 28px 85px #07172dc4;
+}
+.adv-dialog,.adv-story-dialogue,.adv-team-member,.adv-region-row{
+ border-width:2px;
+ box-shadow:inset 0 2px 0 #ffffff15,0 4px 0 #0a1c34;
+}
+.adv-starter-card{
+ border-width:3px;box-shadow:0 6px 0 #172640,0 20px 36px #06162d66;
+}
+.adv-starter-card:hover{transform:translateY(-4px)}
+.adv-primary{
+ border:2px solid #152e41;
+ box-shadow:0 5px 0 #0e6a61,0 12px 22px #102c4454;
+}
+@media(max-width:690px){
+ .adv-hud-place{transform:none;border-width:2px;box-shadow:0 3px 0 #172640,0 8px 15px #09162f80}
+ .adv-hud-badges,.adv-back,.adv-quest-panel,.adv-toolbar{border-width:1.5px;box-shadow:0 3px 0 #172640,0 8px 15px #09162f60}
+ .adv-interact-pill{transform:none}
+ .adv-route-guide,.adv-route-progress{box-shadow:0 3px 0 #172640,0 7px 16px #09162f75}
+ .adv-world:after{opacity:.045}
+}
+@media(prefers-reduced-motion:reduce){
+ .adv-root button,.adv-interact-pill{animation:none!important;transition:none!important}
+}
