@@ -3,6 +3,11 @@
 // la loro eleggibilità è definita in masterySystem.js.
 // Ogni titolo è esclusivo di un singolo Multimon; nessun effetto sulle statistiche.
 export const MASTERY_CHARACTER_TITLES = Object.freeze({
+  "malefica": "Sovrana delle Fiamme Maledette",
+  "yzma": "Alchimista dell’Imprevisto",
+  "lavender": "Predatrice della Nebbia Tossica",
+  "remedusa": "Re delle Profondità Elettriche",
+  "malenia": "Dea della Fioritura Scarlatta",
   "flins": "Custode della Lanterna Lunare",
   "ganyu": "Adepta del Fiore di Qilin",
   "coraline": "Viaggiatrice della Porticina Segreta",

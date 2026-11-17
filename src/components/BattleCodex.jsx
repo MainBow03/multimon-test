@@ -8,6 +8,7 @@ import { NEGATIVE_STATUS_TYPES } from '../systems/newHeldAndPassiveEffects.js';
 const NEGATIVE_DESCRIPTIONS = {
   Avvelenato:'Danneggia nel tempo. La durata dipende dalla mossa e dalle abilità che lo applicano.',
   Scottato:'Ustione: causa danni nel tempo; controlla i turni residui del bersaglio.',
+  Marciume:'Marciume Scarlatto: dura quattro turni completi. Toglie il 6%, 9%, 12% e 15% dei PS massimi progressivamente e dimezza tutte le cure ricevute. Non si accumula; può essere purificato.',
   Elettrizzato:'Velocità dimezzata e probabilità del 30% di non riuscire ad agire.',
   Congelato:'A ogni azione può bloccarsi e perdere 3 PS oppure liberarsi dal ghiaccio.',
   Assiderato:'Status da Gelo Definitivo di Elsa: per 2 turni completi la Velocità effettiva è dimezzata (−50%) e tutti i danni inflitti sono ridotti del 30%. Non blocca le azioni. Curabile come status negativo.',

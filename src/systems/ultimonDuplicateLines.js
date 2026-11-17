@@ -2,6 +2,12 @@
 // che ha già parlato nella presentazione di un'altra squadra.
 // Una risposta esclusiva per ogni personaggio (incluse le fusioni).
 export const ULTIMON_DUPLICATE_REACTIONS=Object.freeze({
+  "malefica": "Un’altra Malefica? Due regine delle spine non dividono il trono. E il mio drago non tollera le imitazioni.",
+  "yzma": "Un’altra Yzma?! KRONK! Qualcuno ha sbagliato leva e ha prodotto una copia della migliore mente dell’Impero!",
+  "lavender": "Sento il mio stesso veleno nell’aria. Vieni fuori, imitatrice: scopriamo chi guida il branco.",
+  "remedusa": "Un secondo Re Medusa? Il mare ha un solo sovrano. Servitori, difendete la mia corona!",
+  "malenia": "Un’altra fioritura scarlatta. Nessuna copia conosce il prezzo di ogni battaglia quanto me.",
+  "medusaservitore": "Oh mio sire, persino la mia gelatina è stata duplicata! Quale dei due servitori è quello autentico?",
   "flins": "Un altro custode del faro? Spero tu abbia portato una lanterna: qui il buio è competitivo.",
   "ganyu": "Un'altra Ganyu con la mia stessa freccia? Allora vediamo quale Qilin sa scegliere la traiettoria migliore.",
   "coraline": "Un'altra Coraline? Sei uscita dalla porticina o hai lasciato la chiave dall'altra parte?",

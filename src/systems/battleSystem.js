@@ -50,6 +50,11 @@ import { isRainyWeather, RAINSTORM_TURNS, tryStartRainstorm, weatherMoveFactor, 
 import {TAILWIND_TURNS,tailwindAllies,tailwindSpeedFactor,startTailwind,advanceTailwind,
   LUSH_GRASS_TURNS,isLushGrass,lushGrassHeal} from './battleFieldEffects.js';
 import { resolvePoisonEndTurn } from './battleStatusTurns.js';
+import {royalStatusSnapshot,royalNewNegativeStatuses,royalStatus,royalCursedFlames,
+ royalWolfVenom,royalPotionCanTarget,royalPotionApply,royalStatusDamageBonus,
+ royalEffectiveMove,royalRotHealingAmount,royalHeal,royalApplyRot,royalRotTick,
+ royalMedusaAgility,royalGrantPriority,royalConsumePriority,royalMedusaCanSummon,
+ royalBuildMedusaSummon,royalMistTargets} from './royalPoisonSystem.js';
 import { addEvasion, crystalShield, beginRefraction, directHitAfterCrystalDefense, endRefractionTurn, snowstormOutcome, randomBuff, randomDebuff, daffyCelebration } from './championEffects.js';
 import { ignoresShields, immuneToStatDrops, powerForAccordo, effectiveTaserPower,
   incomingRockEnchantmentFactor, affectedOpponents, addStickyTrap, trapEntries,
@@ -318,7 +323,7 @@ const { CHARACTERS } = ctx;
                           const rTarget = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
                           const sType = char.passive.applyStatusToRandomEnemy.type;
                           
-                          const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'].includes(sType);
+                          const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'].includes(sType);
                           if (isNegative && (rTarget.char.passive?.immuneToNegativeStatuses || blockedEnemyPassive(rTarget.char) || (sType==='Accecato'&&isEchoRaidAccuracyProtected(rTarget.char)))) {
                               eventsArr.push({ type: 'text', text: `🛡️ ${char.name} attiva ${char.passive.name}, ma ${rTarget.char.name} è immune a ${sType} grazie a ${rTarget.char.passive?.name||'Scudo Anti-Magia'}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                           } else {
@@ -778,6 +783,7 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             let pwr = move.power * getHeldPowerFactor(attacker, move) * offensiveHeldFactor(attacker,defender,move);
             if (attacker.passive?.type === 'ghost_rockstar' && move.type === 'Suono') pwr *= 1.25;
             pwr *= qilinDamageFactor(attacker,move);
+            pwr *= royalStatusDamageBonus(attacker,defender,move);
             if (move.speedScaling) pwr += Math.floor(attacker.spd / 3);
             
             // --- GESTIONE PASSIVE: POTENZIAMENTO MOSSE ---
@@ -1090,6 +1096,29 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 }
                 target.damageTakenThisTurn = (target.damageTakenThisTurn || 0) + dmg;
                 events.push({ type: 'damage', text: text, targetPlayer, targetIdx, newHp: target.hp });
+                if(options.isEnemyTarget&&options.attacker&&options.attacker!==target&&
+                   hpBeforeDamage>target.hp&&(options.directAttack||options.isOffensiveMove)){
+                  const source=options.attacker,actualDamage=hpBeforeDamage-target.hp;
+                  if(source.passive?.type==='goddess_of_rot'&&source.hp>0){
+                    const healed=royalHeal(source,Math.floor(actualDamage*.15));
+                    if(healed>0)events.push({type:'damage',
+                      text:'🌺 Dea del Marciume: '+source.name+' assorbe '+healed+' PS!',
+                      targetPlayer:options.attackerPlayer,targetIdx:options.attackerIdx,
+                      newHp:source.hp,isPassive:true,passiveChar:source.name,passiveName:'Dea del Marciume'});
+                  }
+                  if(target.hp>0&&!options.royalSplash){
+                    const blocked=blockedEnemyPassive(target);
+                    const curse=royalCursedFlames(source,target,Math.random,blocked);
+                    const wolf=royalWolfVenom(source,target,options.move,Math.random,blocked);
+                    if(curse||wolf){
+                      updateStatusUI(targetPlayer,targetIdx);
+                      events.push({type:'text',
+                        text:(curse?'🔥 Fiamme Maledette: '+target.name+' è '+curse+'!':
+                          '🐺 Veleno del Lupo! '+target.name+' è avvelenato!'),
+                        isPassive:true,passiveChar:source.name,passiveName:source.passive?.name});
+                    }
+                  }
+                }
                 if(gameState.isRoguelikeBattle&&!gameState.isRoguelikeCoop&&
                    options.isEnemyTarget&&options.attacker&&hpBeforeDamage>target.hp&&
                    rogueHexerTriggers(options.attacker,target)){
@@ -1270,7 +1299,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
 
                         // AGGIUNTO: GESTIONE PURIFICAZIONE STATUS (es. Zazan - Corazza Mutante)
                         if (target.passive.removeNegativeStatuses) {
-                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'];
+                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'];
                             const originalLength = target.statuses.length;
                             target.statuses = target.statuses.filter(s => !negatives.includes(s.type));
                             
@@ -1591,6 +1620,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 const move = action.type === 'attack' ? char.moves[action.moveIdx] : null;
                 let priority = (action.type === 'switch' || action.type === 'use_item') ? 6 : (move ? (move.priority || 0) : 0);
                 priority += rapidTransmutationPriority(char,move);
+                // La Medusa Servitore dona +1 solo alla prossima azione offensiva.
+                priority += royalConsumePriority(char,action);
 
                 if (char.statuses && char.statuses.some(s => s.type === 'Ombra Rapida')) {
                     priority += 2;
@@ -1683,7 +1714,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                   }else if(itemDef.type==='heal'){
                     const amount=Math.max(1,Math.floor(recipient.maxHp*itemDef.value));
                     const before=recipient.hp;
-                    recipient.hp=Math.min(recipient.maxHp,recipient.hp+amount);
+                    royalHeal(recipient,amount);
                     events.push({type:'damage',targetPlayer,targetIdx,newHp:recipient.hp,
                       text:gameState.players[player]+' usa '+itemDef.name+' su '+recipient.name+
                         ': recuperati '+(recipient.hp-before)+' PS!'});
@@ -1900,6 +1931,16 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                   events.push({type:'text',text:move.name+' non è ancora disponibile.'});
                   continue;
                 }
+                if(move.royalPotion && action.targetPlayer && action.targetIdx!==undefined){
+                  const foes=affectedOpponents(player,gameState.gameMode,
+                    activeMatchPlayers,getTournamentMatchOpponents,gameState.settings);
+                  if(!royalPotionCanTarget(attacker,player,action.targetPlayer,action.targetIdx,
+                      foes.includes(action.targetPlayer))){
+                    events.push({type:'text',text:'🧪 Pozione Misteriosa: '+attacker.name+
+                      ' ha già applicato una pozione a questo avversario.'});
+                    continue;
+                  }
+                }
                 if((move.targetMode==='revive'||move.targetMode==='ally') &&
                    !isLegalSupportTarget(
                      {gameMode:gameState.gameMode,settings:gameState.settings,
@@ -2062,6 +2103,17 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     continue;
                 }
 
+                // Traccia ogni status nuovo dato a Yzma da questa azione nemica.
+                const yzmaWatch=new Map();
+                const attackingFoes=affectedOpponents(player,gameState.gameMode,
+                  activeMatchPlayers,getTournamentMatchOpponents,gameState.settings);
+                for(const ep of attackingFoes){
+                  (workingField[ep]||[]).forEach(idx=>{
+                    const target=workingTeams[ep]?.[idx];
+                    if(target?.id==='yzma'&&target.hp>0)
+                      yzmaWatch.set(ep+':'+idx,royalStatusSnapshot(target));
+                  });
+                }
                 let resolvedTargets = [];
 
                 if (move.targetCount && move.targetCount >= 4) {
@@ -2290,7 +2342,8 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     // --- END REDIRECT BODYGUARD LOGIC ---
 
                     // --- CHECK ALLY TARGET FOR IMMUNITIES ---
-                    const isAllyTargeted = move.targetMode === 'team' || move.targetMode === 'team_smart_heal' || move.targetMode === 'ally' || move.targetMode === 'revive' || move.target === 'self';
+                    const isAllyTargeted = move.targetMode === 'team' || move.targetMode === 'team_smart_heal' || move.targetMode === 'ally' || move.targetMode === 'revive' || move.target === 'self' ||
+                       (move.royalPotion && !attackingFoes.includes(t.player));
 
                     let multiplier = isAllyTargeted ? 1 : getMultiplier(move.type, t.char.types);
                     let isImmuneDueToPassive = false;
@@ -2538,6 +2591,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             if(move.bonusIfSlowed)currentMoveForDmg={...currentMoveForDmg,power:effectiveTaserPower(t.char)};
                             if(move.spoutLowHpPower)
                               currentMoveForDmg={...currentMoveForDmg,power:frillishSpoutPower(t.char,move)};
+                            currentMoveForDmg=royalEffectiveMove(currentMoveForDmg,t.char);
                             let isCritical = false;
                             let critMultiplier = 1.0;
 
@@ -2601,9 +2655,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
 
                             if (isFirstHitProtection) hitDmg = Math.max(1,Math.floor(hitDmg * firstHitProtectionFactor(t.char,true)));
                             // --- GESTIONE CURE SU ALLEATI CON DANNO (es. Tempesta di Farfalle) ---
-                            if (!isEnemyTarget && move.healAlliesByDamage) {
-                                const healAmount = hitDmg;
-                                t.char.hp = Math.min(t.char.maxHp, t.char.hp + healAmount);
+                            if (!isEnemyTarget && (move.healAlliesByDamage||move.royalPotion)) {
+                                const healAmount = royalHeal(t.char,hitDmg);
                                 events.push({ type: 'damage', text: `✨ ${attacker.name} usa ${move.name} su ${t.char.name}! La magia lo cura di ${healAmount} PS!${effectivenessText}`, targetPlayer: t.player, targetIdx: t.idx, newHp: t.char.hp });
                                 attackSucceeded = true;
                                 break; // Usciamo dal loop dei colpi multipli (le cure sono istantanee)
@@ -2724,9 +2777,13 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                         }
 
                         if (move.drain && totalDmg > 0 && attacker.hp > 0) {
-                            const healAmount = Math.max(1, Math.floor(totalDmg * move.drain));
-                            attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmount);
-                            events.push({ type: 'damage', text: `${attacker.name} assorbe energia e recupera ${healAmount} HP!`, targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp });
+                            // Malenia recupera PS sui danni REALI, non sul danno
+                            // teorico se il bersaglio aveva pochi PS residui.
+                            const realDamage=attacker.id==='malenia'
+                              ? Math.max(0,victimHpBeforeHit-t.char.hp) : totalDmg;
+                            const healAmount = royalHeal(attacker,
+                              Math.max(1,Math.floor(realDamage*move.drain)));
+                            if(healAmount>0)events.push({ type: 'damage', text: `${attacker.name} assorbe energia e recupera ${healAmount} HP!`, targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp });
                         }
 
                         if (move.targetStatDebuff && !isFirstHitProtection && t.char.hp > 0 && !immuneToStatDrops(t.char)) {
@@ -2822,7 +2879,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                         }
                         if (attacker.passive.healPercent) {
                             const healAmount = Math.max(1, Math.floor(attacker.maxHp * attacker.passive.healPercent));
-                            attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmount);
+                            royalHeal(attacker,healAmount);
                             events.push({ type: 'damage', text: `✨ ${attacker.name} manda K.O. l'avversario e attiva ${attacker.passive.name}! Recupera ${healAmount} PS!`, targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp, isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
                         }
                     }
@@ -2836,12 +2893,13 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                         if (move.targetMode === 'team_smart_heal') {
                             const aliveAlliesCount = workingField[t.player].filter(idx => workingTeams[t.player][idx].hp > 0).length;
                             const healFactor = aliveAlliesCount === 1 ? (move.healAlone || move.heal) : (move.healTeam || move.heal);
-                            const healAmount = Math.max(1, Math.floor(t.char.maxHp * healFactor));
-                            t.char.hp = Math.min(t.char.maxHp, t.char.hp + healAmount);
+                            const healAmount = royalHeal(t.char,Math.max(1,Math.floor(t.char.maxHp*healFactor)));
                             events.push({ type: 'damage', text: `✨ ${t.char.name} recupera ${healAmount} PS!`, targetPlayer: t.player, targetIdx: t.idx, newHp: t.char.hp });
                         } else if (move.heal) {
-                            const healAmount = Math.max(1, Math.floor(t.char.maxHp * move.heal));
-                            t.char.hp = Math.min(t.char.maxHp, t.char.hp + healAmount);
+                            const healAmount = wasDead
+                              ? Math.max(1,Math.floor(t.char.maxHp*move.heal))
+                              : royalHeal(t.char,Math.max(1,Math.floor(t.char.maxHp*move.heal)));
+                            if(wasDead)t.char.hp=Math.min(t.char.maxHp,healAmount);
                             
                             // FIX: Stampa l'azione della mossa se è una resurrezione, così il registro è chiaro!
                             if (wasDead && move.targetMode === 'revive') {
@@ -2886,7 +2944,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                         }
 
                         if (move.removeNegativeStatuses) {
-                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'];
+                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'];
                             const originalLength = t.char.statuses.length;
                             t.char.statuses = t.char.statuses.filter(s => !negatives.includes(s.type));
                             if (t.char.statuses.length < originalLength) {
@@ -2911,6 +2969,11 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             }
                         }
 
+                        if (attackSucceeded && move.royalGrantPriority && !isEnemyTarget &&
+                            t.char.hp>0 && royalGrantPriority(t.char)){
+                          events.push({type:'text',text:'👑 Oh Mio Sire: '+t.char.name+
+                            ' riceve priorità +1 alla prossima azione offensiva!'});
+                        }
                         if (move.copyRandomEnemyType && t.char.hp > 0) {
                             let possibleEnemies = [];
                             const activeMatchPlayers = getActivePlayers();
@@ -2959,7 +3022,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 events.push({type:'text',text:'🛡️ Aura Suprema: Echomax è immune all’accecamento e ai cali di Precisione!'});
                                 continue;
                             }
-                            const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'].includes(effect.type);
+                            const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'].includes(effect.type);
                             
                             // FIX CRITICO: Se la mossa non ha una "chance" specificata, assumiamo che sia 1.0 (100% garantita)!
                             const chanceToApply = boostedStatusChance(attacker,effect.chance !== undefined ? effect.chance : 1.0);
@@ -3012,6 +3075,28 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 }
                             }
                         }
+                        // Effetti speciali: Marciume (4 turni, cure dimezzate)
+                        // e Pozione Misteriosa (un nuovo status casuale per bersaglio).
+                        if(attackSucceeded && isEnemyTarget && !isFirstHitProtection &&
+                           t.char.hp>0 && move.royalScarletRot){
+                          if(royalApplyRot(t.char,blockedEnemyPassive(t.char))){
+                            updateStatusUI(t.player,t.idx);
+                            events.push({type:'text',text:'🌺 Marciume Scarlatto: '+t.char.name+
+                              ' è infetto per 4 turni e riceve il 50% di cure in meno!'});
+                          } else events.push({type:'text',text:'🌺 '+t.char.name+
+                            ' è già affetto da Marciume o resiste alla condizione.'});
+                        }
+                        if(attackSucceeded && isEnemyTarget && !isFirstHitProtection &&
+                           t.char.hp>0 && move.royalPotion &&
+                           t.char.hp<victimHpBeforeHit){
+                          const potion=royalPotionApply(attacker,t.char,t.player,t.idx,
+                            Math.random,blockedEnemyPassive(t.char));
+                          if(potion){
+                            updateStatusUI(t.player,t.idx);
+                            events.push({type:'text',text:'🧪 Pozione Misteriosa di '+attacker.name+
+                              ': '+t.char.name+' ottiene '+potion+'!'});
+                          }
+                        }
                         // Lo spray scatta immediatamente appena una mossa
                         // applica un malus, senza attendere il prossimo turno.
                         const sprayCured=activateNeutralizingSpray(t.char);
@@ -3021,6 +3106,74 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                         }
                     }
                 } // FINE CICLO SUI BERSAGLI (resolvedTargets)
+                // Fuoco Fatato: la fiamma si espande soltanto se esiste
+                // un ALTRO avversario attivo; danni fissi, non a sé stessi.
+                if(attackSucceeded && move.royalSplash>0){
+                  const allOthers=attackingFoes.flatMap(ep=>(workingField[ep]||[])
+                    .map(idx=>({ep,idx,char:workingTeams[ep]?.[idx]})))
+                    .filter(x=>x.char?.hp>0 && !resolvedTargets.some(t=>
+                      t.player===x.ep&&t.idx===x.idx));
+                  if(allOthers.length){
+                    const extra=allOthers[Math.floor(Math.random()*allOthers.length)];
+                    applyDamage(extra.char,move.royalSplash,extra.ep,extra.idx,
+                      '🔥 Fuoco Fatato si espande: '+extra.char.name+
+                      ' perde '+move.royalSplash+' PS!',
+                      {isOffensiveMove:true,isEnemyTarget:true,attacker,
+                       attackerPlayer:player,attackerIdx:charTeamIdx,move,royalSplash:true});
+                  }
+                }
+                // Sciame: un solo servitore attivo per sovrano. Lo stato
+                // entra nella squadra autorevole ed è riprodotto via evento.
+                if(attackSucceeded&&move.royalJellySummonChance&&
+                   Math.random()<move.royalJellySummonChance &&
+                   royalMedusaCanSummon(attacker,workingTeams[player],
+                     workingField[player],charTeamIdx)){
+                  const base=CHARACTERS.find(c=>c.id==='medusaservitore');
+                  const summoned=royalBuildMedusaSummon(base,charTeamIdx);
+                  if(summoned){
+                    workingTeams[player].push(summoned);
+                    const newIdx=workingTeams[player].length-1;
+                    workingField[player].push(newIdx);
+                    events.push({type:'summon',player,newChar:structuredClone(summoned),
+                      fieldIdx:newIdx,text:'🪼 Sciame di Meduse: '+attacker.name+
+                        ' evoca una Medusa Servitore a sua difesa!'});
+                  }
+                }
+                // Nebbia Velenifica: precisione aumentata al team e ridotta
+                // a tutti gli avversari realmente presenti in campo.
+                if(attackSucceeded&&move.royalMist){
+                  const friends=activeMatchPlayers.filter(p=>!attackingFoes.includes(p));
+                  const collect=roles=>roles.flatMap(role=>(workingField[role]||[])
+                    .map(idx=>workingTeams[role]?.[idx]).filter(c=>c?.hp>0));
+                  const changed=royalMistTargets(collect(friends),
+                    collect(attackingFoes),c=>
+                      blockedEnemyPassive(c)||isEchoRaidAccuracyProtected(c));
+                  if(changed.allies.length||changed.enemies.length)
+                    events.push({type:'text',text:'🌫️ Nebbia Velenifica! Precisione degli alleati +10% ('+
+                      changed.allies.length+'), avversari −10% ('+changed.enemies.length+')!'});
+                }
+                // La Leva Sbagliata reagisce a un NUOVO status ottenuto
+                // dall'attacco nemico, non al meteo, ai refresh o allo status
+                // già presente prima dell'azione.
+                for(const [key,before] of yzmaWatch){
+                  const split=key.lastIndexOf(':'),role=key.slice(0,split),
+                    idx=Number(key.slice(split+1)),yzma=workingTeams[role]?.[idx];
+                  if(!yzma||yzma.hp<=0||yzma.passive?.type!=='wrong_lever')continue;
+                  const applied=royalNewNegativeStatuses(yzma,before);
+                  for(const status of applied){
+                    const immune=attacker.passive?.immuneTypes?.includes('Veleno')||
+                      attacker.passive?.immuneToType==='Veleno'||
+                      getMultiplier('Veleno',attacker.types)===0;
+                    if(immune||attacker.hp<=0)continue;
+                    applyDamage(attacker,80,player,charTeamIdx,
+                      '🧪 Leva Sbagliata! '+yzma.name+
+                      ' tenta la fuga e colpisce per errore '+attacker.name+
+                      ': 80 danni Veleno per '+status+'!',
+                      {isOffensiveMove:true,isEnemyTarget:true,
+                       attacker:yzma,attackerPlayer:role,attackerIdx:idx,
+                       move:{name:'Leva Sbagliata!',type:'Veleno',power:80}});
+                  }
+                }
                 if (futureStrikeDealtDamage && consumeFutureStrike(attacker)) {
                     events.push({ type: 'text', text: `🔮 ${attacker.name} sfrutta Futuro Infrangibile: il suo attacco ha inflitto +25% danni!`,
                         isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
@@ -3203,7 +3356,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             healFactor = move.selfHealRandom.min + Math.random() * (move.selfHealRandom.max - move.selfHealRandom.min);
                         }
                         const healAmount = Math.floor(attacker.maxHp * healFactor);
-                        attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmount);
+                        royalHeal(attacker,healAmount);
                         events.push({ type: 'damage', text: `${attacker.name} recupera ${healAmount} HP!`, targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp });
                     }
                 }
@@ -3223,7 +3376,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 }
                                 if (effect.heal) {
                                     const healAmount = Math.max(1, Math.floor(attacker.maxHp * effect.heal));
-                                    attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmount);
+                                    royalHeal(attacker,healAmount);
                                     events.push({ type: 'damage', text: `✨ ${attacker.name} attiva ${attacker.passive.name}! Recupera ${healAmount} PS!`, targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp, isPassive: true, passiveChar: attacker.name, passiveName: attacker.passive.name });
                                 }
                             }
@@ -3264,7 +3417,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 applyDamage(attacker, dmg, player, charTeamIdx, `${attacker.name} sacrifica ${dmg} HP per la mossa combinata!`);
                             } else {
                                 const healAmount = Math.floor(attacker.maxHp * eff.selfHeal);
-                                attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmount);
+                                royalHeal(attacker,healAmount);
                                 events.push({ type: 'damage', text: `${attacker.name} recupera ${healAmount} HP!`, targetPlayer: player, targetIdx: charTeamIdx, newHp: attacker.hp });
                             }
                         }
@@ -3293,7 +3446,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                         applyDamage(partner, dmg, player, partnerTeamIdx, `${partner.name} sacrifica ${dmg} HP per la mossa combinata!`);
                                     } else {
                                         const healAmount = Math.floor(partner.maxHp * eff.selfHeal);
-                                        partner.hp = Math.min(partner.maxHp, partner.hp + healAmount);
+                                        royalHeal(partner,healAmount);
                                         events.push({ type: 'damage', text: `${partner.name} recupera ${healAmount} HP grazie alla Mossa Combinata!`, targetPlayer: player, targetIdx: partnerTeamIdx, newHp: partner.hp });
                                     }
                                 }
@@ -3319,7 +3472,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 
                                 if (move.selfHeal) {
                                     const pHealAmount = Math.floor(partner.maxHp * move.selfHeal);
-                                    partner.hp = Math.min(partner.maxHp, partner.hp + pHealAmount);
+                                    royalHeal(partner,pHealAmount);
                                     events.push({ type: 'damage', text: `${partner.name} recupera ${pHealAmount} HP grazie alla Mossa Combinata!`, targetPlayer: player, targetIdx: partnerTeamIdx, newHp: partner.hp });
                                 }
                             }
@@ -3455,9 +3608,18 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 events.push({type:'text',text:`🕳️ ${char.name} è libero dalla Prigione Sotterranea!`});
               }
             }
+            const beforeSprout=char.hp;
             const sproutAtEnd=activateHealingSprout(char);
-            if(sproutAtEnd)events.push({type:'damage',targetPlayer:target.player,targetIdx:target.charTeamIdx,newHp:char.hp,
-              text:`🌱 ${char.name} recupera ${sproutAtEnd} PS grazie al Germoglio Curativo!`});
+            if(sproutAtEnd){
+              const actualHeal=char.hp-beforeSprout;
+              // Il germoglio si consuma come sempre, ma Marciume dimezza
+              // anche le cure automatiche date dagli strumenti.
+              if(actualHeal>0&&char.statuses?.some(st=>st.type==='Marciume'))
+                char.hp=beforeSprout+Math.floor(actualHeal*.5);
+              events.push({type:'damage',targetPlayer:target.player,
+                targetIdx:target.charTeamIdx,newHp:char.hp,
+                text:`🌱 ${char.name} recupera ${char.hp-beforeSprout} PS grazie al Germoglio Curativo!`});
+            }
             const sprayAtEnd=activateNeutralizingSpray(char);
             if(sprayAtEnd.length){
                 updateStatusUI(target.player,target.charTeamIdx);
@@ -3466,8 +3628,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
 
             const leftoversHeal=getHeldEndTurnHeal(char);
             if(leftoversHeal && char.hp<char.maxHp){
-                char.hp=Math.min(char.maxHp,char.hp+leftoversHeal);
-                events.push({type:'damage',text:`🍲 ${char.name} recupera ${leftoversHeal} PS grazie agli Avanzi!`,
+                const actualHeal=royalHeal(char,leftoversHeal);
+                events.push({type:'damage',text:`🍲 ${char.name} recupera ${actualHeal} PS grazie agli Avanzi!`,
                     targetPlayer:target.player,targetIdx:target.charTeamIdx,newHp:char.hp});
             }
 
@@ -3482,7 +3644,10 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             hPercent = char.passive.healPercentRandom.min + Math.random() * (char.passive.healPercentRandom.max - char.passive.healPercentRandom.min);
                         }
                         const healAmount = Math.max(1, Math.floor(char.maxHp * hPercent));
-                        char.hp = Math.min(char.maxHp, char.hp + healAmount);
+                        // Preserva il comportamento originale di Bulma e
+                        // Mecha Johnny, applicando solo il modificatore Rot.
+                        if(char.statuses?.some(st=>st.type==='Marciume'))royalHeal(char,healAmount);
+                        else char.hp = Math.min(char.maxHp, char.hp + healAmount);
                         events.push({ type: 'damage', text: `✨ ${char.name} attiva ${char.passive.name}: recupera ${healAmount} PS!`, targetPlayer: target.player, targetIdx: target.charTeamIdx, newHp: char.hp, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                     }
                     if (char.passive.healLowestAllyPercent) {
@@ -3516,7 +3681,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
 
                         if (lowestAlly) {
                             const healAmount = Math.max(1, Math.floor(lowestAlly.char.maxHp * char.passive.healLowestAllyPercent));
-                            lowestAlly.char.hp = Math.min(lowestAlly.char.maxHp, lowestAlly.char.hp + healAmount);
+                            royalHeal(lowestAlly.char,healAmount);
                             events.push({ type: 'damage', text: `✨ ${char.name} attiva ${char.passive.name}! ${lowestAlly.char.name} recupera ${healAmount} PS!`, targetPlayer: lowestAlly.p, targetIdx: lowestAlly.idx, newHp: lowestAlly.char.hp, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                         }
                     }
@@ -3574,7 +3739,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                     if (enemy && enemy.hp > 0 && Math.random() < char.passive.enemyStatusEffect.chance) {
                                         const sType = char.passive.enemyStatusEffect.type;
                                         
-                                        const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'].includes(sType);
+                                        const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'].includes(sType);
                                         if (isNegative && (enemy.passive?.immuneToNegativeStatuses || blockedEnemyPassive(enemy) || (sType==='Accecato'&&isEchoRaidAccuracyProtected(enemy)))) {
                                             return; 
                                         }
@@ -3649,7 +3814,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                     char.juggTurnCount = 0; // Reset contatore
                     if(restoreEchoRaidAccuracy(char))
                         events.push({type:'text',text:'🎯 Aura Suprema: Echomax ripristina la Precisione al 100% dopo due turni!'});
-                    const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato'];
+                    const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'];
                     const hasNegative = char.statuses.some(s => negatives.includes(s.type));
                     if (hasNegative) {
                         char.statuses = char.statuses.filter(s => !negatives.includes(s.type));
@@ -3761,6 +3926,18 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                     `${char.name} subisce ${psnDmg} danni a causa del veleno!`);
             });
             if (poisonResult.progressed) updateStatusUI(target.player, target.charTeamIdx);
+            if(char.hp<=0)continue;
+            // Marciume Scarlatto: 4 turni REALI con 6/9/12/15% PS max
+            // dal turno successivo all'applicazione. Non si accumula.
+            const rot=royalRotTick(char);
+            if(rot.damage>0){
+              applyDamage(char,rot.damage,target.player,target.charTeamIdx,
+                '🌺 Marciume Scarlatto: '+char.name+' perde '+rot.damage+
+                ' PS (la condizione riduce le cure ricevute del 50%)!');
+              updateStatusUI(target.player,target.charTeamIdx);
+              if(rot.expired)events.push({type:'text',
+                text:'🌷 Il Marciume Scarlatto su '+char.name+' è terminato.'});
+            }
 
             const soulDamage = getDistortedSoulDamage(char);
             if (soulDamage > 0 && char.hp > 0) {
@@ -3777,7 +3954,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
             if (regenIdx !== -1) {
                 if (char.hp > 0 && char.hp < char.maxHp) {
                     const healAmount = Math.max(1, Math.floor(char.maxHp * (char.statuses[regenIdx].healFactor || 0.15)));
-                    char.hp = Math.min(char.maxHp, char.hp + healAmount);
+                    royalHeal(char,healAmount);
                     events.push({ type: 'damage', text: `✨ ${char.name} rigenera ${healAmount} PS grazie alla Pozione!`, targetPlayer: target.player, targetIdx: target.charTeamIdx, newHp: char.hp });
                 }
                 char.statuses[regenIdx].turns -= 1;
@@ -3788,6 +3965,12 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 }
             }
 
+            if(char.hp>0&&royalMedusaAgility(char)){
+              events.push({type:'text',text:'🪼 Agilità della Medusa: '+char.name+
+                ' aumenta la Velocità del 10% alla fine del turno!',
+                isPassive:true,passiveChar:char.name,
+                passiveName:char.passive?.name});
+            }
             char.damageTakenLastTurn = char.damageTakenThisTurn || 0;
             char.damageTakenThisTurn = 0;
         }
@@ -3802,7 +3985,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 const outcome=snowstormOutcome(char,true);
                 if (outcome.damage) applyDamage(char,outcome.damage,target.player,target.charTeamIdx,`❄️ ${char.name} perde ${outcome.damage} PS per la neve!`);
                 if (char.hp > 0 && outcome.heal) {
-                    char.hp=Math.min(char.maxHp,char.hp+outcome.heal);
+                    royalHeal(char,outcome.heal);
                     events.push({type:'damage',text:`❄️ ${char.name} attiva Resistenza al Freddo e recupera ${outcome.heal} PS!`,targetPlayer:target.player,targetIdx:target.charTeamIdx,newHp:char.hp,isPassive:true,passiveChar:char.name,passiveName:char.passive.name});
                 }
             }
