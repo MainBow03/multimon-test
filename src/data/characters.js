@@ -10,6 +10,7 @@ import {THEATER_CHARACTERS} from './theaterActors.js';
 import {ROYAL_POISON_CHARACTERS} from './royalPoisonCharacters.js';
 
 export const CHARACTERS = [
+  ...ROYAL_POISON_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
   ...THEATER_CHARACTERS,
   ...NEW_TRIO_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
   ...BERRY_FRILLISH_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
