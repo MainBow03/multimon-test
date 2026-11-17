@@ -164,6 +164,7 @@ test('Re Medusa: end-turn speed 10%, minion unique per king, bodyguard e +1 prio
  assert.equal(royalMedusaCanSummon(king,[king,summon],[0,1],0),false);
  summon.hp=0;
  assert.equal(royalMedusaCanSummon(king,[king,summon],[0,1],0),true);
+ summon.hp=summon.maxHp;
  assert.equal(royalGrantPriority(summon),true);
  assert.equal(royalConsumePriority(summon,{type:'attack'}),1);
  assert.equal(royalConsumePriority(summon,{type:'attack'}),0);
