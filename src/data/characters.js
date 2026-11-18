@@ -8,8 +8,10 @@ import {BERRY_FRILLISH_CHARACTERS} from './berryFrillishCharacters.js';
 import {NEW_TRIO_CHARACTERS} from './flinsGanyuCoraline.js';
 import {THEATER_CHARACTERS} from './theaterActors.js';
 import {ROYAL_POISON_CHARACTERS} from './royalPoisonCharacters.js';
+import {EARTH_GRASS_CHARACTERS} from './earthGrassChampions.js';
 
 export const CHARACTERS = [
+  ...EARTH_GRASS_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
   ...ROYAL_POISON_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
   ...THEATER_CHARACTERS,
   ...NEW_TRIO_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
