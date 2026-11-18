@@ -13,6 +13,17 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov18-lotta-six-rebalance',category:'balance',date:'18/11/2026',
+    title:'⚔️ Sei Multimon Lotta riequilibrati verso tipi meno comuni',items:[
+      'Laxus: Elettro/Drago; Combo Fairy Tale ora Drago.',
+      'Perla: Luce/Cristallo; Danza delle Lame ora Cristallo.',
+      'Garnet: Roccia/Cristallo; Pugno Razzo ora Cristallo.',
+      'Clover (Totally Spies): Folletto/Acciaio; Tacco a Reazione ora Acciaio (Robot nel motore).',
+      'Yugo: Psico/Luce; Danza Eliatrope ora Luce.',
+      'Jake il Cane: Magico/Folletto; Pugno Elastico ora Folletto.',
+      'I nomi, le potenze, gli effetti, le passive e le statistiche restano gli stessi. Chat Noir non cambia.',
+      'Distribuzione roster normale: Lotta da 33 a 27, Cristallo da 4 a 6, Drago da 8 a 9, Acciaio da 18 a 19, Luce da 13 a 14, Folletto da 10 a 11.'
+    ]},
   {id:'nov18-shaymin-risveglio-folletto-rework',category:'balance',date:'18/11/2026',
     title:'🌿 Sei mosse-set rinnovati, Folletto e Shaymin Risveglio',items:[
       'Sostituite tutte e sei le immagini di Toph, Gaara, Flygon, Flora, Leafeon e Shaymin con i nuovi link forniti dal giocatore.',
