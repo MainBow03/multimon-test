@@ -3,6 +3,18 @@
 // la loro eleggibilità è definita in masterySystem.js.
 // Ogni titolo è esclusivo di un singolo Multimon; nessun effetto sulle statistiche.
 export const MASTERY_CHARACTER_TITLES = Object.freeze({
+  "mushu": "Custode Scarlatto degli Antenati",
+  "hakudrago": "Memoria del Fiume Kohaku",
+  "shenron": "Signore dei Sette Desideri",
+  "billcipher": "Geometra dell'Impossibile",
+  "senzavolto": "Ospite dell'Ultimo Treno",
+  "hornet": "Cacciatrice dei Fili Cremisi",
+  "baxterstockman": "Scienziato dello Sciame Meccanico",
+  "vaiana": "Navigatrice delle Mille Stelle",
+  "ariel": "Voce delle Maree Nascoste",
+  "frozone": "Architetto delle Piste Gelate",
+  "korra": "Avatar dei Quattro Equilibri",
+  "ponyo": "Figlia delle Onde Birichine",
   "tophbeifong": "L’Orecchio della Montagna",
   "gaara": "Custode della Sabbia Silenziosa",
   "flygon": "Drago della Tempesta del Deserto",
