@@ -21,7 +21,7 @@ test('Nuovi arrivi: roster storico conservato nella vetrina ingrandita, novità 
   assert.ok(ids.indexOf(id)<100,id+' deve essere visibile nel pannello delle novità');
   assert.ok(CHARACTERS.some(c=>c.id===id),id+' non esiste nel roster');
  }
- assert.deepEqual(RECENT_ARRIVALS_IDS.slice(0,4),['tophbeifong','gaara','flygon','flora']);
+ assert.deepEqual(RECENT_ARRIVALS_IDS.slice(0,4),['mushu','hakudrago','shenron','billcipher']);
 });
 
 test('Solo il filtro Fusioni visualizza le fusioni',()=>{
