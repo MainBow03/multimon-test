@@ -1,4 +1,5 @@
 export const CHAR_PRICES = {
+  'tophbeifong':200,'gaara':250,'flygon':200,'flora':200,'leafeon':150,'shaymin':250,
   'malefica':250,'yzma':200,'lavender':200,'remedusa':250,'malenia':350,
   'berry':200,'frillish':200,'flins':250,'ganyu':300,'coraline':200,
   'ametista':250,'flameprincess':250,
