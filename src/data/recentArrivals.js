@@ -3,6 +3,8 @@
 // I personaggi non ancora presenti nel catalogo vengono ignorati.
 export const RECENT_ARRIVALS_IDS=Object.freeze([
   // Ultime aggiunte di questa chat (dal più recente):
+  'mushu','hakudrago','shenron','billcipher','senzavolto','hornet',
+  'baxterstockman','vaiana','ariel','frozone','korra','ponyo',
   'tophbeifong','gaara','flygon','flora','leafeon','shaymin',
   'frillish','berry','flameprincess','ametista',
   // Altri Multimon aggiunti nelle ultime pubblicazioni:
