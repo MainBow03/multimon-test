@@ -2,6 +2,18 @@
 // che ha già parlato nella presentazione di un'altra squadra.
 // Una risposta esclusiva per ogni personaggio (incluse le fusioni).
 export const ULTIMON_DUPLICATE_REACTIONS=Object.freeze({
+  "mushu": "Un altro Mushu? Perfetto, oggi potro discutere con qualcuno al mio livello. Cioe, al mio centimetro.",
+  "hakudrago": "Due spiriti del Kohaku? Allora il fiume ha trovato un modo nuovo di ricordare.",
+  "shenron": "Non potete invocare due desideri per la stessa sfida. Almeno, non senza conseguenze.",
+  "billcipher": "Ehi, ehi! Due triangoli? Questa realta sta violando almeno sette regolamenti!",
+  "senzavolto": "Se tu sei il mio riflesso, forse sono meno solo di quanto pensassi.",
+  "hornet": "Un'altra cacciatrice con il mio ago. Vediamo chi sa tessere il filo piu saldo.",
+  "baxterstockman": "La mia copia ha rubato gli esperimenti? Bene, la testero come un campione di laboratorio!",
+  "vaiana": "Un'altra navigatrice? Scommetto che saprai leggere le stelle almeno quanto me.",
+  "ariel": "Due voci uguali? Il mare non ha mai sentito un duetto del genere.",
+  "frozone": "Due Frozone? Le piste stanno per diventare un'autostrada di ghiaccio.",
+  "korra": "Un altro Avatar qui? Ti avverto, non dividiamo le responsabilita a meta.",
+  "ponyo": "Un'altra Ponyo! Due Ponyo fanno un mare di bolle! BOLLE!",
   "tophbeifong": "Un'altra Toph? Le vibrazioni non mentono: sento i tuoi passi. Vediamo chi comanda la montagna.",
   "gaara": "Una copia del Kazekage? La sabbia sa distinguere il suo padrone anche senza guardarlo.",
   "flygon": "Un altro Flygon tra le dune? Allora scopriremo quale vento canta più forte.",
