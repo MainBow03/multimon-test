@@ -10,9 +10,9 @@ const read=relative=>readFileSync(new URL(relative,import.meta.url),'utf8');
 test('Il redesign mantiene la cronologia e i primi quattro Multimon in evidenza',()=>{
  const arrivals=recentArrivalCharacters(CHARACTERS);
  assert.deepEqual(RECENT_ARRIVALS_IDS.slice(0,4),
-  ['tophbeifong','gaara','flygon','flora']);
+  ['mushu','hakudrago','shenron','billcipher']);
  assert.deepEqual(arrivals.slice(0,4).map(c=>c.id),
-  ['tophbeifong','gaara','flygon','flora']);
+  ['mushu','hakudrago','shenron','billcipher']);
  assert.ok(arrivals.length>24);
  assert.equal(new Set(arrivals.map(c=>c.id)).size,arrivals.length);
  const code=read('../src/components/RecentArrivalsGrid.jsx');
