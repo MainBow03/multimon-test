@@ -1,4 +1,5 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
+import {newRealmOnAction,newRealmOnDamage} from './newRealmEffects.js';
 import {tophSeismicEntry,gaaraSandGuardHit,gaaraSandThreshold,flygonDuneEcho,
  flygonWyrmBonus,leafeonSpeedPower,floraFairyGarden,shayminSpringHeart,
  shayminAwakening} from './earthGrassEffects.js';
@@ -1119,6 +1120,10 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 }
                 target.damageTakenThisTurn = (target.damageTakenThisTurn || 0) + dmg;
                 events.push({ type: 'damage', text: text, targetPlayer, targetIdx, newHp: target.hp });
+                // Ponyo: la prima discesa al 50% dei PS risveglia il mare vivo.
+                // L'evento di cura segue il danno nel replay ed e salvato online.
+                for(const evt of newRealmOnDamage({char:target,player:targetPlayer,idx:targetIdx,
+                     applyStat:applyBattleStatModifier,heal:royalHeal}))events.push(evt);
                 if(options.isEnemyTarget&&options.attacker&&options.attacker!==target&&
                    hpBeforeDamage>target.hp&&(options.directAttack||options.isOffensiveMove)){
                   const source=options.attacker,actualDamage=hpBeforeDamage-target.hp;
@@ -3310,6 +3315,18 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                     image:awoken.image,stats:awoken.stats,
                     text:'🌼 RISVEGLIO! Shaymin assume una nuova forma: tutte e cinque le statistiche +20%!',isPassive:true,
                     passiveChar:attacker.name,passiveName:'Risveglio'});
+                }
+
+                // Passive originali dei dodici campioni di Drago/Buio/Insetto/Acqua.
+                // Ogni effetto e applicato una volta per azione e reso parte dello stato autorevole.
+                if(attackSucceeded && attacker.hp>0){
+                  const arrivalEffects=newRealmOnAction({attacker,move,turn:theaterTurnNumber,
+                    player,idx:charTeamIdx,teams:workingTeams,field:workingField,
+                    mode:gameState.gameMode,settings:gameState.settings,
+                    isCoop:gameState.isRoguelikeCoop,targets:resolvedTargets,
+                    foeRoles:attackingFoes,applyStat:applyBattleStatModifier,heal:royalHeal,
+                    canDebuff:target=>!immuneToStatDrops(target)&&!blockedEnemyPassive(target)});
+                  for(const evt of arrivalEffects)events.push(evt);
                 }
 
                 // Le gemme amplificano tutta la PRIMA mossa offensiva del tipo
