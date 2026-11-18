@@ -133,7 +133,7 @@ export const NEW_REALM_MOVES = {
     statusEffect:{type:'Confuso',chance:.2,turns:2},
     desc:'Potenza 79. Il 20% di confondere per due turni.'},
   'Corsa delle Meduse':{name:'Corsa delle Meduse',type:'Acqua',power:67,accuracy:1,priority:1,
-    desc:'Potenza 67, priorita +1.'},
+    desc:'Potenza 67, priorita +1. Ponyo cavalca una corrente di meduse e anticipa i nemici.'},
   'Magia del Secchiello':{name:'Magia del Secchiello',type:'Folletto',power:0,targetMode:'ally',
     heal:.3,maxUses:2,strictUses:true,
     desc:'Ponyo cura se stessa o un alleato del 30% dei PS. Due usi.'},
