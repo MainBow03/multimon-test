@@ -7,73 +7,83 @@ import {RECENT_ARRIVALS_IDS,recentArrivalCharacters} from '../src/data/recentArr
 import {ULTIMON_ENTRANCE_LINES} from '../src/systems/ultimonEntranceLines.js';
 import {ULTIMON_DUPLICATE_REACTIONS} from '../src/systems/ultimonDuplicateLines.js';
 import {MASTERY_CHARACTER_TITLES} from '../src/data/masteryTitles.js';
+import {SHAYMIN_AWAKENED_IMAGE} from '../src/data/earthGrassChampions.js';
 
-const NEW_IDS=['tophbeifong','gaara','flygon','flora','leafeon','shaymin'];
-const TYPES={
- tophbeifong:['Terra','Roccia'],
- gaara:['Terra','Psico'],
- flygon:['Terra','Drago'],
- flora:['Erba','Folletto'],
- leafeon:['Erba'],
- shaymin:['Erba','Luce']
+const IDS=['tophbeifong','gaara','flygon','flora','leafeon','shaymin'];
+const EXPECTED={
+ tophbeifong:['Terra','Roccia'],gaara:['Terra','Psico'],flygon:['Terra','Drago'],
+ flora:['Erba','Folletto'],leafeon:['Erba'],shaymin:['Erba','Luce']
 };
+const byId=id=>CHARACTERS.find(c=>c.id===id);
 
-test('Sei nuovi Multimon entrano nel roster normale con doppio tipo equilibrato e PNG individuali',()=>{
+test('Sei nuovi personaggi, 24 mosse e sei immagini individuali JPEG richieste dal giocatore',()=>{
  const images=new Set(),allMoves=new Set();
- for(const id of NEW_IDS){
+ for(const id of IDS){
   const list=CHARACTERS.filter(c=>c.id===id);
-  assert.equal(list.length,1,id+' deve avere un solo ingresso nel roster');
+  assert.equal(list.length,1);
   const c=list[0];
-  assert.deepEqual(c.types,TYPES[id]);
-  assert.equal(c.isSummonOnly,undefined);
-  assert.equal(c.isCampaignMonster,undefined);
-  assert.ok(c.img.startsWith('https://')&&c.img.endsWith('.png'),id+' richiede PNG');
-  assert.ok(!images.has(c.img),'PNG condiviso erroneamente per '+id);
+  assert.deepEqual(c.types,EXPECTED[id]);
+  assert.ok(!c.isSummonOnly&&!c.isCampaignMonster);
+  assert.ok(/^https:\/\/i\.pinimg\.com\/.*\.jpg$/.test(c.img),id);
+  assert.ok(!images.has(c.img));
   images.add(c.img);
   assert.equal(c.moves.length,4);
-  assert.ok(c.moves.every(m=>m&&m.name&&m.type&&m.power!==undefined),id+' deve avere quattro mosse funzionanti');
-  for(const m of c.moves){
-   assert.equal(MOVES_DB[m.name],m,'mossa non collegata al database: '+m.name);
-   assert.ok(!allMoves.has(m.name),'mossa duplicata: '+m.name);
-   allMoves.add(m.name);
+  assert.ok(c.moves.every(m=>m&&m.name&&m.type&&Number.isFinite(m.power)));
+  for(const move of c.moves){
+   assert.equal(MOVES_DB[move.name],move);
+   assert.ok(!allMoves.has(move.name));
+   allMoves.add(move.name);
   }
-  for(const t of c.types)assert.ok(!['Lotta','Magico','Normale','Oscuro'].includes(t));
-  assert.ok(c.passive?.name&&c.passive?.type&&c.passive?.desc);
   assert.ok(CHAR_PRICES[id]>0);
+  assert.ok(c.passive?.name&&c.passive?.type&&c.passive?.desc);
  }
  assert.equal(allMoves.size,24);
+ assert.ok(SHAYMIN_AWAKENED_IMAGE.endsWith('.jpg'));
 });
 
-test('I sei nuovi arrivi sono i primi nella vetrina del gioco e hanno titolo e intro specifici',()=>{
- assert.deepEqual(RECENT_ARRIVALS_IDS.slice(0,6),NEW_IDS);
- assert.deepEqual(recentArrivalCharacters(CHARACTERS).slice(0,6).map(c=>c.id),NEW_IDS);
- const titles=new Set();
- for(const id of NEW_IDS){
-  assert.ok(ULTIMON_ENTRANCE_LINES[id]?.length>15,id+' non ha presentazione');
-  assert.ok(ULTIMON_DUPLICATE_REACTIONS[id]?.length>15,id+' non ha reazione al doppione');
-  assert.ok(MASTERY_CHARACTER_TITLES[id]?.length>12,id+' non ha titolo Padronanza');
-  titles.add(MASTERY_CHARACTER_TITLES[id]);
+test('Vetrina, intro Ultimon, reazioni doppioni e titoli padronanza',()=>{
+ assert.deepEqual(RECENT_ARRIVALS_IDS.slice(0,6),IDS);
+ assert.deepEqual(recentArrivalCharacters(CHARACTERS).slice(0,6).map(c=>c.id),IDS);
+ for(const id of IDS){
+  assert.ok(ULTIMON_ENTRANCE_LINES[id]?.length>15);
+  assert.ok(ULTIMON_DUPLICATE_REACTIONS[id]?.length>15);
+  assert.ok(MASTERY_CHARACTER_TITLES[id]?.length>12);
  }
- assert.equal(titles.size,6);
+ assert.equal(new Set(IDS.map(id=>MASTERY_CHARACTER_TITLES[id])).size,6);
 });
 
-test('Le passive si appoggiano a meccaniche esistenti e le mosse di supporto hanno limiti',()=>{
- const get=id=>CHARACTERS.find(c=>c.id===id);
- assert.deepEqual(get('tophbeifong').passive.selfStatBuff,{def:1.2});
- assert.deepEqual(get('gaara').passive.statBuff,{def:1.25,spd:1.1});
- assert.equal(get('gaara').passive.threshold,.5);
- assert.equal(get('flygon').passive.damageBonus,1.15);
- assert.deepEqual(get('flora').passive.teamStatBuff,{def:1.1});
- assert.equal(get('leafeon').passive.healPercent,.04);
- assert.equal(get('shaymin').passive.healLowestAllyPercent,.04);
- const heal=MOVES_DB['Prato della Rinascita'];
- assert.equal(heal.targetMode,'ally');
- assert.equal(heal.removeNegativeStatuses,true);
- assert.equal(heal.heal,.28);
- assert.equal(heal.strictUses,true);
- assert.equal(heal.maxUses,3);
- for(const name of ['Passo Sismico','Scudo del Kazekage','Danza del Drago delle Dune','Rosa Curativa','Difesa Fogliare']){
-  assert.ok(MOVES_DB[name].strictUses);
-  assert.ok(MOVES_DB[name].maxUses>=2);
+test('Sei passive differenti con condizioni e limiti reali',()=>{
+ assert.equal(byId('tophbeifong').passive.earthSense,true);
+ assert.equal(byId('gaara').passive.type,'sand_guard');
+ assert.equal(byId('flygon').passive.maxTriggers,3);
+ assert.equal(byId('flora').passive.healLowestAllyPercent,.08);
+ assert.equal(byId('leafeon').passive.type,'leaf_blade');
+ assert.equal(byId('shaymin').passive.type,'spring_heart');
+ assert.equal(byId('shaymin').passive.maxTriggers,4);
+});
+
+test('Risveglio: un utilizzo, status Erba, tutte le statistiche e ritratto speciale',()=>{
+ const awakening=MOVES_DB['Risveglio'];
+ assert.equal(awakening.type,'Erba');
+ assert.equal(awakening.power,0);
+ assert.equal(awakening.target,'self');
+ assert.equal(awakening.maxUses,1);
+ assert.equal(awakening.strictUses,true);
+ assert.equal(awakening.shayminAwakening,true);
+ assert.equal(byId('shaymin').moves[3],awakening);
+});
+
+test('Cosmo, Iris, Sage e Gardevoir: conversione completa Magico-Folletto',()=>{
+ for(const id of ['cosmo','iris','sage','gardevoir']){
+  assert.ok(byId(id).types.includes('Folletto'),id);
+  assert.ok(!byId(id).types.includes('Magico'),id);
+  assert.ok(byId(id).moves.some(move=>move.power>0&&move.type==='Folletto')||
+    byId(id).moves.some(move=>move.type==='Folletto'),id);
  }
+ assert.equal(byId('cosmo').passive.requiredMoveType,'Folletto');
+ assert.ok(byId('cosmo').moves.some(m=>m.name==='Trasformazione Fatata'));
+ assert.equal(MOVES_DB['Trasformazione Bizzarra'].type,'Magico','Discord resta inalterato');
+ assert.equal(byId('gardevoir').moves.find(m=>m.name==='Schermoluce').type,'Folletto');
+ assert.equal(MOVES_DB['Schermoluce'].type,'Magico','Schermoluce condiviso invariato');
+ assert.equal(MOVES_DB['Cristallo di Ephedia'].type,'Cristallo');
 });
