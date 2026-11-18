@@ -41,7 +41,7 @@ export const FIVE_NEW_MOVES = {
   },
 
   'Tacco a Reazione': {
-    name:'Tacco a Reazione',type:'Lotta',power:78,accuracy:1,priority:1,contact:true,
+    name:'Tacco a Reazione',type:'Robot',power:78,accuracy:1,priority:1,contact:true,
     desc:'Potenza 78, priorità +1: Clover attacca prima degli avversari più lenti nelle reazioni.'
   },
   'Spray Confondente': {
@@ -117,7 +117,7 @@ export const FIVE_NEW_CHARACTERS = [
     moves:['Analisi sul Campo','Rete di Contenimento','Laser Compatto','Piano di Estrazione'].map(k=>FIVE_NEW_MOVES[k])
   },
   {
-    id:'clover',name:'Clover (Totally Spies)',types:['Folletto','Lotta'],
+    id:'clover',name:'Clover (Totally Spies)',types:['Folletto','Robot'],
     hp:96,maxHp:96,atk:111,def:86,spd:125,
     img:'https://i.pinimg.com/1200x/13/15/31/1315318411e2d9861f5b4362b15cdff2.jpg',
     passive:{name:'Istinto da Copertina',type:'fashion_instinct',
