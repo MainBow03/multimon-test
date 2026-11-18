@@ -13,6 +13,17 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov18-twelve-dragon-dark-bug-water',category:'champions',date:'18/11/2026',
+    title:'🌊🐉 Dodici nuovi Multimon: Drago, Buio, Insetto e Acqua',items:[
+      'Tre Drago: Mushu (Drago/Fuoco), Haku (Drago/Aria) e Shenron (Drago/Luce).',
+      'Due Buio: Bill Cipher (Buio/Psico) e Senza Volto (Buio/Spettro).',
+      'Due Insetto: Hornet (Insetto/Aria) e Baxter Stockman (Insetto/Acciaio).',
+      'Cinque Acqua: Vaiana (Acqua/Luce), Ariel (Acqua/Suono), Frozone (Acqua/Ghiaccio), Korra (Acqua/Terra) e Ponyo (Acqua/Folletto).',
+      'Zero Pokemon aggiunti. Ogni personaggio ha un illustrazione individuale con sfondo, quattro mosse esclusive, statistiche e una passiva originale integrata nel combattimento.',
+      'Le passive usano contatori persistenti nel salvataggio online: cura degli antenati, ricordi, desiderio, contratti, fame di status, seta, marchi robotici, navigazione, canto, scie di ghiaccio, alternanza elementale e rinascita dal mare.',
+      'Prezzi, Collezione, Catalogo, Nuovi Arrivi, frasi Ultimon, doppioni Ultimon e titoli Padronanza sono aggiornati.',
+      'Il roster ordinario cresce da 181 a 193 Multimon. Drago da 9 a 12, Buio da 12 a 14, Insetto da 9 a 11, Acqua da 13 a 18.'
+    ]},
   {id:'nov18-lotta-six-rebalance',category:'balance',date:'18/11/2026',
     title:'⚔️ Sei Multimon Lotta riequilibrati verso tipi meno comuni',items:[
       'Laxus: Elettro/Drago; Combo Fairy Tale ora Drago.',
