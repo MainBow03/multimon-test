@@ -6,8 +6,10 @@ import {GEM_FLAME_MOVES} from './gemFlameMoves.js';
 import {BERRY_FRILLISH_MOVES} from './berryFrillishMoves.js';
 import {NEW_TRIO_MOVES} from './flinsGanyuCoraline.js';
 import {ROYAL_POISON_MOVES} from './royalPoisonMoves.js';
+import {EARTH_GRASS_MOVES} from './earthGrassChampions.js';
 
 export const MOVES_DB = {
+  ...EARTH_GRASS_MOVES,
   ...ROYAL_POISON_MOVES,
   ...NEW_TRIO_MOVES,
   ...BERRY_FRILLISH_MOVES,
