@@ -378,11 +378,11 @@ export const MOVES_DB = {
           // NUOVE MOSSE LAXUS
           'Ruggito del Drago Fulmine': { name: 'Ruggito del Drago Fulmine', type: 'Elettro', power: 85, targetCount: 4, statusEffect: { type: 'Elettrizzato', chance: 0.3 }, desc: 'Un devastante ruggito elettrico che colpisce tutti i nemici in campo. 30% prob. di paralizzare.' },
           'Alabarda del Cielo': { name: 'Alabarda del Cielo', type: 'Elettro', power: 100, ignoreDefBuffs: true, desc: 'Lancia una lancia di puro fulmine che ignora le difese avversarie.' },
-          'Combo Fairy Tale': { name: 'Combo Fairy Tale', type: 'Lotta', power: 25, multiHit: { min: 2, max: 5 }, hitStatDebuff: { def: 0.8, chance: 0.10 }, desc: 'Una combo inarrestabile di attacchi corpo a corpo. Colpisce da 2 a 5 volte. Ogni colpo ha il 10% di probabilità di ridurre la Difesa avversaria.' },
+          'Combo Fairy Tale': { name: 'Combo Fairy Tale', type: 'Drago', power: 25, multiHit: { min: 2, max: 5 }, hitStatDebuff: { def: 0.8, chance: 0.10 }, desc: 'Una combo inarrestabile di attacchi corpo a corpo. Colpisce da 2 a 5 volte. Ogni colpo ha il 10% di probabilità di ridurre la Difesa avversaria.' },
           'Fairy Law': { name: 'Fairy Law', type: 'Magico', power: 150, targetCount: 4, maxUses: 1, desc: 'Una magia suprema che annienta i nemici. Danni colossali a tutti, usabile 1 sola volta.' },
 
           // NUOVE MOSSE GARNET
-          'Pugno Razzo': { name: 'Pugno Razzo', type: 'Lotta', power: 85, statusEffect: { type: 'Stordito', chance: 0.2 }, desc: 'Lancia i suoi guantoni con estrema violenza. 20% di probabilità di stordire.' },
+          'Pugno Razzo': { name: 'Pugno Razzo', type: 'Cristallo', power: 85, statusEffect: { type: 'Stordito', chance: 0.2 }, desc: 'Lancia i suoi guantoni con estrema violenza. 20% di probabilità di stordire.' },
           'Visione del Futuro': { name: 'Visione del Futuro', type: 'Magico', power: 0, target: 'self', isProtect: true, priority: 5, maxUses: 4, desc: 'Prevede l\'attacco nemico e lo evita, garantendo protezione per il turno.' },
           'Schianto Sismico': { name: 'Schianto Sismico', type: 'Roccia', power: 72, targetCount: 4, desc: 'Un colpo al suolo che fa tremare l\'arena, colpendo tutti i nemici in campo.' },
           'Forza dell\'Amore': { name: 'Forza dell\'Amore', type: 'Normale', power: 0, target: 'self', statBuff: { atk: 1.5, def: 1.5 }, desc: 'Trae forza dall\'essere una fusione perfetta. Aumenta Attacco e Difesa del 50.' },
@@ -403,7 +403,7 @@ export const MOVES_DB = {
           'Raggio Wakfu': { name: 'Raggio Wakfu', type: 'Magico', power: 85, desc: 'Spara un potente raggio di pura energia Wakfu.' },
           'Riflesso del Portale': { name: 'Riflesso del Portale', type: 'Magico', power: 0, target: 'self', isProtect: true, priority: 5, protectStatus: 'Rashield', maxUses: 4, desc: 'Apre un portale che assorbe l\'attacco e ne riflette il 25% al mittente.' },
           'Assalto Dimensionale': { name: 'Assalto Dimensionale', type: 'Magico', power: 75, ignoreDefBuffs: true, desc: 'Colpisce uscendo da un portale alle spalle del nemico, ignorandone le difese.' },
-          'Danza Eliatrope': { name: 'Danza Eliatrope', type: 'Lotta', power: 30, multiHit: { min: 2, max: 3 }, hitStatDebuff: { def: 0.8, chance: 0.20 }, desc: 'Combo di calci rapidi potenziati dal Wakfu. Colpisce 2-3 volte, ogni colpo ha il 20% di probabilità di ridurre la Difesa.' },
+          'Danza Eliatrope': { name: 'Danza Eliatrope', type: 'Luce', power: 30, multiHit: { min: 2, max: 3 }, hitStatDebuff: { def: 0.8, chance: 0.20 }, desc: 'Combo di calci rapidi potenziati dal Wakfu. Colpisce 2-3 volte, ogni colpo ha il 20% di probabilità di ridurre la Difesa.' },
 
           // NUOVE MOSSE SAGE E ARIANA GRANDE
           'Muro Protettivo': { name: 'Muro Protettivo', type: 'Folletto', power: 0, targetMode: 'team', statusEffect: { type: 'Protetto', turns: 1 }, priority: 5, maxUses: 1, strictUses: true, desc: 'Alza un muro che difende tutti i compagni in campo per un turno. (1 utilizzo)' },
@@ -440,7 +440,7 @@ export const MOVES_DB = {
           'Lama Vulcanica': { name: 'Lama Vulcanica', type: 'Fuoco', power: 90, statusEffect: { type: 'Scottato', chance: 0.3 }, maxUses: 3, desc: 'Un fendente infuocato sprigionato dalla Forma Iper. 30% probabilità di scottare. (3 utilizzi)' },
           'Fulmine dell\'Eroe': { name: 'Fulmine dell\'Eroe', type: 'Elettro', power: 85, speedScaling: true, statusEffect: { type: 'Elettrizzato', chance: 0.3 }, maxUses: 3, desc: 'Un balzo caricato a pura elettricità. Scala con la Velocità e ha il 30% di prob. di paralizzare. (3 utilizzi)' },
 
-          'Pugno Elastico': { name: 'Pugno Elastico', type: 'Lotta', power: 65, targetCount: 2, desc: 'Allunga le braccia colpendo fino a 2 nemici a distanza.' },
+          'Pugno Elastico': { name: 'Pugno Elastico', type: 'Folletto', power: 65, targetCount: 2, desc: 'Allunga le braccia colpendo fino a 2 nemici a distanza.' },
           'Trasformazione Scudo': { name: 'Trasformazione Scudo', type: 'Magico', power: 0, target: 'self', isProtect: true, priority: 5, maxUses: 3, desc: 'Prende la forma di uno scudo per parare i danni diretti a lui. (3 utilizzi)' },
           'Schiacciata Gigante': { name: 'Schiacciata Gigante', type: 'Magico', power: 100, accuracy: 0.8, desc: 'Diventa gigante e schiaccia il nemico. Devastante ma impreciso.' },
           'Bacon Pancakes': { name: 'Bacon Pancakes', type: 'Normale', power: 0, targetMode: 'ally', heal: 0.4, desc: 'Cucina dei deliziosi pancake curando un alleato o sé stesso del 40% dei PS.' },
@@ -913,7 +913,7 @@ export const MOVES_DB = {
 
           // NUOVE MOSSE PERLA
           'Lancia Perlescente': { name: 'Lancia Perlescente', type: 'Luce', power: 85, critChance: 0.3, critPower: 120, desc: 'Un fendente rapido e precisissimo con la lancia. 30% di probabilità di critico.' },
-          'Danza delle Lame': { name: 'Danza delle Lame', type: 'Lotta', power: 30, multiHit: { min: 2, max: 4 }, speedScaling: true, desc: 'Una serie di attacchi aggraziati. Colpisce da 2 a 4 volte e il danno scala con la Velocità.' },
+          'Danza delle Lame': { name: 'Danza delle Lame', type: 'Cristallo', power: 30, multiHit: { min: 2, max: 4 }, speedScaling: true, desc: 'Una serie di attacchi aggraziati. Colpisce da 2 a 4 volte e il danno scala con la Velocità.' },
           'Olo-Perla': { name: 'Olo-Perla', type: 'Luce', power: 0, target: 'self', isProtect: true, priority: 5, maxUses: 3, desc: 'Crea un ologramma per deviare e schivare l\'attacco nemico. (3 utilizzi)' },
           'Eleganza Tattica': { name: 'Eleganza Tattica', type: 'Normale', power: 0, targetMode: 'team', targetStatBuff: { spd: 1.5, atk: 1.3 }, desc: 'Coordina la squadra con precisione militare. Aumenta Velocità (+50%) e Attacco (+30%) degli alleati.' },
 
