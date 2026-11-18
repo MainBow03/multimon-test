@@ -13,6 +13,13 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov18-earth-grass-six',category:'champions',date:'18/11/2026',
+    title:'🌿⛰️ Sei nuovi Multimon: tre Terra e tre Erba',items:[
+      'Aggiunti Toph Beifong (Terra/Roccia), Gaara (Terra/Psico) e Flygon (Terra/Drago).',
+      'Aggiunti Flora (Erba/Folletto), Leafeon (Erba) e Shaymin (Erba/Luce).',
+      'Ogni Multimon possiede un PNG individuale, statistiche, una passiva attiva nel motore standard e quattro mosse con effetti reali.',
+      'Tutti e sei compaiono nel Catalogo, nel Negozio, nella Collezione e nella sezione Nuovi arrivi; non usano i quattro tipi più frequenti (Lotta, Magico, Normale, Oscuro).'
+    ]},
   {id:'nov12-hyper-coraline',category:'champions',date:'12/11/2026',
     title:'🔑 Iper Coraline — Oltre la Porticina',items:[
       'Coraline ottiene la Forma Iper con artwork originale personalizzato e animazione di trasformazione in battaglia.',
