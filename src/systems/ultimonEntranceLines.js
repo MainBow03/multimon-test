@@ -2,6 +2,18 @@
 // Le linee sono scritte per il carattere, i poteri o la storia del personaggio.
 // Una riga per ciascun ID registrato: il test controlla la copertura del roster.
 export const ULTIMON_ENTRANCE_LINES = Object.freeze({
+  "mushu": "Attenzione, mortali! Il drago piu temibile della mia taglia e arrivato.",
+  "hakudrago": "Ci sono fiumi che non dimenticano mai il loro vero nome. Io sono uno di essi.",
+  "shenron": "Le sfere si sono riunite. Non sprecate il desiderio che vi e stato concesso.",
+  "billcipher": "Un triangolo, un patto e un errore di calcolo: indovina chi ha gia vinto?",
+  "senzavolto": "Non sono venuto per le monete. Sono qui per trovare una voce.",
+  "hornet": "Segui il filo, se hai coraggio. La punta del mio ago e gia davanti a te.",
+  "baxterstockman": "I miei microbot sono precisi. Se sentite un ronzio, la ricerca e iniziata!",
+  "vaiana": "Non e il vento a decidere la rotta. Siamo noi a scegliere dove andare.",
+  "ariel": "L'oceano custodisce mille storie. Questa la raccontero con la mia voce.",
+  "frozone": "Mi serve soltanto una pista. Il resto lo costruisco mentre corro!",
+  "korra": "Non basta controllare gli elementi. Serve sapere quando lasciarli andare.",
+  "ponyo": "Ponyo vuole vedere il mare! E vuole vincere una bella sfida!",
   "tophbeifong": "Sentite l'eco sotto i piedi? Non è paura: è la terra che mi risponde.",
   "gaara": "Il deserto sembra immobile. È solo perché la mia sabbia aspetta un segnale.",
   "flygon": "Quando sentirete cantare il vento delle dune, sarò già sopra l'arena.",
