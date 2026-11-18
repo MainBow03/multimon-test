@@ -2,6 +2,12 @@
 // che ha già parlato nella presentazione di un'altra squadra.
 // Una risposta esclusiva per ogni personaggio (incluse le fusioni).
 export const ULTIMON_DUPLICATE_REACTIONS=Object.freeze({
+  "tophbeifong": "Un'altra Toph? Le vibrazioni non mentono: sento i tuoi passi. Vediamo chi comanda la montagna.",
+  "gaara": "Una copia del Kazekage? La sabbia sa distinguere il suo padrone anche senza guardarlo.",
+  "flygon": "Un altro Flygon tra le dune? Allora scopriremo quale vento canta più forte.",
+  "flora": "Una seconda Flora? Spero che tu sappia proteggere i tuoi amici quanto me.",
+  "leafeon": "Un altro Leafeon? Facciamo una gara, ma niente scorciatoie tra le siepi!",
+  "shaymin": "Un altro fiore di gratitudine! Abbiamo lo stesso aspetto, ma storie diverse da raccontare.",
   "malefica": "Un’altra Malefica? Due regine delle spine non dividono il trono. E il mio drago non tollera le imitazioni.",
   "yzma": "Un’altra Yzma?! KRONK! Qualcuno ha sbagliato leva e ha prodotto una copia della migliore mente dell’Impero!",
   "lavender": "Sento il mio stesso veleno nell’aria. Vieni fuori, imitatrice: scopriamo chi guida il branco.",
