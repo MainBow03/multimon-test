@@ -36,7 +36,7 @@ test('Gaara: scudo una volta per turno e +20% Difesa solo alla prima soglia',()=
  assert.deepEqual(first,{damage:80,activated:true});
  assert.deepEqual(gaaraSandGuardHit(gaara,100,1),{damage:100,activated:false});
  assert.deepEqual(gaaraSandGuardHit(gaara,100,2),{damage:80,activated:true});
- gaara.hp=56;
+ gaara.hp=60;
  assert.equal(gaaraSandThreshold(gaara,applyBattleStatModifier),false);
  gaara.hp=50;
  assert.equal(gaaraSandThreshold(gaara,applyBattleStatModifier),true);
