@@ -13,6 +13,14 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov18-shaymin-risveglio-folletto-rework',category:'balance',date:'18/11/2026',
+    title:'🌿 Sei mosse-set rinnovati, Folletto e Shaymin Risveglio',items:[
+      'Sostituite tutte e sei le immagini di Toph, Gaara, Flygon, Flora, Leafeon e Shaymin con i nuovi link forniti dal giocatore.',
+      'I sei personaggi hanno ora quattro mosse tematiche ciascuno e sei passive diverse: Senso Sismico, Sabbia Automatizzata, Eco delle Dune, Fata Guardiana, Lama Verde, Cuore della Primavera.',
+      'Shaymin ottiene Risveglio: una volta a battaglia tutte e cinque le statistiche +20% e trasformazione del ritratto, persistente nella partita e nelle animazioni online.',
+      'Cosmo, Gardevoir, Iris e Sage passano da Magico a Folletto; convertite le mosse esclusive appropriate, con nuove Trasformazione Fatata e Bagliore Fatato. Restano inalterate le mosse condivise da altri personaggi.',
+      'Nuovi test automatici verificano equipaggiamento mosse, funzionamento delle passive, guarigioni, buff, forma Risveglio e classi Folletto.'
+    ]},
   {id:'nov18-earth-grass-six',category:'champions',date:'18/11/2026',
     title:'🌿⛰️ Sei nuovi Multimon: tre Terra e tre Erba',items:[
       'Aggiunti Toph Beifong (Terra/Roccia), Gaara (Terra/Psico) e Flygon (Terra/Drago).',
