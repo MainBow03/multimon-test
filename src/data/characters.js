@@ -11,7 +11,6 @@ import {ROYAL_POISON_CHARACTERS} from './royalPoisonCharacters.js';
 import {EARTH_GRASS_CHARACTERS} from './earthGrassChampions.js';
 
 export const CHARACTERS = [
-  ...EARTH_GRASS_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
   ...ROYAL_POISON_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
   ...THEATER_CHARACTERS,
   ...NEW_TRIO_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
@@ -20,6 +19,7 @@ export const CHARACTERS = [
   ...STRAW_HAT_CHARACTERS,
   ...FIVE_NEW_CHARACTERS,
   ...SIX_NEW_CHARACTERS,
+  ...EARTH_GRASS_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
   {id:'echomax',name:'Echomax',types:['Spettro','Buio'],hp:190,maxHp:190,atk:155,def:115,spd:105,
    img:'https://i.postimg.cc/zBDV4P9y/Designer-(3).png',
    passive:{name:'Legione dei Caduti',type:'soul_legion',desc:'Ogni KO nemico concede una Carica Anima. A 3 cariche evoca una Copia Perfetta del caduto che lotta per 3 turni. Una copia attiva alla volta.'},
