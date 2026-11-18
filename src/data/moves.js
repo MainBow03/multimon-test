@@ -9,6 +9,12 @@ import {ROYAL_POISON_MOVES} from './royalPoisonMoves.js';
 import {EARTH_GRASS_MOVES} from './earthGrassChampions.js';
 
 export const MOVES_DB = {
+  'Trasformazione Fatata':{name:'Trasformazione Fatata',type:'Folletto',power:60,
+    statusEffect:{type:'Stordito',chance:.6,turns:1},
+    desc:'Cosmo trasforma il nemico in qualcosa di buffo: potenza 60, 60% di stordire.'},
+  'Bagliore Fatato':{name:'Bagliore Fatato',type:'Folletto',power:88,special:true,
+    hitStatDebuff:{atk:.9,chance:.2},
+    desc:'Gardevoir sprigiona una luce fatata: potenza 88, 20% di ridurre Attacco del 10%.'},
   ...EARTH_GRASS_MOVES,
   ...ROYAL_POISON_MOVES,
   ...NEW_TRIO_MOVES,
@@ -324,8 +330,8 @@ export const MOVES_DB = {
           'Pioggia di Gemme': { name: 'Pioggia di Gemme', type: 'Roccia', power: 36, multiHit: { min: 2, max: 4 }, desc: 'Scaglia le gemme raccolte colpendo da 2 a 4 volte.' },
 
           // NUOVE MOSSE COSMO
-          'Bacchetta Magica': { name: 'Bacchetta Magica', type: 'Magico', power: 80, statusEffect: { type: 'Confuso', chance: 0.4 }, desc: 'Agita la bacchetta a caso. 40% di probabilità di confondere il bersaglio.' },
-          'Desiderio: Cura!': { name: 'Desiderio: Cura!', type: 'Magico', power: 0, targetMode: 'ally', heal: 0.5, removeNegativeStatuses: true, desc: 'Realizza un desiderio curando il 50% dei PS a un alleato e rimuovendo gli status negativi.' },
+          'Bacchetta Magica': { name: 'Bacchetta Magica', type: 'Folletto', power: 80, statusEffect: { type: 'Confuso', chance: 0.4 }, desc: 'Agita la bacchetta a caso. 40% di probabilità di confondere il bersaglio.' },
+          'Desiderio: Cura!': { name: 'Desiderio: Cura!', type: 'Folletto', power: 0, targetMode: 'ally', heal: 0.5, removeNegativeStatuses: true, desc: 'Realizza un desiderio curando il 50% dei PS a un alleato e rimuovendo gli status negativi.' },
           'Trasformazione Bizzarra': { name: 'Trasformazione Bizzarra', type: 'Magico', power: 60, statusEffect: { type: 'Stordito', chance: 0.6 }, desc: 'Trasforma il nemico in qualcosa di stupido. 60% di probabilità di stordire.' },
           'Esplosione Stellina': { name: 'Esplosione Stellina', type: 'Fuoco', power: 90, targetCount: 4, statusEffect: { type: 'Scottato', chance: 0.3 }, desc: 'Fa esplodere una stella gigante che colpisce tutti i nemici. 30% probabilità di scottare.' },
 
@@ -400,9 +406,9 @@ export const MOVES_DB = {
           'Danza Eliatrope': { name: 'Danza Eliatrope', type: 'Lotta', power: 30, multiHit: { min: 2, max: 3 }, hitStatDebuff: { def: 0.8, chance: 0.20 }, desc: 'Combo di calci rapidi potenziati dal Wakfu. Colpisce 2-3 volte, ogni colpo ha il 20% di probabilità di ridurre la Difesa.' },
 
           // NUOVE MOSSE SAGE E ARIANA GRANDE
-          'Muro Protettivo': { name: 'Muro Protettivo', type: 'Magico', power: 0, targetMode: 'team', statusEffect: { type: 'Protetto', turns: 1 }, priority: 5, maxUses: 1, strictUses: true, desc: 'Alza un muro che difende tutti i compagni in campo per un turno. (1 utilizzo)' },
+          'Muro Protettivo': { name: 'Muro Protettivo', type: 'Folletto', power: 0, targetMode: 'team', statusEffect: { type: 'Protetto', turns: 1 }, priority: 5, maxUses: 1, strictUses: true, desc: 'Alza un muro che difende tutti i compagni in campo per un turno. (1 utilizzo)' },
           'Sfera rallentante': { name: 'Sfera rallentante', type: 'Ghiaccio', power: 0, targetCount: 2, targetStatDebuff: { spd: 0.5 }, desc: 'Lancia una sfera rallentante sotto i piedi di due nemici diminuendone permanentemente la Velocità.' },
-          'Non ucciderai i miei alleati!': { name: 'Non ucciderai i miei alleati!', type: 'Magico', power: 0, targetMode: 'revive', heal: 0.5, maxUses: 1, desc: 'Riporta in vita un personaggio sconfitto (tuo o di un compagno di squadra) con il 50% dei PS massimi.' },
+          'Non ucciderai i miei alleati!': { name: 'Non ucciderai i miei alleati!', type: 'Folletto', power: 0, targetMode: 'revive', heal: 0.5, maxUses: 1, desc: 'Riporta in vita un personaggio sconfitto (tuo o di un compagno di squadra) con il 50% dei PS massimi.' },
           'Vandal': { name: 'Vandal', type: 'Cristallo', power: 80, statusEffect: { type: 'Stordito', chance: 0.15 }, desc: 'Spara con il fucile d\'assalto a munizioni cristalline. 15% di probabilità di stordire il bersaglio (Headshot!).' },
           'questo è il mio vero potenziale': { name: 'questo è il mio vero potenziale', type: 'Cristallo', power: 0, targetMode: 'team', heal: 0.7, removeNegativeStatuses: true, targetStatBuff: { spd: 1.1 }, maxUses: 1, strictUses: true, desc: 'Sprigiona il suo vero potenziale! Cura tutto il team del 70% dei PS, rimuove gli status negativi e aumenta la Velocità di tutti del 10%. (1 utilizzo)' },
 
@@ -540,10 +546,10 @@ export const MOVES_DB = {
           'Confusione!': { name: 'Confusione!', type: 'Magico', power: 40, statusEffect: { type: 'Confuso', chance: 1.0 }, desc: 'Scatena il caos! Infligge 40 danni e confonde irrimediabilmente il bersaglio.' },
 
           // NUOVE MOSSE IRIS
-          'Cristallo di Ephedia': { name: 'Cristallo di Ephedia', type: 'Magico', power: 85, desc: 'Scaglia una solida lancia di cristallo magico contro il bersaglio.' },
-          'Scudo Cristallino': { name: 'Scudo Cristallino', type: 'Magico', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 4 }, desc: 'Avvolge gli alleati in una barriera di cristallo: danni subiti ridotti del 45% per 4 turni.' },
-          'Voce della Principessa': { name: 'Voce della Principessa', type: 'Magico', power: 0, targetMode: 'team_smart_heal', healAlone: 0.5, healTeam: 0.3, removeNegativeStatuses: true, desc: 'Canta una dolce melodia che cura il team del 30% (50% se sola) e purifica da ogni status negativo.' },
-          'Trasformazione Shanila': { name: 'Trasformazione Shanila', type: 'Magico', power: 0, target: 'self', statBuff: { atk: 1.5, spd: 1.5 }, maxUses: 1, desc: 'Raggiunge lo stadio Shanila! Sprigiona il suo vero potere aumentando Attacco e Velocità del 50%. (1 utilizzo)' },
+          'Cristallo di Ephedia': { name: 'Cristallo di Ephedia', type: 'Cristallo', power: 85, desc: 'Scaglia una solida lancia di cristallo magico contro il bersaglio.' },
+          'Scudo Cristallino': { name: 'Scudo Cristallino', type: 'Cristallo', power: 0, targetMode: 'team', statusEffect: { type: 'Scudo Team', turns: 4 }, desc: 'Avvolge gli alleati in una barriera di cristallo: danni subiti ridotti del 45% per 4 turni.' },
+          'Voce della Principessa': { name: 'Voce della Principessa', type: 'Folletto', power: 0, targetMode: 'team_smart_heal', healAlone: 0.5, healTeam: 0.3, removeNegativeStatuses: true, desc: 'Canta una dolce melodia che cura il team del 30% (50% se sola) e purifica da ogni status negativo.' },
+          'Trasformazione Shanila': { name: 'Trasformazione Shanila', type: 'Folletto', power: 0, target: 'self', statBuff: { atk: 1.5, spd: 1.5 }, maxUses: 1, desc: 'Raggiunge lo stadio Shanila! Sprigiona il suo vero potere aumentando Attacco e Velocità del 50%. (1 utilizzo)' },
           
           // NUOVE MOSSE STELLARUBIA
           'Starbolts': { name: 'Starbolts', type: 'Fuoco', power: 85, targetCount: 2, desc: 'Lancia sfere di energia infuocata colpendo fino a 2 nemici.' },
