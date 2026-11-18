@@ -122,10 +122,10 @@ test('Scivolata Gelata cura una sola volta Berry e alleati vivi sul campo, anche
 
 test('Nuovi Arrivi: quattro arrivi evidenziati e ritratti più leggibili',()=>{
  assert.deepEqual(RECENT_ARRIVALS_IDS.slice(0,4),
-   ['tophbeifong','gaara','flygon','flora']);
+   ['mushu','hakudrago','shenron','billcipher']);
  const arrivals=recentArrivalCharacters(CHARACTERS);
  assert.deepEqual(arrivals.slice(0,4).map(c=>c.id),
-   ['tophbeifong','gaara','flygon','flora']);
+   ['mushu','hakudrago','shenron','billcipher']);
  assert.equal(new Set(arrivals.map(c=>c.id)).size,arrivals.length);
  assert.ok(arrivals.length>24);
  const ui=contents('../src/components/RecentArrivalsGrid.jsx');
