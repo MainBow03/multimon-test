@@ -1,4 +1,7 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
+import {tophSeismicEntry,gaaraSandGuardHit,gaaraSandThreshold,flygonDuneEcho,
+ flygonWyrmBonus,leafeonSpeedPower,floraFairyGarden,shayminSpringHeart,
+ shayminAwakening} from './earthGrassEffects.js';
 import {canUseBagItems} from './bagItemPolicy.js';
 import {selectedPassiveDamageFactor,triggerMiraculousAllyHeal,triggerJackpot,triggerFutureBlock,consumeFutureStrike} from './selectedCharacterPassives.js';
 import {legalSupportTargets,isLegalSupportTarget} from './supportTargeting.js';
@@ -152,6 +155,11 @@ const { setAppMode, setPlayerRole, setRoomId, setShowOnlinePlayers } = ctx;
 
 export const applyOnEnterPassiveImpl = (ctx, char, p, idx, workingTeams, workingField, eventsArr, gameMode, settings, isCampaign) => {
 const { CHARACTERS } = ctx;
+              if(char.passive?.earthSense)
+                tophSeismicEntry(char,p,workingTeams,workingField,gameMode,settings,
+                  applyBattleStatModifier,eventsArr,Boolean(settings?.isRoguelikeCoop),
+                  enemy=>!immuneToStatDrops(enemy)&&!blockedEnemyPassive(enemy));
+
 
               if (char.passive?.crewMedicHeal && char.hp>0) {
                 const aid=chopperEntryAid(workingTeams,workingField,p,gameMode,settings,char.passive.crewMedicHeal);
@@ -796,6 +804,8 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             if (attacker.passive && attacker.passive.type === 'global_damage_boost') {
                 pwr = Math.floor(pwr * attacker.passive.multiplier);
             }
+            pwr=Math.floor(pwr*leafeonSpeedPower(attacker,defender,move,isFirstAttackOfTurn)*
+              flygonWyrmBonus(attacker,move));
             
             // PASSIVA YOSHI (Buff In Groppa)
             if (attacker.statuses?.some(s => s.type === 'In_Groppa')) {
@@ -1059,6 +1069,14 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     for(const item of reduced.activations)
                       events.push({type:'text',text:`🛡️ ${item} protegge ${target.name}!`});
                 }
+
+                if(options.isEnemyTarget&&options.directAttack&&dmg>0){
+                  const sand=gaaraSandGuardHit(target,dmg,theaterTurnNumber);
+                  dmg=sand.damage;
+                  if(sand.activated)events.push({type:'text',isPassive:true,
+                    passiveChar:target.name,passiveName:target.passive.name,
+                    text:'🏜️ Sabbia Automatizzata di '+target.name+': primo colpo del turno ridotto del 20%!'});
+                }
                 const hpBeforeDamage=target.hp;
                 const canCounter=gameState.gameMode==='juggernaut' && target.isJuggernaut &&
                   options.isEnemyTarget && (options.directAttack||options.isOffensiveMove) &&
@@ -1088,6 +1106,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 } else {
                     target.hp = Math.max(0, target.hp - dmg);
                 }
+                if(gaaraSandThreshold(target,applyBattleStatModifier))
+                  events.push({type:'text',isPassive:true,passiveChar:target.name,
+                    passiveName:target.passive.name,
+                    text:'🏜️ '+target.name+' rinforza la sua sabbia: Difesa +20% sotto il 50% dei PS!'});
+
                 
                 if(options.directAttack && target.hp>0 && dmg>0 &&
                    survivedBarrelHits(target,options.directHits??1)){
@@ -3018,7 +3041,13 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
 
                         let effects = move.statusEffects || (move.statusEffect ? [move.statusEffect] : []);
                         for (let effect of effects) {
-                            if(effect.type==='Accecato'&&isEchoRaidAccuracyProtected(t.char)){
+                            if(effect.type==='Accecato'&&t.char.passive?.earthSense){
+                                events.push({type:'text',isPassive:true,passiveChar:t.char.name,
+                                  passiveName:t.char.passive.name,
+                                  text:'⛰️ '+t.char.name+' percepisce le vibrazioni e resiste ad Accecato!'});
+                                continue;
+                             }
+                             if(effect.type==='Accecato'&&isEchoRaidAccuracyProtected(t.char)){
                                 events.push({type:'text',text:'🛡️ Aura Suprema: Echomax è immune all’accecamento e ai cali di Precisione!'});
                                 continue;
                             }
@@ -3260,6 +3289,29 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                     events.push({ type: 'text', text: '👁️ Mahito usa Trasfigurazione Oziosa! Cambia forma e aumenta Attacco e Attacco Speciale di uno stadio!' });
                 }
 
+                if(attackSucceeded && attacker.hp>0){
+                  const echo=flygonDuneEcho(attacker,move,applyBattleStatModifier);
+                  if(echo)events.push({type:'text',isPassive:true,passiveChar:attacker.name,
+                    passiveName:attacker.passive.name,text:'🐉 Eco delle Dune di '+attacker.name+
+                    ': +10% '+(echo.stat==='spd'?'Velocita':'Attacco')+' ('+echo.charges+'/3)!'});
+                  const garden=floraFairyGarden(attacker,move,player,workingTeams,workingField,
+                    gameState.gameMode,gameState.settings,royalHeal,gameState.isRoguelikeCoop);
+                  if(garden)events.push({type:'damage',targetPlayer:garden.role,targetIdx:garden.idx,
+                    newHp:garden.char.hp,isPassive:true,passiveChar:attacker.name,
+                    passiveName:attacker.passive.name,text:'🌷 Fata Guardiana di '+attacker.name+
+                    ': '+garden.char.name+' recupera '+garden.healed+' PS!'});
+                  const spring=shayminSpringHeart(attacker,move,applyBattleStatModifier,royalHeal);
+                  if(spring)events.push({type:'damage',targetPlayer:player,targetIdx:charTeamIdx,
+                    newHp:attacker.hp,isPassive:true,passiveChar:attacker.name,
+                    passiveName:attacker.passive.name,text:'🌼 Cuore della Primavera: +5% Velocita e '+
+                    spring.hp+' PS per '+attacker.name+' ('+spring.charges+'/4)!'});
+                  const awoken=shayminAwakening(attacker,move,applyBattleStatModifier);
+                  if(awoken)events.push({type:'form_change',player,charTeamIdx,
+                    image:awoken.image,stats:awoken.stats,
+                    text:'🌼 RISVEGLIO! Shaymin assume una nuova forma: tutte e cinque le statistiche +20%!',isPassive:true,
+                    passiveChar:attacker.name,passiveName:'Risveglio'});
+                }
+
                 // Le gemme amplificano tutta la PRIMA mossa offensiva del tipo
                 // corrispondente, poi si rompono solo per questa battaglia.
                 // Il possesso nel profilo non cambia.
@@ -3276,6 +3328,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                     let statTexts = [];
                     if (buffToApply.def) { applyBattleStatModifier(attacker, 'def', buffToApply.def); statTexts.push("Difesa"); }
                     if (buffToApply.spDef) { applyBattleStatModifier(attacker, 'spDef', buffToApply.spDef); statTexts.push("Difesa Speciale"); }
+                    if (buffToApply.spAtk) { applyBattleStatModifier(attacker, 'spAtk', buffToApply.spAtk); statTexts.push("Attacco Speciale"); }
                     if (buffToApply.spd) { applyBattleStatModifier(attacker, 'spd', buffToApply.spd); statTexts.push("Velocità"); }
                     if (buffToApply.atk) { applyBattleStatModifier(attacker, 'atk', buffToApply.atk); statTexts.push("Attacco"); }
                     if (statTexts.length > 0) {
@@ -4412,7 +4465,17 @@ const { appMode, gameState, getActivePlayers, playerRole, setActionMenuMode, set
                             if(evt[attr]!==undefined)fighter[attr]=evt[attr];
                         setDisplayTeams({...currentDisplay});
                     }
-                } else if (evt.type === 'hyper_transform') {
+                } else if(evt.type === 'form_change'){
+                    const fighter=currentDisplay?.[evt.player]?.[evt.charTeamIdx];
+                    if(fighter){
+                      fighter.img=evt.image;
+                      fighter.shayminAwakened=true;
+                      for(const [stat,value] of Object.entries(evt.stats||{}))fighter[stat]=value;
+                      setDisplayTeams({...currentDisplay});
+                    }
+                    setScreenFlash(true);
+                    setTimeout(()=>setScreenFlash(false),1800);
+                  } else if (evt.type === 'hyper_transform') {
                    // --- ANIMAZIONE FORMA IPER LENTA E AD EFFETTO ---
                    setScreenFlash(true);
                    setTimeout(() => setScreenFlash(false), 3500);
