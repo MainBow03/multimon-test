@@ -2,6 +2,12 @@
 // Le linee sono scritte per il carattere, i poteri o la storia del personaggio.
 // Una riga per ciascun ID registrato: il test controlla la copertura del roster.
 export const ULTIMON_ENTRANCE_LINES = Object.freeze({
+  "tophbeifong": "Sentite l'eco sotto i piedi? Non è paura: è la terra che mi risponde.",
+  "gaara": "Il deserto sembra immobile. È solo perché la mia sabbia aspetta un segnale.",
+  "flygon": "Quando sentirete cantare il vento delle dune, sarò già sopra l'arena.",
+  "flora": "Le mie radici proteggono gli amici. I petali si occuperanno degli avversari.",
+  "leafeon": "Le foglie seguono il vento. Io invece scelgo la mia traiettoria.",
+  "shaymin": "Un piccolo fiore basta a ricordare che anche la speranza sa combattere.",
   "malefica": "Le fiamme del mio regno hanno un colore che non dimenticherete: avvelenato, smeraldo e maledetto.",
   "yzma": "Una pozione, una leva, un piano perfetto! Non interrompetemi mentre faccio storia. KRONK!",
   "lavender": "La nebbia si infittisce e il branco ha fiutato la sfida. Fate spazio ai miei artigli.",
