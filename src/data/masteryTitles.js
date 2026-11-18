@@ -3,6 +3,12 @@
 // la loro eleggibilità è definita in masterySystem.js.
 // Ogni titolo è esclusivo di un singolo Multimon; nessun effetto sulle statistiche.
 export const MASTERY_CHARACTER_TITLES = Object.freeze({
+  "tophbeifong": "L’Orecchio della Montagna",
+  "gaara": "Custode della Sabbia Silenziosa",
+  "flygon": "Drago della Tempesta del Deserto",
+  "flora": "Custode dell’Armonia Fiorita",
+  "leafeon": "Lama della Foresta Primordiale",
+  "shaymin": "Messaggero della Gratitudine",
   "malefica": "Sovrana delle Fiamme Maledette",
   "yzma": "Alchimista dell’Imprevisto",
   "lavender": "Predatrice della Nebbia Tossica",
