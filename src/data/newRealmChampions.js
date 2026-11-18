@@ -160,7 +160,7 @@ export const NEW_REALM_CHARACTERS = [
   passive:{name:'Contratto Incomprensibile',type:'cipher_contract',maxTriggers:3,desc:'Le mosse offensive Buio hanno 35% di ridurre del 15% una statistica casuale del bersaglio, per tre attivazioni al massimo.'},
   moveNames:['Equazione Impossibile','Occhio Piramidale','Patto Sorridente','Caos Triangolare']},
  {id:'senzavolto',name:'Senza Volto',types:['Buio','Spettro'],hp:115,maxHp:115,atk:98,spAtk:109,def:93,spDef:108,spd:76,
-  img:'https://static.wixstatic.com/media/b6ac1c_fd61b6ea53104fb5909fcf2d3c2f5ff2~mv2.png/v1/fill/w_965%2Ch_538%2Cal_c/b6ac1c_fd61b6ea53104fb5909fcf2d3c2f5ff2~mv2.png',
+  img:'https://www.animeclick.it/immagini/anime/Sen_to_Chihiro/gallery_original/Sen_to_Chihiro-5caa1a2a3ff0c.jpg',
   passive:{name:'Fame Silenziosa',type:'silent_hunger',maxTriggers:2,desc:'Se colpisce un nemico affetto da status negativo, recupera 12% PS massimi. Massimo due attivazioni per battaglia.'},
   moveNames:['Oro Illusorio','Silenzio del Treno','Voracita Ombrosa','Maschera Vuota']},
  {id:'hornet',name:'Hornet',types:['Insetto','Aria'],hp:93,maxHp:93,atk:116,spAtk:82,def:85,spDef:82,spd:133,
