@@ -1,4 +1,6 @@
 export const CHAR_PRICES = {
+  'mushu':180,'hakudrago':250,'shenron':350,'billcipher':320,'senzavolto':220,
+  'hornet':240,'baxterstockman':220,'vaiana':230,'ariel':210,'frozone':240,'korra':300,'ponyo':200,
   'tophbeifong':200,'gaara':250,'flygon':200,'flora':200,'leafeon':150,'shaymin':250,
   'malefica':250,'yzma':200,'lavender':200,'remedusa':250,'malenia':350,
   'berry':200,'frillish':200,'flins':250,'ganyu':300,'coraline':200,
