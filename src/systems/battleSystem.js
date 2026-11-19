@@ -832,16 +832,16 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             const randomFactor = (Math.floor(random() * 16) + 85) / 100;
             const weakenFactor = (attacker.statuses?.some(s => s.type === 'Indebolito') ? 0.75 : 1) * assideramentoDamageFactor(attacker);
             // Scudo Team assorbe il 45% dei danni: resta il 55% (salvo mosse ignora-scudi).
-            const teamDefFactor = ignoresShields(attacker,move) ? 1 : Math.min(
-              defender.statuses?.some(s => s.type === 'Scudo Team') ? .55 : 1,
-              crystalBarrierFactor(defender,move));
+            const teamDefFactor = defender.statuses?.some(s => s.type === 'Scudo Team') ? 0.55 : 1;
+            const effectiveTeamDefFactor = ignoresShields(attacker,move) ? 1 :
+              Math.min(teamDefFactor,crystalBarrierFactor(defender,move));
 
             // STAB (Same-Type Attack Bonus): Danno aumentato del 50% se il tipo mossa coincide con il tipo attaccante
             const stabFactor = attacker.types.includes(move.type) ? 1.5 : 1;
             const enchantedDamageFactor = incomingRockEnchantmentFactor(attacker);
             const fasterTargetBonus = move.bonusAgainstFaster && defender.spd > attacker.spd ? move.bonusAgainstFaster : 1;
 
-            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * teamDefFactor * stabFactor * enchantedDamageFactor * getMahitoMultiplier(attacker, defender, move) * fasterTargetBonus * (defender.passive?.type === 'petrosapien_armor' ? 1 - (defender.passive.damageReduction ?? 0.2) : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1) * outgoingPassiveDamageFactor(attacker,defender,move) * selectedPassiveDamageFactor(attacker,defender,move) * rogueDamageFactor(attacker,multiplier)));
+            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * effectiveTeamDefFactor * stabFactor * enchantedDamageFactor * getMahitoMultiplier(attacker, defender, move) * fasterTargetBonus * (defender.passive?.type === 'petrosapien_armor' ? 1 - (defender.passive.damageReduction ?? 0.2) : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1) * outgoingPassiveDamageFactor(attacker,defender,move) * selectedPassiveDamageFactor(attacker,defender,move) * rogueDamageFactor(attacker,multiplier)));
           
 };
 
@@ -3100,7 +3100,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 if (effect.type === 'Infatuato' && !effect.turns) turns = Math.floor(Math.random() * 2) + 4;
                                 if (effect.type === 'Malinconia') turns = Math.floor(Math.random() * 3) + 3;
                                 
-                                let newStatus = { type: effect.type, turns: turns, ...(['Incantato','Assiderato','Malinconia'].includes(effect.type)?{justApplied:true}:{}) };
+                                let newStatus = { type: effect.type, turns: turns, ...((['Incantato','Assiderato'].includes(effect.type)||effect.type==='Malinconia')?{justApplied:true}:{}) };
                                 if(shortenHakiDebuff(t.char,newStatus))
                                   events.push({type:'text',text:'🛡️ Haki dell’Armatura: '+t.char.name+' dimezza la durata di '+effect.type+'!'});
                                 if(shortenNegativeStatus(t.char,newStatus))
