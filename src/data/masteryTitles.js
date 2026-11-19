@@ -3,6 +3,21 @@
 // la loro eleggibilità è definita in masterySystem.js.
 // Ogni titolo è esclusivo di un singolo Multimon; nessun effetto sulle statistiche.
 export const MASTERY_CHARACTER_TITLES = Object.freeze({
+  "kida": "Erede del Cuore di Atlantide",
+  "rarity": "Stilista delle Gemme Eterne",
+  "bismuth": "Fabbra della Rivolta Stellare",
+  "hessonite": "Generale dell'Ambra Incandescente",
+  "phosphophyllite": "Gemma che Impara a Brillare",
+  "theboulder": "Leggenda del Torneo Tellurico",
+  "obelix": "Portatore dei Mille Menhir",
+  "korg": "Gladiatore di Sakaar",
+  "goliath": "Sentinella della Citta Notturna",
+  "mangiarocce": "Affamato di Intere Montagne",
+  "miguelrivera": "Chitarrista dei Ricordi Immortali",
+  "blackcanary": "Voce che Spezza il Silenzio",
+  "mayalape": "Messaggera del Nettare Dorato",
+  "bluebeetle": "Custode dello Scarabeo Stellare",
+  "kamenriderkabuto": "Sovrano del Clock Up",
   "mushu": "Custode Scarlatto degli Antenati",
   "hakudrago": "Memoria del Fiume Kohaku",
   "shenron": "Signore dei Sette Desideri",
