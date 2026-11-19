@@ -272,9 +272,14 @@ if (appMode === 'catalog') {
                                             </div>
                                         </div>
 
-                                        {char.fusionOf && <p className="rounded-lg border border-fuchsia-400/25 bg-fuchsia-950/25 px-2.5 py-2 text-center text-[11px] font-bold leading-relaxed text-fuchsia-100">
-                                            🧬 Fusione di: {char.fusionOf.map(id => CHARACTERS.find(c => c.id === id)?.name || id).join(' + ')}
-                                        </p>}
+                                        {char.fusionOf && <div className="space-y-2 rounded-xl border border-fuchsia-400/25 bg-fuchsia-950/25 px-3 py-3 text-center">
+                                            <p className="text-[11px] font-extrabold leading-relaxed text-fuchsia-100">
+                                                🧬 {char.fusionStyle ? 'Fusione ' + char.fusionStyle + ' · ' : 'Fusione di: '}
+                                                {char.fusionOf.map(id => CHARACTERS.find(c => c.id === id)?.name || id).join(' + ')}
+                                            </p>
+                                            {char.fusionTitle && <strong className="block text-xs font-black text-fuchsia-200">✦ {char.fusionTitle}</strong>}
+                                            {char.fusionDescription && <p className="text-[11px] leading-relaxed text-slate-300">{char.fusionDescription}</p>}
+                                        </div>}
 
                                         <div className="grid grid-cols-4 gap-1.5 rounded-xl border border-slate-700/60 bg-slate-950/65 p-2 text-center">
                                             {[
