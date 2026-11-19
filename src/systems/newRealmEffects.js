@@ -5,7 +5,7 @@ import {earthGrassAlliedRoles} from './earthGrassEffects.js';
 
 const NEGATIVE = new Set(['Avvelenato','Scottato','Elettrizzato','Congelato','Addormentato',
  'Confuso','Indebolito','Stordito','Accecato','Incantato','Infatuato','Anima Distorta',
- 'Assiderato','Marciume']);
+ 'Assiderato','Marciume','Malinconia']);
 
 const charges = c=>Number(c.newRealmCharges)||0;
 const mark = c=>{c.newRealmCharges=charges(c)+1;};
@@ -107,14 +107,20 @@ export function newRealmOnAction(options){
    break;
   }
   case 'mouser_project':{
-   if(!foe||!offensive||move.type!=='Robot'||charges(c)>=(c.passive.maxTriggers??2))break;
-   foe.char.mouserMarks=(foe.char.mouserMarks||0)+1;
-   if(foe.char.mouserMarks>=2){
-    foe.char.mouserMarks=0;
-    if(applyStat(foe.char,'def',.8)){
-     mark(c);use('due marchi su '+foe.char.name+': Difesa -20% ('+charges(c)+'/2).');
-    }
-   }else use(foe.char.name+' riceve il primo marchio dei microbot.');
+   if(!foe||!offensive||move.type!=='Robot')break;
+   // Contatore distinto per bersaglio, legato a questo Baxter e non condiviso con altri.
+   const targetKey=foe.player+':'+foe.idx;
+   c.mouserTargets ||= {};
+   const targetState=c.mouserTargets[targetKey] ||= {marks:0,activations:0};
+   if(targetState.activations>=(c.passive.maxTriggersPerEnemy??2))break;
+   targetState.marks+=1;
+   if(targetState.marks>=2){
+     targetState.marks=0;
+     if(applyStat(foe.char,'def',.8)){
+      targetState.activations+=1;
+      use('due marchi su '+foe.char.name+': Difesa -20% ('+targetState.activations+'/2 per nemico).');
+     }
+   }else use(foe.char.name+' riceve un marchio dei microbot.');
    break;
   }
   case 'wayfinder':{
@@ -156,11 +162,26 @@ export function newRealmOnAction(options){
  return out;
 }
 
-export function newRealmOnDamage({char,player,idx,applyStat,heal}){
- if(char?.passive?.type!=='living_sea'||char.hp<=0||
-    char.hp>char.maxHp*.5||(char.newRealmCharges||0)>0)return [];
- mark(char);
- const n=safeHeal(heal,char,.2);
- applyStat(char,'spd',1.15);
- return [healEvent(char,{player,idx,char},n,char.name+' riemerge dalle onde e ottiene Velocita +15%')];
+// Ponyo non possiede piu una passiva di soglia PS; la purificazione e al termine del turno.
+export function newRealmOnEndTurn({char,player,idx,teams,field,mode,settings,
+ isCoop=false,heal,random=Math.random}){
+ if(char?.passive?.type!=='living_sea'||char.hp<=0||random()>=(char.passive.chance??.3))return [];
+ const friends=teamTargets({player,teams,field,mode,settings,isCoop})
+   .filter(t=>t.char!==char&&t.char.statuses?.some(s=>NEGATIVE.has(s.type)));
+ if(!friends.length)return [];
+ const target=friends[Math.floor(random()*friends.length)];
+ const statusIndex=target.char.statuses.findIndex(s=>NEGATIVE.has(s.type));
+ if(statusIndex<0)return [];
+ const [cleansed]=target.char.statuses.splice(statusIndex,1);
+ const recovered=safeHeal(heal,char,char.passive.healPercent??.1);
+ const result=[{type:'status_update',targetPlayer:target.player,targetIdx:target.idx,
+   statuses:structuredClone(target.char.statuses),isPassive:true,
+   passiveChar:char.name,passiveName:char.passive.name,
+   text:'🌊 '+char.name+' purifica '+cleansed.type+' da '+target.char.name+'!'}];
+ if(recovered>0)result.push(healEvent(char,{player,idx,char},recovered,
+   char.name+' recupera PS per aver aiutato '+target.char.name));
+ return result;
 }
+
+// Conservato come funzione neutra per gli altri utilizzatori del motore.
+export function newRealmOnDamage(){return [];}
