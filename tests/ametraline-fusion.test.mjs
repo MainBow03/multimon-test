@@ -115,6 +115,18 @@ test('Cura 20% solo contro bersaglio gia indebolito e restore anche con purifica
  assert.equal(enemy.acc,1);
 });
 
+test('Ritratto originale incorporato nel sito, non un link esterno o immagine trasparente',()=>{
+ const svg=readFileSync(new URL('../public/images/ametraline.svg',import.meta.url),'utf8');
+ assert.match(svg,/<svg /);
+ assert.match(svg,/image\/webp;base64,/);
+ const data=svg.match(/base64,([A-Za-z0-9+/=]+)"/)?.[1];
+ assert.ok(data?.length>6000,'L artwork deve avere dati reali');
+ const webp=Buffer.from(data,'base64');
+ assert.equal(webp.subarray(0,4).toString(),'RIFF');
+ assert.equal(webp.subarray(8,12).toString(),'WEBP');
+ assert.ok(webp.length>4000);
+});
+
 test('Il motore autorevole contiene le nuove tecniche e la scadenza',()=>{
  const s=readFileSync(new URL('../src/systems/battleSystem.js',import.meta.url),'utf8');
  assert.match(s,/ametralineDamageFactor\(attacker,move\)/);
