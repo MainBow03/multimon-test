@@ -9,7 +9,7 @@ export function AdventureGymTrial({zoneId,onComplete,onClose}){
  const [showPattern,setShowPattern]=useState(false);
  if(!spec||!state)return null;
  const run=choice=>setState(previous=>adventureTrialStep(previous,choice));
- const total=spec.kind==='growth'?spec.values.length:
+ const total=spec.kind==='growth'?spec.nodes.length+1:
   ['forge','tides'].includes(spec.kind)?spec.targets.length:
   spec.kind==='ice'?1:spec.answer.length;
  const index=Math.min(state.step,total-1);
@@ -28,11 +28,28 @@ export function AdventureGymTrial({zoneId,onComplete,onClose}){
      <span> · Riprova: {state.mistakes}</span>}</div>
     {spec.kind==='growth'&&<div className="adv-trial-growth">
       <p className="adv-trial-hint">{spec.clues[index]}</p>
-      <div className="adv-trial-options">
-       {spec.options[index].map(v=><button key={v} type="button" onClick={()=>run(v)}>
-        <span>{v==='sole'?'☀️':v==='rugiada'?'💧':'🌱'}</span><strong>{v.toUpperCase()}</strong>
-       </button>)}</div>
-      <p className="adv-trial-footnote">Ogni gesto fa crescere il giardino. I passaggi si aprono uno alla volta.</p>
+      <div className="adv-trial-garden-grid">
+       {Array.from({length:spec.width*spec.height},(_,i)=>{
+        const x=i%spec.width,z=Math.floor(i/spec.width);
+        const isWall=spec.walls.some(([wx,wz])=>wx===x&&wz===z);
+        const isPlayer=state.position[0]===x&&state.position[1]===z;
+        const isGoal=spec.goal[0]===x&&spec.goal[1]===z;
+        const node=spec.nodes.find(n=>n.position[0]===x&&n.position[1]===z);
+        const done=node&&spec.nodes.indexOf(node)<state.step;
+        return <span key={i} className={'adv-trial-garden-cell'+(isWall?' wall':'')+
+          (isPlayer?' player':'')+(done?' completed':'')}>
+          {isPlayer?'🧍':isWall?'🌳':node?.icon|| (isGoal?'🏛️':'·')}
+        </span>;
+       })}
+      </div>
+      <div className="adv-trial-directions">
+       <button type="button" onClick={()=>run('up')} aria-label="Cammina verso nord">↑</button>
+       <div><button type="button" onClick={()=>run('left')} aria-label="Cammina a sinistra">←</button>
+        <button type="button" onClick={()=>run('down')} aria-label="Cammina verso sud">↓</button>
+        <button type="button" onClick={()=>run('right')} aria-label="Cammina a destra">→</button></div>
+      </div>
+      <p className="adv-trial-footnote">Attiva ☀️, 💧 e 🌱 nell ordine corretto, poi raggiungi 🏛️. I muri non si attraversano.</p>
+      <button className="adv-trial-reset" type="button" onClick={()=>setState(adventureTrialInitial(zoneId))}>Ricomincia il labirinto</button>
      </div>}
     {spec.kind==='forge'&&<div className="adv-trial-forge">
       <p>Temperatura richiesta: <strong>{spec.targets[index]}°</strong></p>
