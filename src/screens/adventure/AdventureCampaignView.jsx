@@ -374,6 +374,19 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
     <h2>{scene.title}</h2>
     <div className="adv-story-progress">{scene.lines.map((entry,i)=><span key={i}
        className={i<=scene.index?'adv-story-progress-active':''}/>)}</div>
+    <div className={'adv-story-stage adv-story-stage-'+(scene.id?.split(':')[1]||'ending')}>
+     <div className="adv-story-runes" aria-hidden="true"><span>◆</span><span>✧</span><span>◆</span></div>
+     <div className="adv-story-stage-portal" aria-hidden="true"><i/><span>✦</span></div>
+     <div className="adv-story-actors">
+      <div className="adv-story-actor"><span>✦</span><strong>{scene.id?.startsWith('badge:')?'EMBLEMA':'PORTALI'}</strong></div>
+      <div className="adv-story-actor adv-story-speaker">
+       {img(characters.find(c=>c.name===scene.lines[scene.index]?.speaker)?.img,
+         scene.lines[scene.index]?.speaker)||<span>{scene.lines[scene.index]?.speaker==='Nox'?'🌓':
+          scene.lines[scene.index]?.speaker==='Professor Orion'?'🧭':'✧'}</span>}
+       <strong>{scene.lines[scene.index]?.speaker}</strong>
+      </div>
+     </div>
+    </div>
     <div className="adv-story-dialogue">
       <div className="adv-story-avatar">✦</div>
       <div><strong>{scene.lines[scene.index]?.speaker}</strong>
