@@ -19,10 +19,10 @@ test('Sei Palestre hanno sei enigmi distinti, salvabili e superabili',()=>{
  assert.deepEqual(ADVENTURE_TRIALS.map(t=>t.kind),
   ['growth','forge','tides','ice','stars','runes']);
  let progress=adventureTrialInitial('alba');
- assert.equal(adventureTrialStep(progress,'radici').step,0,'Una risposta errata non apre la strada');
- progress=step(progress,['sole','rugiada','radici']);
- assert.equal(progress.solved,true);
- assert.equal(progress.step,3);
+ assert.equal(adventureTrialStep(progress,'radici').step,0,'Non si salta una fase del giardino');
+ progress=step(progress,['up','right','up','right','right','up','right','right','up','right']);
+ assert.equal(progress.solved,true,'Il labirinto vegetale porta realmente all uscita');
+ assert.equal(progress.step,4);
  let forge=adventureTrialInitial('braci');
  for(const target of [60,85,45]){
   // La prova del calore e un misuratore vero, non un quiz: misura e conferma ogni target.
