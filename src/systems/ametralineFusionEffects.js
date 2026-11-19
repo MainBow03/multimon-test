@@ -47,18 +47,26 @@ export function ametralineApplyButtons(attacker,target,applyStat,heal){
  target.acc=previousAcc*.8;
  // Il moltiplicatore viene ripristinato dopo due fine-turno completi.
  target.statuses.push({type:'Bottoni del Vuoto',turns:2,justApplied:true,lostAtk,accuracyMultiplier:.8});
+ target.ametralineButtonsPenalty={lostAtk,accuracyMultiplier:.8};
  const healed=wasDebuffed&&attacker.hp<attacker.maxHp
    ? heal(attacker,Math.max(1,Math.floor(attacker.maxHp*.2))):0;
  return {applied:true,statApplied,lostAtk,healed,turns:2};
 }
 export function ametralineTickButtons(char){
- const active=char?.statuses?.find(s=>s.type==='Bottoni del Vuoto');
- if(!active)return null;
- if(active.justApplied){delete active.justApplied;return {expired:false,remaining:active.turns};}
- active.turns-=1;
- if(active.turns>0)return {expired:false,remaining:active.turns};
- char.atk=Math.max(1,char.atk+(active.lostAtk||0));
- if(Number.isFinite(char.acc))char.acc=Math.min(2,char.acc/(active.accuracyMultiplier||.8));
- char.statuses=char.statuses.filter(s=>s!==active);
+ if(!char)return null;
+ const active=char.statuses?.find(s=>s.type==='Bottoni del Vuoto');
+ if(active?.justApplied){delete active.justApplied;return {expired:false,remaining:active.turns};}
+ if(active){
+  active.turns-=1;
+  if(active.turns>0)return {expired:false,remaining:active.turns};
+ }
+ // Recupera le statistiche anche se uno strumento o una cura ha gia
+ // purificato lo status durante il turno.
+ const penalty=char.ametralineButtonsPenalty||active;
+ if(!penalty)return null;
+ char.atk=Math.max(1,char.atk+(penalty.lostAtk||0));
+ if(Number.isFinite(char.acc))char.acc=Math.min(2,char.acc/(penalty.accuracyMultiplier||.8));
+ delete char.ametralineButtonsPenalty;
+ char.statuses=(char.statuses||[]).filter(s=>s.type!=='Bottoni del Vuoto');
  return {expired:true,remaining:0};
 }
