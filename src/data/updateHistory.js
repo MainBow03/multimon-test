@@ -13,6 +13,16 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov19-ametraline-metamor-fusion',category:'champions',date:'19/11/2026',
+    title:'🧬 Ametraline: fusione Metamor Coraline + Ametista',items:[
+      'Nuova fusione originale Ametraline Spettro/Cristallo, genitori Coraline e Ametista, nella categoria Fusioni del Catalogo e nei formati con Fusion Mode.',
+      'Ritratto originale della fusione: capelli viola, bottoni magici, impermeabile giallo, gemma nel petto e frusta cristallina, con ambiente non trasparente.',
+      'Quattro mosse uniche: Corridoio Segreto, Frusta d Ametista, Bottoni del Vuoto e Gemma Imperfetta.',
+      'Metamorfosi Cucita: cambiando tipo di mossa rispetto al precedente si infligge +15% di danno per quella mossa e si ottiene uno scudo assorbente dell 8% dei PS massimi, fino a 4 volte.',
+      'Bottoni del Vuoto applica -20% Attacco e Precisione per 2 turni senza rinnovi ripetuti; se la vittima era gia debuffata cura Ametraline del 20%.',
+      'Gemma Imperfetta guarisce il 35% PS, aumenta Difesa e Velocita del 20%, due usi. Le mosse di attacco e supporto condividono il motore standard.',
+      'Le Fusioni aumentano di una unita; il totale dei Multimon giocabili ordinari rimane invariato.'
+    ]},
   {id:'nov19-catalog-redesign-total-count',category:'interface',date:'19/11/2026',
     title:'📖 Catalogo rinnovato con conteggio Multimon sempre aggiornato',items:[
       'Nuova intestazione del Catalogo con totale giocabile in evidenza, numero di tipi, forme Iper e fusioni.',
