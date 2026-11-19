@@ -80,8 +80,10 @@ export function crystalRockOnAction({attacker:char,move,turn,player,idx,teams,fi
      to.char.statuses ||= [];
      let buff=to.char.statuses.find(s=>s.type==='Marcia Cremisi');
      if(!buff){
+       const before=to.char[b.stat];
        applyStat(to.char,b.stat,b.multiplier);
-       buff={type:'Marcia Cremisi',turns:b.turns,stat:b.stat,multiplier:b.multiplier,justApplied:true};
+       buff={type:'Marcia Cremisi',turns:b.turns,stat:b.stat,multiplier:b.multiplier,
+         gained:to.char[b.stat]-before,justApplied:true};
        to.char.statuses.push(buff);
      }else {buff.turns=Math.max(buff.turns,b.turns);buff.justApplied=true}
      output.push(statusEvt(to.char,to.player,to.idx));
@@ -204,7 +206,7 @@ export function crystalRockOnEndTurn({char,player,idx,teams,field,mode,settings,
      if(st.turns<=0){
        char.statuses=char.statuses.filter(s=>s!==st);
        if(st.type==='Marcia Cremisi'&&st.stat&&st.multiplier){
-         applyStat(char,st.stat,1/st.multiplier);
+         char[st.stat]=Math.max(1,char[st.stat]-(st.gained||0));
        }
        output.push(statusEvt(char,player,idx,'⏳ '+st.type+' di '+char.name+' termina.'));
      }
