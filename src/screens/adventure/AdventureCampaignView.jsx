@@ -7,9 +7,12 @@ import {ADVENTURE_ZONES,ADVENTURE_ENTITIES,ADVENTURE_STARTERS,ADVENTURE_CHAMPION
  adventureGuide,ADVENTURE_MAX_PARTY} from '../../systems/adventureCampaign.js';
 import {ADVENTURE_STORY_TITLE,ADVENTURE_STORY,ADVENTURE_RIVAL_NAME,adventureNextStoryScene,adventureMarkStorySeen} from '../../data/adventureStory.js';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
+import {AdventureGymTrial} from './AdventureGymTrial.jsx';
+import {ADVENTURE_SIDE_QUESTS,adventureDiscoverSecret,adventureQuestProgress,
+ adventureClaimQuest,adventureFinishTrial} from '../../systems/adventureEnhancements.js';
 import './AdventureCampaign.css';
 
-const symbol={gym:'🏛️',trainer:'⚔️',rival:'🌓',wild:'✦',npc:'💬',inn:'✚',shop:'🛒',chest:'🎁',champion:'🏆'};
+const symbol={gym:'🏛️',trainer:'⚔️',rival:'🌓',wild:'✦',npc:'💬',quest:'📜',secret:'✨',inn:'✚',shop:'🛒',chest:'🎁',champion:'🏆'};
 const getChar=(chars,id)=>chars.find(c=>c.id===id);
 const hp=(m,chars)=>{
  const base=getChar(chars,m.id),max=base?adventureMaxHp(base,m.level):100;
@@ -174,7 +177,7 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
  const [panel,setPanel]=useState(null),[nearby,setNearby]=useState(null),[dialog,setDialog]=useState(null);
  const [battleTarget,setBattleTarget]=useState(null),[toast,setToast]=useState(null),[help,setHelp]=useState(false);
  const [confirmReset,setConfirmReset]=useState(false);
- const [scene,setScene]=useState(null);
+ const [scene,setScene]=useState(null),[trial,setTrial]=useState(null);
  const worldPosition=useRef(state?.position||{x:5,z:0});
  const travelRef=useRef(state?.travelSerial||0);
  const save=state;
@@ -184,7 +187,7 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
  const unlockIntro=save&&!save.welcomed;
  const currentZoneId=save?.started?adventureZone(save.position.x).id:null;
  useEffect(()=>{
-   if(!save?.started||!save.welcomed||scene||panel||dialog||battleTarget||help||confirmReset)return;
+   if(!save?.started||!save.welcomed||scene||panel||dialog||battleTarget||trial||help||confirmReset)return;
    const upcoming=adventureNextStoryScene(save,currentZoneId);
    if(upcoming)setScene({...upcoming,index:0});
  },[save?.welcomed,save?.finished,save?.storySeen?.join('|'),save?.badges?.join('|'),
@@ -211,7 +214,29 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
  const showPanel=p=>{setPanel(p);setBattleTarget(null);setDialog(null)};
  const canTravel=i=>i<=save.badges.length&&i<=5;
  const handleInteraction=(entity,position)=>{
-  if(panel||dialog||battleTarget||help||scene)return;
+  if(panel||dialog||battleTarget||trial||help||scene)return;
+  if(entity.kind==='secret'){
+   update(p=>adventureDiscoverSecret(p,entity.id));
+   showMessage('✨ '+entity.name+' trovato! Controlla i progressi nel Diario.');
+   return;
+  }
+  if(entity.kind==='quest'){
+   const zoneId=ADVENTURE_ZONES[entity.zone]?.id,progress=adventureQuestProgress(save,zoneId);
+   if(!progress)return;
+   if(progress.completed){setDialog({speaker:entity.name,text:progress.quest.completed});return;}
+   if(!(save.questsStarted||[]).includes(zoneId)){
+    update(p=>({...p,questsStarted:[...(p.questsStarted||[]),zoneId]}));
+    setDialog({speaker:entity.name,text:progress.quest.dialogue+
+     ' Cerca i tre bagliori sui sentieri laterali della regione.'});return;
+   }
+   if(progress.count>=progress.total){
+    update(p=>adventureClaimQuest(p,zoneId));
+    setDialog({speaker:entity.name,text:progress.quest.completed+
+     ' Premio: '+progress.quest.rewardCoins+' monete e '+progress.quest.rewardPotions+' Pozioni!'});
+   }else setDialog({speaker:entity.name,text:
+    'Hai trovato '+progress.count+' oggetti su '+progress.total+'. Cerca anche fuori dalla strada principale!'});
+   return;
+  }
   update(p=>({...p,position}));
   if(entity.kind==='npc'){
     const speech=entity.id==='professor'&&save.badges.length>0?
@@ -228,6 +253,9 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
   if(entity.kind==='shop'){setPanel('shop');return;}
   const check=adventureGymCheck(save,entity);
   if(!check.ok){setDialog({speaker:entity.name,text:check.message});return;}
+  if(entity.kind==='gym'&&!(save.gymTrials||[]).includes(ADVENTURE_ZONES[entity.zone]?.id)){
+   setTrial(entity);return;
+  }
   setBattleTarget(entity);
  };
  const useItem=(index,revive=false)=>{
@@ -245,9 +273,9 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
   const x=ADVENTURE_ZONES[i].center-10,z=adventureRoadZ(x);
   update(p=>({...p,position:{x,z},travelSerial:(p.travelSerial||0)+1}));setPanel(null);
  };
- const paused=!!panel||!!dialog||!!scene||!!battleTarget||help||confirmReset||unlockIntro;
+ const paused=!!panel||!!dialog||!!scene||!!battleTarget||!!trial||help||confirmReset||unlockIntro;
  return <main className="adv-root">
-  <AdventureWorld3D key={'world-'+save.badges.join(',')+'-'+save.chests.length+'-'+save.defeated.length}
+  <AdventureWorld3D key={'world-'+save.badges.join(',')+'-'+save.chests.length+'-'+save.defeated.length+'-'+(save.secrets||[]).length}
    save={save} onWalk={position=>update(p=>p?.started?{...p,position}:p)} onNear={setNearby}
    onPosition={position=>{worldPosition.current={...position}}}
    onInteract={handleInteraction} onBlocked={badge=>showMessage('🔒 Il portale è chiuso! Devi conquistare '+badge+'.')} paused={paused}/>
@@ -335,6 +363,13 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
     <p>{dialog.text}</p><button onClick={()=>setDialog(null)}>CONTINUA →</button>
    </div>
   </div>}
+  {trial&&<AdventureGymTrial key={trial.id} zoneId={ADVENTURE_ZONES[trial.zone]?.id}
+     onClose={()=>setTrial(null)}
+     onComplete={()=>{
+      const id=ADVENTURE_ZONES[trial.zone]?.id;
+      update(p=>adventureFinishTrial(p,id));
+      setBattleTarget(trial);setTrial(null);
+     }}/>}
   {battleTarget&&<div className="adv-modal-wrap">
    <section className="adv-modal adv-battle-preview">
     <div className="adv-modal-kicker">{battleTarget.kind==='gym'?'🏛️ SFIDA PALESTRA':
@@ -416,7 +451,15 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
        <div><strong>{save.wildBattles||0}</strong><small>Incontri selvatici vinti</small></div>
        <div><strong>{save.gymWins||0}/6</strong><small>Palestre vinte</small></div>
        <div><strong>{save.party.length+save.reserve.length}</strong><small>Multimon reclutati</small></div></div>
-      <h3>Gli Emblemi</h3>
+      <h3>📜 Missioni secondarie</h3>
+      <div className="adv-quest-list">{ADVENTURE_SIDE_QUESTS.map(q=>{
+       const p=adventureQuestProgress(save,q.id);
+       return <div key={q.id} className={p.completed?'adv-quest-done':''}>
+        <strong>{p.completed?'✅':(save.questsStarted||[]).includes(q.id)?'🔎':'🔒'} {q.name}</strong>
+        <small>{p.count}/{p.total} ritrovamenti · {q.rewardCoins} monete · {q.rewardPotions} Pozioni</small>
+       </div>;
+      })}</div>
+      <h3>Gli Emblemi e le prove</h3>
       <div className="adv-emblem-list">{ADVENTURE_ZONES.map(z=><div key={z.id} className={save.badges.includes(z.id)?'adv-emblem-earned':''}>
        <span style={{color:z.color}}>◆</span><strong>{z.badge}</strong><small>{save.badges.includes(z.id)?'CONQUISTATO':'DA CONQUISTARE'}</small>
       </div>)}</div>
@@ -438,10 +481,12 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
      <h2>Come funziona l'esplorazione?</h2>
      <div className="adv-help-list">
       <p><kbd>W A S D</kbd> o <kbd>Frecce</kbd> per muoverti lungo i percorsi 3D.</p>
-      <p><kbd>SHIFT</kbd> per correre. <kbd>E</kbd> per parlare, sfidare o aprire gli scrigni.</p>
+      <p><kbd>SHIFT</kbd> per correre. <kbd>E</kbd> per interagire. <kbd>Q</kbd>/<kbd>R</kbd> ruotano la camera; puoi anche trascinare il mouse sulla scena.</p>
       <p>📱 Su tablet usa la croce direzionale e il pulsante PARLA.</p>
       <p>🎯 La barra "Prossima tappa" mostra il bersaglio, la distanza e la direzione. In 3D cerca il <strong>faro luminoso verticale</strong> sopra l'obiettivo; sulla mappa puoi spostarti nelle regioni già sbloccate.</p>
       <p>⚔️ Sconfiggi i due allenatori di ogni regione. Nelle Braci, ai Picchi e nel Vulcano devi battere anche <strong>Nox</strong> prima del capopalestra.</p>
+      <p>🏛️ Ogni Palestra ora ha una prova interattiva: completala prima di affrontare il capopalestra. Il progresso si salva.</p>
+      <p>🔎 Cerca gli abitanti con 📜 e recupera i tre oggetti nascosti in ogni regione per ricevere premi.</p>
       <p>🏛️ Gli Emblemi aprono uno dopo l’altro i portali di pietra. Se il portale è rosso, ti manca la sfida della regione.</p>
       <p>💚 I Centri di Cura sono gratuiti e guariscono anche la riserva; puoi comprare Pozioni e Cristalli nelle Botteghe.</p>
       <p>✦ Vinci gli incontri selvatici per poter reclutare altri Multimon. Il team contiene massimo sei alleati, poi c'è la riserva.</p>
