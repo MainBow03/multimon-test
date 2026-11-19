@@ -1,5 +1,5 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
-import {newRealmOnAction,newRealmOnDamage} from './newRealmEffects.js';
+import {newRealmOnAction,newRealmOnDamage,newRealmOnEndTurn} from './newRealmEffects.js';
 import {tophSeismicEntry,gaaraSandGuardHit,gaaraSandThreshold,flygonDuneEcho,
  flygonWyrmBonus,leafeonSpeedPower,floraFairyGarden,shayminSpringHeart,
  shayminAwakening} from './earthGrassEffects.js';
@@ -332,7 +332,7 @@ const { CHARACTERS } = ctx;
                           const rTarget = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
                           const sType = char.passive.applyStatusToRandomEnemy.type;
                           
-                          const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'].includes(sType);
+                          const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume', 'Malinconia'].includes(sType);
                           if (isNegative && (rTarget.char.passive?.immuneToNegativeStatuses || blockedEnemyPassive(rTarget.char) || (sType==='Accecato'&&isEchoRaidAccuracyProtected(rTarget.char)))) {
                               eventsArr.push({ type: 'text', text: `🛡️ ${char.name} attiva ${char.passive.name}, ma ${rTarget.char.name} è immune a ${sType} grazie a ${rTarget.char.passive?.name||'Scudo Anti-Magia'}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                           } else {
@@ -1327,7 +1327,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
 
                         // AGGIUNTO: GESTIONE PURIFICAZIONE STATUS (es. Zazan - Corazza Mutante)
                         if (target.passive.removeNegativeStatuses) {
-                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'];
+                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume', 'Malinconia'];
                             const originalLength = target.statuses.length;
                             target.statuses = target.statuses.filter(s => !negatives.includes(s.type));
                             
@@ -2972,7 +2972,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                         }
 
                         if (move.removeNegativeStatuses) {
-                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'];
+                            const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume', 'Malinconia'];
                             const originalLength = t.char.statuses.length;
                             t.char.statuses = t.char.statuses.filter(s => !negatives.includes(s.type));
                             if (t.char.statuses.length < originalLength) {
@@ -2987,6 +2987,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             if (move.targetStatBuff.atk) { applyBattleStatModifier(t.char, 'atk', move.targetStatBuff.atk); statTexts.push("l'Attacco"); }
                             if (move.targetStatBuff.def) { applyBattleStatModifier(t.char, 'def', move.targetStatBuff.def); statTexts.push("la Difesa"); }
                             if (move.targetStatBuff.spd) { applyBattleStatModifier(t.char, 'spd', move.targetStatBuff.spd); statTexts.push("la Velocità"); }
+                            if (move.targetStatBuff.spAtk) { applyBattleStatModifier(t.char, 'spAtk', move.targetStatBuff.spAtk); statTexts.push("l'Attacco Speciale"); }
+                            if (move.targetStatBuff.spDef) { applyBattleStatModifier(t.char, 'spDef', move.targetStatBuff.spDef); statTexts.push("la Difesa Speciale"); }
                             if (statTexts.length > 0) {
                                 events.push({ type: 'text', text: `📈 ${statTexts.join(" e ")} di ${t.char.name} aumenta!` });
                                 if(!isEnemyTarget){
@@ -3056,7 +3058,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 events.push({type:'text',text:'🛡️ Aura Suprema: Echomax è immune all’accecamento e ai cali di Precisione!'});
                                 continue;
                             }
-                            const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'].includes(effect.type);
+                            const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume', 'Malinconia'].includes(effect.type);
                             
                             // FIX CRITICO: Se la mossa non ha una "chance" specificata, assumiamo che sia 1.0 (100% garantita)!
                             const chanceToApply = boostedStatusChance(attacker,effect.chance !== undefined ? effect.chance : 1.0);
@@ -3070,11 +3072,16 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
 
                             if (Math.random() < chanceToApply) {
                                 const existingIdx = t.char.statuses.findIndex(s => s.type === effect.type);
+                                if(effect.type==='Malinconia'&&existingIdx>=0){
+                                  events.push({type:'text',text:'🌧️ '+t.char.name+' ha gia Malinconia: la durata non viene rinnovata.'});
+                                  continue;
+                                }
                                 let turns = effect.turns || 1;
                                 if (effect.type === 'Addormentato' && !effect.turns) turns = Math.floor(Math.random() * 3) + 2;
                                 if (effect.type === 'Infatuato' && !effect.turns) turns = Math.floor(Math.random() * 2) + 4;
+                                if (effect.type === 'Malinconia') turns = Math.floor(Math.random() * 3) + 3;
                                 
-                                let newStatus = { type: effect.type, turns: turns, ...(['Incantato','Assiderato'].includes(effect.type)?{justApplied:true}:{}) };
+                                let newStatus = { type: effect.type, turns: turns, ...(['Incantato','Assiderato','Malinconia'].includes(effect.type)?{justApplied:true}:{}) };
                                 if(shortenHakiDebuff(t.char,newStatus))
                                   events.push({type:'text',text:'🛡️ Haki dell’Armatura: '+t.char.name+' dimezza la durata di '+effect.type+'!'});
                                 if(shortenNegativeStatus(t.char,newStatus))
@@ -3809,7 +3816,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                     if (enemy && enemy.hp > 0 && Math.random() < char.passive.enemyStatusEffect.chance) {
                                         const sType = char.passive.enemyStatusEffect.type;
                                         
-                                        const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'].includes(sType);
+                                        const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume', 'Malinconia'].includes(sType);
                                         if (isNegative && (enemy.passive?.immuneToNegativeStatuses || blockedEnemyPassive(enemy) || (sType==='Accecato'&&isEchoRaidAccuracyProtected(enemy)))) {
                                             return; 
                                         }
@@ -3884,7 +3891,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                     char.juggTurnCount = 0; // Reset contatore
                     if(restoreEchoRaidAccuracy(char))
                         events.push({type:'text',text:'🎯 Aura Suprema: Echomax ripristina la Precisione al 100% dopo due turni!'});
-                    const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume'];
+                    const negatives = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume', 'Malinconia'];
                     const hasNegative = char.statuses.some(s => negatives.includes(s.type));
                     if (hasNegative) {
                         char.statuses = char.statuses.filter(s => !negatives.includes(s.type));
@@ -3982,6 +3989,24 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 }
             }
 
+            // Malinconia: calo cumulativo del 10% alla fine di ogni turno, 3-5 turni.
+            const melancholy=char.statuses.find(st=>st.type==='Malinconia');
+            if(melancholy){
+              if(melancholy.justApplied){delete melancholy.justApplied;}
+              else {
+                if(!immuneToStatDrops(char)){
+                  applyBattleStatModifier(char,'def',.9);
+                  events.push({type:'text',text:'🌧️ Malinconia: '+char.name+' perde il 10% della Difesa.'});
+                }
+                melancholy.turns-=1;
+                if(melancholy.turns<=0){
+                  char.statuses=char.statuses.filter(st=>st!==melancholy);
+                  events.push({type:'text',text:'🌤️ '+char.name+' supera la Malinconia.'});
+                }
+                updateStatusUI(target.player,target.charTeamIdx);
+              }
+            }
+
             let burnIdx = char.statuses.findIndex(s => s.type === 'Scottato');
             if (burnIdx !== -1) { 
                 const burnDmg = Math.max(5, Math.floor(char.maxHp * 0.10)); // 10% degli HP Max
@@ -4041,6 +4066,10 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 isPassive:true,passiveChar:char.name,
                 passiveName:char.passive?.name});
             }
+            for(const effect of newRealmOnEndTurn({char,player:target.player,idx:target.charTeamIdx,
+                teams:workingTeams,field:workingField,mode:gameState.gameMode,
+                settings:gameState.settings,isCoop:gameState.isRoguelikeCoop,heal:royalHeal}))
+              events.push(effect);
             char.damageTakenLastTurn = char.damageTakenThisTurn || 0;
             char.damageTakenThisTurn = 0;
         }
