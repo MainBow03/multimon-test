@@ -1,6 +1,15 @@
 import { MOVES_DB } from './moves.js';
 
 export const FUSION_CHARACTERS = [
+  {id:'ametraline',name:'Ametraline',types:['Spettro','Cristallo'],
+   hp:114,maxHp:114,atk:86,spAtk:117,def:82,spDef:101,spd:95,
+   img:'./images/ametraline.svg',fusionOf:['coraline','ametista'],
+   fusionStyle:'Metamor',fusionDescription:'La Gemma dell Altra Porta. Una fusione instabile che attraversa corridoi impossibili e intreccia bottoni e cristalli.',
+   passive:{name:'Metamorfosi Cucita',type:'metamor_stitched',maxTriggers:4,
+    desc:'Alternando il tipo della mossa rispetto alla precedente: +15% danni per quella mossa e uno scudo pari all 8% dei PS massimi. Quattro attivazioni per battaglia.'},
+   moves:[MOVES_DB['Corridoio Segreto'],MOVES_DB["Frusta d'Ametista"],
+     MOVES_DB['Bottoni del Vuoto'],MOVES_DB['Gemma Imperfetta di Ametraline']]},
+
           { id: 'danty', name: 'Danty', types: ['Spettro', 'Luce'], hp: 200, maxHp: 200, atk: 235, def: 155, spd: 220, img: 'https://i.postimg.cc/kBXhsxj1/Gemini-Generated-Image-89vqi489vqi489vq.png', fusionOf: ['dannyphantom', 'dante'], moves: [MOVES_DB['Raggio Ectoplasmatico'], MOVES_DB['Urlo Spettrale'], MOVES_DB['Rebellion Shine'], MOVES_DB['Ebony & Ivory Barrage']] },
           { id: 'bloolli', name: 'Bloolli', types: ['Fuoco', 'Acqua'], hp: 170, maxHp: 170, atk: 195, def: 135, spd: 195, img: 'https://i.postimg.cc/BLpRZNYj/Gemini-Generated-Image-h12zach12zach12z-(1).png', fusionOf: ['bloom', 'dolli'], moves: [MOVES_DB['Fiamma del Drago'], MOVES_DB['Incanto Protettivo'], MOVES_DB['Faccino carino!'], MOVES_DB['Tsunami dolce']] },
           { id: 'jackorb', name: 'Jackorb', types: ['Ghiaccio', 'Robot'], hp: 195, maxHp: 195, atk: 205, def: 165, spd: 195, img: 'https://i.postimg.cc/4m3dvSpx/Gemini-Generated-Image-qnof2xqnof2xqnof.png', fusionOf: ['jackfrost', 'cyborg'], moves: [MOVES_DB['Vento Invernale'], MOVES_DB['Scherzetto di Neve'], MOVES_DB['Cannone Sonico'], MOVES_DB['Booyah!']] },
