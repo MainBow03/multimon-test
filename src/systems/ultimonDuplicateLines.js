@@ -2,6 +2,21 @@
 // che ha già parlato nella presentazione di un'altra squadra.
 // Una risposta esclusiva per ogni personaggio (incluse le fusioni).
 export const ULTIMON_DUPLICATE_REACTIONS=Object.freeze({
+  "kida": "Un'altra erede di Atlantide? Allora il Cuore dovra scegliere con cura.",
+  "rarity": "Due Rarity? Splendido! La perfezione in doppia copia e davvero una sfida.",
+  "bismuth": "Un'altra me alla fucina? Ehi, cosi raddoppiamo la produzione!",
+  "hessonite": "Una seconda comandante non significa un secondo impero.",
+  "phosphophyllite": "Se sei un altro Phos, forse sai cosa diventeremo dopo questa battaglia.",
+  "theboulder": "THE BOULDER incontra THE BOULDER! IL PUBBLICO NON E PRONTO!",
+  "obelix": "Se sei me, come facciamo a decidere a chi tocca il menhir piu grande?",
+  "korg": "Ah, un altro ragazzo di roccia. Ci dividiamo le pietre, allora.",
+  "goliath": "Una seconda sentinella? La nostra responsabilita sara doppia.",
+  "mangiarocce": "Un altro Mangiarocce? Il buffet di massi oggi non bastera!",
+  "miguelrivera": "Suoniamo lo stesso accordo? Allora facciamo un duetto per ricordarlo.",
+  "blackcanary": "Con due urli uguali possiamo cambiare le regole del concerto.",
+  "mayalape": "Un'altra Maya! Possiamo fare due volte il miele, che bello!",
+  "bluebeetle": "Khaji-Da, controlla! Non voglio scoprire che lo Scarabeo ha un gemello.",
+  "kamenriderkabuto": "Due viaggiatori nel tempo? Vediamo chi supera per primo il secondo.",
   "mushu": "Un altro Mushu? Perfetto, oggi potro discutere con qualcuno al mio livello. Cioe, al mio centimetro.",
   "hakudrago": "Due spiriti del Kohaku? Allora il fiume ha trovato un modo nuovo di ricordare.",
   "shenron": "Non potete invocare due desideri per la stessa sfida. Almeno, non senza conseguenze.",
