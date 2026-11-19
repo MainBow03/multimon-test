@@ -42,8 +42,8 @@ test('Sei nuovi personaggi, 24 mosse e sei immagini individuali JPEG richieste d
 });
 
 test('Vetrina, intro Ultimon, reazioni doppioni e titoli padronanza',()=>{
- assert.deepEqual(RECENT_ARRIVALS_IDS.slice(12,18),IDS);
- assert.deepEqual(recentArrivalCharacters(CHARACTERS).slice(12,18).map(c=>c.id),IDS);
+ assert.deepEqual(RECENT_ARRIVALS_IDS.slice(27,33),IDS);
+ assert.deepEqual(recentArrivalCharacters(CHARACTERS).slice(27,33).map(c=>c.id),IDS);
  for(const id of IDS){
   assert.ok(ULTIMON_ENTRANCE_LINES[id]?.length>15);
   assert.ok(ULTIMON_DUPLICATE_REACTIONS[id]?.length>15);
