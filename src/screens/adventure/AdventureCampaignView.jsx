@@ -20,7 +20,7 @@ const hp=(m,chars)=>{
 };
 const img=(src,alt,css='')=>src?<img src={src} alt={alt} className={css} onError={onMultimonImageError}/>:null;
 
-function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,onPosition,paused=false}){
+function AdventureWorld3D({save,characters,onWalk,onNear,onInteract,onBlocked,onPosition,paused=false}){
  const canvas=useRef(null),player=useRef({...save.position}),saveRef=useRef(save);
  const buttons=useRef(new Set()),callbacks=useRef({onWalk,onNear,onInteract,onBlocked,onPosition,paused});
  const cameraYaw=useRef(0),drag=useRef(null);
@@ -35,6 +35,7 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,onPosition,pa
   const el=canvas.current;if(!el)return;
   const graphics=createAdventureWorldRenderer(el,saveRef.current);
   const keys=buttons.current;
+  const markers=[...el.parentElement.querySelectorAll('[data-world-marker]')];
   const before=performance.now();let previous=before,frame=0,lastSaved=before,lastBlocked=0,prevNearest=null,alive=true;
   const focus=()=>!(document.activeElement instanceof HTMLInputElement)&&
      !(document.activeElement instanceof HTMLTextAreaElement);
@@ -87,6 +88,20 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,onPosition,pa
    const id=nearest?.id||null;
    if(id!==prevNearest){prevNearest=id;callbacks.current.onNear(nearest);}
    graphics.render(player.current,(now-before)/1000,saveRef.current.starterId,cameraYaw.current,saveRef.current);
+   // Portrait 2D ancorati a creature 3D: aggiorniamo il DOM, non React.
+   for(const marker of markers){
+    const x=Number(marker.dataset.x),z=Number(marker.dataset.z);
+    const near=Math.hypot(x-player.current.x,z-player.current.z)<29;
+    const projected=near?graphics.projectWorld?.(x,2.7,z):null;
+    const visible=projected&&projected.x>-80&&projected.x<el.clientWidth+80&&
+      projected.y>-50&&projected.y<el.clientHeight+45;
+    marker.style.display=visible?'flex':'none';
+    if(visible){
+     marker.style.left=projected.x+'px';
+     marker.style.top=projected.y+'px';
+     marker.style.opacity=String(Math.max(.55,Math.min(1,26/projected.depth)));
+    }
+   }
    frame=requestAnimationFrame(tick);
   };
   frame=requestAnimationFrame(tick);
@@ -104,6 +119,15 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,onPosition,pa
      onPointerDown={e=>{if(e.pointerType==='mouse'&&e.button===0)drag.current=e.clientX;}}
      onPointerMove={e=>{if(drag.current!==null){cameraYaw.current+=(e.clientX-drag.current)*.006;drag.current=e.clientX;}}}
      onPointerUp={()=>{drag.current=null;}} onPointerCancel={()=>{drag.current=null;}}/>
+  <div className="adv-world-portraits" aria-hidden="true">
+   {ADVENTURE_ENTITIES.filter(e=>e.kind==='wild').map(e=>{
+    const c=getChar(characters,e.party?.[0]);
+    return <div key={e.id} data-world-marker data-x={e.x} data-z={e.z}
+      className="adv-world-portrait" style={{display:'none'}}>
+      {img(c?.img,c?.name)}<span>{c?.name||'Selvatico'}</span>
+    </div>;
+   })}
+  </div>
   <div className="adv-vignette" aria-hidden="true"/>
   <div className="adv-sun" aria-hidden="true"/>
   <div className="adv-mobile-controls" aria-label="Comandi di movimento">
@@ -286,7 +310,7 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
  };
  const paused=!!panel||!!dialog||!!scene||!!battleTarget||!!trial||help||confirmReset||unlockIntro;
  return <main className="adv-root">
-  <AdventureWorld3D key={'world-'+save.badges.join(',')+'-'+save.chests.length+'-'+save.defeated.length+'-'+(save.secrets||[]).length}
+  <AdventureWorld3D characters={characters} key={'world-'+save.badges.join(',')+'-'+save.chests.length+'-'+save.defeated.length+'-'+(save.secrets||[]).length}
    save={save} onWalk={position=>update(p=>p?.started?{...p,position}:p)} onNear={setNearby}
    onPosition={position=>{worldPosition.current={...position}}}
    onInteract={handleInteraction} onBlocked={badge=>showMessage('🔒 Il portale è chiuso! Devi conquistare '+badge+'.')} paused={paused}/>
