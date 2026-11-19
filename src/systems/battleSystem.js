@@ -1,4 +1,6 @@
 import { prepareEmergencySwitch } from './roomRecovery.js';
+import {crystalRockOnAction,crystalRockOnDamage,crystalRockOnEndTurn,
+ crystalRockOnEnter,crystalBarrierFactor,crystalRockDamageFactor} from './crystalRockSoundBugEffects.js';
 import {newRealmOnAction,newRealmOnDamage,newRealmOnEndTurn} from './newRealmEffects.js';
 import {tophSeismicEntry,gaaraSandGuardHit,gaaraSandThreshold,flygonDuneEcho,
  flygonWyrmBonus,leafeonSpeedPower,floraFairyGarden,shayminSpringHeart,
@@ -156,6 +158,8 @@ const { setAppMode, setPlayerRole, setRoomId, setShowOnlinePlayers } = ctx;
 
 export const applyOnEnterPassiveImpl = (ctx, char, p, idx, workingTeams, workingField, eventsArr, gameMode, settings, isCampaign) => {
 const { CHARACTERS } = ctx;
+              if(crystalRockOnEnter(char,applyBattleStatModifier))
+                eventsArr.push({type:'text',text:'🪨 Guardia di Pietra: '+char.name+' ottiene Difesa Speciale +20% e resiste ai rallentamenti durante il primo turno.',isPassive:true,passiveChar:char.name,passiveName:char.passive.name});
               if(char.passive?.earthSense)
                 tophSeismicEntry(char,p,workingTeams,workingField,gameMode,settings,
                   applyBattleStatModifier,eventsArr,Boolean(settings?.isRoguelikeCoop),
@@ -806,7 +810,7 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
                 pwr = Math.floor(pwr * attacker.passive.multiplier);
             }
             pwr=Math.floor(pwr*leafeonSpeedPower(attacker,defender,move,isFirstAttackOfTurn)*
-              flygonWyrmBonus(attacker,move));
+              flygonWyrmBonus(attacker,move)*crystalRockDamageFactor(attacker,move,isFirstAttackOfTurn));
             
             // PASSIVA YOSHI (Buff In Groppa)
             if (attacker.statuses?.some(s => s.type === 'In_Groppa')) {
@@ -828,7 +832,9 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             const randomFactor = (Math.floor(random() * 16) + 85) / 100;
             const weakenFactor = (attacker.statuses?.some(s => s.type === 'Indebolito') ? 0.75 : 1) * assideramentoDamageFactor(attacker);
             // Scudo Team assorbe il 45% dei danni: resta il 55% (salvo mosse ignora-scudi).
-            const teamDefFactor = !ignoresShields(attacker,move) && defender.statuses?.some(s => s.type === 'Scudo Team') ? 0.55 : 1;
+            const teamDefFactor = ignoresShields(attacker,move) ? 1 : Math.min(
+              defender.statuses?.some(s => s.type === 'Scudo Team') ? .55 : 1,
+              crystalBarrierFactor(defender,move));
 
             // STAB (Same-Type Attack Bonus): Danno aumentato del 50% se il tipo mossa coincide con il tipo attaccante
             const stabFactor = attacker.types.includes(move.type) ? 1.5 : 1;
@@ -1124,6 +1130,13 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                 // L'evento di cura segue il danno nel replay ed e salvato online.
                 for(const evt of newRealmOnDamage({char:target,player:targetPlayer,idx:targetIdx,
                      applyStat:applyBattleStatModifier,heal:royalHeal}))events.push(evt);
+                for(const evt of crystalRockOnDamage({char:target,player:targetPlayer,idx:targetIdx,
+                    teams:workingTeams,field:workingField,mode:gameState.gameMode,
+                    settings:gameState.settings,isCoop:gameState.isRoguelikeCoop,
+                    move:options.move,attacker:options.attacker,
+                    attackerPlayer:options.attackerPlayer,attackerIdx:options.attackerIdx,
+                    turn:theaterTurnNumber,damage:Math.max(0,hpBeforeDamage-target.hp),
+                    critical:!!options.critical,heal:royalHeal,applyStat:applyBattleStatModifier}))events.push(evt);
                 if(options.isEnemyTarget&&options.attacker&&options.attacker!==target&&
                    hpBeforeDamage>target.hp&&(options.directAttack||options.isOffensiveMove)){
                   const source=options.attacker,actualDamage=hpBeforeDamage-target.hp;
@@ -2704,6 +2717,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                     }
                                 }
                                 if (move.hitStatDebuff.spd) { applyBattleStatModifier(t.char, 'spd', move.hitStatDebuff.spd); statTexts.push("la Velocità"); }
+                                if (move.hitStatDebuff.spAtk) { applyBattleStatModifier(t.char, 'spAtk', move.hitStatDebuff.spAtk); statTexts.push("l'Attacco Speciale"); }
+                                if (move.hitStatDebuff.spDef) { applyBattleStatModifier(t.char, 'spDef', move.hitStatDebuff.spDef); statTexts.push("la Difesa Speciale"); }
                                 if (move.hitStatDebuff.acc && !isEchoRaidAccuracyProtected(t.char)) { t.char.acc = (t.char.acc || 1.0) * hakiStatDebuffMultiplier(t.char,move.hitStatDebuff.acc); statTexts.push("la Precisione"); }
                                 if (statTexts.length) events.push({ type: 'text', text: `Il colpo riduce ${statTexts.join(" e ")} di ${t.char.name}!` });
                                 else if(move.hitStatDebuff.acc && isEchoRaidAccuracyProtected(t.char)) events.push({type:'text',text:'🛡️ Aura Suprema: Echomax è immune alla riduzione di Precisione!'});
@@ -2730,7 +2745,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                         } else if (totalDmg > 0) {
                             let shieldTxt = juggHitsAbsorbed > 0 ? ` (Lo scudo ha assorbito ${juggHitsAbsorbed} colpi).` : '';
                             const previousDamageTaken=t.char.damageTakenThisTurn||0;
-                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText}${hitText}${magText}${groppaText} Infligge ${totalDmg} danni.${shieldTxt}`, {directAttack:true,directHits:Math.max(0,actualHits-juggHitsAbsorbed),bypassShields:bypassEnemyShields,superEffective:multiplier>1,attacker,attackerPlayer:player,attackerIdx:charTeamIdx,move,isEnemyTarget});
+                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText}${hitText}${magText}${groppaText} Infligge ${totalDmg} danni.${shieldTxt}`, {directAttack:true,directHits:Math.max(0,actualHits-juggHitsAbsorbed),bypassShields:bypassEnemyShields,superEffective:multiplier>1,attacker,attackerPlayer:player,attackerIdx:charTeamIdx,move,isEnemyTarget,critical:landedCriticalHit});
                             if(markCompassOnHit(attacker,t.char,victimHpBeforeHit,totalDmg))
                               events.push({type:'text',text:`🧭 Bussola del Predatore di ${attacker.name}: colpo potenziato contro bersaglio indebolito!`});
                             if(isEnemyTarget && !isFirstHitProtection && t.char.hp>0 && (t.char.damageTakenThisTurn||0)>previousDamageTaken){
@@ -2754,7 +2769,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 events.push({ type: 'text', text: `👁️ ${attacker.name} distorce l'anima di ${t.char.name}! Perde il 5% dei PS ogni turno e subisce più danni da Mahito.` });
                             }
                         } else {
-                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText} Infligge ${totalDmg} danni.`, {directAttack:true,bypassShields:bypassEnemyShields,superEffective:multiplier>1,attacker,attackerPlayer:player,attackerIdx:charTeamIdx,move,isEnemyTarget});
+                            applyDamage(t.char, totalDmg, t.player, t.idx, `${attacker.name} usa ${move.name} su ${t.char.name}!${effectivenessText} Infligge ${totalDmg} danni.`, {directAttack:true,bypassShields:bypassEnemyShields,superEffective:multiplier>1,attacker,attackerPlayer:player,attackerIdx:charTeamIdx,move,isEnemyTarget,critical:landedCriticalHit});
                             markCompassOnHit(attacker,t.char,victimHpBeforeHit,totalDmg);
                         }
                         
@@ -2825,6 +2840,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             }
                             if (move.targetStatDebuff.def) { applyBattleStatModifier(t.char, 'def', move.targetStatDebuff.def); statTexts.push("Difesa"); }
                             if (move.targetStatDebuff.spd) { applyBattleStatModifier(t.char, 'spd', move.targetStatDebuff.spd); statTexts.push("Velocità"); }
+                            if (move.targetStatDebuff.spAtk) { applyBattleStatModifier(t.char, 'spAtk', move.targetStatDebuff.spAtk); statTexts.push("Attacco Speciale"); }
+                            if (move.targetStatDebuff.spDef) { applyBattleStatModifier(t.char, 'spDef', move.targetStatDebuff.spDef); statTexts.push("Difesa Speciale"); }
                             if (move.targetStatDebuff.acc && !isEchoRaidAccuracyProtected(t.char)) { t.char.acc = (t.char.acc || 1.0) * hakiStatDebuffMultiplier(t.char,move.targetStatDebuff.acc); statTexts.push("Precisione"); }
                             if (move.targetStatDebuff.accFlat && !isEchoRaidAccuracyProtected(t.char)) { t.char.acc = Math.max(0.1, (t.char.acc || 1.0) - move.targetStatDebuff.accFlat * (t.char.id==='luffy' && t.char.hakiGuardTurns>0?0.5:1)); statTexts.push("Precisione"); }
                             if (statTexts.length > 0) {
@@ -2859,6 +2876,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             }
                             if (move.targetStatDebuff.def) { applyBattleStatModifier(t.char, 'def', move.targetStatDebuff.def); statTexts.push("Difesa"); }
                             if (move.targetStatDebuff.spd) { applyBattleStatModifier(t.char, 'spd', move.targetStatDebuff.spd); statTexts.push("Velocità"); }
+                            if (move.targetStatDebuff.spAtk) { applyBattleStatModifier(t.char, 'spAtk', move.targetStatDebuff.spAtk); statTexts.push("Attacco Speciale"); }
+                            if (move.targetStatDebuff.spDef) { applyBattleStatModifier(t.char, 'spDef', move.targetStatDebuff.spDef); statTexts.push("Difesa Speciale"); }
                             if (move.targetStatDebuff.acc && !isEchoRaidAccuracyProtected(t.char)) { t.char.acc = (t.char.acc || 1.0) * hakiStatDebuffMultiplier(t.char,move.targetStatDebuff.acc); statTexts.push("Precisione"); }
                             if (move.targetStatDebuff.accFlat && !isEchoRaidAccuracyProtected(t.char)) { t.char.acc = Math.max(0.1, (t.char.acc || 1.0) - move.targetStatDebuff.accFlat * (t.char.id==='luffy' && t.char.hakiGuardTurns>0?0.5:1)); statTexts.push("Precisione"); }
                             if (statTexts.length > 0) {
@@ -3334,6 +3353,11 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                     foeRoles:attackingFoes,applyStat:applyBattleStatModifier,heal:royalHeal,
                     canDebuff:target=>!immuneToStatDrops(target)&&!blockedEnemyPassive(target)});
                   for(const evt of arrivalEffects)events.push(evt);
+                  for(const evt of crystalRockOnAction({attacker,move,turn:theaterTurnNumber,
+                      player,idx:charTeamIdx,teams:workingTeams,field:workingField,
+                      mode:gameState.gameMode,settings:gameState.settings,
+                      isCoop:gameState.isRoguelikeCoop,targets:resolvedTargets,
+                      heal:royalHeal,applyStat:applyBattleStatModifier}))events.push(evt);
                 }
 
                 // Le gemme amplificano tutta la PRIMA mossa offensiva del tipo
@@ -4070,6 +4094,10 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 teams:workingTeams,field:workingField,mode:gameState.gameMode,
                 settings:gameState.settings,isCoop:gameState.isRoguelikeCoop,heal:royalHeal}))
               events.push(effect);
+            for(const effect of crystalRockOnEndTurn({char,player:target.player,idx:target.charTeamIdx,
+                teams:workingTeams,field:workingField,mode:gameState.gameMode,
+                settings:gameState.settings,isCoop:gameState.isRoguelikeCoop,
+                heal:royalHeal,applyStat:applyBattleStatModifier}))events.push(effect);
             char.damageTakenLastTurn = char.damageTakenThisTurn || 0;
             char.damageTakenThisTurn = 0;
         }
