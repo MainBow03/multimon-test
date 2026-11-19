@@ -2,6 +2,8 @@ import { prepareEmergencySwitch } from './roomRecovery.js';
 import {crystalRockOnAction,crystalRockOnDamage,crystalRockOnEndTurn,
  crystalRockOnEnter,crystalBarrierFactor,crystalRockDamageFactor} from './crystalRockSoundBugEffects.js';
 import {newRealmOnAction,newRealmOnDamage,newRealmOnEndTurn} from './newRealmEffects.js';
+import {ametralineDamageFactor,ametralineOnSuccessfulAction,
+ ametralineApplyButtons,ametralineTickButtons} from './ametralineFusionEffects.js';
 import {tophSeismicEntry,gaaraSandGuardHit,gaaraSandThreshold,flygonDuneEcho,
  flygonWyrmBonus,leafeonSpeedPower,floraFairyGarden,shayminSpringHeart,
  shayminAwakening} from './earthGrassEffects.js';
@@ -336,7 +338,7 @@ const { CHARACTERS } = ctx;
                           const rTarget = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
                           const sType = char.passive.applyStatusToRandomEnemy.type;
                           
-                          const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume', 'Malinconia'].includes(sType);
+                          const isNegative = ['Avvelenato', 'Scottato', 'Elettrizzato', 'Congelato', 'Addormentato', 'Confuso', 'Indebolito', 'Stordito', 'Accecato', 'Incantato', 'Anima Distorta', 'Assiderato', 'Marciume', 'Malinconia', 'Bottoni del Vuoto'].includes(sType);
                           if (isNegative && (rTarget.char.passive?.immuneToNegativeStatuses || blockedEnemyPassive(rTarget.char) || (sType==='Accecato'&&isEchoRaidAccuracyProtected(rTarget.char)))) {
                               eventsArr.push({ type: 'text', text: `🛡️ ${char.name} attiva ${char.passive.name}, ma ${rTarget.char.name} è immune a ${sType} grazie a ${rTarget.char.passive?.name||'Scudo Anti-Magia'}!`, isPassive: true, passiveChar: char.name, passiveName: char.passive.name });
                           } else {
@@ -810,7 +812,8 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
                 pwr = Math.floor(pwr * attacker.passive.multiplier);
             }
             pwr=Math.floor(pwr*leafeonSpeedPower(attacker,defender,move,isFirstAttackOfTurn)*
-              flygonWyrmBonus(attacker,move)*crystalRockDamageFactor(attacker,move,isFirstAttackOfTurn));
+              flygonWyrmBonus(attacker,move)*crystalRockDamageFactor(attacker,move,isFirstAttackOfTurn)*
+              ametralineDamageFactor(attacker,move));
             
             // PASSIVA YOSHI (Buff In Groppa)
             if (attacker.statuses?.some(s => s.type === 'In_Groppa')) {
@@ -3359,6 +3362,31 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                       mode:gameState.gameMode,settings:gameState.settings,
                       isCoop:gameState.isRoguelikeCoop,targets:resolvedTargets,
                       heal:royalHeal,applyStat:applyBattleStatModifier}))events.push(evt);
+                  if(move['metamorButtons']){
+                    for(const t of resolvedTargets){
+                      if(!attackingFoes.includes(t.player)||t.char?.hp<=0)continue;
+                      if(immuneToStatDrops(t.char)){
+                        events.push({type:'text',text:'🛡️ '+t.char.name+' resiste ai Bottoni del Vuoto.'});
+                        continue;
+                      }
+                      const effect=ametralineApplyButtons(attacker,t.char,applyBattleStatModifier,royalHeal);
+                      if(effect.alreadyActive){
+                        events.push({type:'text',text:'🪡 '+t.char.name+' e gia sotto l effetto dei Bottoni del Vuoto.'});
+                      }else if(effect.applied){
+                        events.push({type:'status_update',targetPlayer:t.player,targetIdx:t.idx,
+                          statuses:structuredClone(t.char.statuses),
+                          text:'🪡 Bottoni del Vuoto: '+t.char.name+' perde 20% Attacco e Precisione per due turni.'});
+                        if(effect.healed>0)events.push({type:'damage',targetPlayer:player,
+                          targetIdx:charTeamIdx,newHp:attacker.hp,
+                          text:'💜 '+attacker.name+' recupera '+effect.healed+' PS colpendo un nemico gia indebolito!'});
+                      }
+                    }
+                  }
+                  const stitched=ametralineOnSuccessfulAction(attacker,move);
+                  if(stitched)events.push({type:'text',isPassive:true,passiveChar:attacker.name,
+                    passiveName:'Metamorfosi Cucita',
+                    text:'🧬 Metamorfosi Cucita: '+attacker.name+' guadagna '+
+                      stitched.shield+' PS di scudo ('+stitched.charges+'/4)!'});
                 }
 
                 // Le gemme amplificano tutta la PRIMA mossa offensiva del tipo
@@ -4099,6 +4127,11 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 teams:workingTeams,field:workingField,mode:gameState.gameMode,
                 settings:gameState.settings,isCoop:gameState.isRoguelikeCoop,
                 heal:royalHeal,applyStat:applyBattleStatModifier}))events.push(effect);
+            const buttonsExpired=ametralineTickButtons(char);
+            if(buttonsExpired?.expired)
+              events.push({type:'status_update',targetPlayer:target.player,
+                targetIdx:target.charTeamIdx,statuses:structuredClone(char.statuses||[]),
+                text:'🪡 I Bottoni del Vuoto svaniscono da '+char.name+': Attacco e Precisione tornano normali.'});
             char.damageTakenLastTurn = char.damageTakenThisTurn || 0;
             char.damageTakenThisTurn = 0;
         }
