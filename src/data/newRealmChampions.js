@@ -57,7 +57,7 @@ export const NEW_REALM_MOVES = {
     desc:'Il silenzio cala su due nemici: Velocita -30%. Due usi.'},
   'Voracita Ombrosa':{name:'Voracita Ombrosa',type:'Buio',power:89,accuracy:1,drain:.25,
     desc:'Potenza 89. Assorbe il 25% dei danni effettivamente inflitti.'},
-  'Maschera Vuota':{name:'Maschera Vuota',type:'Spettro',power:0,target:'self',
+  'Maschera Vuota':{name:'Maschera Vuota',type:'Spettro',power:0,
     selfStatBuff:{def:1.2},statusEffect:{type:'Malinconia',chance:1},maxUses:2,strictUses:true,
     desc:'Senza Volto aumenta la propria Difesa del 20% e infligge Malinconia a un nemico per 3-5 turni; non si riapplica se gia attiva. Due usi.'},
 
