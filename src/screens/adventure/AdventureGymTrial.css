@@ -1,0 +1,41 @@
+.adv-trial-overlay{position:fixed;inset:0;z-index:35;display:grid;place-items:center;padding:16px;background:#07132bcf;backdrop-filter:blur(11px);pointer-events:auto}
+.adv-trial-box{width:min(680px,96vw);max-height:min(92dvh,850px);overflow:auto;border-radius:27px;border:1px solid #bbe8e798;background:linear-gradient(155deg,#1f3354 0%,#14223b 58%,#293651 100%);padding:clamp(17px,4vw,30px);box-shadow:0 25px 100px #050b19c9,color 0.3s; color:#f8fbff}
+.adv-trial-top,.adv-trial-bottom{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.adv-trial-kicker{font-size:11px;letter-spacing:.17em;font-weight:900;color:#92f0e1}
+.adv-trial-close{border:1px solid #ffffff55;border-radius:13px;background:#1b3049;color:white;padding:8px 13px}
+.adv-trial-title{display:flex;gap:17px;align-items:center;margin:18px 0 16px}
+.adv-trial-title>span{font-size:49px;filter:drop-shadow(0 6px 15px #0008)}
+.adv-trial-title h2{font-weight:1000;margin:0;font-size:clamp(22px,3.4vw,35px);line-height:1.15}
+.adv-trial-title p{line-height:1.5;font-size:13px;color:#d4e8f3;margin:10px 0 0}
+.adv-trial-progress{display:flex;gap:6px;margin:12px 0 16px}
+.adv-trial-progress i{height:7px;border-radius:20px;flex:1;background:#475b77}
+.adv-trial-progress .active{background:#d4d9a7}.adv-trial-progress .done{background:#66e9b0}
+.adv-trial-stage{font-weight:950;font-size:11px;letter-spacing:.14em;color:#f7dca1;margin-bottom:12px}
+.adv-trial-stage span{color:#fca5a5}.adv-trial-hint{font-size:17px;font-weight:800;color:#f0f7dd}
+.adv-trial-options,.adv-trial-valves{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}
+.adv-trial-options button,.adv-trial-valves button,.adv-trial-runes button{min-height:100px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;border:1px solid #7ca6c266;background:#27415b;color:white;border-radius:16px}
+.adv-trial-options button:hover,.adv-trial-valves button:hover,.adv-trial-runes button:hover{background:#355d77;transform:translateY(-2px)}
+.adv-trial-options button span,.adv-trial-valves button span,.adv-trial-runes button span{font-size:26px}
+.adv-trial-options strong,.adv-trial-valves strong,.adv-trial-runes strong{font-weight:900;font-size:12px;letter-spacing:.05em}
+.adv-trial-footnote{font-size:12px;color:#b8cde4;line-height:1.5;margin:13px 0}
+.adv-trial-thermo{height:63px;background:#0c1930;border-radius:15px;margin:15px 0;position:relative;overflow:hidden;border:1px solid #7ca6c266}
+.adv-trial-thermo>div{height:100%;background:linear-gradient(90deg,#7bd7ea,#f9b25e,#f76359);transition:width .25s}
+.adv-trial-thermo>span{position:absolute;inset:0;display:grid;place-items:center;font-size:23px;font-weight:1000;text-shadow:0 1px 8px #000}
+.adv-trial-controls{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-bottom:14px}
+.adv-trial-controls button{background:#324e6a;color:#fff;border:1px solid #95bbcf65;border-radius:12px;padding:12px 5px;font-weight:900}
+.adv-trial-valves .open{border-color:#69cfff;background:#214e78}
+.adv-trial-valves small{font-size:10px;color:#a0e7f1}
+.adv-trial-box .adv-primary{width:100%;margin:10px 0;padding:14px;border-radius:15px}
+.adv-trial-ice-grid{display:grid;grid-template-columns:repeat(5,1fr);width:min(320px,90%);margin:15px auto;gap:6px}
+.adv-trial-ice-cell{aspect-ratio:1;border-radius:11px;border:1px solid #b5f2ff65;background:#6aa9c440;display:grid;place-items:center;font-size:26px}
+.adv-trial-ice-cell.wall{background:#8fb0d6}.adv-trial-ice-cell.player{background:#63d7ef;border-color:#e1fffb;box-shadow:0 0 13px #82faff6c}.adv-trial-ice-cell.goal{background:#d8bc73;border-color:#ffdf89}
+.adv-trial-directions{display:grid;justify-items:center;gap:6px}
+.adv-trial-directions div{display:flex;gap:6px}
+.adv-trial-directions button{width:55px;height:43px;border:1px solid #8dcce888;background:#2b5475;color:white;border-radius:12px;font-size:22px}
+.adv-trial-reset,.adv-trial-pattern{display:block;border:1px solid #c2d9ed67;border-radius:11px;color:#f5faff;background:#273e5a;padding:10px 13px;margin:12px auto;text-align:center}
+.adv-trial-runes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.adv-trial-success{text-align:center;padding:24px 6px}.adv-trial-success>span{font-size:56px}.adv-trial-success h3{font-size:27px;margin:9px}.adv-trial-success p{line-height:1.5;color:#cfe2e9}
+.adv-trial-bottom{margin-top:20px;padding-top:16px;border-top:1px solid #ffffff2b}
+.adv-trial-bottom button{border:0;background:none;color:#a9dff1;font-weight:850;font-size:12px}
+.adv-trial-bottom span{font-size:11px;color:#a9c2d2}
+@media(max-width:560px){.adv-trial-box{padding:16px}.adv-trial-options,.adv-trial-valves{gap:6px}.adv-trial-options button,.adv-trial-valves button{min-height:88px}.adv-trial-controls{grid-template-columns:repeat(3,1fr)}.adv-trial-runes{grid-template-columns:repeat(2,1fr)}.adv-trial-title>span{font-size:34px}.adv-trial-bottom span{display:none}}
