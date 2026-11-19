@@ -1,4 +1,5 @@
 import {typeDisplayName} from '../../systems/typeLabel.js';
+import {getCatalogOverview} from '../../systems/catalogOverview.js';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 import {CORALINE_HYPER_IMAGE} from '../../systems/coralineHyperArtwork.js';
 // Schermata estratta senza alterare la struttura JSX originale.
@@ -121,127 +122,210 @@ if (appMode === 'catalog') {
             displayedChars.sort((a, b) => a.types[0].localeCompare(b.types[0]));
         }
 
+
+        const overview = getCatalogOverview(CHARACTERS);
+        const activeSection = catalogFilter === 'Tutti' ? 'Tutti i Multimon' :
+          catalogFilter === 'Fusioni' ? 'Fusioni del Multiverso' :
+          catalogFilter === 'Iper forme' ? 'Forme Iper' :
+          catalogFilter === 'Evocazioni' ? 'Evocazioni' :
+          catalogFilter === 'Mostri Campagna' ? 'Mostri della Campagna' :
+          'Tipo ' + typeDisplayName(catalogFilter);
         return (
-            <div className="min-h-screen bg-slate-950 text-white p-6 flex flex-col relative overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-slate-950 to-black pointer-events-none opacity-60"></div>
-
-                <div className="relative z-10 flex flex-col h-full max-w-7xl mx-auto w-full">
-                    <div className="flex justify-between items-center mb-8">
-                        <button onClick={() => setAppMode('menu')} className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors font-bold bg-slate-900/50 px-4 py-2 rounded-xl border border-slate-700/50">
-                            <ArrowLeft size={20} /> Menu
+            <main className="relative min-h-screen overflow-hidden bg-[#080d1d] px-3 pb-12 pt-4 text-white sm:px-5 lg:px-8">
+                <div className="pointer-events-none absolute -top-28 left-1/2 h-[36rem] w-[85vw] -translate-x-1/2 rounded-full bg-indigo-600/15 blur-3xl" aria-hidden="true" />
+                <div className="pointer-events-none absolute -top-12 right-0 h-72 w-72 rounded-full bg-fuchsia-600/10 blur-3xl" aria-hidden="true" />
+                <div className="relative z-10 mx-auto flex w-full max-w-[1500px] flex-col gap-5">
+                    <header className="flex flex-wrap items-center justify-between gap-3">
+                        <button type="button" onClick={() => setAppMode('menu')} className="flex items-center gap-2 rounded-xl border border-slate-600/70 bg-slate-900/85 px-4 py-2.5 text-sm font-bold text-slate-200 transition hover:border-cyan-400 hover:text-cyan-300">
+                            <ArrowLeft size={18}/> Torna al menu
                         </button>
-                        <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 hidden sm:block">Catalogo Personaggi</h2>
-                        <div className="w-[100px] hidden sm:block"></div>
-                    </div>
+                        <span className="rounded-full border border-cyan-400/25 bg-cyan-950/35 px-3 py-2 text-[10px] font-black uppercase tracking-[.18em] text-cyan-200 sm:text-xs">
+                            ✦ Archivio del Multiverso
+                        </span>
+                    </header>
 
-                    <div className="flex flex-wrap gap-4 mb-8 bg-slate-900/60 p-4 rounded-2xl border border-slate-700/50 backdrop-blur-md items-center">
-                        <div className="flex-1 min-w-[200px]">
-                            <input 
-                                type="text" 
-                                placeholder="Cerca per nome..." 
-                                value={catalogSearch} 
-                                onChange={e => setCatalogSearch(e.target.value)} 
-                                className="w-full bg-slate-800 text-white font-bold px-4 py-2 rounded-xl outline-none border border-slate-600 focus:border-cyan-500 placeholder-slate-400"
-                            />
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-slate-400 font-bold uppercase text-xs tracking-widest">Filtra:</span>
-                            <select value={catalogFilter} onChange={e => setCatalogFilter(e.target.value)} className="bg-slate-800 text-white font-bold p-2 rounded-lg outline-none border border-slate-600 focus:border-cyan-500">
-                                <option value="Tutti">Tutti i Tipi</option>
-                                <option value="Evocazioni">Solo Evocazioni</option>
-                                <option value="Mostri Campagna">Mostri Campagna</option>
-                                <option value="Iper forme">Iper Forme</option>
-                                <option value="Fusioni">Fusioni</option>
-                                {TYPES.map(t => <option key={t} value={t}>{typeDisplayName(t)}</option>)}
-                            </select>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-slate-400 font-bold uppercase text-xs tracking-widest">Ordina:</span>
-                            <select value={catalogSort} onChange={e => setCatalogSort(e.target.value)} className="bg-slate-800 text-white font-bold p-2 rounded-lg outline-none border border-slate-600 focus:border-cyan-500">
-                                <option value="alpha">A-Z</option>
-                                <option value="type">Per Tipo Primario</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                            {displayedChars.map(char => (
-                                <div key={char.id} tabIndex="0" className={`bg-slate-900/80 backdrop-blur-md border ${char.isHyperInCatalog ? 'border-yellow-400/50 shadow-[0_0_15px_rgba(250,204,21,0.2)]' : (char.isFusionInCatalog ? 'border-fuchsia-500/50 shadow-[0_0_15px_rgba(217,70,239,0.2)]' : 'border-slate-700/50')} rounded-2xl p-5 flex flex-col items-center hover:border-cyan-500/50 transition-colors shadow-lg relative group cursor-pointer focus:outline-none`}>
-                                    <div className="relative">
-                                        <img src={char.img} onError={onMultimonImageError} alt={char.name} className={`w-24 h-24 rounded-full object-cover mb-4 border-2 ${char.isHyperInCatalog ? 'border-yellow-400' : (char.isFusionInCatalog ? 'border-fuchsia-500' : 'border-slate-600/50')} transition-transform group-hover:scale-105`} />
-                                        
-                                        {char.fusionOf && (
-                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900/95 backdrop-blur-xl p-3 rounded-2xl border-2 border-fuchsia-500 shadow-[0_0_30px_rgba(217,70,239,0.6)] opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center gap-2 w-max min-w-[140px] z-20 pointer-events-none">
-                                                <span className="font-black text-[10px] text-fuchsia-400 uppercase tracking-widest">Fusione di:</span>
-                                                <div className="flex gap-3">
-                                                    {char.fusionOf.map(id => {
-                                                        const base = CHARACTERS.find(c => c.id === id);
-                                                        return base && (
-                                                            <div key={id} className="flex flex-col items-center">
-                                                                <img src={base.img} onError={onMultimonImageError} className="w-12 h-12 rounded-full border-2 border-slate-500 object-cover bg-slate-900" />
-                                                                <span className="text-[9px] font-bold text-slate-200 mt-1 max-w-[55px] truncate text-center">{base.name}</span>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                    {char.price && !char.isHyperInCatalog && !char.isFusionInCatalog && (
-                                        <div className="absolute top-2 right-2 bg-amber-500/20 border border-amber-500/50 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                                            <Lock size={10}/> {char.price}
-                                        </div>
-                                    )}
-                                    {(char.isHyperInCatalog || char.isFusionInCatalog || hyperIds.includes(char.id)) && (
-                                        <div className={`absolute top-2 left-2 ${char.isFusionInCatalog ? 'bg-fuchsia-500/20 border-fuchsia-500/50 text-fuchsia-300 shadow-[0_0_10px_rgba(217,70,239,0.5)]' : 'bg-yellow-400/20 border-yellow-400/50 text-yellow-300 shadow-[0_0_10px_rgba(250,204,21,0.5)]'} text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 cursor-help`} title={char.isHyperInCatalog ? "Stai visualizzando le statistiche e le mosse della Forma Iper!" : (char.isFusionInCatalog ? "Questo è un personaggio Fusione originale!" : "Questo personaggio possiede la Forma Iper in battaglia!")}>
-                                            {char.isFusionInCatalog ? "🧬 FUSIONE" : "✨ IPER"}
-                                        </div>
-                                    )}
-                                    <h4 className="font-bold text-lg mb-2 text-slate-100 text-center">{char.name}</h4>
-                                    <div className="flex flex-wrap gap-1.5 justify-center mb-4">
-                                      {char.types.map(t => (
-                                        <span key={t} className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{typeDisplayName(t)}</span>
-                                      ))}
-                                    </div>
-                                    <div className="w-full grid grid-cols-2 gap-2 text-xs font-mono bg-slate-950/50 p-3 rounded-xl mb-4 border border-slate-800">
-                                        <div className="text-emerald-400">HP: {char.maxHp}</div>
-                                        <div className="text-rose-400">ATK: {char.atk}</div>
-                                        <div className="text-blue-400">DEF: {char.def}</div>
-                                        <div className="text-amber-400">SPD: {char.spd}</div>
-                                    </div>
-                                    <div className="w-full space-y-2">
-                                        {char.passive && (
-                                            <div className="text-[10px] bg-amber-900/40 p-2 rounded border border-amber-500/50 flex flex-col gap-1 shadow-inner">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="font-bold text-amber-400 flex items-center gap-1">✨ Passiva: {char.passive.name}</span>
-                                                    <span className="text-[8px] text-amber-200/70">{char.passive.maxUses ? `Usi max: ${char.passive.maxUses}` : 'Infinito'}</span>
-                                                </div>
-                                                <span className="text-[9px] text-amber-100/80 leading-tight">{char.passive.desc}</span>
-                                            </div>
-                                        )}
-                                        {char.moves.filter(Boolean).map((m, i) => (
-                                            <div key={i} className="text-[10px] bg-slate-800 p-2 rounded border border-slate-700 flex flex-col gap-1">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="font-bold text-gray-300">{m.name}</span>
-                                                    <span className={`${TYPE_STYLES[m.type]} px-1 py-0.5 rounded text-[8px]`}>{typeDisplayName(m.type)}</span>
-                                                </div>
-                                                <div className="flex justify-between text-slate-500 text-[9px] font-bold">
-                                                    <span>{m.power > 0 ? `Pot: ${m.power}` : (m.heal || m.healFlat || m.targetMode === 'team_smart_heal' || m.targetMode === 'team' || m.selfHeal || m.healLastTurnDamage ? 'Cura' : (m.isProtect ? 'Difesa' : ((m.isSummon || m.randomSummon) ? 'Evoca' : 'Stato')))}</span>
-                                                    {m.accuracy && <span>Prec: {m.accuracy * 100}%</span>}
-                                                    {m.maxUses && <span>Usi max: {m.maxUses}</span>}
-                                                    {m.multiHit && <span>{m.multiHit.min}-{m.multiHit.max} Colpi</span>}
-                                                </div>
-                                                <p className="text-slate-400 italic text-[9px] mt-1 leading-tight">{m.desc}</p>
-                                            </div>
-                                        ))}
-                                    </div>
+                    <section className="relative isolate overflow-hidden rounded-[26px] border border-cyan-300/25 bg-gradient-to-br from-[#162d52] via-[#1b2450] to-[#301b4b] px-5 py-6 shadow-[0_22px_65px_rgba(0,0,0,.32)] sm:px-8 sm:py-8">
+                        <div className="pointer-events-none absolute -right-12 -top-20 h-72 w-72 rounded-full bg-cyan-400/15 blur-3xl" aria-hidden="true"/>
+                        <div className="pointer-events-none absolute -bottom-20 right-1/3 h-56 w-56 rounded-full bg-fuchsia-400/15 blur-3xl" aria-hidden="true"/>
+                        <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+                            <div className="min-w-0">
+                                <p className="mb-2 text-[11px] font-black uppercase tracking-[.24em] text-cyan-300">✦ Enciclopedia dei personaggi</p>
+                                <h1 className="bg-gradient-to-r from-white via-cyan-100 to-fuchsia-200 bg-clip-text text-3xl font-black tracking-tight text-transparent sm:text-4xl lg:text-5xl">
+                                    Catalogo Multimon
+                                </h1>
+                                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base">
+                                    Tutti gli eroi, i loro tipi, le abilità e le mosse in un unico archivio.
+                                    Esplora ogni universo e scopri come combattono i tuoi preferiti.
+                                </p>
+                                <div className="mt-5 flex flex-wrap gap-2">
+                                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-cyan-100">✦ {overview.totalTypes} tipi presenti</span>
+                                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-fuchsia-100">✨ {hyperIds.length} forme Iper</span>
+                                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-slate-100">🧬 {FUSION_CHARACTERS.length} fusioni</span>
                                 </div>
+                            </div>
+                            <div className="flex min-w-[185px] items-center justify-center rounded-[23px] border border-cyan-200/30 bg-slate-950/45 px-8 py-5 text-center shadow-[inset_0_1px_0_rgba(255,255,255,.1),0_12px_25px_rgba(0,0,0,.2)]">
+                                <div>
+                                    <span className="block text-[11px] font-black uppercase tracking-[.18em] text-cyan-200">Totale Multimon</span>
+                                    <strong className="my-1 block text-6xl font-black tabular-nums tracking-tight text-white sm:text-7xl" data-testid="catalog-total-multimon">
+                                        {overview.totalMultimon}
+                                    </strong>
+                                    <span className="block text-xs font-bold text-slate-300">personaggi giocabili</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="rounded-2xl border border-slate-600/50 bg-slate-900/80 p-3 shadow-lg backdrop-blur-md sm:p-4" aria-label="Ricerca e filtri del catalogo">
+                        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(160px,210px)_minmax(150px,185px)] md:items-end">
+                            <label className="block min-w-0">
+                                <span className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-cyan-200">🔎 Cerca un Multimon</span>
+                                <div className="flex items-center gap-2 rounded-xl border border-slate-600 bg-slate-950/85 px-3 focus-within:border-cyan-400">
+                                    <input
+                                        type="search"
+                                        aria-label="Cerca un Multimon per nome"
+                                        placeholder="Nome del personaggio..."
+                                        value={catalogSearch}
+                                        onChange={e => setCatalogSearch(e.target.value)}
+                                        className="min-w-0 flex-1 bg-transparent py-3 text-sm font-semibold text-white outline-none placeholder:text-slate-500"
+                                    />
+                                    {catalogSearch && <button type="button" aria-label="Cancella ricerca" onClick={() => setCatalogSearch('')} className="rounded-lg px-2 py-1 text-lg font-bold text-slate-300 hover:bg-slate-700 hover:text-white">×</button>}
+                                </div>
+                            </label>
+                            <label className="block min-w-0">
+                                <span className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-slate-300">Filtra per categoria</span>
+                                <select aria-label="Filtra catalogo per tipo" value={catalogFilter} onChange={e => setCatalogFilter(e.target.value)} className="w-full rounded-xl border border-slate-600 bg-slate-950/85 px-3 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
+                                    <option value="Tutti">Tutti i tipi</option>
+                                    <option value="Evocazioni">Solo evocazioni</option>
+                                    <option value="Mostri Campagna">Mostri campagna</option>
+                                    <option value="Iper forme">Forme Iper</option>
+                                    <option value="Fusioni">Fusioni</option>
+                                    {TYPES.map(t => <option key={t} value={t}>{typeDisplayName(t)}</option>)}
+                                </select>
+                            </label>
+                            <label className="block min-w-0">
+                                <span className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-slate-300">Ordina per</span>
+                                <select aria-label="Ordina catalogo" value={catalogSort} onChange={e => setCatalogSort(e.target.value)} className="w-full rounded-xl border border-slate-600 bg-slate-950/85 px-3 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
+                                    <option value="alpha">Nome A–Z</option>
+                                    <option value="type">Tipo principale</option>
+                                </select>
+                            </label>
+                        </div>
+                    </section>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 px-1" role="status" aria-live="polite">
+                        <div className="min-w-0">
+                            <h2 className="text-lg font-black text-white sm:text-xl">{activeSection}</h2>
+                            <p className="text-xs font-semibold text-slate-400">
+                                {displayedChars.length} {displayedChars.length === 1 ? 'risultato' : 'risultati'} visualizzati
+                                {catalogFilter === 'Tutti' && !catalogSearch.trim() ? ' · roster completo' : ' · totale roster: ' + overview.totalMultimon}
+                            </p>
+                        </div>
+                        {(catalogFilter !== 'Tutti' || catalogSearch.trim()) && <button type="button"
+                            onClick={() => { setCatalogFilter('Tutti'); setCatalogSearch(''); }}
+                            className="rounded-full border border-cyan-400/35 bg-cyan-950/35 px-3 py-2 text-xs font-extrabold text-cyan-200 transition hover:border-cyan-300 hover:bg-cyan-900/50">
+                            ✕ Ripristina filtri
+                        </button>}
+                    </div>
+
+                    {displayedChars.length === 0 ? (
+                        <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-600 bg-slate-900/45 px-5 py-10 text-center">
+                            <span className="text-5xl" aria-hidden="true">🔎</span>
+                            <h3 className="text-xl font-black text-white">Nessun Multimon trovato</h3>
+                            <p className="max-w-md text-sm text-slate-400">Prova un altro nome oppure modifica i filtri per continuare l'esplorazione.</p>
+                            <button type="button" onClick={() => { setCatalogFilter('Tutti'); setCatalogSearch(''); }}
+                                className="rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-cyan-500">Mostra tutti i Multimon</button>
+                        </div>
+                    ) : (
+                        <div className="grid auto-rows-max grid-cols-1 content-start gap-4 pb-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                            {displayedChars.map(char => (
+                                <article key={char.id} className={'group relative flex min-w-0 flex-col overflow-hidden rounded-[22px] border bg-[#111b30]/95 shadow-[0_12px_28px_rgba(0,0,0,.23)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_35px_rgba(32,155,196,.14)] ' +
+                                    (char.isHyperInCatalog ? 'border-amber-400/50 hover:border-amber-300' :
+                                    char.isFusionInCatalog ? 'border-fuchsia-400/50 hover:border-fuchsia-300' :
+                                    'border-slate-600/65 hover:border-cyan-400/65')}>
+                                    <div className={'relative flex h-48 items-center justify-center overflow-hidden border-b border-white/10 bg-gradient-to-b p-3 sm:h-52 ' +
+                                        (char.isHyperInCatalog ? 'from-amber-900/35 via-indigo-950/40 to-[#111b30]' :
+                                        char.isFusionInCatalog ? 'from-fuchsia-900/35 via-indigo-950/40 to-[#111b30]' :
+                                        'from-cyan-950/65 via-[#172b4a] to-[#111b30]')}>
+                                        <div className="pointer-events-none absolute inset-x-10 top-7 h-32 rounded-full bg-cyan-300/10 blur-3xl" aria-hidden="true"/>
+                                        <div className="pointer-events-none absolute bottom-2 left-2 text-[10px] font-black tracking-widest text-white/35" aria-hidden="true">MULTIMON ✦</div>
+                                        <img loading="lazy" src={char.img} onError={onMultimonImageError} alt={char.name}
+                                            className="relative z-10 h-full w-full object-contain drop-shadow-[0_12px_18px_rgba(0,0,0,.6)] transition-transform duration-200 group-hover:scale-105"
+                                            style={char.imageFilter ? {filter: char.imageFilter} : undefined}/>
+                                        {char.price && !char.isHyperInCatalog && !char.isFusionInCatalog &&
+                                            <span className="absolute right-2 top-2 z-20 inline-flex items-center gap-1 rounded-full border border-amber-400/45 bg-slate-950/90 px-2.5 py-1 text-[11px] font-black text-amber-200">
+                                                <Lock size={12}/> {char.price} monete
+                                            </span>}
+                                        {(char.isHyperInCatalog || char.isFusionInCatalog || hyperIds.includes(char.id)) &&
+                                            <span className={'absolute left-2 top-2 z-20 rounded-full border px-2.5 py-1 text-[10px] font-black tracking-wide ' +
+                                                (char.isFusionInCatalog ? 'border-fuchsia-300/50 bg-fuchsia-950/90 text-fuchsia-200' :
+                                                 'border-amber-300/50 bg-amber-950/90 text-amber-200')}>
+                                                {char.isFusionInCatalog ? '🧬 FUSIONE' : '✨ IPER'}
+                                            </span>}
+                                    </div>
+
+                                    <div className="flex min-w-0 flex-1 flex-col gap-3 p-4">
+                                        <div className="min-h-[68px]">
+                                            <h3 className="line-clamp-2 break-words text-center text-base font-black leading-snug text-white sm:text-lg">{char.name}</h3>
+                                            <div className="mt-2 flex min-h-6 flex-wrap items-center justify-center gap-1.5">
+                                                {char.types.map(t => <span key={t} className={'rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ' +
+                                                    (TYPE_STYLES[t] || 'bg-slate-600 text-white')}>{typeDisplayName(t)}</span>)}
+                                            </div>
+                                        </div>
+
+                                        {char.fusionOf && <p className="rounded-lg border border-fuchsia-400/25 bg-fuchsia-950/25 px-2.5 py-2 text-center text-[11px] font-bold leading-relaxed text-fuchsia-100">
+                                            🧬 Fusione di: {char.fusionOf.map(id => CHARACTERS.find(c => c.id === id)?.name || id).join(' + ')}
+                                        </p>}
+
+                                        <div className="grid grid-cols-4 gap-1.5 rounded-xl border border-slate-700/60 bg-slate-950/65 p-2 text-center">
+                                            {[
+                                                ['PS', char.maxHp, 'text-emerald-300'],
+                                                ['ATT', char.atk, 'text-rose-300'],
+                                                ['DIF', char.def, 'text-sky-300'],
+                                                ['VEL', char.spd, 'text-amber-300']
+                                            ].map(([label,value,tone]) => <div key={label} className="min-w-0 rounded-lg bg-white/[.035] px-1 py-2">
+                                                <span className="block text-[10px] font-bold text-slate-400">{label}</span>
+                                                <strong className={'block text-sm font-black tabular-nums ' + tone}>{value}</strong>
+                                            </div>)}
+                                        </div>
+
+                                        {char.passive && <div className="rounded-xl border border-amber-400/25 bg-amber-950/20 p-3">
+                                            <div className="mb-1 flex flex-wrap items-center justify-between gap-1">
+                                                <span className="min-w-0 break-words text-xs font-black text-amber-200">✦ {char.passive.name}</span>
+                                                {char.passive.maxUses && <span className="text-[10px] font-bold text-amber-200/70">{char.passive.maxUses} usi</span>}
+                                            </div>
+                                            <p className="text-[11px] leading-relaxed text-slate-300">{char.passive.desc || 'Abilità passiva del personaggio.'}</p>
+                                        </div>}
+
+                                        <details className="group/moves mt-auto rounded-xl border border-slate-600/65 bg-slate-800/50 open:border-cyan-400/35 open:bg-slate-900/80">
+                                            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-xl px-3 py-3 text-xs font-black text-cyan-100 transition-colors hover:bg-slate-700/40 [&::-webkit-details-marker]:hidden">
+                                                <span>⚔️ Mosse del personaggio ({char.moves.filter(Boolean).length})</span>
+                                                <span className="text-cyan-300 transition-transform group-open/moves:rotate-180" aria-hidden="true">⌄</span>
+                                            </summary>
+                                            <div className="space-y-2 px-2.5 pb-3">
+                                                {char.moves.filter(Boolean).map((m, i) => (
+                                                    <div key={i} className="rounded-lg border border-slate-700/65 bg-[#101b31] p-2.5">
+                                                        <div className="flex min-w-0 flex-wrap items-start justify-between gap-1">
+                                                            <span className="min-w-0 break-words text-[11px] font-black leading-snug text-white">{m.name}</span>
+                                                            <span className={'shrink-0 rounded-md px-1.5 py-1 text-[9px] font-black ' + (TYPE_STYLES[m.type] || 'bg-slate-700 text-white')}>{typeDisplayName(m.type)}</span>
+                                                        </div>
+                                                        <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[10px] font-bold text-slate-300">
+                                                            <span>{m.power > 0 ? 'Potenza ' + m.power : (m.heal || m.healFlat || m.targetMode === 'team_smart_heal' || m.targetMode === 'team' || m.selfHeal || m.healLastTurnDamage ? 'Cura / supporto' : (m.isProtect ? 'Difesa / supporto' : ((m.isSummon || m.randomSummon) ? 'Evocazione' : 'Supporto')))}</span>
+                                                            {m.accuracy != null && <span>Prec. {Math.round(m.accuracy * 100)}%</span>}
+                                                            {m.maxUses && <span>Max {m.maxUses} usi</span>}
+                                                            {m.multiHit && <span>{m.multiHit.min}–{m.multiHit.max} colpi</span>}
+                                                        </div>
+                                                        {m.desc && <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400">{m.desc}</p>}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </details>
+                                    </div>
+                                </article>
                             ))}
                         </div>
-                    </div>
+                    )}
                 </div>
-            </div>
+            </main>
         );
     }
 }
