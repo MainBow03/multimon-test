@@ -2,6 +2,7 @@
 // Tutti gli scontri usano il motore classico di Multimon (CPU, tipi, passive, mosse).
 import {createBattleReport} from './battleReport.js';
 import {ADVENTURE_RIVAL_ZONES} from '../data/adventureStory.js';
+import {ADVENTURE_SIDE_QUESTS} from './adventureEnhancements.js';
 
 export const ADVENTURE_SAVE_KEY='multimon_avventura_3d_v1';
 export const ADVENTURE_MAX_PARTY=6;
@@ -55,7 +56,7 @@ export function createAdventureSave(starterId,characters=[]){
  return {version:1,started:true,finished:false,starterId,position:{x:5,z:adventureRoadZ(5)},
   facing:0,party:[{id:starterId,level:5,exp:0,hp:null}],
   reserve:[],coins:120,potions:4,revives:1,badges:[],
-  defeated:[],chests:[],storySeen:[],wildBattles:0,trainerWins:0,rivalWins:0,gymWins:0,
+  defeated:[],chests:[],gymTrials:[],secrets:[],questsDone:[],questsStarted:[],storySeen:[],wildBattles:0,trainerWins:0,rivalWins:0,gymWins:0,
   chapter:'L’inizio di un’avventura',lastMessage:'Il professor Orion ti aspetta davanti al villaggio.',
   lastBattleId:null,checkpointZone:0,playSeconds:0,createdAt:Date.now()};
 }
@@ -80,6 +81,10 @@ export function sanitizeAdventureSave(raw,characters=[]){
   revives:clamp(Math.floor(finite(raw.revives)),0,99),
   badges,defeated:[...new Set((Array.isArray(raw.defeated)?raw.defeated:[]).filter(id=>typeof id==='string'))],
   chests:[...new Set((Array.isArray(raw.chests)?raw.chests:[]).filter(id=>typeof id==='string'))],
+   gymTrials:[...new Set((Array.isArray(raw.gymTrials)?raw.gymTrials:[]).filter(id=>ADVENTURE_ZONES.some(z=>z.id===id)))],
+   questsStarted:[...new Set((Array.isArray(raw.questsStarted)?raw.questsStarted:[]).filter(id=>ADVENTURE_ZONES.some(z=>z.id===id)))],
+   questsDone:[...new Set((Array.isArray(raw.questsDone)?raw.questsDone:[]).filter(id=>ADVENTURE_ZONES.some(z=>z.id===id)))],
+   secrets:[...new Set((Array.isArray(raw.secrets)?raw.secrets:[]).filter(id=>typeof id==='string'&&/^secret:(alba|braci|cascate|neve|astrale|vulcano):[0-2]$/.test(id)))],
   storySeen:Array.isArray(raw.storySeen)?[...new Set(raw.storySeen.filter(id=>typeof id==='string'))]:
     // Già oltre la regione: non riprodurre tutti i filmati del passato.
     badges.flatMap(id=>['arrival:'+id,'badge:'+id]),
@@ -145,6 +150,14 @@ export function adventureEntities(){
     zone:i,x:x-7,z:adventureRoadZ(x-7)+8});
   }
  }
+ for(const quest of ADVENTURE_SIDE_QUESTS){
+   const index=ADVENTURE_ZONES.findIndex(z=>z.id===quest.id);
+   const x=ADVENTURE_ZONES[index].center-9;
+   result.push({id:'quest:'+quest.id,kind:'quest',zone:index,name:quest.giver,
+    x,z:adventureRoadZ(x)-12,dialogue:quest.dialogue});
+   quest.spots.forEach(([x,z],i)=>result.push({id:'secret:'+quest.id+':'+i,
+    kind:'secret',zone:index,name:quest.spotName,x,z,dialogue:'Un oggetto nascosto nel paesaggio.'}));
+ }
  result.push(ADVENTURE_CHAMPION);
  return result;
 }
@@ -157,15 +170,33 @@ export function adventureNearby(position,save,radius=4.4){
   !(['trainer','rival'].includes(e.kind)&&save.defeated.includes(e.id))&&
   !(e.kind==='gym'&&save.badges.includes(ADVENTURE_ZONES[e.zone].id))&&
   !(e.kind==='chest'&&save.chests.includes(e.id))&&
+ !(e.kind==='secret'&&(save.secrets||[]).includes(e.id))&&
   !(e.kind==='champion'&&save.finished))
  .sort((a,b)=>adventureDistance(position,a)-adventureDistance(position,b))[0]||null;
 }
+// Collisioni solide con edifici e Palestre, con scorrimento sugli spigoli.
 export function adventureMove(save,newX,newZ){
  const current=save?.position||{x:5,z:0};
  const x=clamp(finite(newX,current.x),0,217),z=clamp(finite(newZ,current.z),-19,19);
  const allowedMax=save.finished?217:Math.min(217,34*(save.badges?.length+1)-.6);
  const goalX=Math.min(x,allowedMax);
- return {position:{x:goalX,z},blocked:x>allowedMax+.04,requiresBadge:ADVENTURE_ZONES[save.badges.length]?.badge||null};
+ const solids=ADVENTURE_ENTITIES.filter(e=>['gym','inn','shop'].includes(e.kind)&&
+   Math.abs(e.x-goalX)<6&&Math.abs(e.z-z)<6);
+ const collision=(px,pz)=>solids.some(e=>{
+  const radius=e.kind==='gym'?3.15:1.75;
+  const nextDistance=Math.hypot(px-e.x,pz-e.z);
+  const previousDistance=Math.hypot(current.x-e.x,current.z-e.z);
+  return nextDistance<radius&&nextDistance<previousDistance-.001;
+ });
+ let nx=goalX,nz=z;
+ if(collision(nx,nz)){
+  if(!collision(nx,current.z))nz=current.z;
+  else if(!collision(current.x,nz))nx=current.x;
+  else {nx=current.x;nz=current.z;}
+ }
+ const locked=x>allowedMax+.04;
+ return {position:{x:nx,z:nz},blocked:locked||Math.abs(nx-goalX)+Math.abs(nz-z)>.002,
+  requiresBadge:locked?ADVENTURE_ZONES[save.badges.length]?.badge||null:null};
 }
 export function adventureGymCheck(save,entity){
  if(!entity)return {ok:false,message:'Non c’è nessuna sfida qui.'};
