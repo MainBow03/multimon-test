@@ -8,9 +8,11 @@ import {NEW_TRIO_MOVES} from './flinsGanyuCoraline.js';
 import {ROYAL_POISON_MOVES} from './royalPoisonMoves.js';
 import {EARTH_GRASS_MOVES} from './earthGrassChampions.js';
 import {NEW_REALM_MOVES} from './newRealmChampions.js';
+import {CRYSTAL_ROCK_SOUND_BUG_MOVES} from './crystalRockSoundBugChampions.js';
 
 export const MOVES_DB = {
   ...NEW_REALM_MOVES,
+  ...CRYSTAL_ROCK_SOUND_BUG_MOVES,
   'Trasformazione Fatata':{name:'Trasformazione Fatata',type:'Folletto',power:60,
     statusEffect:{type:'Stordito',chance:.6,turns:1},
     desc:'Cosmo trasforma il nemico in qualcosa di buffo: potenza 60, 60% di stordire.'},
