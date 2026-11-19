@@ -23,6 +23,7 @@ const img=(src,alt,css='')=>src?<img src={src} alt={alt} className={css} onError
 function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,onPosition,paused=false}){
  const canvas=useRef(null),player=useRef({...save.position}),saveRef=useRef(save);
  const buttons=useRef(new Set()),callbacks=useRef({onWalk,onNear,onInteract,onBlocked,onPosition,paused});
+ const cameraYaw=useRef(0),drag=useRef(null);
  const travelRef=useRef(save.travelSerial||0);
  useEffect(()=>{
   saveRef.current=save;callbacks.current={onWalk,onNear,onInteract,onBlocked,onPosition,paused};
@@ -46,9 +47,10 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,onPosition,pa
   const keydown=e=>{
    const name=e.key.toLowerCase();
    if(!focus()||callbacks.current.paused)return;
-   if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','shift','e',' ','enter'].includes(name)){
+   if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','shift','e','q','r',' ','enter'].includes(name)){
      if(!callbacks.current.paused&&['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','e',' '].includes(name))e.preventDefault();
      if(name==='e'&&!e.repeat){interact();return;}
+     if((name==='q'||name==='r')&&!e.repeat){cameraYaw.current+=(name==='q'?-.3:.3);return;}
      if(!callbacks.current.paused)keys.add(name);
    }
   };
@@ -66,12 +68,14 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,onPosition,pa
      const length=Math.hypot(forward,lateral)||1;
      const speed=keys.has('shift')?14.5:9.3;
      const current=player.current;
-     const next=adventureMove(saveRef.current,current.x+forward/length*speed*dt,
-       current.z+lateral/length*speed*dt);
+     const yaw=cameraYaw.current,dx=forward*Math.cos(yaw)-lateral*Math.sin(yaw);
+     const dz=forward*Math.sin(yaw)+lateral*Math.cos(yaw);
+     const next=adventureMove(saveRef.current,current.x+dx/length*speed*dt,
+       current.z+dz/length*speed*dt);
      // Position is managed in the renderer for smooth 60 FPS camera motion.
      player.current=next.position;
      callbacks.current.onPosition?.(next.position);
-     if(next.blocked&&now-lastBlocked>2800){
+     if(next.blocked&&next.requiresBadge&&now-lastBlocked>2800){
        callbacks.current.onBlocked?.(next.requiresBadge);
        lastBlocked=now;
      }
@@ -82,7 +86,7 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,onPosition,pa
    const nearest=adventureNearby(player.current,saveRef.current,4.5);
    const id=nearest?.id||null;
    if(id!==prevNearest){prevNearest=id;callbacks.current.onNear(nearest);}
-   graphics.render(player.current,(now-before)/1000,saveRef.current.starterId);
+   graphics.render(player.current,(now-before)/1000,saveRef.current.starterId,cameraYaw.current,saveRef.current);
    frame=requestAnimationFrame(tick);
   };
   frame=requestAnimationFrame(tick);
@@ -96,7 +100,10 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,onPosition,pa
  },[]);
  const key=(name,down)=>{if(down)buttons.current.add(name);else buttons.current.delete(name)};
  return <div className="adv-world">
-  <canvas ref={canvas} className="adv-viewport" aria-label="Mondo tridimensionale di Multimon, con percorsi, centri di cura e palestre"/>
+  <canvas ref={canvas} className="adv-viewport" aria-label="Mondo tridimensionale di Multimon, con percorsi, centri di cura e palestre"
+     onPointerDown={e=>{if(e.pointerType==='mouse'&&e.button===0)drag.current=e.clientX;}}
+     onPointerMove={e=>{if(drag.current!==null){cameraYaw.current+=(e.clientX-drag.current)*.006;drag.current=e.clientX;}}}
+     onPointerUp={()=>{drag.current=null;}} onPointerCancel={()=>{drag.current=null;}}/>
   <div className="adv-vignette" aria-hidden="true"/>
   <div className="adv-sun" aria-hidden="true"/>
   <div className="adv-mobile-controls" aria-label="Comandi di movimento">
@@ -107,6 +114,10 @@ function AdventureWorld3D({save,onWalk,onNear,onInteract,onBlocked,onPosition,pa
        onPointerUp={()=>key(k,false)} onPointerCancel={()=>key(k,false)}
        onLostPointerCapture={()=>key(k,false)}>{label}</button>)}
    </div>
+   <div className="adv-mobile-camera"><button type="button" aria-label="Ruota telecamera a sinistra"
+      onClick={()=>{cameraYaw.current-=.35}}>↶</button>
+     <button type="button" aria-label="Ruota telecamera a destra"
+      onClick={()=>{cameraYaw.current+=.35}}>↷</button></div>
    <button className="adv-action-touch" type="button" aria-label="Interagisci con personaggi e luoghi"
     onClick={interactMobile}>PARLA<br/>⚡</button>
   </div>
@@ -308,7 +319,12 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
       <span>🐾 {save.party.length} alleati</span></div>
     </aside>
     {nearby&&!paused&&<button type="button" className="adv-interact-pill" onClick={()=>handleInteraction(nearby,worldPosition.current)}>
-      <kbd>E</kbd><span>{symbol[nearby.kind]} <b>{nearby.name}</b><small>{nearby.kind==='wild'?'Incontro selvatico':nearby.kind==='gym'?'Sfida capopalestra':nearby.kind==='inn'?'Cura gratuita':nearby.kind==='chest'?'Apri scrigno':'Interagisci'}</small></span>
+      <kbd>E</kbd>{nearby.kind==='wild'&&img(getChar(characters,nearby.party?.[0])?.img,
+        getChar(characters,nearby.party?.[0])?.name,'adv-wild-avatar')}
+      <span>{symbol[nearby.kind]} <b>{nearby.kind==='wild'?
+        getChar(characters,nearby.party?.[0])?.name||'Multimon selvatico':nearby.name}</b>
+      <small>{nearby.kind==='wild'?'Incontro selvatico':nearby.kind==='gym'?'Sfida capopalestra':nearby.kind==='inn'?'Cura gratuita':
+       nearby.kind==='chest'?'Apri scrigno':nearby.kind==='secret'?'Raccogli il ritrovamento':nearby.kind==='quest'?'Missione secondaria':'Interagisci'}</small></span>
      </button>}
     <nav className="adv-toolbar" aria-label="Strumenti di avventura">
      <button onClick={()=>showPanel('team')} title="Gestisci squadra">🐾 <span>SQUADRA</span></button>
@@ -325,7 +341,7 @@ export function AdventureCampaignView({state,characters,onUpdate,onStartBattle,o
         <span style={{background:save.badges.includes(region.id)?region.color:undefined}}>{save.badges.includes(region.id)?'✓':i+1}</span>
        </div>)}
     </div>
-    <div className="adv-compass">N <span>✧</span> E <small>WASD / FRECCE · E interagisci · SHIFT corri</small></div>
+    <div className="adv-compass">N <span>✧</span> E <small>WASD · Q/R ruota camera · E interagisci · SHIFT corri</small></div>
   </div>
   {toast&&<div className="adv-toast" role="status">{toast}</div>}
   {scene&&<div className="adv-modal-wrap adv-story-wrap">
