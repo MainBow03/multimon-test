@@ -1,4 +1,7 @@
 export const CHAR_PRICES = {
+  'kida':260,'rarity':220,'bismuth':250,'hessonite':290,'phosphophyllite':230,
+  'theboulder':190,'obelix':190,'korg':210,'goliath':230,'mangiarocce':220,
+  'miguelrivera':190,'blackcanary':230,'mayalape':160,'bluebeetle':260,'kamenriderkabuto':270,
   'mushu':180,'hakudrago':250,'shenron':350,'billcipher':320,'senzavolto':220,
   'hornet':240,'baxterstockman':220,'vaiana':230,'ariel':210,'frozone':240,'korra':300,'ponyo':200,
   'tophbeifong':200,'gaara':250,'flygon':200,'flora':200,'leafeon':150,'shaymin':250,
