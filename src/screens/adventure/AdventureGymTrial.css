@@ -1,5 +1,5 @@
 .adv-trial-overlay{position:fixed;inset:0;z-index:35;display:grid;place-items:center;padding:16px;background:#07132bcf;backdrop-filter:blur(11px);pointer-events:auto}
-.adv-trial-box{width:min(680px,96vw);max-height:min(92dvh,850px);overflow:auto;border-radius:27px;border:1px solid #bbe8e798;background:linear-gradient(155deg,#1f3354 0%,#14223b 58%,#293651 100%);padding:clamp(17px,4vw,30px);box-shadow:0 25px 100px #050b19c9,color 0.3s; color:#f8fbff}
+.adv-trial-box{width:min(680px,96vw);max-height:min(92dvh,850px);overflow:auto;border-radius:27px;border:1px solid #bbe8e798;background:linear-gradient(155deg,#1f3354 0%,#14223b 58%,#293651 100%);padding:clamp(17px,4vw,30px);box-shadow:0 25px 100px #050b19c9; color:#f8fbff}
 .adv-trial-top,.adv-trial-bottom{display:flex;align-items:center;justify-content:space-between;gap:14px}
 .adv-trial-kicker{font-size:11px;letter-spacing:.17em;font-weight:900;color:#92f0e1}
 .adv-trial-close{border:1px solid #ffffff55;border-radius:13px;background:#1b3049;color:white;padding:8px 13px}
