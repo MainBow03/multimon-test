@@ -542,7 +542,7 @@ const makeProgram=(gl,vertex=vertexShader,fragment=fragmentShader)=>{
  if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program)||'Motore 3D non disponibile');
  return program;
 };
-const playerGeometry=(p,time,starter='sonic')=>{
+const playerGeometry=(p,time,starter='sonic',save={})=>{
  const m=new Mesh(),sway=Math.sin(time*9)*.13;
  const bob=Math.sin(time*9)*.045;
  // Shadow ground plane.
@@ -601,6 +601,38 @@ const playerGeometry=(p,time,starter='sonic')=>{
   m.diamond(fx+Math.cos(phase)*1.05,y+1.15+Math.sin(phase*.7)*.2,
     fz+Math.sin(phase)*.95,.12,
     starter==='starbutterfly'?'#fff1b5':starter==='sonic'?'#a5efff':'#ffedc0');
+ }
+
+ // Presenze animate: NPC che passeggiano, guide riconoscibili e creature che vagano.
+ // Limitiamo i modelli alla zona circostante per mantenere una buona fluidita su tablet.
+ for(const e of ADVENTURE_ENTITIES){
+  if(Math.abs(e.x-p.x)>32||Math.abs(e.z-p.z)>28)continue;
+  if(['trainer','rival'].includes(e.kind)&&save.defeated?.includes(e.id))continue;
+  const phase=e.x*.17+e.z*.41;
+  if(['trainer','rival','npc','quest'].includes(e.kind)){
+   const motionX=Math.sin(time*.68+phase)*.55;
+   const motionZ=Math.cos(time*.41+phase)*.35;
+   const col=e.kind==='quest'?'#f9c06a':e.kind==='rival'?'#a977d8':
+    e.kind==='trainer'?'#df9d62':'#83a1e9';
+   addPerson(m,e.x+motionX,e.z+motionZ,col,(e.zone||0)%2);
+   if(e.kind==='quest')m.diamond(e.x+motionX,3.15+Math.sin(time*2.3)*.22,
+     e.z+motionZ,.35,'#ffe18e');
+  }else if(e.kind==='wild'){
+   const id=e.party?.[0]||'',seed=[...id].reduce((n,c)=>n+c.charCodeAt(0),0);
+   const shades=['#5ac7cb','#f3b86c','#bc89e8','#85c683','#df84aa','#8fc6f0'];
+   const shade=shades[seed%shades.length];
+   const x=e.x+Math.sin(time*.9+phase)*.48,z=e.z+Math.cos(time*.8+phase)*.42;
+   const bob=Math.sin(time*3.5+phase)*.12;
+   m.sphere(x,.65+bob,z,.7,.55,.65,shade,5,8);
+   for(const side of [-1,1]){
+    m.cone(x+side*.42,.7+bob,z,.29,.7,shade,6);
+    m.sphere(x+side*.25,.68+bob,z+.61,.1,.1,.06,'#182638',4,6);
+   }
+   m.sphere(x,.40+bob,z+.56,.24,.15,.16,'#f8e9d0',4,6);
+   if(seed%3===0)m.diamond(x,1.25+bob,z,.36,shade);
+   else if(seed%3===1)m.cone(x,1.1+bob,z,.24,.7,shade,6);
+   else m.sphere(x,1.05+bob,z,.43,.18,.46,shade,4,6);
+  }
  }
  return new Float32Array(m.data);
 };
@@ -684,13 +716,20 @@ export function createAdventureWorldRenderer(canvas,save){
    inkDisabled=true;return false;
   }
  };
- function render(p,t=0,starter='sonic'){
+ let smoothFocus=null,lastCamera=null;
+ function render(p,t=0,starter='sonic',yaw=0,saveState=save){
   if(disposed)return;
   const rect=canvas.getBoundingClientRect(),ratio=Math.min(
     window.matchMedia?.('(pointer: coarse)').matches?1.25:1.8,window.devicePixelRatio||1);
   const w=Math.max(2,Math.round(rect.width*ratio)),h=Math.max(2,Math.round(rect.height*ratio));
   if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
-  const eye=[p.x-15,16,p.z+15],target=[p.x+7,1.5,p.z];
+  if(!smoothFocus)smoothFocus={x:p.x,z:p.z};
+  smoothFocus.x+=(p.x-smoothFocus.x)*.22;
+  smoothFocus.z+=(p.z-smoothFocus.z)*.22;
+  const ca=Math.cos(yaw),sa=Math.sin(yaw),cx=smoothFocus.x,cz=smoothFocus.z;
+  const eye=[cx-15*ca-15*sa,16,cz-15*sa+15*ca],
+   target=[cx+7*ca,1.5,cz+7*sa];
+  lastCamera={eye,target,width:rect.width,height:rect.height};
   const v=look(eye,target),proj=persp(1.02,w/h,.1,220);
   const paletteByZone={
     meadow:['#b9e8f0','#d6f7ec'],autumn:['#ffcfaa','#fff0d1'],
@@ -712,7 +751,7 @@ export function createAdventureWorldRenderer(canvas,save){
   gl.clearColor(skyRgb[0],skyRgb[1],skyRgb[2],1);
   gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
   bind(worldBuffer);gl.drawArrays(gl.TRIANGLES,0,worldLength);
-  const dynamic=playerGeometry(p,t,starter);
+  const dynamic=playerGeometry(p,t,starter,saveState);
   gl.bindBuffer(gl.ARRAY_BUFFER,dynamicBuffer);gl.bufferData(gl.ARRAY_BUFFER,dynamic,gl.DYNAMIC_DRAW);
   bind(dynamicBuffer);gl.drawArrays(gl.TRIANGLES,0,dynamic.length/9);
   if(withInk){
@@ -731,7 +770,16 @@ export function createAdventureWorldRenderer(canvas,save){
    gl.enable(gl.DEPTH_TEST);
   }
  }
- return {render,dispose(){
+ return {render,projectWorld(x,y,z){
+  if(!lastCamera)return null;
+  const {eye,target,width,height}=lastCamera;
+  const forward=norm(minus(target,eye)),right=norm(cross(forward,[0,1,0])),
+   up=cross(right,forward),v=minus([x,y,z],eye),depth=dot(v,forward);
+  if(depth<.2)return null;
+  const tangent=Math.tan(1.02/2),aspect=width/Math.max(1,height);
+  return {x:width*.5+dot(v,right)/depth/tangent/aspect*width*.5,
+   y:height*.5-dot(v,up)/depth/tangent*height*.5,depth};
+ },dispose(){
   disposed=true;
   gl.deleteBuffer(worldBuffer);gl.deleteBuffer(dynamicBuffer);
   gl.deleteProgram(program);
