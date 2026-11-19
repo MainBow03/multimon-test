@@ -2,6 +2,21 @@
 // Le linee sono scritte per il carattere, i poteri o la storia del personaggio.
 // Una riga per ciascun ID registrato: il test controlla la copertura del roster.
 export const ULTIMON_ENTRANCE_LINES = Object.freeze({
+  "kida": "Il Cuore di Atlantide risponde a chi ha il coraggio di proteggerlo.",
+  "rarity": "Oh, questa arena? Ha bisogno assolutamente di piu cristalli!",
+  "bismuth": "La mia fucina non costruisce solo strumenti: forgia nuove possibilita!",
+  "hessonite": "La disciplina di una gemma imperiale non lascia spazio al caos.",
+  "phosphophyllite": "Posso sembrare fragile, ma non ho ancora smesso di cambiare.",
+  "theboulder": "THE BOULDER sta per offrire al pubblico lo spettacolo del secolo!",
+  "obelix": "Ho portato un menhir per la battaglia. Non pensavo che fosse troppo grande!",
+  "korg": "Ciao, siamo qui per una sfida? Perfetto, cerchiamo di non rompere tutto.",
+  "goliath": "La notte e il nostro regno. E la nostra promessa e proteggere.",
+  "mangiarocce": "C'e odore di pietra fresca... dopo il duello qualcuno offre il pranzo?",
+  "miguelrivera": "Ogni famiglia ha una storia. La mia la suonero anche qui.",
+  "blackcanary": "Quando la citta alza la voce, qualcuno deve farsi sentire di piu.",
+  "mayalape": "Ciao a tutti! Ho portato un po di miele per i miei amici!",
+  "bluebeetle": "Khaji-Da, siamo pronti? Cerchiamo di non spaventare tutti all'ingresso!",
+  "kamenriderkabuto": "Il cielo conosce il mio cammino. Non arriverai mai prima di me.",
   "mushu": "Attenzione, mortali! Il drago piu temibile della mia taglia e arrivato.",
   "hakudrago": "Ci sono fiumi che non dimenticano mai il loro vero nome. Io sono uno di essi.",
   "shenron": "Le sfere si sono riunite. Non sprecate il desiderio che vi e stato concesso.",
