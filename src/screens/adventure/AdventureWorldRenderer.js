@@ -147,6 +147,43 @@ const addGym=(m,e)=>{
  m.cylinder(e.x,8.0,e.z,.1,2.1,'#f3eac8',6);
  m.diamond(e.x,10.7,e.z,.9,c);
  m.box(e.x,0,e.z-7,1.9,.07,12,z.biome==='snow'?'#c9dfea':'#dcc5a5');
+ // Architettura e silhouette tematiche: le Palestre non cambiano soltanto colore.
+ if(e.zone===0){
+  for(let i=0;i<8;i++){const a=i*Math.PI/4,x=e.x+Math.cos(a)*4.8,z=e.z+Math.sin(a)*4.8;
+   m.cylinder(x,.1,z,.11,3.6,'#398d6e',6);
+   m.sphere(x,3.7,z,.72,.45,.7,'#72d3a8',5,7);
+  }
+  m.sphere(e.x,9.15,e.z,1.1,.8,1.1,'#a0edc3',6,9);
+ }else if(e.zone===1){
+  for(const side of [-1,1]){
+   m.box(e.x+side*3.5,0,e.z-2,1.35,6.4,1.35,'#654a55');
+   m.sphere(e.x+side*3.5,7,e.z-2,.8,1.2,.8,'#f4a460',6,8);
+  }
+  m.ring(e.x,1.3,e.z,3.6,.3,'#ffbf75');
+ }else if(e.zone===2){
+  m.cylinder(e.x,4.75,e.z,3.0,1.35,'#8ae5f4',12);
+  for(const side of [-1,1])m.box(e.x+side*3.5,0,e.z,1,5.2,2.3,'#58bada');
+  m.ring(e.x,1.2,e.z,4.35,.25,'#b1f5f7');
+ }else if(e.zone===3){
+  for(const side of [-1,1]){
+   m.cone(e.x+side*3.3,3.0,e.z,1.8,5.7,'#b8effb',8);
+   m.diamond(e.x+side*3.3,9.1,e.z,.45,'#ebffff');
+  }
+  m.cone(e.x,7.2,e.z,2.7,6.1,'#c6ecff',9);
+ }else if(e.zone===4){
+  m.ring(e.x,8.1,e.z,4.5,.38,'#e9b6fb',26);
+  m.ring(e.x,8.4,e.z,3.3,.16,'#96e6ef',24);
+  for(let i=0;i<6;i++){const a=i*Math.PI/3;
+   m.diamond(e.x+Math.cos(a)*3.6,7.6,e.z+Math.sin(a)*3.6,.46,'#e5ccff');
+  }
+ }else{
+  for(let i=0;i<7;i++){const a=i*Math.PI*2/7;
+   m.cone(e.x+Math.cos(a)*5.1,0,e.z+Math.sin(a)*5.1,.8,4.5,'#5f515e',7);
+  }
+  m.ring(e.x,3.6,e.z,4.5,.34,'#ff9774');
+  m.diamond(e.x,12.6,e.z,1.25,'#ffbc6e');
+ }
+
 };
 const addHouse=(m,e,kind)=>{
  const house=kind==='inn';
@@ -371,17 +408,18 @@ export function buildAdventureMesh(save){
  }
  for(const e of ADVENTURE_ENTITIES){
   if((['trainer','rival'].includes(e.kind)&&save?.defeated?.includes(e.id)))continue;
+  if(e.kind==='secret'&&save?.secrets?.includes(e.id))continue;
   if(e.kind==='gym')addGym(m,e);
   else if(e.kind==='shop'||e.kind==='inn')addHouse(m,e,e.kind);
-  else if(e.kind==='trainer'||e.kind==='npc'||e.kind==='rival')
-   addPerson(m,e.x,e.z,e.kind==='npc'?'#7f8fef':e.kind==='rival'?'#ac7cdb':'#dd8c5d',(e.zone||0)%2);
-  else if(e.kind==='wild'){
-   const p=ADVENTURE_ZONES[e.zone],c=p.color;
-   m.sphere(e.x,.75,e.z,.72,.68,.72,c,5,7);
-   m.cone(e.x-.4,1.1,e.z,.32,.66,c,5);
-   m.cone(e.x+.4,1.1,e.z,.32,.66,c,5);
-   m.sphere(e.x-.22,.86,e.z+.55,.085,.09,.065,'#222438',4,6);
-   m.sphere(e.x+.22,.86,e.z+.55,.085,.09,.065,'#222438',4,6);
+  else if(['trainer','npc','rival','quest'].includes(e.kind)){
+   m.ring(e.x,.13,e.z,.67,.08,e.kind==='quest'?'#f7e49b':'#a1d6ee',12);
+  }else if(e.kind==='wild'){
+   const zone=ADVENTURE_ZONES[e.zone];
+   m.ring(e.x,.1,e.z,1.05,.13,zone.color,12);
+  }else if(e.kind==='secret'){
+   m.cylinder(e.x,.03,e.z,.23,.35,'#3d6d79',7);
+   m.diamond(e.x,.7,e.z,.45,ADVENTURE_ZONES[e.zone].color);
+   m.ring(e.x,.12,e.z,.83,.08,'#fce8b8',14);
   }else if(e.kind==='chest'){
    if(save?.chests?.includes(e.id))continue;
    m.box(e.x,.07,e.z,1.1,.78,.8,'#b27744');
