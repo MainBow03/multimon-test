@@ -3100,7 +3100,8 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                                 if (effect.type === 'Infatuato' && !effect.turns) turns = Math.floor(Math.random() * 2) + 4;
                                 if (effect.type === 'Malinconia') turns = Math.floor(Math.random() * 3) + 3;
                                 
-                                let newStatus = { type: effect.type, turns: turns, ...((['Incantato','Assiderato'].includes(effect.type)||effect.type==='Malinconia')?{justApplied:true}:{}) };
+                                let newStatus = { type: effect.type, turns: turns, ...(['Incantato','Assiderato'].includes(effect.type)?{justApplied:true}:{}) };
+                                if(effect.type==='Malinconia')newStatus.justApplied=true;
                                 if(shortenHakiDebuff(t.char,newStatus))
                                   events.push({type:'text',text:'🛡️ Haki dell’Armatura: '+t.char.name+' dimezza la durata di '+effect.type+'!'});
                                 if(shortenNegativeStatus(t.char,newStatus))
