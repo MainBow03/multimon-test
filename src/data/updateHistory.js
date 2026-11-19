@@ -13,6 +13,16 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov19-adventure-3d-gym-upgrade',category:'feature',date:'19/11/2026',
+    title:'🏛️ Campagna 3D: sei Palestre vere, esplorazione e vita nel mondo',items:[
+      'Sei prove giocabili e diverse prima del capopalestra: crescita delle radici, forgia a temperatura, chiuse del lago, scivolate sui ghiacci, costellazione e sequenza delle sei rune.',
+      'Sei missioni secondarie con personaggi dedicati e 18 ritrovamenti nascosti; premi differenziati in monete e Pozioni, ottenibili una sola volta.',
+      'Salvataggio automatico di prove vinte, missioni accettate, reperti raccolti e ricompense; i salvataggi precedenti restano utilizzabili.',
+      'Nuove collisioni fisiche con edifici e Palestre; camera orbitante con Q/R, trascinamento mouse e comandi touch, senza alterare il motore standard delle battaglie.',
+      'Palestre con silhouette specifiche per ogni regione, NPC animati e incontri selvatici con piccoli movimenti e ritratti dei veri Multimon direttamente nella scena 3D.',
+      'Scene narrative riviste con una regia cartoon animata, personaggi e portali, oltre a un Diario che tiene traccia delle missioni secondarie.',
+      'Test dedicati risolvono tutte le sei prove e verificano missioni, collisioni, salvataggi e compatibilita con il percorso principale.'
+    ]},
   {id:'nov19-fifteen-crystal-rock-sound-bug',category:'champions',date:'19/11/2026',
     title:'💎🪨🎶🐝 Quindici nuovi eroi del Multiverso e 60 mosse',items:[
       'Cristallo +5: Kida (Cristallo/Acqua), Rarity (Cristallo/Folletto), Bismuth (Cristallo/Acciaio), Hessonite (Cristallo/Fuoco), Phosphophyllite (Cristallo/Aria).',
