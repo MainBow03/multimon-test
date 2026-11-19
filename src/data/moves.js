@@ -8,9 +8,11 @@ import {NEW_TRIO_MOVES} from './flinsGanyuCoraline.js';
 import {ROYAL_POISON_MOVES} from './royalPoisonMoves.js';
 import {EARTH_GRASS_MOVES} from './earthGrassChampions.js';
 import {NEW_REALM_MOVES} from './newRealmChampions.js';
+import {AMETRALINE_FUSION_MOVES} from './ametralineFusion.js';
 import {CRYSTAL_ROCK_SOUND_BUG_MOVES} from './crystalRockSoundBugChampions.js';
 
 export const MOVES_DB = {
+  ...AMETRALINE_FUSION_MOVES,
   ...NEW_REALM_MOVES,
   ...CRYSTAL_ROCK_SOUND_BUG_MOVES,
   'Trasformazione Fatata':{name:'Trasformazione Fatata',type:'Folletto',power:60,
