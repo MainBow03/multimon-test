@@ -3,6 +3,9 @@
 // I personaggi non ancora presenti nel catalogo vengono ignorati.
 export const RECENT_ARRIVALS_IDS=Object.freeze([
   // Ultime aggiunte di questa chat (dal più recente):
+  'kida','rarity','bismuth','hessonite','phosphophyllite',
+  'theboulder','obelix','korg','goliath','mangiarocce',
+  'miguelrivera','blackcanary','mayalape','bluebeetle','kamenriderkabuto',
   'mushu','hakudrago','shenron','billcipher','senzavolto','hornet',
   'baxterstockman','vaiana','ariel','frozone','korra','ponyo',
   'tophbeifong','gaara','flygon','flora','leafeon','shaymin',
