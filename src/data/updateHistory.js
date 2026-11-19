@@ -13,6 +13,14 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov19-catalog-redesign-total-count',category:'interface',date:'19/11/2026',
+    title:'📖 Catalogo rinnovato con conteggio Multimon sempre aggiornato',items:[
+      'Nuova intestazione del Catalogo con totale giocabile in evidenza, numero di tipi, forme Iper e fusioni.',
+      'Il numero dei Multimon e calcolato direttamente dal roster normale ed esclude evocazioni e mostri campagna; si aggiorna da solo a ogni nuova aggiunta.',
+      'Ricerca e filtri piu comodi anche da tablet, pulsante per ripristinare i filtri e conteggio dei risultati in tempo reale.',
+      'Schede piu colorate e leggibili con ritratti grandi non ritagliati, tipi, statistiche, passive e dettagli delle mosse espandibili.',
+      'Caricamento progressivo delle immagini per non appesantire il catalogo con oltre 200 personaggi.'
+    ]},
   {id:'nov19-adventure-3d-gym-upgrade',category:'feature',date:'19/11/2026',
     title:'🏛️ Campagna 3D: sei Palestre vere, esplorazione e vita nel mondo',items:[
       'Sei prove giocabili e diverse prima del capopalestra: crescita delle radici, forgia a temperatura, chiuse del lago, scivolate sui ghiacci, costellazione e sequenza delle sei rune.',
