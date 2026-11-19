@@ -3,8 +3,12 @@
 export const ADVENTURE_TRIALS=Object.freeze([
  {id:'alba',name:'Il Labirinto Vivente',icon:'🌿',kind:'growth',
   intro:'Tre radici bloccano il passaggio verso Flora. Ricostruisci il ciclo di crescita delle piante.',
-  clues:['La luce sveglia il germoglio.','La rugiada nutre la radice.','La radice apre l arco vivente.'],
-  values:['sole','rugiada','radici'],options:[['sole','rugiada','radici'],['radici','sole','rugiada'],['rugiada','radici','sole']]},
+  clues:['Raggiungi il sole nascosto nel giardino.','Segui il sentiero fino alla rugiada.','Trova il cuore delle radici.','Attraversa l arco e raggiungi Flora.'],
+  width:7,height:5,start:[0,4],goal:[6,0],
+  walls:[[2,0],[2,1],[4,3],[1,1],[3,4],[5,3]],
+  nodes:[{position:[1,3],icon:'☀️',name:'Sole'},
+   {position:[3,2],icon:'💧',name:'Rugiada'},
+   {position:[5,1],icon:'🌱',name:'Radici'}]},
  {id:'braci',name:'La Forgia Incandescente',icon:'🔥',kind:'forge',
   intro:'Regola il calore delle tre camere senza surriscaldarle. Ogni metallo ha il proprio punto di fusione.',
   targets:[60,85,45]},
@@ -16,7 +20,7 @@ export const ADVENTURE_TRIALS=Object.freeze([
   width:5,height:5,start:[0,4],goal:[4,0],
   walls:[[2,0],[2,1],[0,2],[3,3],[1,3]]},
  {id:'astrale',name:'La Costellazione Spezzata',icon:'✨',kind:'stars',
-  intro:'Allinea le stelle nella sequenza della costellazione: Custode, Alba, Onda, Corona.',
+  intro:'Allinea le stelle nell ordine inciso sul cielo: Onda, Custode, Corona, Alba.',
   symbols:['Custode','Alba','Onda','Corona'],answer:[2,0,3,1]},
  {id:'vulcano',name:'Le Sei Fiamme della Corona',icon:'🌋',kind:'runes',
   intro:'La sequenza di sincronizzazione compare negli archivi della Lega: attraversa le sei regioni nello stesso ordine.',
@@ -54,8 +58,8 @@ export const adventureTrialForZone=id=>ADVENTURE_TRIALS.find(q=>q.id===id);
 export const adventureTrialInitial=zoneId=>{
  const spec=adventureTrialForZone(zoneId);
  if(!spec)return null;
- return {zoneId,step:0,value:spec.kind==='ice'?null:0,
-  position:spec.kind==='ice'?[...spec.start]:null,history:[],mistakes:0,solved:false};
+ return {zoneId,step:0,value:spec.kind==='ice'||spec.kind==='growth'?null:0,
+  position:spec.kind==='ice'||spec.kind==='growth'?[...spec.start]:null,history:[],mistakes:0,solved:false};
 };
 const key=xy=>xy.join(',');
 export function adventureTrialStep(current,action){
@@ -63,16 +67,27 @@ export function adventureTrialStep(current,action){
  const spec=adventureTrialForZone(current.zoneId);if(!spec)return current;
  let next={...current,history:[...current.history]};
  const success=()=>{
-  const last=spec.kind==='growth'?spec.values.length:
+  const last=spec.kind==='growth'?spec.nodes.length+1:
     spec.kind==='forge'||spec.kind==='tides'?spec.targets.length:
     spec.kind==='ice'?1:spec.answer.length;
   next.step+=1;next.value=0;next.solved=next.step>=last;
   return next;
  };
  if(spec.kind==='growth'){
-  const correct=spec.values[next.step];
-  if(action===correct){next.history.push(action);return success()}
-  return {...next,mistakes:next.mistakes+1};
+  const [dx,dz]=({up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]})[action]||[0,0];
+  if(!dx&&!dz)return next;
+  const [x,z]=next.position,px=x+dx,pz=z+dz;
+  if(px<0||px>=spec.width||pz<0||pz>=spec.height||
+     spec.walls.some(([wx,wz])=>wx===px&&wz===pz))
+   return {...next,mistakes:next.mistakes+1};
+  next.position=[px,pz];
+  const node=spec.nodes[next.step];
+  if(node&&node.position[0]===px&&node.position[1]===pz){
+   next.history.push(node.name);return success();
+  }
+  if(next.step===spec.nodes.length&&px===spec.goal[0]&&pz===spec.goal[1])
+   return success();
+  return next;
  }
  if(spec.kind==='forge'){
   if(typeof action==='number'){next.value=Math.max(0,Math.min(100,next.value+action));return next}
