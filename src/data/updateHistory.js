@@ -13,6 +13,28 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov19-fifteen-crystal-rock-sound-bug',category:'champions',date:'19/11/2026',
+    title:'💎🪨🎶🐝 Quindici nuovi eroi del Multiverso e 60 mosse',items:[
+      'Cristallo +5: Kida (Cristallo/Acqua), Rarity (Cristallo/Folletto), Bismuth (Cristallo/Acciaio), Hessonite (Cristallo/Fuoco), Phosphophyllite (Cristallo/Aria).',
+      'Roccia +5: The Boulder (Roccia/Lotta), Obelix (Roccia/Normale), Korg (Roccia/Fuoco), Goliath (Roccia/Aria), Mangiarocce (Roccia/Terra).',
+      'Suono +2: Miguel Rivera (Suono/Spettro) e Black Canary (Suono/Aria).',
+      'Insetto +3: Maya l Ape (Insetto/Folletto), Blue Beetle (Insetto/Acciaio), Kamen Rider Kabuto (Insetto/Elettro). Zero Pokemon.',
+      'Ogni eroe ha un immagine con sfondo, quattro mosse originali, una passiva unica, prezzo, collezione, titolo Padronanza e battute Ultimon.',
+      'Supporto variato: barriere di differente intensita, scudi contro danni speciali, cure del 25-40%, purificazioni, bonus temporanei e marchi; le mosse a forte impatto hanno limiti di utilizzo.',
+      'Barriere e buff temporanei scadono realmente, le passive di reazione e i bonus si salvano nello stato online del combattimento.',
+      'Roster ordinario: 208 personaggi; Cristallo 11, Roccia 14, Suono 12, Insetto 14.'
+    ]},
+  {id:'nov19-rework-previous-twelve-and-melancholy',category:'balance',date:'19/11/2026',
+    title:'🌧️ Malinconia, Ponyo, Baxter e nuove tecniche per i 12 recenti',items:[
+      'Aggiornati sette ritratti forniti: Mushu, Haku, Shenron, Bill Cipher, Senza Volto, Hornet e Frozone.',
+      'Shenron: Promessa del Drago cura del 50% per quattro usi; Bill Cipher: Caos Triangolare precisione 90%.',
+      'Senza Volto: Silenzio del Treno due bersagli, Velocita -30%; Maschera Vuota Difesa propria +20% e nuovo status Malinconia.',
+      'Malinconia dura 3-5 turni, cala la Difesa del 10% a fine turno e non si ripristina se il nemico ne e gia affetto. E uno status negativo purificabile.',
+      'Hornet: Filo Scarlatto potenza 70, Danza dell Ago cinque usi; Baxter: Progetto Mousers due attivazioni per ogni singolo nemico, Muta Instabile cura del 40%.',
+      'Vaiana: Corrente Guida 40%, Onda del Viaggio 18% Stordito; Ariel: Canto della Laguna 20% Addormentato, Marea del Re colpisce tutti.',
+      'Frozone: Gelo Radente 20% Assiderato, Occhi sul Ghiaccio e Zero sul Termometro tre usi.',
+      'Ponyo: Magia del Secchiello crea Scudo Team di tre turni. La nuova passiva tenta una purificazione del 30% a fine turno e solo se riesce cura Ponyo del 10%.'
+    ]},
   {id:'nov18-twelve-dragon-dark-bug-water',category:'champions',date:'18/11/2026',
     title:'🌊🐉 Dodici nuovi Multimon: Drago, Buio, Insetto e Acqua',items:[
       'Tre Drago: Mushu (Drago/Fuoco), Haku (Drago/Aria) e Shenron (Drago/Luce).',
