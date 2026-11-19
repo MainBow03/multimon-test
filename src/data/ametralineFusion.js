@@ -16,8 +16,8 @@ export const AMETRALINE_FUSION_MOVES={
   maxUses:3,strictUses:true,metamorButtons:true,
   desc:'Per 2 turni Attacco e Precisione nemici -20%. Non si accumula; se il bersaglio era gia indebolito, Ametraline recupera il 20% PS. Tre usi.'
  },
- 'Gemma Imperfetta di Ametraline':{
-  name:'Gemma Imperfetta di Ametraline',type:'Cristallo',power:0,target:'self',
+ 'Gemma Imperfetta':{
+  name:'Gemma Imperfetta',type:'Cristallo',power:0,target:'self',
   heal:.35,statBuff:{def:1.2,spd:1.2},maxUses:2,strictUses:true,
   desc:'Ripristina il 35% PS e aumenta Difesa e Velocita del 20%. Due usi.'
  }
