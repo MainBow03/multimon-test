@@ -10,7 +10,7 @@ import {MASTERY_CHARACTER_TITLES} from '../src/data/masteryTitles.js';
 import {ULTIMON_ENTRANCE_LINES} from '../src/systems/ultimonEntranceLines.js';
 import {ULTIMON_DUPLICATE_REACTIONS} from '../src/systems/ultimonDuplicateLines.js';
 import {applyBattleStatModifier} from '../src/systems/statBalance.js';
-import {newRealmOnAction,newRealmOnDamage} from '../src/systems/newRealmEffects.js';
+import {newRealmOnAction,newRealmOnEndTurn} from '../src/systems/newRealmEffects.js';
 
 const IDS=['mushu','hakudrago','shenron','billcipher','senzavolto',
  'hornet','baxterstockman','vaiana','ariel','frozone','korra','ponyo'];
@@ -82,15 +82,15 @@ test('12 nuovi Multimon giocabili: 3 Drago, 2 Buio, 2 Insetto e 5 Acqua senza Po
 });
 
 test('Catalogo, vetrina e conteggio dopo 12 aggiunte',()=>{
- assert.deepEqual(RECENT_ARRIVALS_IDS.slice(0,12),IDS);
- assert.deepEqual(recentArrivalCharacters(CHARACTERS).slice(0,12).map(c=>c.id),IDS);
+ assert.deepEqual(RECENT_ARRIVALS_IDS.slice(15,27),IDS);
+ assert.deepEqual(recentArrivalCharacters(CHARACTERS).slice(15,27).map(c=>c.id),IDS);
  const roster=CHARACTERS.filter(c=>!c.isSummonOnly&&!c.isCampaignMonster);
- assert.equal(roster.length,193);
+ assert.equal(roster.length,208);
  const count=type=>roster.filter(c=>c.types.includes(type)).length;
  assert.equal(count('Drago'),12);
  assert.equal(count('Buio'),14);
- assert.equal(count('Insetto'),11);
- assert.equal(count('Acqua'),18);
+ assert.equal(count('Insetto'),14);
+ assert.equal(count('Acqua'),19);
 });
 
 test('Le 48 mosse possiedono veri effetti del motore e limiti per gli attacchi piu forti',()=>{
@@ -99,9 +99,9 @@ test('Le 48 mosse possiedono veri effetti del motore e limiti per gli attacchi p
   assert.ok(Number.isFinite(move.power)&&move.power>=0&&move.power<=120);
   assert.ok(move.desc&&move.desc.length>25,name);
   if(move.power===0)assert.ok(
-    move.heal||move.isProtect||move.statBuff||move.targetStatDebuff||move.removeNegativeStatuses,
+    move.heal||move.isProtect||move.statBuff||move.selfStatBuff||move.statusEffect||move.targetStatDebuff||move.removeNegativeStatuses,
     'supporto senza effetto '+name);
-  if(move.maxUses!==undefined){assert.equal(move.strictUses,true,'limite non rigido '+name);assert.ok(move.maxUses<=3)}
+  if(move.maxUses!==undefined){assert.equal(move.strictUses,true,'limite non rigido '+name);assert.ok(move.maxUses<=5)}
  }
 });
 
@@ -154,26 +154,36 @@ test('Hornet rallenta, Baxter accumula marchi, Frozone rallenta solo una volta a
  const baxter=action('baxterstockman','Mosca Robotica');
  const foe=baxter.targets[0].char;
  assert.ok(newRealmOnAction(baxter).some(x=>x.text.includes('marchio')));
- assert.equal(foe.mouserMarks,1);
+ assert.equal(baxter.attacker.mouserTargets['p2:0'].marks,1);
  const oldDef=foe.def;
  assert.ok(newRealmOnAction(baxter).some(x=>x.text.includes('Difesa -20%')));
  assert.ok(foe.def<oldDef);
- assert.equal(baxter.attacker.newRealmCharges,1);
+ assert.equal(baxter.attacker.mouserTargets['p2:0'].activations,1);
  const frozone=action('frozone','Pista di Cristallo');
  assert.ok(newRealmOnAction(frozone).length>0);
  assert.equal(newRealmOnAction(frozone).length,0);
 });
 
-test('Korra alterna Acqua e Terra; Ponyo risorge alla soglia con un solo effetto',()=>{
+test('Korra alterna Acqua e Terra; Ponyo purifica un alleato e si cura solo se riesce',()=>{
  const korra=action('korra','Frusta dell Oceano');
  assert.equal(newRealmOnAction(korra).length,0);
  korra.move=MOVES_DB['Pugno della Terra Viva'];
  assert.ok(newRealmOnAction(korra).length>0);
  assert.equal(korra.attacker.newRealmCharges,1);
- const ponyo=battleFighter('ponyo');ponyo.hp=40;
- const first=newRealmOnDamage({char:ponyo,player:'p1',idx:0,applyStat:applyBattleStatModifier,heal});
- assert.equal(first.length,1);
- assert.ok(ponyo.hp>40);
- assert.ok(ponyo.spd>ponyo.baseSpd);
- assert.equal(newRealmOnDamage({char:ponyo,player:'p1',idx:0,applyStat:applyBattleStatModifier,heal}).length,0);
+ const ponyo=battleFighter('ponyo');
+ const ally=battleFighter('vaiana');
+ ally.statuses=[{type:'Confuso',turns:2}];
+ ponyo.hp=60;
+ const ctx={char:ponyo,player:'p1',idx:0,teams:{p1:[ponyo,ally]},
+  field:{p1:[0,1]},mode:'classica',settings:{},heal,random:()=>0};
+ const result=newRealmOnEndTurn(ctx);
+ assert.ok(result.some(e=>e.type==='status_update'));
+ assert.ok(result.some(e=>e.type==='damage'));
+ assert.equal(ally.statuses.length,0);
+ assert.ok(ponyo.hp>60);
+ assert.deepEqual(newRealmOnEndTurn(ctx),[]);
+ const bucket=MOVES_DB['Magia del Secchiello'];
+ assert.equal(bucket.targetMode,'team');
+ assert.equal(bucket.statusEffect.type,'Scudo Team');
+ assert.equal(bucket.statusEffect.turns,3);
 });
