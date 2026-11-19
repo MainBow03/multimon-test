@@ -2,6 +2,7 @@
 // che ha già parlato nella presentazione di un'altra squadra.
 // Una risposta esclusiva per ogni personaggio (incluse le fusioni).
 export const ULTIMON_DUPLICATE_REACTIONS=Object.freeze({
+  "ametraline": "Un'altra Ametraline? Due porte e due gemme: spero solo che l'altra me sappia dove porta il corridoio!",
   "kida": "Un'altra erede di Atlantide? Allora il Cuore dovra scegliere con cura.",
   "rarity": "Due Rarity? Splendido! La perfezione in doppia copia e davvero una sfida.",
   "bismuth": "Un'altra me alla fucina? Ehi, cosi raddoppiamo la produzione!",
