@@ -48,7 +48,7 @@ test('Mosse d attacco e supporto preservano i dati concordati',()=>{
  assert.equal(buttons.power,0);
  assert.equal(buttons.maxUses,3);
  assert.equal(buttons.metamorButtons,true);
- const gem=MOVES_DB['Gemma Imperfetta di Ametraline'];
+ const gem=MOVES_DB['Gemma Imperfetta'];
  assert.equal(gem.heal,.35);
  assert.equal(gem.statBuff.def,1.2);
  assert.equal(gem.statBuff.spd,1.2);
