@@ -23,6 +23,7 @@ const BASE_KEYS = Object.freeze({
 
 export function applyBattleStatModifier(character, stat, multiplier) {
   if (!character || !BASE_KEYS[stat] || !Number.isFinite(multiplier) || multiplier <= 0) return false;
+  if(stat==='spd'&&multiplier<1&&character.stoneGuardActive)return false;
   const current = character[stat];
   if (!Number.isFinite(current)) return false;
   const original = character[BASE_KEYS[stat]];
