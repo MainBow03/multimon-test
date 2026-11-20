@@ -21,11 +21,12 @@ import {THEATER_RULES} from '../../data/theaterCampaign.js';
 import {canUseJuggernautSkill,canQueueJuggernautFreeChoice,JUGGERNAUT_PHASE_NAMES} from '../../systems/juggernautSystem.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderBattlingView(ctx) {
-const { chooseJuggernautFreeChoice, ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, appMode, actionMenuMode, combatLog, commandingIdx, commitAction, coopPendingAction, roomId, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
+const { chooseJuggernautFreeChoice, ownMasteryLevels, ChevronRight, ITEMS_DB, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, appMode, actionMenuMode, combatLog, commandingIdx, commitAction, coopPendingAction, roomId, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, isEventBattle=false, eventBattleCanForce=false, onAscensionCapture, onAscensionFlee, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft } = ctx;
 if (gameState.status === 'battling' || gameState.status === 'executing') {
         const activeMatchPlayers = getActivePlayers();
         const grandFinale = ultimonIsFinalShowdown(gameState);
-        const bagAvailable = canUseBagItems(gameState);
+        const isAscensionBattle=gameState.gameMode==='ascension';
+        const bagAvailable = !isAscensionBattle&&canUseBagItems(gameState);
         const feedbackKind = battleFeedbackKind(eventPlaybackText, !!eventPlaybackPassive);
         // Una regola di scena per ognuna delle 36 battaglie del Teatro,
         // mantenuta nello stato della battaglia anche durante i checkpoint.
@@ -690,7 +691,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                         </div>
                     )}
                     
-                    {(!isEventBattle||gameState.isTournamentEvent)&&<button onClick={() => gameState.isTournamentEvent ? leaveRoom() : (playerRole === 'spectator'||gameState.isTrainingBattle) ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-4 left-4 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
+                    {(!isEventBattle||gameState.isTournamentEvent)&&<button onClick={() => gameState.isTournamentEvent||isAscensionBattle ? leaveRoom() : (playerRole === 'spectator'||gameState.isTrainingBattle) ? leaveRoom() : setShowLeaveConfirm(true)} className="absolute top-4 left-4 flex items-center gap-2 text-rose-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
                          <LogOut size={16} /> {gameState.isTournamentEvent?'← Torneo':gameState.isAdventureBattle?'← Mondo 3D':gameState.isTrainingBattle?'← Laboratorio':playerRole === 'spectator' ? 'Esci' : 'Resa'}
                     </button>}
 
@@ -703,7 +704,7 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                     <BattleTypeChartLauncher/>
 
                     {/* PULSANTE FORZA SKIP */}
-                    {!isSpectatorState&&(!isEventBattle||eventBattleCanForce)&&<button onClick={handleForceSkip} className="absolute top-28 left-4 flex items-center gap-2 text-yellow-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-yellow-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm" title="Usa questo tasto se la partita si blocca o se l'host scompare!">
+                    {!isSpectatorState&&!isAscensionBattle&&(!isEventBattle||eventBattleCanForce)&&<button onClick={handleForceSkip} className="absolute top-28 left-4 flex items-center gap-2 text-yellow-400 hover:text-white transition-colors bg-black/50 px-3 py-1.5 rounded-xl border border-yellow-500/50 z-[60] shadow-lg text-xs font-bold uppercase tracking-widest backdrop-blur-sm" title="Usa questo tasto se la partita si blocca o se l'host scompare!">
                          ⏩ Forza Skip
                     </button>}
 
@@ -899,7 +900,18 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                  <div className="flex gap-3 justify-center mb-2 z-10">
                                          <button onClick={() => setActionMenuMode('moves')} className={`px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase transition-all ${actionMenuMode === 'moves' ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.5)]' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'}`}>Mosse</button>
                                          {!isEventBattle&&bagAvailable&&<button onClick={() => setActionMenuMode('items')} className={`px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase transition-all ${actionMenuMode === 'items' ? 'bg-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'}`}>Zaino</button>}
-                                         {!bagAvailable && <span className="self-center text-[10px] font-bold text-amber-300">🚫 Zaino vietato in Ultimon</span>}
+                                         {!bagAvailable&&!isAscensionBattle&&<span className="self-center text-[10px] font-bold text-amber-300">🚫 Zaino vietato in Ultimon</span>}
+                                         {isAscensionBattle&&gameState.ascensionCapture&&<button
+                                           onClick={onAscensionCapture}
+                                           disabled={!gameState.ascensionCapture.canCapture}
+                                           className="px-3 py-1.5 rounded-full text-xs font-black bg-violet-800/80 text-violet-100 border border-violet-400/75 disabled:opacity-40 hover:bg-violet-600">
+                                           💎 Prismaball ({gameState.ascensionCapture.balls})
+                                         </button>}
+                                         {isAscensionBattle&&gameState.ascensionCapture&&<button
+                                           onClick={onAscensionFlee}
+                                           className="px-3 py-1.5 rounded-full text-xs font-black bg-slate-700/85 text-slate-200 border border-slate-500/75 hover:bg-slate-600">
+                                           Ritirati
+                                         </button>}
                                          {!activeCommandChar.isSummonOnly && (
                                             <button onClick={() => setActionMenuMode('switch')} className={`px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase transition-all ${actionMenuMode === 'switch' ? 'bg-emerald-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'}`}>Cambia (Squadra)</button>
                                          )}
