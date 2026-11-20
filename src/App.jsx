@@ -78,9 +78,10 @@ import { TYPE_STYLES, TYPE_CHART, PLAYER_THEMES, getMultiplier, getDefaultAvatar
 import { initialGameState } from './systems/gameState.js';
 import { UltimonView } from './screens/battle/UltimonView.jsx';
 import {AscensionView} from './screens/battle/AscensionView.jsx';
+import {AscensionClassicBattle} from './screens/battle/AscensionClassicBattle.jsx';
 import {ASCENSION_STATUS,ascensionSelectStarter,ascensionBeginAction,
  ascensionPlayEncounter,ascensionTrain,ascensionBuy,ascensionNextRound,ascensionRoundReady,
- ascensionChooseLineup,ascensionDuelAction,ascensionAdvanceMatch,ascensionSettleBots}
+ ascensionChooseLineup,ascensionDuelAction,ascensionCurrentMatch,ascensionAdvanceMatch,ascensionSettleBots}
  from './systems/colosseumAscension.js';
 import {ultimonBanPatch,beginUltimonDraftAfterBans} from './systems/ultimonBans.js';
 import {ultimonLeaderboard} from './systems/ultimonSystem.js';
@@ -1656,6 +1657,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                 else if(kind==='buy')a=ascensionBuy(a,actor,value.itemId,value.memberId,CHARACTERS);
                 else if(kind==='lineup')a=ascensionChooseLineup(a,actor,value,CHARACTERS);
                 else if(kind==='duel-move')a=ascensionDuelAction(a,actor,value,CHARACTERS);
+                else if(kind==='duel-switch')a=ascensionDuelAction(a,actor,{type:'switch',index:value.index,fromIdx:value.fromIdx},CHARACTERS);
                 else if(kind==='next-round'){
                   if(!ascensionRoundReady(a))throw new Error('Altri giocatori non hanno ancora concluso.');
                   a=ascensionNextRound(a,CHARACTERS);
@@ -2284,6 +2286,10 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
   if (__screen !== undefined) return __screen;
 }
 
+    // Lo stesso identico renderer delle sfide CPU, online, locali e campagna.
+    // Ascesa usa un adapter di stato, non una seconda UI da mantenere.
+    const standardBattleContext=()=>({ chooseJuggernautFreeChoice, coopPendingAction, roomId, ownMasteryLevels: masteryVisibleLevels(getPlayerData()), ChevronRight, ITEMS_DB, appMode, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip: safeForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom:gameState.isAdventureBattle?returnAdventureWorld:gameState.isTrainingBattle?leaveCombatLab:leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });
+
     if(gameState.gameMode==='ascension'&&gameState.status===ASCENSION_STATUS){
       const asc=gameState.ascension;
       const current=asc?.roles?.includes(playerRole)?playerRole:asc?.roles?.[0]||'p1';
@@ -2295,6 +2301,20 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
         const index=humans.indexOf(current);
         setPlayerRole(humans[(index+1)%humans.length]);
       };
+      const liveMatch=ascensionCurrentMatch(asc);
+      const inAscensionCombat=Boolean(asc?.participants?.[current]?.encounter||
+        (asc?.stage==='colosseum'&&liveMatch?.game&&!liveMatch.winner));
+      if(inAscensionCombat){
+        const encounter=asc.participants?.[current]?.encounter;
+        const combatKey=encounter
+          ?['encounter',current,asc.round,encounter.kind,encounter.foeId].join(':')
+          :['duel',current,asc.matchIndex,liveMatch.gameNumber].join(':');
+        return <AscensionClassicBattle key={combatKey} room={gameState} role={current}
+          characters={CHARACTERS} appMode={appMode}
+          battleContext={standardBattleContext()}
+          onAction={(kind,value)=>ascensionMutation(kind,value,current)}
+          onNextPlayer={local?goNextLocal:null} onExit={leaveRoom}/>;
+      }
       return <AscensionView room={gameState} characters={CHARACTERS} role={current}
         local={local} onNextPlayer={goNextLocal} onExit={leaveRoom}
         canHost={local||playerRole==='p1'||canRecoverRoom(gameState,playerRole)}
@@ -2359,7 +2379,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
     }
 
     if (gameState.status === 'battling' || gameState.status === 'executing') {
-  const __screen = renderBattlingView({ chooseJuggernautFreeChoice, coopPendingAction, roomId, ownMasteryLevels: masteryVisibleLevels(getPlayerData()), ChevronRight, ITEMS_DB, appMode, Loader2, LogOut, PLAYER_THEMES, ScrollText, Shield, TYPE_STYLES, Target, Trophy, XIcon, actionMenuMode, combatLog, commandingIdx, commitAction, displayField, displayTeams, eventPlaybackPassive, eventPlaybackText, gameState, getActivePlayers, getDefaultAvatar, getMultiplier, getTournamentMatchOpponents, handleForceSkip: safeForceSkip, handleSelectMoveTarget, hoveredMove, isLogOpen, isLongPressRef, isPlayingEvents, leaveRoom:gameState.isAdventureBattle?returnAdventureWorld:gameState.isTrainingBattle?leaveCombatLab:leaveRoom, logEndRef, pendingHyper, playerRole, pressTimerRef, renderHealthBar, screenFlash, selectedMultiTargets, setActionMenuMode, setHoveredMove, setIsLogOpen, setPassiveInfoPopup, setPendingHyper, setSelectedMultiTargets, setShowLeaveConfirm, setTargetingMoveIdx, targetingMoveIdx, timeLeft });
+  const __screen = renderBattlingView(standardBattleContext());
   if (__screen !== undefined) return __screen;
 }
 
