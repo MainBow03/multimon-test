@@ -2,6 +2,7 @@ import React,{useEffect,useState,useRef} from 'react';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 import {ASCENSION_FINAL_TEAM,ASCENSION_ROUNDS,ASCENSION_MAX_TEAM,ASCENSION_SHOP,
  ascensionCaptureChance,ascensionCurrentMatch,ascensionFind,ascensionRoundReady,ascensionScaledMaxHp} from '../../systems/colosseumAscension.js';
+import {AscensionBattleField} from './AscensionBattleField.jsx';
 import './AscensionView.css';
 const character=(all,id)=>ascensionFind(all,id)||{name:id,img:'',moves:[],types:[]};
 const percentage=(hp,max)=>Math.max(0,Math.min(100,100*hp/Math.max(1,max)));
@@ -44,10 +45,20 @@ function Arena({asc,room,role,chars,onAction,onHost,canHost,local,onNextPlayer})
  if(!match)return <div className="ac-panel">Il Colosseo sta formando gli incontri.</div>;
  const fighting=match.roles.includes(role),p=asc.participants[role],limit=match.stage==='finale'?ASCENSION_FINAL_TEAM:3;
  const wanted=Math.min(limit,p.roster.length),chosenByRoom=match.selection[role]||[];
- const game=match.game,other=match.roles.find(r=>r!==role);
- const mine=game?.units?.[role]||[],opponents=game?.units?.[other]||[];
+ const game=match.game,visibleRole=fighting?role:match.roles[0];
+ const other=match.roles.find(r=>r!==visibleRole);
+ const mine=game?.units?.[visibleRole]||[],opponents=game?.units?.[other]||[];
  const first=mine.find(m=>m.hp>0),myChar=first?character(chars,first.id):null;
  const moves=(myChar?.moves||[]).filter(Boolean);
+ const fieldSize=match.stage==='finale'?2:1;
+ const asUnit=m=>({char:character(chars,m.id),level:m.level,hp:m.hp,
+   maxHp:ascensionScaledMaxHp(character(chars,m.id),m.level)});
+ const activeUnits=units=>units.filter(m=>m.hp>0).slice(0,fieldSize).map(asUnit);
+ const benchUnits=units=>[...units.filter(m=>m.hp>0).slice(fieldSize),...units.filter(m=>m.hp<=0)].map(asUnit);
+ const arenaField=game&&<AscensionBattleField kind="duel" turn={game.turn}
+   enemyLabel={room.players[other]||'Avversario'} allyLabel={room.players[visibleRole]||'Squadra'}
+   enemy={activeUnits(opponents)} allies={activeUnits(mine)}
+   enemyBench={benchUnits(opponents)} allyBench={benchUnits(mine)}/>;
  return <div className="ac-panel ac-arena">
   <div className="ac-section-title"><small>🏛️ {match.stage.toUpperCase()} · PARTITA {match.gameNumber}</small>
    <h2>{room.players[match.roles[0]]} <span>VS</span> {room.players[match.roles[1]]}</h2>
@@ -57,8 +68,11 @@ function Arena({asc,room,role,chars,onAction,onHost,canHost,local,onNextPlayer})
   </div>
   {match.winner?<div className="ac-centered"><h3>🏅 {room.players[match.winner]} ha vinto!</h3>
    {canHost&&<button type="button" className="ac-main" onClick={()=>onHost('next-match')}>Prossimo incontro →</button>}</div>:
-  !fighting?<div className="ac-centered"><h3>👁️ Spettatore</h3><p>Segui gli scontri, in attesa della prossima sfida.</p>
-   <div className="ac-battle-log">{game?.log?.slice(-8).map((x,i)=><p key={i}>{x}</p>)}</div></div>:
+  !fighting?<div className="ac-spectator">
+   <h3>👁️ Modalità spettatore</h3><p>Osserva la sfida mentre aspetti il prossimo incontro.</p>
+   {arenaField||<p>Le formazioni non sono ancora pronte.</p>}
+   <div className="ac-battle-log" aria-live="polite">{game?.log?.slice(-8).map((x,i)=><p key={i}>{x}</p>)}</div>
+  </div>:
   !game?<div className="ac-pick">
    <h3>Scegli {wanted} Multimon per questa sfida</h3>
    <div className="ac-card-grid">{p.roster.map(m=><Portrait key={m.id} char={character(chars,m.id)} label={'Liv. '+m.level}
@@ -71,16 +85,16 @@ function Arena({asc,room,role,chars,onAction,onHost,canHost,local,onNextPlayer})
    {local&&onNextPlayer&&<button type="button" className="ac-ghost" onClick={onNextPlayer}>Passa il turno a un altro giocatore</button>}
   </div>:
   <div className="ac-arena-fight">
-   <div className="ac-duel-grid">{[{title:'La tua squadra',members:mine},{title:'Avversario',members:opponents}].map(team=>
-    <div key={team.title}><h4>{team.title}</h4><div className="ac-duel-party">{team.members.map((m,i)=><div className={m.hp<=0?'ac-ko':''} key={i}>
-     <Portrait char={character(chars,m.id)} label={'Lv. '+m.level}/>
-     <div className="ac-health"><i style={{width:percentage(m.hp,ascensionScaledMaxHp(character(chars,m.id),m.level))+'%'}}/></div>
-    </div>)}</div></div>)}</div>
-   <div className="ac-battle-log">{game.log?.slice(-7).map((x,i)=><p key={i}>{x}</p>)}</div>
+   {arenaField}
+   <div className="ac-battle-log" aria-live="polite">{game.log?.slice(-7).map((x,i)=><p key={i}>{x}</p>)}</div>
    {game.actions?.[role]?<p className="ac-notice">⌛ Comando inviato, in attesa dell'avversario...</p>:
-   <div className="ac-move-grid">{moves.map((m,i)=><button key={i} type="button" onClick={()=>onAction('duel-move',i)}>
-      <strong>{m.name}</strong><small>{m.type} · {m.power>0?'Potenza '+m.power:'Supporto'}</small>
-   </button>)}</div>}
+   <div className="ac-classic-command">
+    <h3>⚡ {myChar?('Cosa deve fare '+myChar.name+'?'):'Scegli una mossa'}</h3>
+    {fieldSize===2&&<p>Finale 2v2: la mossa selezionata viene usata dai tuoi Multimon attivi.</p>}
+    <div className="ac-move-grid">{moves.map((m,i)=><button key={i} type="button" onClick={()=>onAction('duel-move',i)}>
+     <strong>{m.name}</strong><small>{m.type} · {m.power>0?'Potenza '+m.power:'Supporto'}</small>
+    </button>)}</div>
+   </div>}
   </div>}
   <div className="ac-bracket">{asc.bracket.map(m=><div key={m.id} className={m.id===match.id?'active':''}>
     <small>{m.stage.toUpperCase()}</small><strong>{m.roles.map(r=>room.players[r]).join(' vs ')}</strong>
