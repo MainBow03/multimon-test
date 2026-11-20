@@ -562,6 +562,7 @@ export function ascensionBotTurn(asc,role,chars,rng=Math.random){
  }
  if(asc.stage==='preparation'){
   let p=participant(asc,role);
+  if(p.battleResult)return ascensionAcknowledgeEncounterResult(asc,role);
   if(p.done)return asc;
   let next=asc;
   if(!p.encounter){
@@ -620,7 +621,7 @@ export function ascensionSettleBots(asc,room,chars,rng=Math.random){
    const p=participant(next,role);
    let needed=false;
    if(next.stage==='starters')needed=!p.roster.length;
-   else if(next.stage==='preparation')needed=!p.done;
+   else if(next.stage==='preparation')needed=!p.done||!!p.battleResult;
    else if(next.stage==='colosseum'){
     const m=ascensionCurrentMatch(next);
     needed=Boolean(m&&m.roles.includes(role)&&!m.winner&&
