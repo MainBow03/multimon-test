@@ -164,7 +164,7 @@ export function ascensionTrain(asc,role,id,chars){
   const hpBefore=ascensionScaledMaxHp(ascensionFind(chars,id),m.level);
   const missing=Math.max(0,hpBefore-m.hp);
   m.trainingHalves-=2;m.level++;
-  m.hp=Math.max(1,ascensionScaledMaxHp(ascensionFind(chars,id),m.level)-missing);
+  m.hp=m.hp<=0?0:Math.max(1,ascensionScaledMaxHp(ascensionFind(chars,id),m.level)-missing);
   p.notice=ascensionFind(chars,id).name+' sale al livello '+m.level+'!';
  });
 }
@@ -203,7 +203,8 @@ export function ascensionBeginAction(asc,role,action,chars,rng=Math.random){
    p.roster.forEach(m=>{m.hp=ascensionScaledMaxHp(ascensionFind(chars,m.id),m.level)});
    p.done=true;p.notice='Squadra curata. Recupero completato.';
   }else if(action==='wild'){
-   const level=ascensionWildLevel(p),foe=chooseFoe(chars,level,rng);
+   const level=ascensionWildLevel(p),free=ascensionAllChars(chars).filter(c=>!p.roster.some(m=>m.id===c.id));
+   const foe=free.length?sample(free,1,rng)[0]:chooseFoe(chars,level,rng);
    const maxHp=ascensionScaledMaxHp(foe,level);
    p.encounter={kind:'wild',foeId:foe.id,foeLevel:level,foeHp:maxHp,
      foeMaxHp:maxHp,active:Math.max(0,p.roster.findIndex(m=>m.hp>0)),turn:1,
@@ -229,7 +230,7 @@ export function ascensionBeginAction(asc,role,action,chars,rng=Math.random){
    const preferred=eligible.sort((a,b)=>a.level-b.level)[0];
    const missing=ascensionScaledMaxHp(ascensionFind(chars,preferred.id),preferred.level)-preferred.hp;
    preferred.level++;preferred.trainingHalves-=2;
-   preferred.hp=Math.max(1,ascensionScaledMaxHp(ascensionFind(chars,preferred.id),preferred.level)-missing);
+   preferred.hp=preferred.hp<=0?0:Math.max(1,ascensionScaledMaxHp(ascensionFind(chars,preferred.id),preferred.level)-missing);
    p.done=true;p.notice=ascensionFind(chars,preferred.id).name+' allenato: livello '+preferred.level+'!';
   }else throw Error('Attività non valida.');
  });
@@ -292,6 +293,7 @@ export function ascensionPlayEncounter(asc,role,choice,chars,rng=Math.random){
    if(e.kind!=='wild')throw Error('Gli allenatori non sono catturabili.');
    if(p.prismaballs<=0)throw Error('Hai finito le Prismaball.');
    if(p.roster.length>=ASCENSION_MAX_TEAM)throw Error('Team pieno: massimo nove Multimon.');
+   if(p.roster.some(m=>m.id===e.foeId))throw Error('Questo Multimon è già presente nel tuo team.');
    p.prismaballs--;
    const chance=ascensionCaptureChance(e.foeHp,e.foeMaxHp,{
     status:e.status,rare:Number(foeBase.price||0)>=250,veryRare:Number(foeBase.price||0)>=350});
