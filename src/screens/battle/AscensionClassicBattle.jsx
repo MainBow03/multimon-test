@@ -63,6 +63,7 @@ export function AscensionClassicBattle({
  const ctx={
   ...battleContext,
   gameState:view,appMode,playerRole:activePlayer,
+  isEventBattle:true,eventBattleCanForce:false,
   getActivePlayers:()=>['p1','p2'],
   isPlayingEvents:false,displayTeams:view.teams,displayField:view.field,
   commandingIdx:canCommand&&!busy?0:-1,
