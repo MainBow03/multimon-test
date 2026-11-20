@@ -2,7 +2,6 @@ import React,{useEffect,useState,useRef} from 'react';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 import {ASCENSION_FINAL_TEAM,ASCENSION_ROUNDS,ASCENSION_MAX_TEAM,ASCENSION_SHOP,
  ascensionCaptureChance,ascensionCurrentMatch,ascensionFind,ascensionRoundReady,ascensionScaledMaxHp} from '../../systems/colosseumAscension.js';
-import {AscensionBattleField} from './AscensionBattleField.jsx';
 import './AscensionView.css';
 const character=(all,id)=>ascensionFind(all,id)||{name:id,img:'',moves:[],types:[]};
 const percentage=(hp,max)=>Math.max(0,Math.min(100,100*hp/Math.max(1,max)));
@@ -36,32 +35,6 @@ export function PrismaballCapture({capture,foe,onFinish}){
    <button type="button" className="ac-main" onClick={onFinish} disabled={step<4}>Continua →</button>
   </div>;
 }
-function EncounterReveal({encounter,foe,onFinish}){
- const [phase,setPhase]=useState(0);
- const finishRef=useRef(onFinish);
- useEffect(()=>{finishRef.current=onFinish;},[onFinish]);
- useEffect(()=>{
-  const revealTimer=setTimeout(()=>setPhase(1),850);
-  const finishTimer=setTimeout(()=>finishRef.current(),2750);
-  return ()=>{clearTimeout(revealTimer);clearTimeout(finishTimer);};
- },[]);
- const trainer=encounter.kind==='trainer';
- return <div className="ac-reveal-overlay" role="dialog" aria-modal="true" aria-label="Rivelazione dell'avversario">
-  <div className="ac-reveal-panel">
-   <div className="ac-reveal-overline">{trainer?'⚔️ UN ALLENATORE TI SFIDA':'🌿 UN INCONTRO SELVATICO'}</div>
-   <div className={'ac-reveal-stage'+(phase?' ac-reveal-stage--shown':'')}>
-    <span className="ac-reveal-stars" aria-hidden="true">✦ ✧ ✦</span>
-    {foe.img?<img src={foe.img} alt={phase?foe.name:''} onError={onMultimonImageError}/>:<span className="ac-reveal-placeholder">?</span>}
-    {!phase&&<span className="ac-reveal-question" aria-hidden="true">?</span>}
-   </div>
-   <small className="ac-reveal-label">{trainer?'IDENTITÀ DELL\'AVVERSARIO':'QUALCOSA EMERGE DAL VARCO...'}</small>
-   <h2 aria-live="polite">{phase?(trainer?encounter.trainerName+' schiera '+foe.name+'!':'È '+foe.name+'!'):
-     (trainer?'Chi scenderà in campo?':'Chi si nasconde nell\'ombra?')}</h2>
-   <p>{phase?'Livello '+encounter.foeLevel+' · Preparati allo scontro!':'Il varco sta per rivelare il tuo avversario...'}</p>
-   {phase>0&&<button type="button" className="ac-main" onClick={onFinish}>Entra in battaglia →</button>}
-  </div>
- </div>;
-}
 function Arena({asc,room,role,chars,onAction,onHost,canHost,local,onNextPlayer}){
  const match=ascensionCurrentMatch(asc);
  const [chosen,setChosen]=useState([]);
@@ -71,20 +44,10 @@ function Arena({asc,room,role,chars,onAction,onHost,canHost,local,onNextPlayer})
  if(!match)return <div className="ac-panel">Il Colosseo sta formando gli incontri.</div>;
  const fighting=match.roles.includes(role),p=asc.participants[role],limit=match.stage==='finale'?ASCENSION_FINAL_TEAM:3;
  const wanted=Math.min(limit,p.roster.length),chosenByRoom=match.selection[role]||[];
- const game=match.game,visibleRole=fighting?role:match.roles[0];
- const other=match.roles.find(r=>r!==visibleRole);
- const mine=game?.units?.[visibleRole]||[],opponents=game?.units?.[other]||[];
+ const game=match.game,other=match.roles.find(r=>r!==role);
+ const mine=game?.units?.[role]||[],opponents=game?.units?.[other]||[];
  const first=mine.find(m=>m.hp>0),myChar=first?character(chars,first.id):null;
  const moves=(myChar?.moves||[]).filter(Boolean);
- const fieldSize=match.stage==='finale'?2:1;
- const asUnit=m=>({char:character(chars,m.id),level:m.level,hp:m.hp,
-   maxHp:ascensionScaledMaxHp(character(chars,m.id),m.level)});
- const activeUnits=units=>units.filter(m=>m.hp>0).slice(0,fieldSize).map(asUnit);
- const benchUnits=units=>[...units.filter(m=>m.hp>0).slice(fieldSize),...units.filter(m=>m.hp<=0)].map(asUnit);
- const arenaField=game&&<AscensionBattleField kind="duel" turn={game.turn}
-   enemyLabel={room.players[other]||'Avversario'} allyLabel={room.players[visibleRole]||'Squadra'}
-   enemy={activeUnits(opponents)} allies={activeUnits(mine)}
-   enemyBench={benchUnits(opponents)} allyBench={benchUnits(mine)}/>;
  return <div className="ac-panel ac-arena">
   <div className="ac-section-title"><small>🏛️ {match.stage.toUpperCase()} · PARTITA {match.gameNumber}</small>
    <h2>{room.players[match.roles[0]]} <span>VS</span> {room.players[match.roles[1]]}</h2>
@@ -94,11 +57,8 @@ function Arena({asc,room,role,chars,onAction,onHost,canHost,local,onNextPlayer})
   </div>
   {match.winner?<div className="ac-centered"><h3>🏅 {room.players[match.winner]} ha vinto!</h3>
    {canHost&&<button type="button" className="ac-main" onClick={()=>onHost('next-match')}>Prossimo incontro →</button>}</div>:
-  !fighting?<div className="ac-spectator">
-   <h3>👁️ Modalità spettatore</h3><p>Osserva la sfida mentre aspetti il prossimo incontro.</p>
-   {arenaField||<p>Le formazioni non sono ancora pronte.</p>}
-   <div className="ac-battle-log" aria-live="polite">{game?.log?.slice(-8).map((x,i)=><p key={i}>{x}</p>)}</div>
-  </div>:
+  !fighting?<div className="ac-centered"><h3>👁️ Spettatore</h3><p>Segui gli scontri, in attesa della prossima sfida.</p>
+   <div className="ac-battle-log">{game?.log?.slice(-8).map((x,i)=><p key={i}>{x}</p>)}</div></div>:
   !game?<div className="ac-pick">
    <h3>Scegli {wanted} Multimon per questa sfida</h3>
    <div className="ac-card-grid">{p.roster.map(m=><Portrait key={m.id} char={character(chars,m.id)} label={'Liv. '+m.level}
@@ -111,16 +71,16 @@ function Arena({asc,room,role,chars,onAction,onHost,canHost,local,onNextPlayer})
    {local&&onNextPlayer&&<button type="button" className="ac-ghost" onClick={onNextPlayer}>Passa il turno a un altro giocatore</button>}
   </div>:
   <div className="ac-arena-fight">
-   {arenaField}
-   <div className="ac-battle-log" aria-live="polite">{game.log?.slice(-7).map((x,i)=><p key={i}>{x}</p>)}</div>
+   <div className="ac-duel-grid">{[{title:'La tua squadra',members:mine},{title:'Avversario',members:opponents}].map(team=>
+    <div key={team.title}><h4>{team.title}</h4><div className="ac-duel-party">{team.members.map((m,i)=><div className={m.hp<=0?'ac-ko':''} key={i}>
+     <Portrait char={character(chars,m.id)} label={'Lv. '+m.level}/>
+     <div className="ac-health"><i style={{width:percentage(m.hp,ascensionScaledMaxHp(character(chars,m.id),m.level))+'%'}}/></div>
+    </div>)}</div></div>)}</div>
+   <div className="ac-battle-log">{game.log?.slice(-7).map((x,i)=><p key={i}>{x}</p>)}</div>
    {game.actions?.[role]?<p className="ac-notice">⌛ Comando inviato, in attesa dell'avversario...</p>:
-   <div className="ac-classic-command">
-    <h3>⚡ {myChar?('Cosa deve fare '+myChar.name+'?'):'Scegli una mossa'}</h3>
-    {fieldSize===2&&<p>Finale 2v2: la mossa selezionata viene usata dai tuoi Multimon attivi.</p>}
-    <div className="ac-move-grid">{moves.map((m,i)=><button key={i} type="button" onClick={()=>onAction('duel-move',i)}>
-     <strong>{m.name}</strong><small>{m.type} · {m.power>0?'Potenza '+m.power:'Supporto'}</small>
-    </button>)}</div>
-   </div>}
+   <div className="ac-move-grid">{moves.map((m,i)=><button key={i} type="button" onClick={()=>onAction('duel-move',i)}>
+      <strong>{m.name}</strong><small>{m.type} · {m.power>0?'Potenza '+m.power:'Supporto'}</small>
+   </button>)}</div>}
   </div>}
   <div className="ac-bracket">{asc.bracket.map(m=><div key={m.id} className={m.id===match.id?'active':''}>
     <small>{m.stage.toUpperCase()}</small><strong>{m.roles.map(r=>room.players[r]).join(' vs ')}</strong>
@@ -130,7 +90,6 @@ function Arena({asc,room,role,chars,onAction,onHost,canHost,local,onNextPlayer})
 export function AscensionView({room,role,characters,onAction,onHost,onExit,canHost=false,local=false,onNextPlayer}){
  const asc=room.ascension,p=asc?.participants?.[role];
  const [capture,setCapture]=useState(null),[detail,setDetail]=useState(null);
- const [revealedKeys,setRevealedKeys]=useState(()=>new Set());
  const lastCapture=useRef(null);
  useEffect(()=>{
   const data=p?.lastCapture,key=data?role+':'+data.nonce:'';
@@ -139,18 +98,10 @@ export function AscensionView({room,role,characters,onAction,onHost,onExit,canHo
  if(!asc||!p)return <main className="ac-app">Caricamento dell'avventura...</main>;
  const get=id=>character(characters,id);
  const stage=asc.stage,showArena=stage==='colosseum'||stage==='finished';
- const liveMatch=showArena?ascensionCurrentMatch(asc):null;
- const inFight=Boolean(p.encounter||(liveMatch?.game&&!liveMatch.winner));
  const roundReady=ascensionRoundReady(asc);
  const captureChance=e=>ascensionCaptureChance(e.foeHp,e.foeMaxHp,{status:e.status,
   rare:get(e.foeId).price>=250,veryRare:get(e.foeId).price>=350});
- const encounterKey=p.encounter?[role,asc.round,p.encounter.kind,p.encounter.foeId,p.encounter.trainer||''].join(':'):null;
- const shouldReveal=Boolean(encounterKey&&!revealedKeys.has(encounterKey));
- const finishReveal=()=>{
-  if(!encounterKey)return;
-  setRevealedKeys(prev=>{const next=new Set(prev);next.add(encounterKey);return next;});
- };
- return <main className={'ac-app'+(inFight?' ac-app--combat':'')}><div className="ac-bg" aria-hidden="true"/><div className="ac-shell">
+ return <main className="ac-app"><div className="ac-bg" aria-hidden="true"/><div className="ac-shell">
   <header className="ac-header">
    <button type="button" className="ac-ghost" onClick={onExit}>← Esci</button>
    <div><small>IL TORNEO DEL MULTIVERSO</small><h1>🏟️ ASCESA DEL <em>COLOSSEO</em></h1></div>
@@ -185,29 +136,25 @@ export function AscensionView({room,role,characters,onAction,onHost,onExit,canHo
       const e=p.encounter,foe=get(e.foeId),member=p.roster[e.active],hero=get(member.id);
       const moves=(hero.moves||[]).filter(Boolean);
       return <div className="ac-encounter">
-       <AscensionBattleField kind={e.kind} turn={e.turn}
-        enemyLabel={e.kind==='trainer'?'🏅 Allenatore '+e.trainerName:'🌿 Multimon selvatico'}
-        allyLabel="La tua squadra"
-        enemy={[{char:foe,level:e.foeLevel,hp:e.foeHp,maxHp:e.foeMaxHp,status:e.status}]}
-        allies={[{char:hero,level:member.level,hp:member.hp,maxHp:ascensionScaledMaxHp(hero,member.level)}]}
-        allyBench={p.roster.filter((_,i)=>i!==e.active).map(m=>({char:get(m.id),level:m.level,
-          hp:m.hp,maxHp:ascensionScaledMaxHp(get(m.id),m.level)}))}/>
-       {e.kind==='wild'&&<p className="ac-capture-chance">💎 Probabilità di cattura: <strong>{Math.round(captureChance(e)*100)}%</strong></p>}
-       <div className="ac-battle-log" aria-live="polite">{(e.log||[]).slice(-5).map((line,i)=><p key={i}>{line}</p>)}</div>
-       <div className="ac-classic-command">
-        <h3>⚡ Cosa deve fare {hero.name}?</h3>
-        <div className="ac-move-grid">{moves.map((m,i)=><button type="button" key={i}
+       <div className="ac-encounter-head"><span>{e.kind==='trainer'?'🏅 ALLENATORE '+e.trainerName:'🌿 MULTIMON SELVATICO'}</span><span>Turno {e.turn}</span></div>
+       <div className="ac-faceoff"><div><Portrait char={foe} label={'Liv. '+e.foeLevel}/>
+         <div className="ac-health"><i style={{width:percentage(e.foeHp,e.foeMaxHp)+'%'}}/></div><small>{e.foeHp}/{e.foeMaxHp} PS</small></div>
+        <b>VS</b><div><Portrait char={hero} label={'Liv. '+member.level}/>
+         <div className="ac-health"><i style={{width:percentage(member.hp,ascensionScaledMaxHp(hero,member.level))+'%'}}/></div>
+         <small>{member.hp}/{ascensionScaledMaxHp(hero,member.level)} PS</small></div></div>
+       {e.kind==='wild'&&<p className="ac-capture-chance">💎 Cattura attuale: <strong>{Math.round(captureChance(e)*100)}%</strong></p>}
+       <div className="ac-battle-log">{e.log.slice(-5).map((line,i)=><p key={i}>{line}</p>)}</div>
+       <div className="ac-move-grid">{moves.map((m,i)=><button type="button" key={i}
          onClick={()=>onAction('encounter',{type:'attack',index:i})}>
          <strong>{m.name}</strong><small>{m.type} · {m.power>0?'Potenza '+m.power:'Supporto'}</small></button>)}</div>
-        {e.kind==='wild'&&<div className="ac-commands">
-         <button type="button" className="ac-main" disabled={p.prismaballs<=0||p.roster.length>=ASCENSION_MAX_TEAM}
-          onClick={()=>onAction('encounter',{type:'ball'})}>💎 Lancia Prismaball ({p.prismaballs})</button>
-         <button type="button" className="ac-ghost" onClick={()=>onAction('encounter',{type:'flee'})}>Ritirati</button>
-        </div>}
-        <div className="ac-switch"><h4>Sostituisci il Multimon</h4><div>{p.roster.map((m,i)=>
-         <button type="button" key={i} disabled={m.hp<=0||i===e.active} onClick={()=>onAction('encounter',{type:'switch',index:i})}>
-          {get(m.id).name} Lv.{m.level}</button>)}</div></div>
-       </div>
+       {e.kind==='wild'&&<div className="ac-commands">
+        <button type="button" className="ac-main" disabled={p.prismaballs<=0||p.roster.length>=ASCENSION_MAX_TEAM}
+         onClick={()=>onAction('encounter',{type:'ball'})}>💎 Lancia Prismaball ({p.prismaballs})</button>
+        <button type="button" className="ac-ghost" onClick={()=>onAction('encounter',{type:'flee'})}>Ritirati</button>
+       </div>}
+       <div className="ac-switch"><h4>Sostituisci il Multimon</h4><div>{p.roster.map((m,i)=>
+        <button type="button" key={i} disabled={m.hp<=0||i===e.active} onClick={()=>onAction('encounter',{type:'switch',index:i})}>
+         {get(m.id).name} Lv.{m.level}</button>)}</div></div>
       </div>;
     })():p.done?<div className="ac-done"><h3>✅ Round completato!</h3><p>Puoi controllare la squadra mentre gli altri finiscono le loro attività.</p>
      {canHost&&roundReady&&<button type="button" className="ac-main" onClick={()=>onHost('next-round')}>
@@ -254,9 +201,6 @@ export function AscensionView({room,role,characters,onAction,onHost,onExit,canHo
   </div>}
   </div>
   {capture&&<PrismaballCapture capture={capture} foe={get(capture.foeId)} onFinish={()=>setCapture(null)}/>}
-  {shouldReveal&&<EncounterReveal key={encounterKey} encounter={p.encounter}
-    foe={get(p.encounter.foeId)} onFinish={finishReveal}/>}
-
   {detail&&<div className="ac-detail-overlay" onClick={()=>setDetail(null)}><div className="ac-detail" onClick={e=>e.stopPropagation()}>
    <button type="button" className="ac-ghost" onClick={()=>setDetail(null)}>✕ Chiudi</button><Portrait char={detail}/>
    <h3>✦ {detail.passive?.name||'Abilità'}</h3><p>{detail.passive?.desc||'Scopri le sue mosse in battaglia.'}</p>
