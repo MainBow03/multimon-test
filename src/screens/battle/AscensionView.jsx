@@ -139,6 +139,8 @@ export function AscensionView({room,role,characters,onAction,onHost,onExit,canHo
  if(!asc||!p)return <main className="ac-app">Caricamento dell'avventura...</main>;
  const get=id=>character(characters,id);
  const stage=asc.stage,showArena=stage==='colosseum'||stage==='finished';
+ const liveMatch=showArena?ascensionCurrentMatch(asc):null;
+ const inFight=Boolean(p.encounter||(liveMatch?.game&&!liveMatch.winner));
  const roundReady=ascensionRoundReady(asc);
  const captureChance=e=>ascensionCaptureChance(e.foeHp,e.foeMaxHp,{status:e.status,
   rare:get(e.foeId).price>=250,veryRare:get(e.foeId).price>=350});
@@ -148,7 +150,7 @@ export function AscensionView({room,role,characters,onAction,onHost,onExit,canHo
   if(!encounterKey)return;
   setRevealedKeys(prev=>{const next=new Set(prev);next.add(encounterKey);return next;});
  };
- return <main className="ac-app"><div className="ac-bg" aria-hidden="true"/><div className="ac-shell">
+ return <main className={'ac-app'+(inFight?' ac-app--combat':'')}><div className="ac-bg" aria-hidden="true"/><div className="ac-shell">
   <header className="ac-header">
    <button type="button" className="ac-ghost" onClick={onExit}>← Esci</button>
    <div><small>IL TORNEO DEL MULTIVERSO</small><h1>🏟️ ASCESA DEL <em>COLOSSEO</em></h1></div>
