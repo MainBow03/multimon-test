@@ -282,7 +282,7 @@ function concludeEncounter(p,e,outcome,chars,log=[],prizes={}){
  const foe=ascensionFind(chars,e.foeId);
  p.battleResult={
   outcome,kind:e.kind,foeId:e.foeId,foeLevel:e.foeLevel,
-  foeMaxHp:e.foeMaxHp,foeHp:outcome==='victory'||outcome==='capture'?0:e.foeHp,
+  foeMaxHp:e.foeMaxHp,foeHp:outcome==='victory'?0:e.foeHp,
   trainerName:e.trainerName||null,turn:Math.max(1,e.turn||1),
   heroId:active?.id||null,heroLevel:active?.level||1,heroHp:active?.hp??0,
   coins:prizes.coins||0,xp:prizes.xp||0,
