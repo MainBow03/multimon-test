@@ -7,7 +7,7 @@ const hp=n=>Math.max(0,Number(n)||0);
 const fighter=(member,chars)=>{
  const result=ascensionFighterFromMember(member,chars);
  return {...result, hp:hp(member.hp), revealed:true, adventureLevel:member.level,
-  statuses:result.statuses||[], heldItem:null};
+  moves:(result.moves||[]).filter(Boolean),statuses:result.statuses||[], heldItem:null};
 };
 const activeIndices=(members,count)=>members
  .map((m,index)=>m.hp>0?index:-1).filter(index=>index>=0).slice(0,count);
@@ -30,6 +30,7 @@ export function ascensionClassicView(room,role,chars){
   const original=ascensionFind(chars,encounter.foeId);
   const enemy=ascensionFighter(original,encounter.foeLevel);
   enemy.hp=hp(encounter.foeHp);
+  enemy.moves=(enemy.moves||[]).filter(Boolean);
   enemy.revealed=true;
   enemy.adventureLevel=encounter.foeLevel;
   enemy.heldItem=null;
