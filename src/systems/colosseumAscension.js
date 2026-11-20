@@ -314,6 +314,17 @@ export function ascensionPlayEncounter(asc,role,choice,chars,rng=Math.random){
    const move=heroMoves[choice.index];
    if(!move)throw Error('Mossa non disponibile.');
    executeAction(hero,foe,move,rng,log);
+   if(foe.hp>0){
+    const effects=[...(Array.isArray(move.statusEffects)?move.statusEffects:[]),
+      ...(move.statusEffect?[move.statusEffect]:[])];
+    for(const effect of effects){
+     if(effect?.type&&rng()<(effect.chance??1)){
+      e.status=effect.type;e.statusTurns=effect.turns||2;
+      log.push('✨ '+foe.name+' è affetto da '+effect.type+'!');
+      break;
+     }
+    }
+   }
    active.hp=hero.hp;e.foeHp=foe.hp;
    if(foe.hp<=0){
     const xp=7+e.foeLevel*4+(e.kind==='trainer'?e.trainerRisk*3:0);
@@ -334,7 +345,13 @@ export function ascensionPlayEncounter(asc,role,choice,chars,rng=Math.random){
   }else throw Error('Comando non valido.');
   const current=p.roster[e.active],target=ascensionFighterFromMember(current,chars);
   const ai=trainerMove(foe,target,e.kind==='trainer'?e.trainer:'wild',rng);
-  executeAction(foe,target,ai,rng,log);
+  if(['Addormentato','Congelato','Stordito'].includes(e.status)&&e.statusTurns>0){
+   log.push(foe.name+' non riesce ad agire: '+e.status+'!');
+  }else executeAction(foe,target,ai,rng,log);
+  if(e.statusTurns>0){
+   e.statusTurns--;
+   if(e.statusTurns===0)e.status=null;
+  }
   current.hp=target.hp;
   if(current.hp<=0){
    const nextActive=p.roster.findIndex(m=>m.hp>0);
