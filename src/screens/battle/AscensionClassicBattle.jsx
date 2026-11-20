@@ -18,7 +18,9 @@ export function AscensionClassicBattle({
  const [hovered,setHovered]=useState(null);
  const [isLogOpen,setLogOpen]=useState(false);
  const [busy,setBusy]=useState(false);
+ const [playback,setPlayback]=useState('');
  const pressTimer=useRef(null),longPress=useRef(false),logEnd=useRef(null),seenCapture=useRef(null);
+ const playbackTimer=useRef(null),previousTurn=useRef(null);
  const e=model?.encounter;
  const nonce=room.ascension?.participants?.[role]?.lastCapture?.nonce;
  useEffect(()=>{
@@ -29,7 +31,21 @@ export function AscensionClassicBattle({
  useEffect(()=>{
   setBusy(false);setTargeting(null);
  },[model?.turn,model?.match?.gameNumber,model?.view?.ascensionCapture?.balls,role]);
- useEffect(()=>()=>{if(pressTimer.current)clearTimeout(pressTimer.current)},[]);
+ useEffect(()=>{
+  if(!model)return;
+  if(previousTurn.current===null){previousTurn.current=model.turn;return}
+  if(model.turn===previousTurn.current)return;
+  previousTurn.current=model.turn;
+  const latest=model.log.at(-1);
+  if(!latest)return;
+  if(playbackTimer.current)clearTimeout(playbackTimer.current);
+  setPlayback(String(latest));
+  playbackTimer.current=setTimeout(()=>setPlayback(''),750);
+ },[model?.turn]);
+ useEffect(()=>()=>{
+  if(pressTimer.current)clearTimeout(pressTimer.current);
+  if(playbackTimer.current)clearTimeout(playbackTimer.current);
+ },[]);
  if(!model)return null;
  const {view,duel,spectators,canCommand,log}=model;
  const activePlayer=spectators?'spectator':'p1';
@@ -65,10 +81,10 @@ export function AscensionClassicBattle({
   gameState:view,appMode,playerRole:activePlayer,
   isEventBattle:true,eventBattleCanForce:false,
   getActivePlayers:()=>['p1','p2'],
-  isPlayingEvents:false,displayTeams:view.teams,displayField:view.field,
+  isPlayingEvents:!!playback,displayTeams:view.teams,displayField:view.field,
   commandingIdx:canCommand&&!busy?0:-1,
   combatLog:log.map(line=>({text:String(line),type:'normal'})),
-  eventPlaybackPassive:null,eventPlaybackText:'',screenFlash:false,
+  eventPlaybackPassive:null,eventPlaybackText:playback,screenFlash:false,
   actionMenuMode:menu,setActionMenuMode:setMenu,
   targetingMoveIdx:targeting,setTargetingMoveIdx:setTargeting,
   selectedMultiTargets:[],setSelectedMultiTargets:()=>{},
