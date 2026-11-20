@@ -266,3 +266,22 @@ button.ac-portrait{cursor:pointer}.ac-portrait.selected{border:2px solid #81efd3
 @media(prefers-reduced-motion:reduce){
  .ac-field-sprite,.ac-reveal-stage img,.ac-reveal-question{animation:none!important;transition:none!important}
 }
+
+
+/* Durante un incontro il Colosseo lascia tutta la larghezza al campo,
+   come le altre modalità di combattimento, senza perdere i comandi. */
+.ac-app--combat .ac-players,.ac-app--combat .ac-roster{display:none}
+.ac-app--combat .ac-columns{display:grid;grid-template-columns:minmax(0,1fr);width:min(1100px,100%);margin-inline:auto}
+.ac-app--combat .ac-columns>.ac-panel{padding:clamp(12px,2vw,23px)}
+.ac-app--combat .ac-encounter,.ac-app--combat .ac-arena-fight{max-width:1080px;margin-inline:auto}
+.ac-app--combat .ac-field-arena{min-height:600px}
+.ac-app--combat .ac-field-top,.ac-app--combat .ac-field-bottom{min-height:266px}
+.ac-app--combat .ac-field-sprite-wrap{height:180px}
+.ac-app--combat .ac-field-sprite{height:173px}
+.ac-app--combat .ac-arena .ac-field-arena{min-height:600px}
+@media(max-width:610px){
+ .ac-app--combat .ac-field-arena,.ac-app--combat .ac-arena .ac-field-arena{min-height:430px}
+ .ac-app--combat .ac-field-top,.ac-app--combat .ac-field-bottom{min-height:187px}
+ .ac-app--combat .ac-field-sprite-wrap{height:106px}
+ .ac-app--combat .ac-field-sprite{height:100px}
+}
