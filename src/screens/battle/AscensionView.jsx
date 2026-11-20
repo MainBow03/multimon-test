@@ -1,6 +1,6 @@
 import React,{useEffect,useState,useRef} from 'react';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
-import {ASCENSION_FINAL_TEAM,ASCENSION_ROUNDS,ASCENSION_MAX_TEAM,
+import {ASCENSION_FINAL_TEAM,ASCENSION_ROUNDS,ASCENSION_MAX_TEAM,ASCENSION_SHOP,
  ascensionCaptureChance,ascensionCurrentMatch,ascensionFind,ascensionRoundReady,ascensionScaledMaxHp} from '../../systems/colosseumAscension.js';
 import './AscensionView.css';
 const character=(all,id)=>ascensionFind(all,id)||{name:id,img:'',moves:[],types:[]};
@@ -179,6 +179,22 @@ export function AscensionView({room,role,characters,onAction,onHost,onExit,canHo
      {m.trainingHalves>=2&&m.level<10&&<button type="button" className="ac-train"
        onClick={()=>onAction('train',m.id)}>✦ Allena +1 livello (−1 punto)</button>}
     </div>)}</div>
+    <section className="ac-shop">
+     <h4>🛍️ Mercato del Colosseo</h4>
+     <p>Massimo 2 acquisti per round · Spendi le monete guadagnate combattendo.</p>
+     <div className="ac-shop-balls"><button type="button" disabled={p.coins<35||(p.shopBuys||0)>=2||!!p.encounter||p.prismaballs>=30}
+       onClick={()=>onAction('buy',{itemId:'ball',memberId:null})}>
+       💎 Prismaball extra · 35 monete</button></div>
+     {p.roster.map(m=><div className="ac-shop-row" key={m.id}>
+      <strong>{get(m.id).name} · {m.hp} PS</strong>
+      <div>{ASCENSION_SHOP.filter(item=>!item.ball).map(item=><button type="button" key={item.id}
+       disabled={p.coins<item.price||(p.shopBuys||0)>=2||!!p.encounter||
+        (item.revive?m.hp>0:m.hp<=0||m.hp>=ascensionScaledMaxHp(get(m.id),m.level))}
+       onClick={()=>onAction('buy',{itemId:item.id,memberId:m.id})}>
+       {item.name} · {item.price} 🪙
+      </button>)}</div>
+     </div>)}
+    </section>
     <footer>🏅 Allenatori vinti: {p.trainerWins} · 💎 Catture: {p.captures}</footer>
     <p className="ac-micro">Vincendo contro un allenatore tutti i tuoi Multimon, anche in riserva, ricevono 0,5 punti. Due mezzi punti = un livello.</p>
    </aside>
