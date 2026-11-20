@@ -36,6 +36,32 @@ export function PrismaballCapture({capture,foe,onFinish}){
    <button type="button" className="ac-main" onClick={onFinish} disabled={step<4}>Continua →</button>
   </div>;
 }
+function EncounterReveal({encounter,foe,onFinish}){
+ const [phase,setPhase]=useState(0);
+ const finishRef=useRef(onFinish);
+ useEffect(()=>{finishRef.current=onFinish;},[onFinish]);
+ useEffect(()=>{
+  const revealTimer=setTimeout(()=>setPhase(1),850);
+  const finishTimer=setTimeout(()=>finishRef.current(),2750);
+  return ()=>{clearTimeout(revealTimer);clearTimeout(finishTimer);};
+ },[]);
+ const trainer=encounter.kind==='trainer';
+ return <div className="ac-reveal-overlay" role="dialog" aria-modal="true" aria-label="Rivelazione dell'avversario">
+  <div className="ac-reveal-panel">
+   <div className="ac-reveal-overline">{trainer?'⚔️ UN ALLENATORE TI SFIDA':'🌿 UN INCONTRO SELVATICO'}</div>
+   <div className={'ac-reveal-stage'+(phase?' ac-reveal-stage--shown':'')}>
+    <span className="ac-reveal-stars" aria-hidden="true">✦ ✧ ✦</span>
+    {foe.img?<img src={foe.img} alt={phase?foe.name:''} onError={onMultimonImageError}/>:<span className="ac-reveal-placeholder">?</span>}
+    {!phase&&<span className="ac-reveal-question" aria-hidden="true">?</span>}
+   </div>
+   <small className="ac-reveal-label">{trainer?'IDENTITÀ DELL\'AVVERSARIO':'QUALCOSA EMERGE DAL VARCO...'}</small>
+   <h2 aria-live="polite">{phase?(trainer?encounter.trainerName+' schiera '+foe.name+'!':'È '+foe.name+'!'):
+     (trainer?'Chi scenderà in campo?':'Chi si nasconde nell\'ombra?')}</h2>
+   <p>{phase?'Livello '+encounter.foeLevel+' · Preparati allo scontro!':'Il varco sta per rivelare il tuo avversario...'}</p>
+   {phase>0&&<button type="button" className="ac-main" onClick={onFinish}>Entra in battaglia →</button>}
+  </div>
+ </div>;
+}
 function Arena({asc,room,role,chars,onAction,onHost,canHost,local,onNextPlayer}){
  const match=ascensionCurrentMatch(asc);
  const [chosen,setChosen]=useState([]);
@@ -104,6 +130,7 @@ function Arena({asc,room,role,chars,onAction,onHost,canHost,local,onNextPlayer})
 export function AscensionView({room,role,characters,onAction,onHost,onExit,canHost=false,local=false,onNextPlayer}){
  const asc=room.ascension,p=asc?.participants?.[role];
  const [capture,setCapture]=useState(null),[detail,setDetail]=useState(null);
+ const [revealedKeys,setRevealedKeys]=useState(()=>new Set());
  const lastCapture=useRef(null);
  useEffect(()=>{
   const data=p?.lastCapture,key=data?role+':'+data.nonce:'';
@@ -115,6 +142,12 @@ export function AscensionView({room,role,characters,onAction,onHost,onExit,canHo
  const roundReady=ascensionRoundReady(asc);
  const captureChance=e=>ascensionCaptureChance(e.foeHp,e.foeMaxHp,{status:e.status,
   rare:get(e.foeId).price>=250,veryRare:get(e.foeId).price>=350});
+ const encounterKey=p.encounter?[role,asc.round,p.encounter.kind,p.encounter.foeId,p.encounter.trainer||''].join(':'):null;
+ const shouldReveal=Boolean(encounterKey&&!revealedKeys.has(encounterKey));
+ const finishReveal=()=>{
+  if(!encounterKey)return;
+  setRevealedKeys(prev=>{const next=new Set(prev);next.add(encounterKey);return next;});
+ };
  return <main className="ac-app"><div className="ac-bg" aria-hidden="true"/><div className="ac-shell">
   <header className="ac-header">
    <button type="button" className="ac-ghost" onClick={onExit}>← Esci</button>
@@ -150,25 +183,29 @@ export function AscensionView({room,role,characters,onAction,onHost,onExit,canHo
       const e=p.encounter,foe=get(e.foeId),member=p.roster[e.active],hero=get(member.id);
       const moves=(hero.moves||[]).filter(Boolean);
       return <div className="ac-encounter">
-       <div className="ac-encounter-head"><span>{e.kind==='trainer'?'🏅 ALLENATORE '+e.trainerName:'🌿 MULTIMON SELVATICO'}</span><span>Turno {e.turn}</span></div>
-       <div className="ac-faceoff"><div><Portrait char={foe} label={'Liv. '+e.foeLevel}/>
-         <div className="ac-health"><i style={{width:percentage(e.foeHp,e.foeMaxHp)+'%'}}/></div><small>{e.foeHp}/{e.foeMaxHp} PS</small></div>
-        <b>VS</b><div><Portrait char={hero} label={'Liv. '+member.level}/>
-         <div className="ac-health"><i style={{width:percentage(member.hp,ascensionScaledMaxHp(hero,member.level))+'%'}}/></div>
-         <small>{member.hp}/{ascensionScaledMaxHp(hero,member.level)} PS</small></div></div>
-       {e.kind==='wild'&&<p className="ac-capture-chance">💎 Cattura attuale: <strong>{Math.round(captureChance(e)*100)}%</strong></p>}
-       <div className="ac-battle-log">{e.log.slice(-5).map((line,i)=><p key={i}>{line}</p>)}</div>
-       <div className="ac-move-grid">{moves.map((m,i)=><button type="button" key={i}
+       <AscensionBattleField kind={e.kind} turn={e.turn}
+        enemyLabel={e.kind==='trainer'?'🏅 Allenatore '+e.trainerName:'🌿 Multimon selvatico'}
+        allyLabel="La tua squadra"
+        enemy={[{char:foe,level:e.foeLevel,hp:e.foeHp,maxHp:e.foeMaxHp,status:e.status}]}
+        allies={[{char:hero,level:member.level,hp:member.hp,maxHp:ascensionScaledMaxHp(hero,member.level)}]}
+        allyBench={p.roster.filter((_,i)=>i!==e.active).map(m=>({char:get(m.id),level:m.level,
+          hp:m.hp,maxHp:ascensionScaledMaxHp(get(m.id),m.level)}))}/>
+       {e.kind==='wild'&&<p className="ac-capture-chance">💎 Probabilità di cattura: <strong>{Math.round(captureChance(e)*100)}%</strong></p>}
+       <div className="ac-battle-log" aria-live="polite">{(e.log||[]).slice(-5).map((line,i)=><p key={i}>{line}</p>)}</div>
+       <div className="ac-classic-command">
+        <h3>⚡ Cosa deve fare {hero.name}?</h3>
+        <div className="ac-move-grid">{moves.map((m,i)=><button type="button" key={i}
          onClick={()=>onAction('encounter',{type:'attack',index:i})}>
          <strong>{m.name}</strong><small>{m.type} · {m.power>0?'Potenza '+m.power:'Supporto'}</small></button>)}</div>
-       {e.kind==='wild'&&<div className="ac-commands">
-        <button type="button" className="ac-main" disabled={p.prismaballs<=0||p.roster.length>=ASCENSION_MAX_TEAM}
-         onClick={()=>onAction('encounter',{type:'ball'})}>💎 Lancia Prismaball ({p.prismaballs})</button>
-        <button type="button" className="ac-ghost" onClick={()=>onAction('encounter',{type:'flee'})}>Ritirati</button>
-       </div>}
-       <div className="ac-switch"><h4>Sostituisci il Multimon</h4><div>{p.roster.map((m,i)=>
-        <button type="button" key={i} disabled={m.hp<=0||i===e.active} onClick={()=>onAction('encounter',{type:'switch',index:i})}>
-         {get(m.id).name} Lv.{m.level}</button>)}</div></div>
+        {e.kind==='wild'&&<div className="ac-commands">
+         <button type="button" className="ac-main" disabled={p.prismaballs<=0||p.roster.length>=ASCENSION_MAX_TEAM}
+          onClick={()=>onAction('encounter',{type:'ball'})}>💎 Lancia Prismaball ({p.prismaballs})</button>
+         <button type="button" className="ac-ghost" onClick={()=>onAction('encounter',{type:'flee'})}>Ritirati</button>
+        </div>}
+        <div className="ac-switch"><h4>Sostituisci il Multimon</h4><div>{p.roster.map((m,i)=>
+         <button type="button" key={i} disabled={m.hp<=0||i===e.active} onClick={()=>onAction('encounter',{type:'switch',index:i})}>
+          {get(m.id).name} Lv.{m.level}</button>)}</div></div>
+       </div>
       </div>;
     })():p.done?<div className="ac-done"><h3>✅ Round completato!</h3><p>Puoi controllare la squadra mentre gli altri finiscono le loro attività.</p>
      {canHost&&roundReady&&<button type="button" className="ac-main" onClick={()=>onHost('next-round')}>
@@ -215,6 +252,9 @@ export function AscensionView({room,role,characters,onAction,onHost,onExit,canHo
   </div>}
   </div>
   {capture&&<PrismaballCapture capture={capture} foe={get(capture.foeId)} onFinish={()=>setCapture(null)}/>}
+  {shouldReveal&&<EncounterReveal key={encounterKey} encounter={p.encounter}
+    foe={get(p.encounter.foeId)} onFinish={finishReveal}/>}
+
   {detail&&<div className="ac-detail-overlay" onClick={()=>setDetail(null)}><div className="ac-detail" onClick={e=>e.stopPropagation()}>
    <button type="button" className="ac-ghost" onClick={()=>setDetail(null)}>✕ Chiudi</button><Portrait char={detail}/>
    <h3>✦ {detail.passive?.name||'Abilità'}</h3><p>{detail.passive?.desc||'Scopri le sue mosse in battaglia.'}</p>
