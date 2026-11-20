@@ -2,6 +2,7 @@ import React,{useEffect,useState,useRef} from 'react';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 import {ASCENSION_FINAL_TEAM,ASCENSION_ROUNDS,ASCENSION_MAX_TEAM,ASCENSION_SHOP,
  ascensionCaptureChance,ascensionCurrentMatch,ascensionFind,ascensionRoundReady,ascensionScaledMaxHp} from '../../systems/colosseumAscension.js';
+import {AscensionJourney} from './AscensionJourney.jsx';
 import './AscensionView.css';
 const character=(all,id)=>ascensionFind(all,id)||{name:id,img:'',moves:[],types:[]};
 const percentage=(hp,max)=>Math.max(0,Math.min(100,100*hp/Math.max(1,max)));
@@ -129,9 +130,10 @@ export function AscensionView({room,role,characters,onAction,onHost,onExit,canHo
    {local&&onNextPlayer&&<button type="button" className="ac-ghost" onClick={onNextPlayer}>Passa al prossimo giocatore locale</button>}
   </section>:showArena?<Arena key={asc.matchIndex} asc={asc} room={room} role={role} chars={characters}
     onAction={onAction} onHost={onHost} canHost={canHost} local={local} onNextPlayer={onNextPlayer}/>:
-  <div className="ac-columns">
-   <section className="ac-panel">
-    <div className="ac-section-title"><small>✦ LA TUA AVVENTURA</small><h2>{p.encounter?'⚔️ Incontro in corso':'Scegli il tuo percorso'}</h2><p>{p.notice}</p></div>
+  <div className="ac-columns ac-journey-columns">
+   <section className="ac-panel ac-journey-panel">
+    <div className="ac-section-title ac-journey-title"><small>✦ LA TUA AVVENTURA</small><h2>{p.encounter?'⚔️ Incontro in corso':'Quale strada prenderai?'}</h2><p>{p.notice}</p></div>
+    {!p.encounter&&<AscensionJourney round={asc.round} roster={p.roster} characters={characters} onAction={onAction} finished={p.done}/>}
     {p.encounter?(()=>{
       const e=p.encounter,foe=get(e.foeId),member=p.roster[e.active],hero=get(member.id);
       const moves=(hero.moves||[]).filter(Boolean);
@@ -160,13 +162,7 @@ export function AscensionView({room,role,characters,onAction,onHost,onExit,canHo
      {canHost&&roundReady&&<button type="button" className="ac-main" onClick={()=>onHost('next-round')}>
       {asc.round===18?'🏛️ Apri il Colosseo':'Avanza al round successivo →'}</button>}
      {local&&onNextPlayer&&<button type="button" className="ac-ghost" onClick={onNextPlayer}>Passa a un altro giocatore</button>}
-    </div>:<div className="ac-actions">
-     <button type="button" onClick={()=>onAction('round','trainer')}><span>⚔️</span><strong>Sfida Allenatore</strong><small>Monete, esperienza e 0,5 punti a tutti i tuoi Multimon.</small></button>
-     <button type="button" onClick={()=>onAction('round','wild')}><span>🌿</span><strong>Incontro Selvatico</strong><small>Trova un Multimon, indeboliscilo e prova a catturarlo.</small></button>
-     <button type="button" disabled={!p.roster.some(m=>m.trainingHalves>=2&&m.level<10)}
-      onClick={()=>onAction('round','training')}><span>💪</span><strong>Sessione Allenamento</strong><small>Utilizza un punto accumulato per aumentare un livello.</small></button>
-     <button type="button" onClick={()=>onAction('round','rest')}><span>💚</span><strong>Centro Recupero</strong><small>Cura completamente la squadra e termina il round.</small></button>
-    </div>}
+    </div>:null}
    </section>
    <aside className="ac-panel ac-roster"><h3>La tua squadra <span>{p.roster.length}/9</span></h3>
     <div className="ac-roster-list">{p.roster.map((m,i)=><div className="ac-member" key={i}>
