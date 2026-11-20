@@ -13,6 +13,18 @@ export const UPDATE_CATEGORIES = [
   {id:'fixes',name:'Bug risolti',icon:'🛠️'}
 ];
 export const GAME_UPDATES = [
+  {id:'nov20-ascesa-colosseo-prismaball',category:'feature',date:'20/11/2026',
+    title:'🏟️ Nuova modalità: Ascesa del Colosseo con Prismaball',items:[
+      'Nuova modalità multiplayer per 8 giocatori in stanze online o locali; cinque starter casuali e personali dal roster base ed economico.',
+      'Tre atti di preparazione da 6 round, per un totale di 18 round. Ogni giocatore sceglie tra sfida allenatore, ricerca selvatico, allenamento e centro recupero.',
+      'Scontri contro allenatori con stili offensivo, difensivo, strategico, specialista e veterano. Le ricompense comprendono monete, esperienza e 0,5 punti allenamento per ogni Multimon, incluse le riserve.',
+      'I punti allenamento si spendono a coppie per aumentare di un livello un Multimon tra due round, con tetto al livello 10. I membri in riserva ricevono esperienza condivisa.',
+      'Le catture impiegano 20 Prismaball iniziali con probabilità 10/25/50/75/99% ai rispettivi PS indicati e bonus per status. La Prismaball originale attiva un varco cristallino con tre ticchettii.',
+      'Ogni selvatico compare tre livelli sotto al Multimon più forte, minimo livello 1. Sono ammesse fino a 9 reclute, senza duplicati.',
+      'Mercato interno: monete per Pozioni, Super Pozioni, Rianima e Prismaball extra. Cura di recupero parziale dopo i round 6 e 12.',
+      'Il Colosseo inizia con quarti e semifinali 1v1 in Best of 3 con tre Multimon e termina in una finale 2v2: massimo 7 Multimon per finalista, senza membri aggiunti se ne possiede meno.',
+      'Nuovo pannello responsive con formazione, progressione, statistiche di cattura e bracket. Gli scontri iniziali usano la formula standard dei danni e la chart tipi.'
+    ]},
   {id:'nov19-ametraline-metamor-fusion',category:'champions',date:'19/11/2026',
     title:'🧬 Ametraline: fusione Metamor Coraline + Ametista',items:[
       'Nuova fusione originale Ametraline Spettro/Cristallo, genitori Coraline e Ametista, nella categoria Fusioni del Catalogo e nei formati con Fusion Mode.',
