@@ -74,7 +74,7 @@ export function ascensionCreate(room,chars,rng=Math.random){
  for(const role of roles){
   const options=sample(pool,5,rng).map(c=>c.id);
   participants[role]={role,options,roster:[],coins:100,prismaballs:ASCENSION_STARTING_BALLS,
-   done:false,encounter:null,notice:'Scegli uno dei tuoi cinque starter.',captures:0,trainerWins:0};
+   done:false,encounter:null,notice:'Scegli uno dei tuoi cinque starter.',captures:0,trainerWins:0,shopBuys:0};
  }
  return {version:1,stage:'starters',round:1,act:1,participants,roles,
   bracket:[],matchIndex:0,champion:null,history:[],revision:0};
@@ -116,6 +116,40 @@ export function ascensionCaptureChance(hp,maxHp,{status=null,rare=false,veryRare
  const bonus=({Addormentato:.10,Congelato:.10,Assiderato:.10,
   Stordito:.08,Confuso:.05,Indebolito:.05})[status]||0;
  return clamp(chance+bonus-(veryRare?0.15:rare?0.1:0),.05,.99);
+}
+export const ASCENSION_SHOP=Object.freeze([
+ {id:'potion',name:'Pozione',price:22,healing:.3},
+ {id:'super_potion',name:'Super Pozione',price:45,healing:.65},
+ {id:'revive',name:'Rianima',price:55,revive:.35},
+ {id:'ball',name:'Prismaball extra',price:35,ball:1}
+]);
+export function ascensionBuy(asc,role,itemId,memberId,chars){
+ if(asc.stage!=='preparation')throw Error('Negozio disponibile soltanto in preparazione.');
+ return mutate(asc,next=>{
+  const p=participant(next,role),item=ASCENSION_SHOP.find(i=>i.id===itemId);
+  if(!item)throw Error('Oggetto non disponibile.');
+  if(p.encounter)throw Error('Non puoi acquistare durante uno scontro.');
+  if((p.shopBuys||0)>=2)throw Error('Massimo due acquisti per round.');
+  if(p.coins<item.price)throw Error('Monete insufficienti.');
+  if(item.ball){
+   if(p.prismaballs>=30)throw Error('Hai già troppe Prismaball.');
+   p.prismaballs++;
+  }else{
+   const m=p.roster.find(m=>m.id===memberId);
+   if(!m)throw Error('Seleziona un Multimon del tuo team.');
+   const max=ascensionScaledMaxHp(ascensionFind(chars,m.id),m.level);
+   if(item.revive){
+    if(m.hp>0)throw Error('Questo Multimon non è esausto.');
+    m.hp=Math.max(1,Math.round(max*item.revive));
+   }else{
+    if(m.hp<=0)throw Error('Serve un Rianima per un Multimon esausto.');
+    if(m.hp>=max)throw Error('Questo Multimon è già completamente curato.');
+    m.hp=Math.min(max,m.hp+Math.max(1,Math.ceil(max*item.healing)));
+   }
+  }
+  p.coins-=item.price;p.shopBuys=(p.shopBuys||0)+1;
+  p.notice='Acquisto riuscito: '+item.name+'.';
+ });
 }
 export function ascensionTrainingProgress(p,memberId){
  return p.roster.find(c=>c.id===memberId)?.trainingHalves||0;
@@ -207,6 +241,23 @@ function attackDamage(attacker,defender,move,rng){
  // La formula condivisa del motore classico conserva STAB, tipi e statistiche.
  return Math.max(1,calculateDamageImpl({},attacker,defender,move,multiplier,false,rng));
 }
+function trainerMove(foe,enemy,style,rng){
+ const options=(foe.moves||[]).filter(Boolean);
+ if(!options.length)return {name:'Attacco',type:foe.types?.[0]||'Normale',power:45,accuracy:1};
+ const attacks=options.filter(m=>m.power>0);
+ const controls=options.filter(m=>m.statusEffect||m.statusEffects||m.hitStatDebuff||m.targetStatDebuff);
+ const heals=options.filter(m=>m.heal||m.selfHeal);
+ if(style==='defensive'&&foe.hp/foe.maxHp<.5&&heals.length)return heals[0];
+ if(style==='strategic'&&controls.length&&rng()<.6)return controls[rand(rng,controls.length)];
+ if(style==='specialist'&&attacks.length){
+  const stab=attacks.filter(m=>foe.types?.includes(m.type));
+  if(stab.length)return stab.reduce((a,b)=>(a.power||0)>=(b.power||0)?a:b);
+ }
+ if(style==='offensive'&&attacks.length)return attacks.reduce((a,b)=>(a.power||0)>=(b.power||0)?a:b);
+ if(style==='elite'&&attacks.length)return attacks.slice().sort((a,b)=>
+  (b.power||0)*getMultiplier(b.type,enemy.types)-(a.power||0)*getMultiplier(a.type,enemy.types))[0];
+ return attacks.length?attacks[rand(rng,attacks.length)]:options[rand(rng,options.length)];
+}
 function executeAction(attacker,defender,move,rng,log){
  if(!move)return 0;
  const acc=move.accuracy==null?1:move.accuracy>1?move.accuracy/100:move.accuracy;
@@ -281,9 +332,8 @@ export function ascensionPlayEncounter(asc,role,choice,chars,rng=Math.random){
     p.done=true;p.encounter=null;return;
    }
   }else throw Error('Comando non valido.');
-  const foeMoves=(foeBase.moves||[]).filter(m=>m?.power>0);
-  const ai=foeMoves.length?foeMoves[rand(rng,foeMoves.length)]:{name:'Attacco',type:foeBase.types[0],power:45,accuracy:1};
   const current=p.roster[e.active],target=ascensionFighterFromMember(current,chars);
+  const ai=trainerMove(foe,target,e.kind==='trainer'?e.trainer:'wild',rng);
   executeAction(foe,target,ai,rng,log);
   current.hp=target.hp;
   if(current.hp<=0){
@@ -305,7 +355,7 @@ export function ascensionNextRound(asc,chars){
     m.hp=Math.min(max,m.hp+Math.ceil(max*.4));
   }));
   next.round++;
-  next.roles.forEach(r=>{next.participants[r].done=false;next.participants[r].lastCapture=null;next.participants[r].notice='Nuovo round: scegli una attività.';});
+  next.roles.forEach(r=>{next.participants[r].done=false;next.participants[r].lastCapture=null;next.participants[r].shopBuys=0;next.participants[r].notice='Nuovo round: scegli una attività.';});
  });
 }
 function ascensionStartColosseum(asc,chars){
