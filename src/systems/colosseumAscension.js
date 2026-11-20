@@ -416,7 +416,17 @@ export function ascensionDuelAction(asc,role,moveIndex,chars,rng=Math.random){
   const match=ascensionCurrentMatch(next),game=match?.game;
   if(!game||game.winner||!match.roles.includes(role))throw Error('Nessuna battaglia attiva.');
   if(game.actions[role])throw Error('Hai già dato un comando questo turno.');
-  game.actions[role]={move:clamp(Math.trunc(moveIndex)||0,0,3)};
+  const switchChoice=moveIndex&&typeof moveIndex==='object'&&moveIndex.type==='switch';
+  if(switchChoice){
+   const units=game.units[role],count=match.stage==='finale'?2:1;
+   const active=units.map((m,i)=>m.hp>0?i:-1).filter(i=>i>=0).slice(0,count);
+   const from=Math.trunc(moveIndex.fromIdx),to=Math.trunc(moveIndex.index);
+   if(!Number.isInteger(to)||!Number.isInteger(from)||!units[to]||units[to].hp<=0||
+      !active.includes(from)||active.includes(to))throw Error('Cambio non valido.');
+   game.actions[role]={type:'switch',from,to};
+  }else{
+   game.actions[role]={type:'attack',move:clamp(Math.trunc(moveIndex)||0,0,3)};
+  }
   if(!match.roles.every(r=>game.actions[r]))return;
   const sorted=[...match.roles].sort((a,b)=>{
    const fa=ascensionFighterFromMember(game.units[a][firstAlive(game.units[a])],chars);
@@ -425,6 +435,14 @@ export function ascensionDuelAction(asc,role,moveIndex,chars,rng=Math.random){
   });
   const log=[];
   for(const actor of sorted){
+   const queued=game.actions[actor];
+   if(queued.type==='switch'){
+    const units=game.units[actor];
+    const old=units[queued.from],fresh=units[queued.to];
+    units[queued.from]=fresh;units[queued.to]=old;
+    log.push('Cambio di squadra! Entra '+ascensionFind(chars,fresh.id).name+'.');
+    continue;
+   }
    const targetRole=match.roles.find(r=>r!==actor);
    const fieldSize=match.stage==='finale'?2:1;
    for(let slot=0;slot<fieldSize;slot++){
