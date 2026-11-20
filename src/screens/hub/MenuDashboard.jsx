@@ -184,6 +184,13 @@ export function MenuDashboard({ctx}){
    <section className={'mm-dash-content mm-dash-content--'+tab}>
     {tab==='online'&&<>
      <div className="mm-dash-section-title"><div><small>✦ MULTIPLAYER</small><h2>Incontra il multiverso</h2></div><p>L'arena è aperta: chi sfidi oggi?</p></div>
+     <button type="button" className="mm-dash-mode mm-dash-mode--violet" style={{width:'100%',marginBottom:14}}
+       onClick={()=>launch('create_room',()=>handleCreateRoom('Ascesa del Colosseo',publicRoom))}>
+       <span className="mm-dash-mode-emoji">🏟️</span>
+       <span className="mm-dash-mode-copy"><strong>ASCESA DEL COLOSSEO</strong>
+        <small>8 giocatori · 18 round · Prismaball · finale 2v2 con 7 Multimon. Crea la stanza e seleziona Ascesa nel menu modalità.</small></span>
+       <span className="mm-dash-mode-arrow">↗</span>
+      </button>
      <div className="mm-dash-two-col">
       <div className="mm-dash-panel">
        <div className="mm-dash-panel-heading"><span>🌐</span><div><h3>Ospita una partita</h3><p>Configura le modalità dopo aver creato la stanza.</p></div></div>
