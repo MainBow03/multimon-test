@@ -79,7 +79,7 @@ import { initialGameState } from './systems/gameState.js';
 import { UltimonView } from './screens/battle/UltimonView.jsx';
 import {AscensionView} from './screens/battle/AscensionView.jsx';
 import {ASCENSION_STATUS,ascensionSelectStarter,ascensionBeginAction,
- ascensionPlayEncounter,ascensionTrain,ascensionNextRound,ascensionRoundReady,
+ ascensionPlayEncounter,ascensionTrain,ascensionBuy,ascensionNextRound,ascensionRoundReady,
  ascensionChooseLineup,ascensionDuelAction,ascensionAdvanceMatch,ascensionSettleBots}
  from './systems/colosseumAscension.js';
 import {ultimonBanPatch,beginUltimonDraftAfterBans} from './systems/ultimonBans.js';
@@ -1653,6 +1653,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                 else if(kind==='round')a=ascensionBeginAction(a,actor,value,CHARACTERS);
                 else if(kind==='encounter')a=ascensionPlayEncounter(a,actor,value,CHARACTERS);
                 else if(kind==='train')a=ascensionTrain(a,actor,value,CHARACTERS);
+                else if(kind==='buy')a=ascensionBuy(a,actor,value.itemId,value.memberId,CHARACTERS);
                 else if(kind==='lineup')a=ascensionChooseLineup(a,actor,value,CHARACTERS);
                 else if(kind==='duel-move')a=ascensionDuelAction(a,actor,value,CHARACTERS);
                 else if(kind==='next-round'){
