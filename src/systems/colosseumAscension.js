@@ -115,7 +115,7 @@ export function ascensionCaptureChance(hp,maxHp,{status=null,rare=false,veryRare
  if(ratio<=.1)return .99; // premio per chi lascia in vita il selvatico a pochissimi PS
  const bonus=({Addormentato:.10,Congelato:.10,Assiderato:.10,
   Stordito:.08,Confuso:.05,Indebolito:.05})[status]||0;
- return clamp(chance+bonus-(veryRare?.15:rare?.1:0),.05,.99);
+ return clamp(chance+bonus-(veryRare?0.15:rare?0.1:0),.05,.99);
 }
 export function ascensionTrainingProgress(p,memberId){
  return p.roster.find(c=>c.id===memberId)?.trainingHalves||0;
@@ -314,7 +314,7 @@ function ascensionStartColosseum(asc,chars){
   next.roles.forEach(r=>next.participants[r].roster.forEach(m=>{
    m.hp=ascensionScaledMaxHp(ascensionFind(chars,m.id),m.level);
   }));
-  const pairs=sample(next.roles,8,Math.random); // l'host estrae il bracket una volta sola
+  const pairs=sample(next.roles,8,Math.random); // il tabellone viene creato una sola volta
   next.bracket=Array.from({length:4},(_,i)=>({id:'q'+i,stage:'quarti',roles:[pairs[i*2],pairs[i*2+1]],
    wins:{},winner:null,selection:{},actions:{},game:null,gameNumber:1}));
   next.matchIndex=0;
@@ -437,7 +437,12 @@ export function ascensionBotTurn(asc,role,chars,rng=Math.random){
    }
   }
   if(participant(next,role).encounter){
-   next=ascensionPlayEncounter(next,role,{type:'flee'},chars,rng);
+   // Safety valve: gli scontri allenatore non bloccano i round quando un
+   // bot esaurisce il numero massimo di azioni simulate.
+   next=mutate(next,state=>{
+     const bot=participant(state,role);
+     bot.encounter=null;bot.done=true;bot.notice='Scontro concluso per limite di turni.';
+   });
   }
   return next;
  }
