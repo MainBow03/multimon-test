@@ -170,6 +170,7 @@ const { appId, appMode, db, doc, roomId, setGameState, updateDoc } = ctx;
 export const getRequiredPlayersImpl = (ctx, mode, currentSettings) => {
 
               if (mode === 'classica') return 2;
+              if (mode === 'ascension') return 8;
               if (mode === 'ultimon') return Math.min(8,Math.max(4,Number(currentSettings?.maxPlayers)||4));
               if (mode === 'torneo_punti' || mode === 'battleroyale' || mode === 'juggernaut' || mode === 'survival') return currentSettings ? currentSettings.maxPlayers : (mode === 'survival' ? 2 : 4);
               return 4;
