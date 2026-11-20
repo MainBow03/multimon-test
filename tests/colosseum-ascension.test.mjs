@@ -208,6 +208,22 @@ test('Non si catturano due volte gli stessi Multimon, ma resta possibile guadagn
  assert.throws(()=>ascensionPlayEncounter(a,'p1',{type:'ball'},CHARACTERS),/già presente/);
 });
 
+test('Un intero Colosseo con otto bot si conclude e incorona un solo vincitore',()=>{
+ const rm=room();rm.isBot=Object.fromEntries(roles.map(r=>[r,true]));
+ let a=ascensionNextRound({...completeRound(ready()),round:18},CHARACTERS);
+ for(let i=0;i<7;i++){
+  for(let step=0;step<5&&!ascensionCurrentMatch(a)?.winner;step++)
+   a=ascensionSettleBots(a,rm,CHARACTERS,()=>.22);
+  assert.ok(ascensionCurrentMatch(a)?.winner,'Blocco partita '+(i+1));
+  a=ascensionAdvanceMatch(a,CHARACTERS);
+ }
+ assert.equal(a.stage,'finished');
+ assert.ok(roles.includes(a.champion));
+ assert.equal(a.bracket.length,7,'4 quarti + 2 semifinali + 1 finale');
+ assert.equal(a.bracket[6].stage,'finale');
+ assert.equal(a.bracket[6].game.units[a.champion].length<=7,true);
+});
+
 test('Le schermate usano stanze, catture originali e comandi colosseo',()=>{
  const jsx=readFileSync(new URL('../src/screens/battle/AscensionView.jsx',import.meta.url),'utf8');
  const app=readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8');
