@@ -150,3 +150,13 @@ button.ac-portrait{cursor:pointer}.ac-portrait.selected{border:2px solid #81efd3
 .ac-bracket{grid-template-columns:repeat(2,minmax(0,1fr))}
 .ac-prism-stage{height:260px}}
 @media(prefers-reduced-motion:reduce){.ac-prism-device,.ac-prism-target{animation:none!important;transition:none!important}}
+
+.ac-shop{margin-top:16px;border-top:1px solid #7998ac6b;padding-top:14px;display:flex;flex-direction:column;gap:10px}
+.ac-shop h4{font-size:16px;font-weight:950;color:#fde1a4;margin:0}
+.ac-shop>p{font-size:11px;color:#b9cde1;line-height:1.4;margin:0}
+.ac-shop-balls button,.ac-shop-row button{font-size:10px;font-weight:850;padding:8px;border-radius:9px;background:#315070;border:1px solid #66aac673;color:#fff;cursor:pointer}
+.ac-shop-balls button{width:100%;text-align:center;background:#63378290;border-color:#bca9fc8a}
+.ac-shop-row{border:1px solid #6e8e9c52;padding:9px;border-radius:12px;background:#14233c}
+.ac-shop-row strong{display:block;font-size:11px;margin-bottom:7px}
+.ac-shop-row>div{display:flex;flex-wrap:wrap;gap:6px}
+.ac-shop button:disabled{opacity:.3;cursor:not-allowed}
