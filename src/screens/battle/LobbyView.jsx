@@ -1,4 +1,5 @@
 import {RecentArrivalsGrid} from '../../components/RecentArrivalsGrid.jsx';
+import {ascensionCreate} from '../../systems/colosseumAscension.js';
 import {SoundtrackPicker} from '../../components/SoundtrackPicker.jsx';
 import '../../components/SoundtrackPicker.css';
 // Schermata estratta senza alterare la struttura JSX originale.
@@ -29,7 +30,10 @@ if (gameState.status === 'lobby') {
                                  <select value={gameState.gameMode} onChange={e => {
                                      const newMode = e.target.value;
                                      let updates = { gameMode: newMode };
-                                     if (newMode === 'ultimon') {
+                                     if(newMode==='ascension'){
+                                          updates.settings={...gameState.settings,maxPlayers:8,teamSize:9,fieldSize:1,
+                                            rentalMode:false,fusionMode:false,draftBattle:false,sharedDraft:false};
+                                      }else if (newMode === 'ultimon') {
                                          updates.settings = { ...gameState.settings, maxPlayers: Math.max(4,Math.min(8,gameState.settings.maxPlayers||4)), fieldSize: 1 };
                                      } else if (newMode === 'survival') {
                                          const maxP = Math.min(4, Math.max(2, gameState.settings.maxPlayers));
@@ -60,6 +64,7 @@ if (gameState.status === 'lobby') {
                                          <option value="torneo">Torneo (4 Giocatori)</option>
                                          <option value="torneo_punti">Torneo a Punti (Tutti vs Tutti)</option>
                                          <option value="ultimon">ULTIMON MULTIMON · Eliminazione permanente</option>
+                                          <option value="ascension">🏟️ ASCESA DEL COLOSSEO · 8 giocatori · 18 round · Prismaball</option>
                                  </select>
                          </div>
                     )}
@@ -138,11 +143,11 @@ if (gameState.status === 'lobby') {
                                     </select>
                                 </div>
                             )}
-                            {(gameState.gameMode === 'torneo_punti' || gameState.gameMode === 'battleroyale' || gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival' || gameState.gameMode === 'ultimon') && (
+                            {(gameState.gameMode === 'torneo_punti' || gameState.gameMode === 'battleroyale' || gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival' || gameState.gameMode === 'ultimon' || gameState.gameMode === 'ascension') && (
                                 <div className="flex justify-between items-center bg-slate-950/50 p-4 rounded-xl border border-slate-700/30 mb-4">
                                     <span className="font-semibold text-slate-300">Numero Giocatori (Max):</span>
                                     <input type="number" 
-                                        min={gameState.gameMode === 'ultimon' ? "4" : gameState.gameMode === 'juggernaut' ? "3" : "2"} 
+                                        min={gameState.gameMode === 'ascension' ? "8" : gameState.gameMode === 'ultimon' ? "4" : gameState.gameMode === 'juggernaut' ? "3" : "2"} 
                                         max={gameState.gameMode === 'juggernaut' ? "5" : (gameState.gameMode === 'survival' ? "4" : "8")} 
                                         value={gameState.settings.maxPlayers} 
                                         onChange={e => {
@@ -150,6 +155,7 @@ if (gameState.status === 'lobby') {
                                             if (gameState.gameMode === 'juggernaut') newVal = Math.min(5, Math.max(3, newVal));
                                             else if (gameState.gameMode === 'survival') newVal = Math.min(4, Math.max(2, newVal));
                                             else if (gameState.gameMode === 'ultimon') newVal = Math.min(8, Math.max(4, newVal));
+                                            else if (gameState.gameMode === 'ascension') newVal=8;
                                             else newVal = Math.min(8, Math.max(2, newVal));
 
                                             if (gameState.gameMode === 'survival' || gameState.gameMode === 'juggernaut') {
@@ -166,6 +172,10 @@ if (gameState.status === 'lobby') {
                                         }} className="bg-slate-800 text-center w-20 p-2 rounded-lg outline-none font-bold" />
                                 </div>
                             )}
+                            {gameState.gameMode==='ascension'&&<div className="rounded-xl border border-amber-300/50 bg-amber-950/30 p-4 text-sm font-bold text-amber-100">
+                                🏟️ ASCESA DEL COLOSSEO · 8 giocatori, 18 round, 5 starter a testa, 20 Prismaball,
+                                9 Multimon in squadra e finale 2v2 con massimo 7!
+                              </div>}
                             <div className="flex justify-between items-center bg-slate-950/50 p-4 rounded-xl border border-slate-700/30">
                                 <span className="font-semibold text-slate-300">Dimensione Squadra:</span>
                                 <input type="number" min="1" max="10" value={gameState.settings.teamSize} onChange={e => updateState({ settings: { ...gameState.settings, teamSize: Math.min(10, Math.max(1, parseInt(e.target.value) || 1)) } })} className="bg-slate-800 text-center w-20 p-2 rounded-lg outline-none font-bold" />
@@ -240,6 +250,14 @@ if (gameState.status === 'lobby') {
                             </div>
 
                             <button disabled={!canStartDraft} onClick={() => {
+                                if(gameState.gameMode==='ascension'){
+                                    try{
+                                      updateState({status:'ascension',settings:{...gameState.settings,
+                                        maxPlayers:8,teamSize:9,fieldSize:1},
+                                        ascension:ascensionCreate(gameState,CHARACTERS)});
+                                    }catch(error){console.error('Ascesa del Colosseo:',error)}
+                                    return;
+                                }
                                 if(gameState.gameMode==='ultimon'){
                                     // Il ban globale avviene PRIMA del draft: non esistono team da riparare.
                                     updateState({status:'ultimon_ban',phaseStartedAt:Date.now(),
