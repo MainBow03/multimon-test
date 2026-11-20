@@ -47,7 +47,7 @@ export function AscensionClassicBattle({
    }else if(type==='switch'){
     const index=Number(action.toIdx);
     if(!Number.isInteger(index)||index<0)return;
-    if(duel)await onAction('duel-switch',index);
+    if(duel)await onAction('duel-switch',{index,fromIdx:Number(action.fromIdx)});
     else await onAction('encounter',{type:'switch',index});
    }else if(!duel){
     await onAction('encounter',{type:type==='ball'?'ball':'flee'});
