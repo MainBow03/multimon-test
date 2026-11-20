@@ -1,0 +1,17 @@
+.ac-intro{position:fixed;inset:0;z-index:180;background:#050b1af0;backdrop-filter:blur(12px);display:grid;place-items:center;padding:16px;color:#fff}
+.ac-intro-card{width:min(590px,100%);max-height:95dvh;overflow:auto;text-align:center;display:flex;align-items:center;flex-direction:column;background:radial-gradient(ellipse at 50% 25%,#47539a75,transparent 60%),linear-gradient(145deg,#111b39,#1a153b);border:1px solid #a9c6f2ad;border-radius:25px;padding:22px 17px;box-shadow:0 15px 75px #0009,0 0 55px #7f7ade35}
+.ac-intro-eyebrow{margin:0 0 10px;font-size:11px;font-weight:900;color:#ffdfa1;letter-spacing:.17em}
+.ac-intro-stage{width:min(430px,100%);height:235px;position:relative;overflow:hidden;border-radius:19px;border:1px solid #9bbaf0a6;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 65%,#8092dc99,transparent 56%),linear-gradient(145deg,#253a5d,#15203d)}
+.ac-intro-stage:after{content:'';position:absolute;bottom:16px;left:20%;right:20%;height:37px;border-radius:50%;border:2px solid #b8d9ff75;transform:perspective(200px) rotateX(50deg)}
+.ac-intro-sparkles{position:absolute;top:10px;left:0;right:0;color:#d0eeff91;letter-spacing:10px;font-size:20px}
+.ac-intro-stage img{z-index:1;width:88%;height:205px;object-fit:contain;transform:scale(.88);filter:brightness(0) drop-shadow(0 0 12px #b8d3ff);transition:filter .6s,transform .6s}
+.ac-intro-stage--revealed img{filter:brightness(1) drop-shadow(0 10px 8px #000b);transform:scale(1)}
+.ac-intro-unknown{font-size:65px;color:#d9ecff}
+.ac-intro-mark{position:absolute;z-index:2;font-weight:1000;font-size:80px;color:#fff3c6;text-shadow:0 0 24px #9cd9ff;animation:ac-intro-pulse .75s infinite alternate}
+.ac-intro-card>small{font-size:10px;color:#97e8ff;font-weight:900;letter-spacing:.16em;margin-top:19px}
+.ac-intro-card h2{font-size:clamp(21px,4vw,32px);font-weight:1000;line-height:1.2;margin:9px 0 5px}
+.ac-intro-subtitle{font-size:12px;color:#d2e1f5;margin:5px 0 13px}
+.ac-intro-card button{background:linear-gradient(115deg,#148f99,#2866b6);border:1px solid #a3eaf0;border-radius:12px;color:#fff;font-size:13px;font-weight:900;padding:12px 20px;cursor:pointer}
+@keyframes ac-intro-pulse{to{opacity:.5;transform:scale(1.17)}}
+@media(max-width:610px){.ac-intro-stage{height:195px}.ac-intro-stage img{height:170px}.ac-intro-card{padding:15px 12px}}
+@media(prefers-reduced-motion:reduce){.ac-intro-mark{animation:none}.ac-intro-stage img{transition:none}}
