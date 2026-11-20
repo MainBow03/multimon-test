@@ -74,7 +74,7 @@ export function ascensionCreate(room,chars,rng=Math.random){
  for(const role of roles){
   const options=sample(pool,5,rng).map(c=>c.id);
   participants[role]={role,options,roster:[],coins:100,prismaballs:ASCENSION_STARTING_BALLS,
-   done:false,encounter:null,notice:'Scegli uno dei tuoi cinque starter.',captures:0,trainerWins:0,shopBuys:0};
+   done:false,encounter:null,battleResult:null,notice:'Scegli uno dei tuoi cinque starter.',captures:0,trainerWins:0,shopBuys:0};
  }
  return {version:1,stage:'starters',round:1,act:1,participants,roles,
   bracket:[],matchIndex:0,champion:null,history:[],revision:0};
@@ -197,6 +197,7 @@ export function ascensionBeginAction(asc,role,action,chars,rng=Math.random){
  if(asc.stage!=='preparation')throw Error('La preparazione è finita.');
  return mutate(asc,next=>{
   const p=participant(next,role);
+  if(p.battleResult)throw Error('Conferma prima il risultato della battaglia.');
   if(p.done||p.encounter)throw Error('Hai già intrapreso una attività questo round.');
   if(!p.roster.length)throw Error('Seleziona prima uno starter.');
   if(action==='rest'){
@@ -274,6 +275,33 @@ function executeAction(attacker,defender,move,rng,log){
  }else{log.push(attacker.name+' usa '+move.name+' (supporto)!');}
  return damage;
 }
+// Resta salvato nella stanza finché il giocatore non conferma l'esito.
+// Evita che un KO al primo attacco riporti immediatamente al percorso.
+function concludeEncounter(p,e,outcome,chars,log=[],prizes={}){
+ const active=p.roster[e.active];
+ const foe=ascensionFind(chars,e.foeId);
+ p.battleResult={
+  outcome,kind:e.kind,foeId:e.foeId,foeLevel:e.foeLevel,
+  foeMaxHp:e.foeMaxHp,foeHp:outcome==='victory'||outcome==='capture'?0:e.foeHp,
+  trainerName:e.trainerName||null,turn:Math.max(1,e.turn||1),
+  heroId:active?.id||null,heroLevel:active?.level||1,heroHp:active?.hp??0,
+  coins:prizes.coins||0,xp:prizes.xp||0,
+  training:prizes.training||0,
+  log:[...(e.log||[]),...log].slice(-8),
+  nonce:(p.battleResult?.nonce||0)+1
+ };
+ p.done=true;
+ p.encounter=null;
+}
+export function ascensionAcknowledgeEncounterResult(asc,role){
+ if(asc.stage!=='preparation')throw Error('Non sei nella fase di preparazione.');
+ return mutate(asc,next=>{
+  const p=participant(next,role);
+  if(!p.battleResult||p.encounter)throw Error('Nessun risultato da confermare.');
+  p.battleResult=null;
+  p.lastCapture=null;
+ });
+}
 export function ascensionPlayEncounter(asc,role,choice,chars,rng=Math.random){
  if(asc.stage!=='preparation')throw Error('Non sei in preparazione.');
  return mutate(asc,next=>{
@@ -283,7 +311,7 @@ export function ascensionPlayEncounter(asc,role,choice,chars,rng=Math.random){
   foe.hp=e.foeHp;
   let active=p.roster[e.active];
   if(!active||active.hp<=0){e.active=p.roster.findIndex(m=>m.hp>0);active=p.roster[e.active];}
-  if(!active){p.done=true;p.encounter=null;p.notice='Squadra esausta: questo round termina.';return;}
+  if(!active){concludeEncounter(p,e,'defeat',chars,['Non hai più Multimon disponibili.']);p.notice='Squadra esausta: questo round termina.';return;}
   const hero=ascensionFighterFromMember(active,chars),log=[];
   if(choice?.type==='switch'){
    const target=p.roster[choice.index];
@@ -302,14 +330,16 @@ export function ascensionPlayEncounter(asc,role,choice,chars,rng=Math.random){
    p.lastCapture={success:captured,failedAt,foeId:e.foeId,chance,nonce:(p.lastCapture?.nonce||0)+1};
    if(captured){
     p.roster.push(ascensionMember(e.foeId,e.foeLevel,chars));
-    p.captures++;p.done=true;p.encounter=null;
+    p.captures++;
+    concludeEncounter(p,e,'capture',chars,['✨ '+foeBase.name+' è stato catturato!']);
     p.notice='Sincronizzazione completa! '+foeBase.name+' entra nella tua squadra.';
     return;
    }
    log.push('La Prismaball non completa la sincronizzazione!');
   }else if(choice?.type==='flee'){
    if(e.kind==='trainer')throw Error('Non puoi fuggire dalla sfida allenatore.');
-   p.encounter=null;p.done=true;p.notice='Ti ritiri dal varco senza catturare.';
+   concludeEncounter(p,e,'retreat',chars,['Ti ritiri dal varco.']);
+   p.notice='Ti ritiri dal varco senza catturare.';
    return;
   }else if(choice?.type==='attack'){
    const heroMoves=(ascensionFind(chars,active.id).moves||[]).filter(Boolean);
@@ -330,6 +360,7 @@ export function ascensionPlayEncounter(asc,role,choice,chars,rng=Math.random){
    active.hp=hero.hp;e.foeHp=foe.hp;
    if(foe.hp<=0){
     const xp=7+e.foeLevel*4+(e.kind==='trainer'?e.trainerRisk*3:0);
+    const coinsBefore=p.coins;
     grantEncounterXp(p,e.active,xp,chars);
     if(e.kind==='trainer'){
      const reward=ASCENSION_TRAINER_STYLES.find(x=>x.id===e.trainer);
@@ -342,7 +373,8 @@ export function ascensionPlayEncounter(asc,role,choice,chars,rng=Math.random){
      p.coins+=10+next.round;
      p.notice='Selvatico sconfitto: esperienza e monete ottenute, niente cattura.';
     }
-    p.done=true;p.encounter=null;return;
+    concludeEncounter(p,e,'victory',chars,[foe.name+' è KO!'],{coins:p.coins-coinsBefore,xp,training:e.kind==='trainer'?.5:0});
+    return;
    }
   }else throw Error('Comando non valido.');
   const current=p.roster[e.active],target=ascensionFighterFromMember(current,chars);
@@ -357,14 +389,18 @@ export function ascensionPlayEncounter(asc,role,choice,chars,rng=Math.random){
   current.hp=target.hp;
   if(current.hp<=0){
    const nextActive=p.roster.findIndex(m=>m.hp>0);
-   if(nextActive<0){p.done=true;p.encounter=null;p.notice='Squadra esausta. Riparti dal prossimo round.';return;}
+   if(nextActive<0){
+    e.foeHp=foe.hp;
+    concludeEncounter(p,e,'defeat',chars,[...log,'La tua squadra è esausta.']);
+    p.notice='Squadra esausta. Riparti dal prossimo round.';return;
+   }
    e.active=nextActive;log.push('Entra in campo '+ascensionFind(chars,p.roster[nextActive].id).name+'!');
   }
   e.foeHp=foe.hp;e.turn++;
   e.log=[...e.log,...log].slice(-9);
  });
 }
-export function ascensionRoundReady(asc){return asc.stage==='preparation'&&asc.roles.every(r=>asc.participants[r].done&&!asc.participants[r].encounter);}
+export function ascensionRoundReady(asc){return asc.stage==='preparation'&&asc.roles.every(r=>asc.participants[r].done&&!asc.participants[r].encounter&&!asc.participants[r].battleResult);}
 export function ascensionNextRound(asc,chars){
  if(!ascensionRoundReady(asc))throw Error('Qualcuno sta ancora completando il round.');
  if(asc.round===ASCENSION_ROUNDS)return ascensionStartColosseum(asc,chars);
@@ -374,7 +410,7 @@ export function ascensionNextRound(asc,chars){
     m.hp=Math.min(max,m.hp+Math.ceil(max*.4));
   }));
   next.round++;
-  next.roles.forEach(r=>{next.participants[r].done=false;next.participants[r].lastCapture=null;next.participants[r].shopBuys=0;next.participants[r].notice='Nuovo round: scegli una attività.';});
+  next.roles.forEach(r=>{next.participants[r].done=false;next.participants[r].lastCapture=null;next.participants[r].battleResult=null;next.participants[r].shopBuys=0;next.participants[r].notice='Nuovo round: scegli una attività.';});
  });
 }
 function ascensionStartColosseum(asc,chars){
@@ -477,7 +513,20 @@ export function ascensionDuelAction(asc,role,moveIndex,chars,rng=Math.random){
   game.winner=winner;
   if(match.stage==='finale'||match.wins[winner]>=2){
    match.winner=winner;
-  }else{
+  }
+  // Anche nei duelli BO3 la partita conclusa resta consultabile finché
+  // i contendenti non hanno visto e confermato la vittoria / sconfitta.
+  game.resultAcknowledged={};
+ });
+}
+export function ascensionAcknowledgeDuelResult(asc,role){
+ if(asc.stage!=='colosseum')throw Error('Il Colosseo non è aperto.');
+ return mutate(asc,next=>{
+  const match=ascensionCurrentMatch(next),game=match?.game;
+  if(!game?.winner||!match.roles.includes(role))throw Error('Nessuna partita da confermare.');
+  if(match.winner)throw Error('Il duello è terminato: aspetta il prossimo incontro.');
+  game.resultAcknowledged={...(game.resultAcknowledged||{}),[role]:true};
+  if(match.roles.every(r=>game.resultAcknowledged[r])){
    match.game=null;match.selection={};match.gameNumber++;
   }
  });
@@ -550,6 +599,9 @@ export function ascensionBotTurn(asc,role,chars,rng=Math.random){
    const p=participant(asc,role),max=match.stage==='finale'?ASCENSION_FINAL_TEAM:3;
    return ascensionChooseLineup(asc,role,p.roster.slice().sort((a,b)=>b.level-a.level).slice(0,max).map(m=>m.id),chars);
   }
+  if(match.game.winner){
+   return match.game.resultAcknowledged?.[role]?asc:ascensionAcknowledgeDuelResult(asc,role);
+  }
   if(match.game.actions[role])return asc;
   const unit=match.game.units[role][firstAlive(match.game.units[role])];
   const moves=ascensionFind(chars,unit.id).moves||[];
@@ -572,7 +624,7 @@ export function ascensionSettleBots(asc,room,chars,rng=Math.random){
    else if(next.stage==='colosseum'){
     const m=ascensionCurrentMatch(next);
     needed=Boolean(m&&m.roles.includes(role)&&!m.winner&&
-      (!m.selection[role]||m.game&&!m.game.actions[role]));
+      (!m.selection[role]||m.game?.winner&&!m.game.resultAcknowledged?.[role]||m.game&&!m.game.actions[role]));
    }
    if(!needed)continue;
    const after=ascensionBotTurn(next,role,chars,rng);
