@@ -83,7 +83,7 @@ export function AscensionBattleResult({room,role,characters,onAction,onHost,onNe
     <small>{duel?'IL VERDETTO DELL’ARENA':captureSuccess?'LA PRISMABALL HA RISPOSTO':'BATTAGLIA CONCLUSA'}</small>
     <h1>{title}</h1>
     <p>{subtitle}</p>
-    <div className="ac-result-turn">⚔️ Scontro concluso al turno {turn}{turn===1?' · KO al primo turno!':''}</div>
+    <div className="ac-result-turn">⚔️ Scontro concluso al turno {turn}{turn===1&&victory?' · KO al primo turno!':''}</div>
    </div>
    <div className="ac-result-stage" aria-label="Schieramenti alla conclusione">
     <Face title={heroName} {...playerFighter} defeated={playerFighter?.hp<=0}/>
