@@ -6,6 +6,7 @@ export function roomInvitationCapacity(room){
   if(room?.isRoguelikeCoop)return 3;
   const mode=room?.gameMode||'classica';
   if(mode==='classica')return 2;
+  if(mode==='ascension')return 8;
   if(mode==='ultimon')return Math.min(8,Math.max(4,Number(room.settings?.maxPlayers)||4));
   if(['torneo_punti','battleroyale','juggernaut','survival'].includes(mode))
     return Math.min(8,Math.max(2,Number(room.settings?.maxPlayers)||4));
@@ -32,4 +33,4 @@ export function visibleRoomInvitations(rows,uid,now=Date.now()){
 }
 export const roomModeLabel=mode=>({classica:'Sfida Classica',multipla:'Lotta Multipla',
   juggernaut:'Juggernaut',survival:'Sopravvivenza',torneo:'Torneo',
-  torneo_punti:'Torneo a Punti',battleroyale:'Battle Royale',ultimon:'Ultimon Multimon'}[mode]||'Battaglia online');
+  torneo_punti:'Torneo a Punti',battleroyale:'Battle Royale',ultimon:'Ultimon Multimon',ascension:'Ascesa del Colosseo'}[mode]||'Battaglia online');
