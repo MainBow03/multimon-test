@@ -79,8 +79,9 @@ import { initialGameState } from './systems/gameState.js';
 import { UltimonView } from './screens/battle/UltimonView.jsx';
 import {AscensionView} from './screens/battle/AscensionView.jsx';
 import {AscensionClassicBattle} from './screens/battle/AscensionClassicBattle.jsx';
+import {AscensionBattleResult} from './screens/battle/AscensionBattleResult.jsx';
 import {ASCENSION_STATUS,ascensionSelectStarter,ascensionBeginAction,
- ascensionPlayEncounter,ascensionTrain,ascensionBuy,ascensionNextRound,ascensionRoundReady,
+ ascensionPlayEncounter,ascensionAcknowledgeEncounterResult,ascensionAcknowledgeDuelResult,ascensionTrain,ascensionBuy,ascensionNextRound,ascensionRoundReady,
  ascensionChooseLineup,ascensionDuelAction,ascensionCurrentMatch,ascensionAdvanceMatch,ascensionSettleBots}
  from './systems/colosseumAscension.js';
 import {ultimonBanPatch,beginUltimonDraftAfterBans} from './systems/ultimonBans.js';
@@ -1653,6 +1654,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                 if(kind==='starter')a=ascensionSelectStarter(a,actor,value,CHARACTERS);
                 else if(kind==='round')a=ascensionBeginAction(a,actor,value,CHARACTERS);
                 else if(kind==='encounter')a=ascensionPlayEncounter(a,actor,value,CHARACTERS);
+                else if(kind==='encounter-continue')a=ascensionAcknowledgeEncounterResult(a,actor);
+                else if(kind==='duel-continue')a=ascensionAcknowledgeDuelResult(a,actor);
                 else if(kind==='train')a=ascensionTrain(a,actor,value,CHARACTERS);
                 else if(kind==='buy')a=ascensionBuy(a,actor,value.itemId,value.memberId,CHARACTERS);
                 else if(kind==='lineup')a=ascensionChooseLineup(a,actor,value,CHARACTERS);
@@ -2302,6 +2305,17 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
         setPlayerRole(humans[(index+1)%humans.length]);
       };
       const liveMatch=ascensionCurrentMatch(asc);
+      const pendingResult=asc?.stage==='preparation'&&asc.participants?.[current]?.battleResult;
+      const concludedDuel=asc?.stage==='colosseum'&&liveMatch?.game?.winner;
+      if(pendingResult||concludedDuel){
+        const resultKey=pendingResult?['round-result',current,asc.round,pendingResult.nonce].join(':'):
+          ['duel-result',current,asc.matchIndex,liveMatch.gameNumber].join(':');
+        return <AscensionBattleResult key={resultKey} room={gameState} role={current}
+          characters={CHARACTERS} local={local} onNextPlayer={local?goNextLocal:null}
+          canHost={local||playerRole==='p1'||canRecoverRoom(gameState,playerRole)}
+          onAction={(kind,value)=>ascensionMutation(kind,value,current)}
+          onHost={kind=>ascensionMutation(kind,null,current)}/>;
+      }
       const inAscensionCombat=Boolean(asc?.participants?.[current]?.encounter||
         (asc?.stage==='colosseum'&&liveMatch?.game&&!liveMatch.winner));
       if(inAscensionCombat){
