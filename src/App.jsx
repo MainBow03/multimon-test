@@ -77,6 +77,11 @@ import { getCampaignStoryCharacters } from './systems/campaignSystem.js';
 import { TYPE_STYLES, TYPE_CHART, PLAYER_THEMES, getMultiplier, getDefaultAvatar } from './systems/typeSystem.js';
 import { initialGameState } from './systems/gameState.js';
 import { UltimonView } from './screens/battle/UltimonView.jsx';
+import {AscensionView} from './screens/battle/AscensionView.jsx';
+import {ASCENSION_STATUS,ascensionSelectStarter,ascensionBeginAction,
+ ascensionPlayEncounter,ascensionTrain,ascensionNextRound,ascensionRoundReady,
+ ascensionChooseLineup,ascensionDuelAction,ascensionAdvanceMatch,ascensionSettleBots}
+ from './systems/colosseumAscension.js';
 import {ultimonBanPatch,beginUltimonDraftAfterBans} from './systems/ultimonBans.js';
 import {ultimonLeaderboard} from './systems/ultimonSystem.js';
 import {beginUltimonIntroduction,ultimonIntroMonologuePatch,ultimonIntroEntrancePatch,advanceUltimonIntroduction,skipUltimonCurrentPresentation} from './systems/ultimonIntro.js';
@@ -1633,6 +1638,56 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
             return startBattleImpl({ appMode, applyOnEnterPassive, gameState, getRequiredPlayers, matchStartTimeRef, playerName, setCombatLog, setCommandingIdx, setIsLogOpen, setPlayerRole, updateLocalStats, updateState }, ...__args);
           };
 
+          // Ascesa del Colosseo: una transazione atomica per ogni azione.
+          // L'autore di una mossa deve coincidere con l'UID dello slot.
+          // La progressione degli altri sette partecipanti resta sincronizzata.
+          const ascensionMutation=async(kind,value,actor=playerRole)=>{
+            if(gameState.gameMode!=='ascension'||gameState.status!==ASCENSION_STATUS)return;
+            try{
+              const hostOperation=['next-round','next-match','bots'].includes(kind);
+              const compute=room=>{
+                if(room.gameMode!=='ascension'||room.status!==ASCENSION_STATUS||!room.ascension)
+                  throw new Error('La fase del Colosseo è cambiata.');
+                let a=room.ascension;
+                if(kind==='starter')a=ascensionSelectStarter(a,actor,value,CHARACTERS);
+                else if(kind==='round')a=ascensionBeginAction(a,actor,value,CHARACTERS);
+                else if(kind==='encounter')a=ascensionPlayEncounter(a,actor,value,CHARACTERS);
+                else if(kind==='train')a=ascensionTrain(a,actor,value,CHARACTERS);
+                else if(kind==='lineup')a=ascensionChooseLineup(a,actor,value,CHARACTERS);
+                else if(kind==='duel-move')a=ascensionDuelAction(a,actor,value,CHARACTERS);
+                else if(kind==='next-round'){
+                  if(!ascensionRoundReady(a))throw new Error('Altri giocatori non hanno ancora concluso.');
+                  a=ascensionNextRound(a,CHARACTERS);
+                }else if(kind==='next-match')a=ascensionAdvanceMatch(a,CHARACTERS);
+                else if(kind!=='bots')throw new Error('Azione non valida.');
+                a=ascensionSettleBots(a,room,CHARACTERS);
+                return {ascension:a};
+              };
+              if(appMode==='local_room'){
+                await updateState(compute(gameState));return;
+              }
+              if(appMode!=='online_room'||!roomId||!user?.uid)throw new Error('Stanza online non disponibile.');
+              const ref=doc(db,'artifacts',appId,'public','data','rooms',roomId);
+              await runTransaction(db,async tx=>{
+                const snap=await tx.get(ref);
+                if(!snap.exists())throw new Error('Stanza non trovata.');
+                const live=snap.data();
+                if(hostOperation){
+                  if(playerRole!=='p1'&&(!canRecoverRoom(live,playerRole)||live.playerUids?.[playerRole]!==user.uid))
+                    throw new Error('Solo l host o il sostituto autorizzato può avanzare.');
+                  if(playerRole==='p1'&&live.playerUids?.p1!==user.uid)
+                    throw new Error('Solo l host originale può avanzare.');
+                }else if(actor!==playerRole||live.playerUids?.[actor]!==user.uid||live.isBot?.[actor]){
+                  throw new Error('Non puoi comandare la squadra di un altro giocatore.');
+                }
+                tx.update(ref,compute(live));
+              });
+            }catch(error){
+              console.error('Ascesa del Colosseo',error);
+              setSystemAlert('Ascesa del Colosseo: '+(error.message||error));
+            }
+          };
+
           // Ultimon: transizioni atomiche per la stanza online.
           const ultimonMutation = async (allowed,build,actor=null,strictHost=false) => {
             if(!['local_room','online_room'].includes(appMode)||gameState.gameMode!=='ultimon')return;
@@ -2227,6 +2282,24 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
   const __screen = renderLobbyView({ ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Loader2, SOUNDTRACKS, Swords, TYPE_STYLES, Users, Volume2, appMode, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleAddBot, handleRemovePlayer, isAllPlayersJoined, leaveRoom, playerRole, roomId, setDraftTimeLeft, startBattle, updateState });
   if (__screen !== undefined) return __screen;
 }
+
+    if(gameState.gameMode==='ascension'&&gameState.status===ASCENSION_STATUS){
+      const asc=gameState.ascension;
+      const current=asc?.roles?.includes(playerRole)?playerRole:asc?.roles?.[0]||'p1';
+      const local=appMode==='local_room';
+      const goNextLocal=()=>{
+        if(!local||!asc)return;
+        const humans=asc.roles.filter(r=>!gameState.isBot?.[r]);
+        if(humans.length<=1)return;
+        const index=humans.indexOf(current);
+        setPlayerRole(humans[(index+1)%humans.length]);
+      };
+      return <AscensionView room={gameState} characters={CHARACTERS} role={current}
+        local={local} onNextPlayer={goNextLocal} onExit={leaveRoom}
+        canHost={local||playerRole==='p1'||canRecoverRoom(gameState,playerRole)}
+        onAction={(kind,value)=>ascensionMutation(kind,value,current)}
+        onHost={kind=>ascensionMutation(kind,null,current)}/>;
+    }
 
     if (gameState.status === 'drafting') {
   const __screen = renderDraftingView({ ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftRole, setDraftRole, draftPrice, setDraftPrice, draftFavorites, draftFavoritesOnly, setDraftFavoritesOnly, toggleDraftFavorite, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState });
