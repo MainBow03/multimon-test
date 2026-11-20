@@ -6,7 +6,7 @@ import {
  ASCENSION_ROUNDS,ASCENSION_MAX_TEAM,ASCENSION_MAX_LEVEL,ASCENSION_FINAL_TEAM,ASCENSION_STARTING_BALLS,
  ascensionStarterPool,ascensionCreate,ascensionSelectStarter,ascensionFighterFromMember,
  ascensionWildLevel,ascensionCaptureChance,ascensionBeginAction,ascensionPlayEncounter,
- ascensionTrain,ascensionRoundReady,ascensionNextRound,ascensionSettleBots,
+ ascensionTrain,ascensionBuy,ASCENSION_SHOP,ascensionRoundReady,ascensionNextRound,ascensionSettleBots,
  ascensionCurrentMatch,ascensionChooseLineup,ascensionDuelAction,ascensionAdvanceMatch
 } from '../src/systems/colosseumAscension.js';
 
@@ -181,6 +181,31 @@ test('Le CPU scelgono starter e svolgono il proprio round senza interazioni manu
  assert.equal(a.stage,'preparation');
  assert.ok(roles.slice(1).every(r=>a.participants[r].done));
  assert.equal(a.participants.p1.done,false);
+});
+
+test('Mercato usa monete vere, massimo due acquisti e niente allenamento comprabile',()=>{
+ let a=ready();
+ assert.ok(ASCENSION_SHOP.every(item=>item.price>0));
+ assert.ok(!ASCENSION_SHOP.some(item=>item.training));
+ assert.throws(()=>ascensionBuy(a,'p1','bad-item',null,CHARACTERS));
+ a=ascensionBuy(a,'p1','ball',null,CHARACTERS);
+ assert.equal(a.participants.p1.prismaballs,21);
+ assert.equal(a.participants.p1.coins,65);
+ const member=a.participants.p1.roster[0];
+ member.hp=Math.max(1,member.hp-22);
+ a=ascensionBuy(a,'p1','potion',member.id,CHARACTERS);
+ assert.ok(a.participants.p1.roster[0].hp>member.hp);
+ assert.equal(a.participants.p1.coins,43);
+ assert.throws(()=>ascensionBuy(a,'p1','ball',null,CHARACTERS));
+});
+
+test('Non si catturano due volte gli stessi Multimon, ma resta possibile guadagnare esperienza',()=>{
+ let a=ready();
+ a=ascensionBeginAction(a,'p1','wild',CHARACTERS,()=>.76);
+ const target=a.participants.p1.encounter.foeId;
+ assert.notEqual(target,a.participants.p1.roster[0].id);
+ a.participants.p1.roster.push({id:target,level:1,hp:70,xp:0,trainingHalves:0});
+ assert.throws(()=>ascensionPlayEncounter(a,'p1',{type:'ball'},CHARACTERS),/già presente/);
 });
 
 test('Le schermate usano stanze, catture originali e comandi colosseo',()=>{
