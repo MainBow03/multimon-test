@@ -462,3 +462,27 @@ export function ascensionBotTurn(asc,role,chars,rng=Math.random){
  }
  return asc;
 }
+
+export function ascensionSettleBots(asc,room,chars,rng=Math.random){
+ let next=asc;
+ for(let cycle=0;cycle<95;cycle++){
+  let changed=false;
+  for(const role of next.roles){
+   if(!room.isBot?.[role])continue;
+   const p=participant(next,role);
+   let needed=false;
+   if(next.stage==='starters')needed=!p.roster.length;
+   else if(next.stage==='preparation')needed=!p.done;
+   else if(next.stage==='colosseum'){
+    const m=ascensionCurrentMatch(next);
+    needed=Boolean(m&&m.roles.includes(role)&&!m.winner&&
+      (!m.selection[role]||m.game&&!m.game.actions[role]));
+   }
+   if(!needed)continue;
+   const after=ascensionBotTurn(next,role,chars,rng);
+   if(after!==next){next=after;changed=true;}
+  }
+  if(!changed)break;
+ }
+ return next;
+}
