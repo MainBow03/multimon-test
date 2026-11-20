@@ -444,8 +444,17 @@ export function ascensionDuelAction(asc,role,moveIndex,chars,rng=Math.random){
   }
   game.turn++;game.actions={};game.log=[...game.log,...log].slice(-10);
   const defeated=match.roles.find(r=>!alive(game.units[r]).length);
-  if(!defeated)return;
-  const winner=match.roles.find(r=>r!==defeated);
+  const timeLimit=game.turn>=46;
+  if(!defeated&&!timeLimit)return;
+  const winner=defeated?match.roles.find(r=>r!==defeated):
+    match.roles.slice().sort((a,b)=>{
+      // A parità di turni prevale chi ha conservato più PS relativi.
+      // Evita scontri infiniti tra squadre con troppe mosse di cura.
+      const ratio=r=>game.units[r].reduce((n,m)=>n+m.hp/
+        Math.max(1,ascensionScaledMaxHp(ascensionFind(chars,m.id),m.level)),0);
+      return ratio(b)-ratio(a);
+    })[0];
+  if(timeLimit)game.log.push('Limite turni: vince la squadra con più PS rimasti.');
   match.wins[winner]=(match.wins[winner]||0)+1;
   game.winner=winner;
   if(match.stage==='finale'||match.wins[winner]>=2){
