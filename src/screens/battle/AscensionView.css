@@ -160,3 +160,16 @@ button.ac-portrait{cursor:pointer}.ac-portrait.selected{border:2px solid #81efd3
 .ac-shop-row strong{display:block;font-size:11px;margin-bottom:7px}
 .ac-shop-row>div{display:flex;flex-wrap:wrap;gap:6px}
 .ac-shop button:disabled{opacity:.3;cursor:not-allowed}
+
+/* Selezione starter: il pulsante occupa una riga PROPRIA sopra l'illustrazione.
+   Mai sovrapposto ai PNG, nemmeno nelle griglie strette da tablet. */
+.ac-starters{align-items:stretch}
+.ac-starters .ac-starter{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);align-content:start;align-items:start;gap:12px;padding:11px;min-width:0;background:linear-gradient(150deg,#23476b,#191d45);border:1px solid #a7d5ec73;border-radius:17px;box-shadow:0 9px 22px #060a1e70}
+.ac-starters .ac-starter .ac-starter-select{display:block;position:relative;z-index:1;width:100%;min-width:0;min-height:43px;white-space:normal;overflow-wrap:anywhere;padding:9px 5px;font-size:11px;line-height:1.35;border-radius:11px;box-shadow:0 5px 12px #0005}
+.ac-starters .ac-starter .ac-portrait{align-self:start;position:relative;display:flex;flex-direction:column;gap:7px;padding:5px 3px;border:0;background:transparent;min-width:0;max-width:100%;overflow:visible}
+.ac-starters .ac-starter .ac-portrait-frame{width:100%;min-height:130px;height:clamp(140px,13vw,182px);padding:7px;background:radial-gradient(ellipse at 50% 80%,#55bcbe6b,transparent 65%),linear-gradient(160deg,#1f466c,#111e45);overflow:hidden;border:1px solid #91ddfa7d;border-radius:13px}
+.ac-starters .ac-starter .ac-portrait-frame img{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center;filter:drop-shadow(0 7px 6px #0007)}
+.ac-starters .ac-starter .ac-portrait>strong{font-size:clamp(11px,1.3vw,15px);line-height:1.32;text-align:center;overflow-wrap:anywhere}
+.ac-starters .ac-starter .ac-portrait>small{font-size:10px;color:#b4e6ed}
+@media(max-width:950px){.ac-starters .ac-starter .ac-portrait-frame{height:155px}}
+@media(max-width:610px){.ac-starters .ac-starter{padding:7px;gap:8px}.ac-starters .ac-starter .ac-starter-select{font-size:10px;padding:8px 5px;min-height:40px}.ac-starters .ac-starter .ac-portrait-frame{height:139px;min-height:122px}}
