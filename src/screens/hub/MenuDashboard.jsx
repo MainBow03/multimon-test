@@ -227,8 +227,7 @@ export function MenuDashboard({ctx}){
     {tab==='adventure'&&<>
      <div className="mm-dash-section-title"><div><small>✦ SCELTE DI GIOCO</small><h2>Ogni sfida è una storia</h2></div><p>Ogni portale nasconde una nuova sfida!</p></div>
      <div className={'mm-dash-card-grid mm-dash-card-grid--'+tab}>
-      {card('🌍','Campagna','Mondo 3D aperto: starter, 6 Palestre, livelli e Lega!',()=>setAppMode('adventure_world'),'green','NUOVO · 3D')}
-      {card('📖','Campagne','Esplora le storie del multiverso.',()=>launch('campaign',()=>setAppMode('campaign_select')),'green')}
+      {card('📖','Campagne','Le grandi storie del multiverso: scegli una campagna e continua la tua avventura.',()=>launch('campaign',()=>setAppMode('campaign_select')),'green')}
       {card('🎲','Roguelike Solo','50 piani, reclute e sfide imprevedibili.',startRogueSolo,'purple',
        roguelikeState.isStarted&&roguelikeState.roster.length?'Piano '+roguelikeState.floor:'')}
       {card('🤝','Roguelike Co-op','Unisciti ai tuoi amici nella spedizione.',()=>launch('rogue_coop',handleCreateRoguelikeCoop),'pink')}
