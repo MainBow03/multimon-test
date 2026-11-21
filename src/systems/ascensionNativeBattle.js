@@ -3,7 +3,7 @@
 // (priorità > velocità), gli stessi status, buff, passive, protezioni e danni
 // delle sfide classiche. Solo EXP/Prismaball/percorso restano propri del Colosseo.
 import {initialGameState} from './gameState.js';
-import {calculateTurnImpl,calculateDamageImpl} from './battleSystem.js';
+import {calculateTurnImpl,calculateDamageImpl,applyOnEnterPassiveImpl} from './battleSystem.js';
 import {getMultiplier} from './typeSystem.js';
 import {MOVES_DB} from '../data/moves.js';
 
@@ -62,6 +62,21 @@ export function ascensionNativeTurn({
  state.battleWeather=weather;
  state.battleTailwind=clone(tailwind);
  state.battleReport={...state.battleReport,turns:Math.max(0,turn-1)};
+ // Le passsive d'ingresso sono attivate COME nel combattimento originale,
+ // prima che venga formata la coda del primo turno. Lucy è già evocata
+ // nelle lotte selvatiche (e in quel caso non viene duplicata).
+ const entryEvents=[...initialEvents];
+ if(turn===1)for(const side of slots){
+  const startingField=[...(state.field[side]||[])];
+  for(const idx of startingField){
+   const actor=state.teams[side]?.[idx];
+   if(!actor||actor.hp<=0||actor.passive?.type!=='on_enter')continue;
+   if(actor.id==='lucy'&&state.teams[side].some(c=>c?.isZodiacSpirit))continue;
+   actor.passiveUses=(actor.passiveUses||0)+1;
+   applyOnEnterPassiveImpl({CHARACTERS:characters},actor,side,idx,
+    state.teams,state.field,entryEvents,'classica',state.settings,false);
+  }
+ }
  const allActions={p1:clone(actionsOne||{}),p2:clone(actionsTwo||{})};
  let result=null;
  const ctx={
@@ -81,10 +96,10 @@ export function ascensionNativeTurn({
   field:{p1:result.field.p1,p2:result.field.p2},
   startTeams:{p1:result.startOfTurnTeams.p1,p2:result.startOfTurnTeams.p2},
   startField:{p1:result.startOfTurnField.p1,p2:result.startOfTurnField.p2},
-  events:[...initialEvents,...(result.events||[])],
+  events:[...entryEvents,...(result.events||[])],
   weather:result.battleWeather||null,tailwind:result.battleTailwind||{},
   winner:result.winner,status:result.postExecStatus,
-  log:[...initialEvents,...(result.events||[])].map(e=>e.text).filter(Boolean),
+  log:[...entryEvents,...(result.events||[])].map(e=>e.text).filter(Boolean),
   battleReport:result.battleReport
  };
 }
