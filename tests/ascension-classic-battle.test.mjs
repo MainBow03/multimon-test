@@ -78,10 +78,11 @@ test('Cambio nel pannello originale fa passare il turno senza duplicare un attac
  a=ascensionChooseLineup(a,second,[a.participants[second].roster[0].id],CHARACTERS);
  assert.throws(()=>ascensionDuelAction(a,first,{type:'switch',fromIdx:0,index:0},CHARACTERS));
  a=ascensionDuelAction(a,first,{type:'switch',fromIdx:0,index:1},CHARACTERS);
- assert.equal(a.bracket[0].game.actions[first].type,'switch');
+ assert.equal(a.bracket[0].game.actions[first][0].type,'switch');
  a=ascensionDuelAction(a,second,0,CHARACTERS,()=>.5);
- assert.equal(a.bracket[0].game.units[first][0].id,extra.id);
- assert.ok(a.bracket[0].game.log.some(x=>x.includes('Cambio di squadra')));
+ assert.equal(a.bracket[0].game.field[first][0],1);
+ assert.equal(a.bracket[0].game.units[first][1].id,extra.id);
+ assert.ok(a.bracket[0].game.log.some(x=>/ritira|entra in campo|manda in campo/i.test(x)));
 });
 test('Ascesa usa realmente BattlingView e non la vecchia arena finta',()=>{
  const adapter=readFileSync(new URL('../src/screens/battle/AscensionClassicBattle.jsx',import.meta.url),'utf8');
