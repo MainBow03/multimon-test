@@ -806,7 +806,12 @@ export function ascensionBotTurn(asc,role,chars,rng=Math.random){
    const p=participant(asc,role),max=match.stage==='finale'?ASCENSION_FINAL_TEAM:3;
    return ascensionChooseLineup(asc,role,p.roster.slice().sort((a,b)=>b.level-a.level).slice(0,max).map(m=>m.id),chars);
   }
-  if(match.game?.classicRoom)return asc; // Il duello vero viene diretto dalla stanza classica.
+  if(match.game&&!match.game.classicRoom)return asc; // Inizializzazione prima dei comandi CPU.
+  if(match.game?.classicRoom){
+   if(match.game.winner&&!match.winner)
+    return match.game.resultAcknowledged?.[role]?asc:ascensionAcknowledgeDuelResult(asc,role);
+   return asc; // Nessun motore semplificato in combattimento.
+  }
  if(match.game.winner){
    return match.game.resultAcknowledged?.[role]?asc:ascensionAcknowledgeDuelResult(asc,role);
   }
@@ -836,11 +841,13 @@ export function ascensionSettleBots(asc,room,chars,rng=Math.random){
    else if(next.stage==='preparation')needed=!p.done||!!p.battleResult;
    else if(next.stage==='colosseum'){
     const m=ascensionCurrentMatch(next);
-    needed=Boolean(m&&m.roles.includes(role)&&!m.winner&&!m.game?.classicRoom&&
-      (!m.selection[role]||m.game?.winner&&!m.game.resultAcknowledged?.[role]||m.game&&(()=>{
+    needed=Boolean(m&&m.roles.includes(role)&&!m.winner&&
+      (m.game?.classicRoom
+        ? !!m.game.winner&&!m.game.resultAcknowledged?.[role]
+        : (!m.selection[role]||m.game?.winner&&!m.game.resultAcknowledged?.[role]||m.game&&(()=>{
        const field=m.game.field?.[role]||m.game.units[role].map((u,i)=>u.hp>0?i:-1).filter(i=>i>=0).slice(0,m.stage==='finale'?2:1);
        return field.some(idx=>!m.game.actions?.[role]?.[idx]);
-      })()));
+      })())));
    }
    if(!needed)continue;
    const after=ascensionBotTurn(next,role,chars,rng);
