@@ -1,0 +1,63 @@
+.ac-ceremony{--ceremony-gold:#ffe7ac;min-height:100dvh;color:#fafcff;background:radial-gradient(ellipse at 50% 25%,#8a4b9f55,transparent 52%),radial-gradient(ellipse at 85% 96%,#2072a368,transparent 50%),linear-gradient(145deg,#080d23,#16132e 55%,#221334);padding:clamp(12px,2vw,30px);position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;gap:13px}
+.ac-ceremony-halo{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:-1}
+.ac-ceremony-halo i{position:absolute;border:1px solid #ffd99b1f;border-radius:50%;width:580px;height:580px;left:50%;top:-300px;transform:translateX(-50%);box-shadow:0 0 0 63px #f9ddbb0a,0 0 0 142px #d3b7f407}
+.ac-ceremony-halo i:nth-child(2){width:650px;height:650px;left:0;top:auto;bottom:-450px;border-color:#9bdbff35}
+.ac-ceremony-halo i:nth-child(3){width:510px;height:510px;left:100%;top:15%;border-color:#e9acff30}
+.ac-ceremony-particles{position:absolute;left:0;right:0;top:17%;pointer-events:none;text-align:center;color:#ecdefd4b;letter-spacing:clamp(12px,10vw,130px);font-size:27px;animation:ac-ceremony-float 6s infinite alternate ease-in-out}
+.ac-ceremony-banner{width:min(1180px,100%);margin:0 auto;display:flex;justify-content:space-between;flex-wrap:wrap;gap:9px;background:#0e1836cc;border:1px solid #efcc8e5c;border-radius:15px;padding:13px clamp(14px,2vw,23px);box-shadow:0 8px 26px #05091169;font-size:11px;font-weight:1000;color:#ffdfa3;letter-spacing:.13em}
+.ac-ceremony-stage{display:grid;grid-template-columns:minmax(180px,.7fr) minmax(0,1.65fr);gap:16px;width:min(1180px,100%);margin:0 auto}
+.ac-ceremony-sovereign{border:1px solid #d9b99068;background:radial-gradient(ellipse at 50% 65%,#9d557f77,transparent 61%),linear-gradient(165deg,#292447,#0f1f3c);border-radius:20px;min-height:355px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;box-shadow:inset 0 2px 0 #ffffff12,0 18px 36px #0006;position:relative;overflow:hidden}
+.ac-ceremony-sovereign:after{content:'';position:absolute;left:18%;right:18%;bottom:102px;height:25px;background:#bd98dc6a;filter:blur(19px);border-radius:50%}
+.ac-ceremony-sovereign-art{height:258px;width:90%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;position:relative;filter:drop-shadow(0 12px 12px #0009)}
+.ac-ceremony-crown{position:absolute;top:10px;z-index:3;color:#ffe094;text-shadow:0 0 30px #ffcc4c88;font-size:96px;line-height:1;animation:ac-ceremony-royal 3s ease-in-out infinite}
+.ac-ceremony-face{position:absolute;top:101px;z-index:2;border-radius:50% 50% 46% 46%;height:84px;width:68px;display:grid;place-items:center;background:linear-gradient(135deg,#897398,#24223f 70%);border:2px solid #c3a8bd;color:#ffe79c;font-size:24px;box-shadow:0 0 20px #9b74d87a}
+.ac-ceremony-cloak{position:absolute;bottom:-30px;z-index:1;width:240px;height:136px;max-width:94%;background:linear-gradient(115deg,#4d204e,#ad5680 43%,#43234e 88%);border:4px solid #d5b57d;border-bottom:0;border-radius:95px 95px 10px 10px;transform:perspective(300px) rotateX(5deg)}
+.ac-ceremony-cloak:before{content:'✧';position:absolute;left:50%;top:23px;transform:translateX(-50%);font-size:30px;color:#ffdf9e}
+.ac-ceremony-royal-caption{position:relative;z-index:3;padding:18px 10px;background:linear-gradient(180deg,#0c123000,#090e26fa 45%);width:100%;display:flex;flex-direction:column;text-align:center;gap:4px}
+.ac-ceremony-royal-caption strong{color:var(--ceremony-gold);font-size:18px;font-weight:1000;letter-spacing:.02em}
+.ac-ceremony-royal-caption small{color:#bfcae6;font-size:11px}
+.ac-ceremony-content{border:1px solid #b9b0e07a;border-radius:20px;background:linear-gradient(140deg,#142243ee,#2c2453e8);min-height:355px;box-shadow:0 18px 36px #0006;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;overflow:hidden;padding:17px 22px 18px}
+.ac-ceremony-content:before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 75% 6%,#f4b87730,transparent 43%)}
+.ac-ceremony-eyebrow{font-size:11px;font-weight:1000;letter-spacing:.18em;color:#f8d6a0;z-index:1}
+.ac-ceremony-slide{animation:ac-ceremony-enter .55s cubic-bezier(.15,.8,.2,1) both;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;min-width:0}
+.ac-ceremony-character{position:relative;width:min(250px,100%);height:160px;display:grid;place-items:center}
+.ac-ceremony-character img{position:relative;z-index:2;max-width:100%;width:100%;height:152px;object-fit:contain;filter:drop-shadow(0 9px 9px #000b);animation:ac-ceremony-float 3s ease-in-out infinite alternate}
+.ac-ceremony-portal{position:absolute;z-index:0;left:10%;right:10%;top:0;bottom:0;display:grid;place-items:center;font-size:100px;color:#d2c3fc33;text-shadow:0 0 15px #deabfb;animation:ac-ceremony-portal 6s linear infinite}
+.ac-ceremony-slide h1{font-size:clamp(22px,4vw,36px);line-height:1.1;margin:5px 0;font-weight:1000;text-shadow:0 5px 20px #030a1b;color:#fff;overflow-wrap:anywhere}
+.ac-ceremony-starter-name{color:#ffe39e;font-size:clamp(13px,2vw,19px);font-weight:900}
+.ac-ceremony-starter-name span{font-size:10px;color:#b8cde7}
+.ac-ceremony-you{font-size:10px;color:#082c34;background:#a6faf4;font-weight:1000;padding:5px 11px;border-radius:50px;margin-top:8px;letter-spacing:.11em}
+.ac-ceremony-fallback{font-size:80px;color:#ffde95}
+.ac-ceremony-announcement>span{font-size:66px;display:block;margin:18px 0 7px}
+.ac-ceremony-announcement>h1{color:#ffe4ad}
+.ac-ceremony-announcement p{font-size:12px;color:#e0d9f1;margin:10px auto 15px;max-width:400px}
+.ac-ceremony-dialogue{z-index:1;border-radius:12px;background:#090f24e8;border:1px solid #e6bf8e92;width:100%;min-height:91px;padding:10px 14px;text-align:left;animation:ac-ceremony-fade .4s ease both}
+.ac-ceremony-dialogue-speaker{color:#ffdb97;font-size:11px;font-weight:1000}
+.ac-ceremony-dialogue p{color:#f0edfa;font-size:clamp(11px,1.6vw,14px);line-height:1.55;margin:5px 0 0;font-weight:680}
+.ac-ceremony-lineup{width:min(1180px,100%);margin:0 auto;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}
+.ac-ceremony-contender{min-width:0;background:#131d3ac9;border:1px solid #526d947d;border-radius:14px;padding:7px;display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center;opacity:.66;transition:opacity .3s,border-color .3s,background .3s,transform .3s}
+.ac-ceremony-contender.revealed{opacity:1;border-color:#cdb5dc7a}
+.ac-ceremony-contender.current{border-color:#ffe7a6;background:#48416d;box-shadow:0 0 25px #c597e65e;transform:translateY(-5px)}
+.ac-ceremony-contender-art{width:100%;height:67px;display:grid;place-items:center;border-radius:8px;background:radial-gradient(circle,#6a7daa60,#182240);overflow:hidden}
+.ac-ceremony-contender-art img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 4px #0008)}
+.ac-ceremony-contender-art span{font-size:37px;color:#778aa3;font-weight:1000}
+.ac-ceremony-contender small{font-size:10px;font-weight:900;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ac-ceremony-contender strong{font-size:9px;color:#cfe0f0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ac-ceremony-controls{width:min(1180px,100%);margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ac-ceremony-dots{display:flex;align-items:center;gap:5px}
+.ac-ceremony-dots i{width:14px;height:5px;border-radius:20px;background:#68728e;transition:background .3s}
+.ac-ceremony-dots i.seen{background:#fbd493;box-shadow:0 0 9px #efc8868c}
+.ac-ceremony-buttons{display:flex;align-items:center;gap:10px}
+.ac-ceremony-buttons button{cursor:pointer;border-radius:11px;padding:11px 16px;font-size:12px;font-weight:900}
+.ac-ceremony-skip{color:#c5d5ea;background:#19294c;border:1px solid #839ac46c}
+.ac-ceremony-advance{color:#191b34;background:linear-gradient(115deg,#f9d68d,#f8a98d);border:1px solid #ffebc2;box-shadow:0 8px 18px #0006;min-width:140px}
+.ac-ceremony-advance:hover:not(:disabled){filter:brightness(1.1)}
+.ac-ceremony-advance:disabled{opacity:.56;cursor:wait}
+@keyframes ac-ceremony-enter{from{opacity:0;transform:translateY(20px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes ac-ceremony-fade{from{opacity:0}to{opacity:1}}
+@keyframes ac-ceremony-royal{50%{transform:translateY(-5px);filter:brightness(1.15)}}
+@keyframes ac-ceremony-portal{to{transform:rotate(360deg)}}
+@keyframes ac-ceremony-float{to{transform:translateY(-8px)}}
+@media(max-width:900px){.ac-ceremony-stage{grid-template-columns:160px minmax(0,1fr)}.ac-ceremony-sovereign{min-height:335px}.ac-ceremony-sovereign-art{width:100%}.ac-ceremony-lineup{grid-template-columns:repeat(4,minmax(0,1fr))}.ac-ceremony-contender-art{height:55px}.ac-ceremony-royal-caption strong{font-size:14px}}
+@media(max-width:620px){.ac-ceremony{padding:9px 8px 20px;gap:9px}.ac-ceremony-banner{font-size:9px;gap:4px;padding:9px}.ac-ceremony-stage{grid-template-columns:1fr;gap:8px}.ac-ceremony-sovereign{min-height:76px;display:flex;flex-direction:row;justify-content:flex-start;padding-left:14px}.ac-ceremony-sovereign-art{width:48px;height:65px}.ac-ceremony-crown{font-size:40px;top:0}.ac-ceremony-face{width:29px;height:34px;top:29px;font-size:12px}.ac-ceremony-cloak{width:50px;height:28px;bottom:-10px;border-width:1px}.ac-ceremony-cloak:before{display:none}.ac-ceremony-royal-caption{width:auto;text-align:left;background:none;padding:4px 10px}.ac-ceremony-royal-caption strong{font-size:15px}.ac-ceremony-royal-caption small{font-size:10px}.ac-ceremony-content{min-height:332px;padding:13px 12px}.ac-ceremony-character{height:127px}.ac-ceremony-character img{height:121px}.ac-ceremony-slide h1{font-size:23px}.ac-ceremony-dialogue{min-height:96px;padding:10px}.ac-ceremony-dialogue p{font-size:12px}.ac-ceremony-lineup{gap:5px}.ac-ceremony-contender{padding:5px;border-radius:8px}.ac-ceremony-contender-art{height:48px}.ac-ceremony-contender small{font-size:8px}.ac-ceremony-contender strong{font-size:8px}.ac-ceremony-controls{justify-content:center}.ac-ceremony-buttons{width:100%;justify-content:center}.ac-ceremony-buttons button{padding:10px;font-size:11px}}
+@media(prefers-reduced-motion:reduce){.ac-ceremony-particles,.ac-ceremony-crown,.ac-ceremony-character img,.ac-ceremony-portal,.ac-ceremony-slide,.ac-ceremony-dialogue{animation:none!important}.ac-ceremony-contender{transition:none!important}}
