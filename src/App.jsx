@@ -83,7 +83,10 @@ import {AscensionBattleResult} from './screens/battle/AscensionBattleResult.jsx'
 import {AscensionOpeningCeremony} from './screens/battle/AscensionOpeningCeremony.jsx';
 import {ASCENSION_STATUS,ascensionSelectStarter,ascensionBeginAction,
  ascensionPlayEncounter,ascensionResolveEncounterReaction,ascensionSelectEncounterSpirit,ascensionAcknowledgeOpening,ascensionAcknowledgeEncounterResult,ascensionAcknowledgeDuelResult,ascensionTrain,ascensionBuy,ascensionNextRound,ascensionRoundReady,
- ascensionChooseLineup,ascensionDuelAction,ascensionCurrentMatch,ascensionAdvanceMatch,ascensionSettleBots}
+ ascensionChooseLineup,ascensionDuelAction,ascensionCurrentMatch,ascensionAdvanceMatch,ascensionSettleBots,
+ ascensionCreateRealEncounter,ascensionCreateRealDuel,ascensionRealSubmit,
+ ascensionRealAdvance,ascensionRealReplace,ascensionRealForceReplace,
+ ascensionRealCapture,ascensionRealCaptureContinue,ascensionRealFlee,ascensionRealBotDuels}
  from './systems/colosseumAscension.js';
 import {ultimonBanPatch,beginUltimonDraftAfterBans} from './systems/ultimonBans.js';
 import {ultimonLeaderboard} from './systems/ultimonSystem.js';
@@ -1668,7 +1671,29 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                   throw new Error('La fase del Colosseo è cambiata.');
                 let a=room.ascension;
                 if(kind==='starter')a=ascensionSelectStarter(a,actor,value,CHARACTERS);
-                else if(kind==='round')a=ascensionBeginAction(a,actor,value,CHARACTERS);
+                else if(kind==='round'){
+                  a=ascensionBeginAction(a,actor,value,CHARACTERS);
+                  if(a.participants?.[actor]?.encounter)
+                    a=ascensionCreateRealEncounter(a,actor,CHARACTERS,room);
+                }else if(kind==='native-init'){
+                  if(a.stage==='preparation')
+                    a=ascensionCreateRealEncounter(a,actor,CHARACTERS,room);
+                  else if(a.stage==='colosseum')
+                    a=ascensionCreateRealDuel(a,CHARACTERS,room);
+                }else if(kind==='native-commit')
+                  a=ascensionRealSubmit(a,actor,value.actions,value.phase,CHARACTERS);
+                else if(kind==='native-advance')
+                  a=ascensionRealAdvance(a,actor,value.phase,CHARACTERS);
+                else if(kind==='native-switch')
+                  a=ascensionRealReplace(a,actor,value.index,CHARACTERS,value.spiritId||null);
+                else if(kind==='native-force-switch')
+                  a=ascensionRealForceReplace(a,actor,CHARACTERS);
+                else if(kind==='native-capture')
+                  a=ascensionRealCapture(a,actor,CHARACTERS);
+                else if(kind==='native-capture-continue')
+                  a=ascensionRealCaptureContinue(a,actor,CHARACTERS);
+                else if(kind==='native-flee')
+                  a=ascensionRealFlee(a,actor,CHARACTERS);
                 else if(kind==='encounter')a=ascensionPlayEncounter(a,actor,value,CHARACTERS);
                 else if(kind==='encounter-reaction')a=ascensionResolveEncounterReaction(a,actor,CHARACTERS);
                 else if(kind==='encounter-spirit')a=ascensionSelectEncounterSpirit(a,actor,value,CHARACTERS);
@@ -1677,7 +1702,10 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                 else if(kind==='duel-continue')a=ascensionAcknowledgeDuelResult(a,actor);
                 else if(kind==='train')a=ascensionTrain(a,actor,value,CHARACTERS);
                 else if(kind==='buy')a=ascensionBuy(a,actor,value.itemId,value.memberId,CHARACTERS);
-                else if(kind==='lineup')a=ascensionChooseLineup(a,actor,value,CHARACTERS);
+                else if(kind==='lineup'){
+                  a=ascensionChooseLineup(a,actor,value,CHARACTERS);
+                  a=ascensionCreateRealDuel(a,CHARACTERS,room);
+                }
                 else if(kind==='duel-move')a=ascensionDuelAction(a,actor,value,CHARACTERS);
                 else if(kind==='duel-switch')a=ascensionDuelAction(a,actor,{type:'switch',index:value.index,fromIdx:value.fromIdx},CHARACTERS);
                 else if(kind==='next-round'){
@@ -1686,6 +1714,12 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                 }else if(kind==='next-match')a=ascensionAdvanceMatch(a,CHARACTERS);
                 else if(kind!=='bots')throw new Error('Azione non valida.');
                 a=ascensionSettleBots(a,room,CHARACTERS);
+                // CPU formation is selected by the existing tournament logic.
+                // Create its genuine classic battle BEFORE any CPU gets a turn.
+                if(a.stage==='colosseum'&&ascensionCurrentMatch(a)?.game &&
+                   !ascensionCurrentMatch(a).game.classicRoom)
+                  a=ascensionCreateRealDuel(a,CHARACTERS,room);
+                a=ascensionRealBotDuels(a,room,CHARACTERS);
                 return {ascension:a};
               };
               if(appMode==='local_room'){
