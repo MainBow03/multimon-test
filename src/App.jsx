@@ -80,8 +80,9 @@ import { UltimonView } from './screens/battle/UltimonView.jsx';
 import {AscensionView} from './screens/battle/AscensionView.jsx';
 import {AscensionClassicBattle} from './screens/battle/AscensionClassicBattle.jsx';
 import {AscensionBattleResult} from './screens/battle/AscensionBattleResult.jsx';
+import {AscensionOpeningCeremony} from './screens/battle/AscensionOpeningCeremony.jsx';
 import {ASCENSION_STATUS,ascensionSelectStarter,ascensionBeginAction,
- ascensionPlayEncounter,ascensionResolveEncounterReaction,ascensionSelectEncounterSpirit,ascensionAcknowledgeEncounterResult,ascensionAcknowledgeDuelResult,ascensionTrain,ascensionBuy,ascensionNextRound,ascensionRoundReady,
+ ascensionPlayEncounter,ascensionResolveEncounterReaction,ascensionSelectEncounterSpirit,ascensionAcknowledgeOpening,ascensionAcknowledgeEncounterResult,ascensionAcknowledgeDuelResult,ascensionTrain,ascensionBuy,ascensionNextRound,ascensionRoundReady,
  ascensionChooseLineup,ascensionDuelAction,ascensionCurrentMatch,ascensionAdvanceMatch,ascensionSettleBots}
  from './systems/colosseumAscension.js';
 import {ultimonBanPatch,beginUltimonDraftAfterBans} from './systems/ultimonBans.js';
@@ -1656,6 +1657,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                 else if(kind==='encounter')a=ascensionPlayEncounter(a,actor,value,CHARACTERS);
                 else if(kind==='encounter-reaction')a=ascensionResolveEncounterReaction(a,actor,CHARACTERS);
                 else if(kind==='encounter-spirit')a=ascensionSelectEncounterSpirit(a,actor,value,CHARACTERS);
+                else if(kind==='intro-seen')a=ascensionAcknowledgeOpening(a,actor);
                 else if(kind==='encounter-continue')a=ascensionAcknowledgeEncounterResult(a,actor);
                 else if(kind==='duel-continue')a=ascensionAcknowledgeDuelResult(a,actor);
                 else if(kind==='train')a=ascensionTrain(a,actor,value,CHARACTERS);
@@ -2306,6 +2308,14 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
         const index=humans.indexOf(current);
         setPlayerRole(humans[(index+1)%humans.length]);
       };
+      // Prima del primo bivio, il sovrano presenta gli otto contendenti.
+      // Si vede soltanto quando tutti hanno già selezionato uno starter.
+      if(asc?.stage==='preparation'&&asc.round===1&&!asc.participants?.[current]?.introSeen&&
+         !asc.participants?.[current]?.encounter&&!asc.participants?.[current]?.done){
+        return <AscensionOpeningCeremony key={'ascension-intro-'+current}
+          asc={asc} room={gameState} role={current} characters={CHARACTERS}
+          onFinish={()=>ascensionMutation('intro-seen',null,current)}/>;
+      }
       const liveMatch=ascensionCurrentMatch(asc);
       const pendingResult=asc?.stage==='preparation'&&asc.participants?.[current]?.battleResult;
       const concludedDuel=asc?.stage==='colosseum'&&liveMatch?.game?.winner;
