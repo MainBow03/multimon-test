@@ -81,7 +81,7 @@ import {AscensionView} from './screens/battle/AscensionView.jsx';
 import {AscensionClassicBattle} from './screens/battle/AscensionClassicBattle.jsx';
 import {AscensionBattleResult} from './screens/battle/AscensionBattleResult.jsx';
 import {ASCENSION_STATUS,ascensionSelectStarter,ascensionBeginAction,
- ascensionPlayEncounter,ascensionAcknowledgeEncounterResult,ascensionAcknowledgeDuelResult,ascensionTrain,ascensionBuy,ascensionNextRound,ascensionRoundReady,
+ ascensionPlayEncounter,ascensionResolveEncounterReaction,ascensionSelectEncounterSpirit,ascensionAcknowledgeEncounterResult,ascensionAcknowledgeDuelResult,ascensionTrain,ascensionBuy,ascensionNextRound,ascensionRoundReady,
  ascensionChooseLineup,ascensionDuelAction,ascensionCurrentMatch,ascensionAdvanceMatch,ascensionSettleBots}
  from './systems/colosseumAscension.js';
 import {ultimonBanPatch,beginUltimonDraftAfterBans} from './systems/ultimonBans.js';
@@ -1654,6 +1654,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                 if(kind==='starter')a=ascensionSelectStarter(a,actor,value,CHARACTERS);
                 else if(kind==='round')a=ascensionBeginAction(a,actor,value,CHARACTERS);
                 else if(kind==='encounter')a=ascensionPlayEncounter(a,actor,value,CHARACTERS);
+                else if(kind==='encounter-reaction')a=ascensionResolveEncounterReaction(a,actor,CHARACTERS);
+                else if(kind==='encounter-spirit')a=ascensionSelectEncounterSpirit(a,actor,value,CHARACTERS);
                 else if(kind==='encounter-continue')a=ascensionAcknowledgeEncounterResult(a,actor);
                 else if(kind==='duel-continue')a=ascensionAcknowledgeDuelResult(a,actor);
                 else if(kind==='train')a=ascensionTrain(a,actor,value,CHARACTERS);
