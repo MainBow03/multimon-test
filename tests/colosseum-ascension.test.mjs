@@ -5,7 +5,7 @@ import {CHARACTERS} from '../src/data/characters.js';
 import {
  ASCENSION_ROUNDS,ASCENSION_MAX_TEAM,ASCENSION_MAX_LEVEL,ASCENSION_FINAL_TEAM,ASCENSION_STARTING_BALLS,
  ascensionStarterPool,ascensionCreate,ascensionSelectStarter,ascensionFighterFromMember,
- ascensionWildLevel,ascensionCaptureChance,ascensionBeginAction,ascensionPlayEncounter,
+ ascensionWildLevel,ascensionCaptureChance,ascensionBeginAction,ascensionPlayEncounter,ascensionResolveEncounterReaction,
  ascensionTrain,ascensionBuy,ASCENSION_SHOP,ascensionRoundReady,ascensionNextRound,ascensionSettleBots,
  ascensionCurrentMatch,ascensionChooseLineup,ascensionDuelAction,ascensionAdvanceMatch
 } from '../src/systems/colosseumAscension.js';
@@ -91,6 +91,7 @@ test('Ogni vittoria contro un allenatore dà 0,5 punti a TUTTI i Multimon',()=>{
  const idx=CHARACTERS.find(c=>c.id===heroId).moves.findIndex(m=>m?.power>0);
  assert.ok(idx>=0);
  a=ascensionPlayEncounter(a,'p1',{type:'attack',index:idx},CHARACTERS,()=>.01);
+ a=ascensionResolveEncounterReaction(a,'p1',CHARACTERS,()=>.01);
  p=a.participants.p1;
  assert.equal(p.encounter,null);
  assert.equal(p.done,true);
