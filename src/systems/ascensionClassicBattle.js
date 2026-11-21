@@ -2,6 +2,7 @@
 // BattlingView. Il motore/progresso resta nello stato serializzato ascension.
 import {ascensionCurrentMatch,ascensionFighter,ascensionFighterFromMember,
   ascensionFind} from './colosseumAscension.js';
+import {ascensionNativeFighter} from './ascensionNativeBattle.js';
 
 const hp=n=>Math.max(0,Number(n)||0);
 const fighter=(member,chars)=>{
@@ -72,13 +73,19 @@ export function ascensionClassicView(room,role,chars){
    canCapture:participant.prismaballs>0&&participant.roster.length<9
   };
  }else{
-  mine=(match.game.units?.[myRole]||[]).map(member=>fighter(member,chars));
-  theirs=(match.game.units?.[otherRole]||[]).map(member=>fighter(member,chars));
-  myActive=activeIndices(mine,fieldSize);
-  enemyActive=activeIndices(theirs,fieldSize);
+  mine=(match.game.units?.[myRole]||[]).map(member=>ascensionNativeFighter(member,chars));
+  theirs=(match.game.units?.[otherRole]||[]).map(member=>ascensionNativeFighter(member,chars));
+  myActive=Array.isArray(match.game.field?.[myRole])
+   ?match.game.field[myRole].filter(i=>mine[i]?.hp>0)
+   :activeIndices(mine,fieldSize);
+  enemyActive=Array.isArray(match.game.field?.[otherRole])
+   ?match.game.field[otherRole].filter(i=>theirs[i]?.hp>0)
+   :activeIndices(theirs,fieldSize);
   turn=match.game.turn||1;
   log=match.game.log||[];
-  canCommand=!spectators&&!match.game.actions?.[myRole]&&myActive.length>0;
+  const commands=match.game.actions?.[myRole]||{};
+  commandingIdx=myActive.findIndex(i=>!commands[i]);
+  canCommand=!spectators&&commandingIdx>=0&&myActive.length>0;
   labels={p1:room.players?.[myRole]||'Sfidante',p2:room.players?.[otherRole]||'Avversario'};
  }
  const view={
@@ -97,7 +104,8 @@ export function ascensionClassicView(room,role,chars){
   ascensionCapture:capture,
   ascensionSpirit:spiritSelection,
   ascensionEncounterKind:encounter?.kind||null,
-  ascensionDuel:!!duel
+  ascensionDuel:!!duel,
+  ascensionPlayback:duel?match?.game?.playback||null:encounter?.nativePlayback||null
  };
  return {view,duel:!!duel,spectators,canCommand,commandingIdx,role:myRole,turn,log,
   encounter,match,activeIndex:encounter?.active??myActive[0]??0};
