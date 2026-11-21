@@ -3,6 +3,8 @@
 // doppie catture, monete negative e due vincitori dello stesso round.
 import {getMultiplier} from './typeSystem.js';
 import {calculateDamageImpl} from './battleSystem.js';
+import {ZODIAC_SPIRITS,normalizeZodiacSpirit,zodiacSecondaryRoll,
+ addZodiacTrap,zodiacFlatStatBoost,cleanLucyDebuffs} from './zodiacSpirits.js';
 
 export const ASCENSION_MODE='ascension';
 export const ASCENSION_STATUS='ascension';
@@ -56,7 +58,7 @@ export function ascensionMember(id,level,chars){
  if(!original||!legal(original))throw Error('Multimon non disponibile.');
  const lvl=clamp(level,1,ASCENSION_MAX_LEVEL);
  return {id,level:lvl,hp:ascensionScaledMaxHp(original,lvl),
-   xp:0,trainingHalves:0}; // due mezzi punti = +1 livello
+   xp:0,trainingHalves:0,...(id==='lucy'?{zodiacSpiritId:normalizeZodiacSpirit()}: {})}; // due mezzi punti = +1 livello
 }
 export function ascensionFighterFromMember(member,chars){
  const original=ascensionFind(chars,member?.id);
@@ -64,6 +66,31 @@ export function ascensionFighterFromMember(member,chars){
  const fighter=ascensionFighter(original,member.level);
  fighter.hp=clamp(member.hp,0,fighter.maxHp);
  return fighter;
+}
+/** Gli Spiriti Stellari sono evocazioni, non occupano slot nei nove Multimon. */
+function ascensionSummonLucySpirit(p,e,chars,{reset=true}={}){
+ const member=p.roster[e.active];
+ if(member?.id!=='lucy'||member.hp<=0){e.spirit=null;e.spiritOpen=false;return null;}
+ if(!reset&&e.spirit?.hp>0)return e.spirit;
+ const id=normalizeZodiacSpirit(member.zodiacSpiritId);
+ member.zodiacSpiritId=id;
+ const base=ascensionFind(chars,id);
+ if(!base?.isSummonOnly)return null;
+ e.spirit={id,level:member.level,hp:ascensionScaledMaxHp(base,member.level)};
+ e.spiritOpen=true;
+ e.log=[...(e.log||[]),'✨ Lucy apre il portale dello Zodiaco: '+base.name+' entra in campo!'].slice(-12);
+ return e.spirit;
+}
+export function ascensionSelectEncounterSpirit(asc,role,spiritId,chars){
+ if(asc.stage!=='preparation')throw Error('Evocazioni disponibili solo durante la preparazione.');
+ return mutate(asc,next=>{
+  const p=participant(next,role),e=p.encounter;
+  if(!e||e.pendingReaction||!e.spiritOpen||p.roster[e.active]?.id!=='lucy')
+   throw Error('Lucy può scegliere lo Spirito solo al suo ingresso in campo, prima di agire.');
+  if(!ZODIAC_SPIRITS.some(s=>s.id===spiritId))throw Error('Spirito Stellare non disponibile.');
+  p.roster[e.active].zodiacSpiritId=spiritId;
+  ascensionSummonLucySpirit(p,e,chars);
+ });
 }
 export function ascensionCreate(room,chars,rng=Math.random){
  const pool=ascensionStarterPool(chars);
@@ -210,6 +237,7 @@ export function ascensionBeginAction(asc,role,action,chars,rng=Math.random){
    p.encounter={kind:'wild',foeId:foe.id,foeLevel:level,foeHp:maxHp,
      foeMaxHp:maxHp,active:Math.max(0,p.roster.findIndex(m=>m.hp>0)),turn:1,
      status:null,log:['Un '+foe.name+' selvatico appare tra i varchi!']};
+   ascensionSummonLucySpirit(p,p.encounter,chars);
    p.notice='Incontro selvatico! Indeboliscilo e usa la Prismaball.';
   }else if(action==='trainer'){
    const rank=next.round<=6?0:next.round<=12?1:2;
@@ -222,6 +250,7 @@ export function ascensionBeginAction(asc,role,action,chars,rng=Math.random){
     foeMaxHp:maxHp,trainer:trainer.id,trainerName:trainer.name,
     trainerRisk:trainer.risk,turn:1,active:Math.max(0,p.roster.findIndex(m=>m.hp>0)),
     status:null,log:['Allenatore '+trainer.name+': preparati alla sfida!']};
+   ascensionSummonLucySpirit(p,p.encounter,chars);
    p.notice='Sfida '+trainer.label+' · '+trainer.name+'.';
   }else if(action==='training'){
    if(!p.roster.some(c=>c.trainingHalves>=2&&c.level<ASCENSION_MAX_LEVEL))
