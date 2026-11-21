@@ -844,7 +844,10 @@ export const calculateDamageImpl = (ctx, attacker, defender, move, multiplier, i
             const enchantedDamageFactor = incomingRockEnchantmentFactor(attacker);
             const fasterTargetBonus = move.bonusAgainstFaster && defender.spd > attacker.spd ? move.bonusAgainstFaster : 1;
 
-            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * effectiveTeamDefFactor * stabFactor * enchantedDamageFactor * getMahitoMultiplier(attacker, defender, move) * fasterTargetBonus * (defender.passive?.type === 'petrosapien_armor' ? 1 - (defender.passive.damageReduction ?? 0.2) : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1) * outgoingPassiveDamageFactor(attacker,defender,move) * selectedPassiveDamageFactor(attacker,defender,move) * rogueDamageFactor(attacker,multiplier)));
+            return Math.max(1, Math.floor(baseDamage * randomFactor * multiplier * weakenFactor * effectiveTeamDefFactor * stabFactor * enchantedDamageFactor * getMahitoMultiplier(attacker, defender, move) * fasterTargetBonus * (defender.passive?.type === 'petrosapien_armor' ? 1 - (defender.passive.damageReduction ?? 0.2) : 1) * (attacker.refractionTurns > 0 && move.type === 'Cristallo' ? 1.2 : 1) * outgoingPassiveDamageFactor(attacker,defender,move) * selectedPassiveDamageFactor(attacker,defender,move) * rogueDamageFactor(attacker,multiplier) *
+              (defender.passive?.type==='aurelion_royal'&&defender.hp>defender.maxHp/2?.85:1) *
+              (attacker.passive?.type==='aurelion_royal'&&attacker.hp<=attacker.maxHp/2&&
+                ['Buio','Folletto'].includes(move.type)?1.15:1)));
           
 };
 
@@ -2465,7 +2468,15 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             if (triggerFutureBlock(t.char, move)) {
                                 events.push({ type: 'text', text: `🔮 ${t.char.name} attiva Futuro Infrangibile! Il prossimo attacco offensivo infliggerà +25% danni! (${t.char.futureBlockUses}/2)`, isPassive: true, passiveChar: t.char.name, passiveName: t.char.passive.name });
                             }
-                            if (t.char.statuses.some(s => s.type === 'Rashield') && attacker.hp > 0 && move.power > 0) {
+                            // Mantello Elastico è una PROTEZIONE reale: riflette il 30% del danno
+                            // che sarebbe stato inflitto, senza danneggiare Aurelion.
+                            const royalGuard=t.char.statuses.find(s=>s.type==='Protetto'&&s.sourceMove==='Mantello Elastico');
+                            if(royalGuard && attacker.hp>0 && move.power>0){
+                                const wouldTake=calculateDamage(attacker,t.char,move,multiplier,isFirstAttackOfTurn);
+                                const reflected=Math.max(1,Math.floor(wouldTake*.30));
+                                applyDamage(attacker,reflected,player,charTeamIdx,
+                                  '👑 Mantello Elastico! '+t.char.name+' restituisce '+reflected+' danni a '+attacker.name+'!');
+                            } else if (t.char.statuses.some(s => s.type === 'Rashield') && attacker.hp > 0 && move.power > 0) {
                                 let hitDmg = calculateDamage(attacker, t.char, move, multiplier, isFirstAttackOfTurn);
                                 let recoil = Math.max(1, Math.floor(hitDmg * 0.25));
                                 applyDamage(attacker, recoil, player, charTeamIdx, `⚡ Lo scudo di ${t.char.name} riflette l'attacco! ${attacker.name} subisce ${recoil} danni!`);
