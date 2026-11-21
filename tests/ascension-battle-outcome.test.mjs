@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {CHARACTERS} from '../src/data/characters.js';
 import {
  ascensionCreate,ascensionSelectStarter,ascensionBeginAction,ascensionPlayEncounter,
- ascensionAcknowledgeEncounterResult,ascensionAcknowledgeDuelResult,
+ ascensionAcknowledgeEncounterResult,ascensionResolveEncounterReaction,ascensionAcknowledgeDuelResult,
  ascensionRoundReady,ascensionNextRound,ascensionCurrentMatch,ascensionChooseLineup,
  ascensionDuelAction,ascensionSettleBots
 } from '../src/systems/colosseumAscension.js';
@@ -24,7 +24,8 @@ function combat(kind){
  const moves=CHARACTERS.find(c=>c.id===hero.id).moves;
  const index=moves.findIndex(m=>m?.power>0);
  assert.ok(index>=0);
- return ascensionPlayEncounter(a,'p1',{type:'attack',index},CHARACTERS,()=>0);
+ a=ascensionPlayEncounter(a,'p1',{type:'attack',index},CHARACTERS,()=>0);
+ return ascensionResolveEncounterReaction(a,'p1',CHARACTERS,()=>0);
 }
 test('One-hit KO: selvatico e allenatore mostrano risultato persistente prima del percorso',()=>{
  for(const kind of ['wild','trainer']){
