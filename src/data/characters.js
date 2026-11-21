@@ -1,5 +1,6 @@
 import { CHAR_PRICES } from './prices.js';
 import { MOVES_DB } from './moves.js';
+import {AURELION_CHARACTER} from './colosseumSovereign.js';
 import { SIX_NEW_CHARACTERS } from './sixNewChampions.js';
 import { FIVE_NEW_CHARACTERS } from './fiveNewChampions.js';
 import {STRAW_HAT_CHARACTERS} from './strawHatCrew.js';
@@ -13,6 +14,7 @@ import {NEW_REALM_CHARACTERS} from './newRealmChampions.js';
 import {CRYSTAL_ROCK_SOUND_BUG_CHARACTERS} from './crystalRockSoundBugChampions.js';
 
 export const CHARACTERS = [
+  {...AURELION_CHARACTER,moves:AURELION_CHARACTER.moveNames.map(name=>MOVES_DB[name])},
   ...ROYAL_POISON_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
   ...THEATER_CHARACTERS,
   ...NEW_TRIO_CHARACTERS.map(({moveNames,...char})=>({...char,moves:moveNames.map(name=>MOVES_DB[name])})),
