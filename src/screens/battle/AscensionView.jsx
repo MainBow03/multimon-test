@@ -122,9 +122,10 @@ export function AscensionView({room,role,characters,onAction,onHost,onExit,canHo
    <div className="ac-section-title"><small>✦ LE CINQUE ALTERNATIVE DEL DESTINO</small>
     <h2>Seleziona un Multimon iniziale</h2><p>Personaggi base ed economici, cinque scelte private per ciascun giocatore.</p></div>
    <div className="ac-card-grid ac-starters">{p.options.map(id=><div key={id} className="ac-starter">
+    <button type="button" className="ac-main ac-starter-select" disabled={p.roster.length>0} onClick={()=>onAction('starter',id)}>
+      {p.roster.length?(p.roster[0].id===id?'✓ Il tuo starter':'Scelta completata'):'✦ Seleziona questo starter'}
+    </button>
     <Portrait char={get(id)} label={(get(id).types||[]).join(' / ')}/>
-    <button type="button" className="ac-main" disabled={p.roster.length>0} onClick={()=>onAction('starter',id)}>
-      {p.roster.length?'Selezione terminata':'Scegli'}</button>
    </div>)}</div>
    {p.roster.length>0&&<p className="ac-notice">Hai scelto {get(p.roster[0].id).name}. Gli altri giocatori stanno scegliendo.</p>}
    {local&&onNextPlayer&&<button type="button" className="ac-ghost" onClick={onNextPlayer}>Passa al prossimo giocatore locale</button>}
