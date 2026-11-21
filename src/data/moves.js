@@ -1,4 +1,5 @@
 import { SIX_NEW_MOVES } from './sixNewChampions.js';
+import {AURELION_MOVES} from './colosseumSovereign.js';
 import {THEATER_MOVES} from './theaterActors.js';
 import { FIVE_NEW_MOVES } from './fiveNewChampions.js';
 import {STRAW_HAT_MOVES} from './strawHatCrewMoves.js';
@@ -12,6 +13,7 @@ import {AMETRALINE_FUSION_MOVES} from './ametralineFusion.js';
 import {CRYSTAL_ROCK_SOUND_BUG_MOVES} from './crystalRockSoundBugChampions.js';
 
 export const MOVES_DB = {
+  ...AURELION_MOVES,
   ...AMETRALINE_FUSION_MOVES,
   ...NEW_REALM_MOVES,
   ...CRYSTAL_ROCK_SOUND_BUG_MOVES,
