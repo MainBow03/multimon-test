@@ -52,7 +52,7 @@ test('Chat Noir e le sue mosse di tipo Lotta restano invariati',()=>{
 
 test('Il riequilibrio riduce Lotta di 6 senza aumentare il roster',()=>{
   const roster=CHARACTERS.filter(c=>!c.isSummonOnly&&!c.isCampaignMonster);
-  assert.equal(roster.length,208);
+  assert.equal(roster.length,209);
   const count=type=>roster.filter(c=>c.types.includes(type)).length;
   assert.equal(count('Lotta'),28);
   assert.equal(count('Drago'),12);
