@@ -86,7 +86,8 @@ import {ASCENSION_STATUS,ascensionSelectStarter,ascensionBeginAction,
  ascensionChooseLineup,ascensionDuelAction,ascensionCurrentMatch,ascensionAdvanceMatch,ascensionSettleBots,
  ascensionCreateRealEncounter,ascensionCreateRealDuel,ascensionRealSubmit,
  ascensionRealAdvance,ascensionRealReplace,ascensionRealForceReplace,
- ascensionRealCapture,ascensionRealCaptureContinue,ascensionRealFlee,ascensionRealBotDuels}
+ ascensionRealCapture,ascensionRealCaptureContinue,ascensionRealFlee,ascensionRealBotDuels,
+ ascensionRealForce,ascensionRealFinalize}
  from './systems/colosseumAscension.js';
 import {ultimonBanPatch,beginUltimonDraftAfterBans} from './systems/ultimonBans.js';
 import {ultimonLeaderboard} from './systems/ultimonSystem.js';
@@ -1682,6 +1683,10 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                     a=ascensionCreateRealDuel(a,CHARACTERS,room);
                 }else if(kind==='native-commit')
                   a=ascensionRealSubmit(a,actor,value.actions,value.phase,CHARACTERS);
+                else if(kind==='native-force')
+                  a=ascensionRealForce(a,actor,CHARACTERS);
+                else if(kind==='native-finalize')
+                  a=ascensionRealFinalize(a,actor,CHARACTERS);
                 else if(kind==='native-advance')
                   a=ascensionRealAdvance(a,actor,value.phase,CHARACTERS);
                 else if(kind==='native-switch')
