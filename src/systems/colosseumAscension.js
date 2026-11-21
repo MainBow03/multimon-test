@@ -648,6 +648,7 @@ export function ascensionDuelAction(asc,role,choice,chars,rng=Math.random){
    const idx=clamp(Math.trunc(input.index)||0,0,(char?.moves||[]).filter(Boolean).length-1);
    if(!char?.moves?.filter(Boolean)[idx])throw Error('Mossa non disponibile.');
    current[from]={type:'attack',moveIdx:idx,
+    targetPlayer:input.targetPlayer==='p1'?'self':'enemy',
     targetIdx:Number.isInteger(input.targetIdx)?input.targetIdx:null};
   }
   game.actions={...readyInputs,[role]:current};
@@ -660,9 +661,12 @@ export function ascensionDuelAction(asc,role,choice,chars,rng=Math.random){
   const actionMap=(actor,enemy)=>Object.fromEntries(fields[actor].map((idx,slot)=>{
    const chosen=game.actions[actor][idx];
    if(chosen.type==='switch')return [idx,chosen];
-   const foeField=fields[enemy];
-   const validTarget=foeField.includes(chosen.targetIdx)?chosen.targetIdx:foeField[slot%foeField.length];
-   return [idx,ascensionNativeMoveAction(chosen.moveIdx,actor===a?'p2':'p1',validTarget)];
+   const targetActor=chosen.targetPlayer==='self'?actor:enemy;
+   const targetField=fields[targetActor];
+   const validTarget=targetField.includes(chosen.targetIdx)?chosen.targetIdx:
+     targetField[slot%targetField.length];
+   const nativeTarget=(targetActor===a?'p1':'p2');
+   return [idx,ascensionNativeMoveAction(chosen.moveIdx,nativeTarget,validTarget)];
   }));
   const result=ascensionNativeTurn({
    characters:chars,
