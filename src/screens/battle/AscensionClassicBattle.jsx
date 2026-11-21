@@ -62,6 +62,19 @@ export function AscensionClassicBattle({
  if(!model)return null;
  const {view,duel,spectators,canCommand,commandingIdx,log}=model;
  const activePlayer=spectators?'spectator':'p1';
+ // Replay nativo: eventi del medesimo motore usato in tutte le altre modalità.
+ const nativePlayback=view.ascensionPlayback;
+ const nativePlaybackNonce=nativePlayback?.nonce||0;
+ useEffect(()=>{
+  if(!duel||!nativePlaybackNonce)return;
+  const events=(nativePlayback.events||[]).filter(evt=>evt?.text);
+  let index=0;
+  const timer=setInterval(()=>{
+   if(index>=events.length){setPlayback('');clearInterval(timer);return;}
+   setPlayback(String(events[index++].text));
+  },events.length>15?420:850);
+  return ()=>clearInterval(timer);
+ },[duel,nativePlaybackNonce]);
  const submit=async action=>{
   if(!canCommand||busy||spectators)return;
   const type=action?.type;
@@ -71,7 +84,9 @@ export function AscensionClassicBattle({
    if(type==='attack'){
     const index=Number(action.moveIdx);
     if(!Number.isInteger(index)||index<0)return;
-    if(duel)await onAction('duel-move',index);
+    if(duel)await onAction('duel-move',{type:'attack',index,
+     fromIdx:view.field?.p1?.[commandingIdx],
+     targetIdx:Number.isInteger(action.targetIdx)?action.targetIdx:null});
     else await onAction('encounter',{type:'attack',index,
      source:commandingIdx===1?'spirit':'hero'});
    }else if(type==='switch'){
