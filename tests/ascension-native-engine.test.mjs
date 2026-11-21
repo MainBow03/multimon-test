@@ -29,3 +29,37 @@ test('Il Colosseo conserva i PP, gli status e le statistiche tra turni',()=>{
  assert.equal(keep.atk,a.atk);
  assert.equal(keep.statuses[0].type,'Scottato');
 });
+
+test('Il motore originale rispetta PRIORITÀ +1 prima della Velocità avversaria',()=>{
+ const sovereign=fighter('sovranoaurelion'),sonic=fighter('sonic');
+ sovereign.spd=1;sonic.spd=999;
+ const move=sovereign.moves.findIndex(m=>m.name==='Scatto Regale');
+ const sonicMove=sonic.moves.findIndex(m=>m.power>0&&!m.priority);
+ assert.ok(move>=0&&sonicMove>=0);
+ const result=ascensionNativeTurn({characters:CHARACTERS,
+  teamOne:[sovereign],teamTwo:[sonic],fieldOne:[0],fieldTwo:[0],
+  actionsOne:{0:ascensionNativeMoveAction(move)},
+  actionsTwo:{0:ascensionNativeMoveAction(sonicMove,'p1',0)}});
+ const text=result.events.map(e=>e.text||'').join(' / ');
+ assert.ok(text.includes('Scatto Regale'),text.slice(0,450));
+ const sovIndex=text.indexOf('Scatto Regale');
+ const sonicIndex=text.indexOf(sonic.moves[sonicMove].name);
+ assert.ok(sonicIndex===-1||sovIndex<sonicIndex,
+  'Una mossa con priorità +1 agisce prima anche con Velocità minore');
+});
+test('Mantello Elastico usa il VERO sistema Protezione e infligge riflesso al nemico',()=>{
+ const sovereign=fighter('sovranoaurelion'),sonic=fighter('sonic');
+ const hp=sovereign.hp,enemyHp=sonic.hp;
+ const guard=sovereign.moves.findIndex(m=>m.name==='Mantello Elastico');
+ const attack=sonic.moves.findIndex(m=>m.power>0&&!m.priority);
+ assert.ok(guard>=0&&attack>=0);
+ const result=ascensionNativeTurn({characters:CHARACTERS,
+  teamOne:[sovereign],teamTwo:[sonic],fieldOne:[0],fieldTwo:[0],
+  actionsOne:{0:ascensionNativeMoveAction(guard)},
+  actionsTwo:{0:ascensionNativeMoveAction(attack,'p1',0)}});
+ const text=result.events.map(e=>e.text||'').join(' / ');
+ assert.ok(text.includes('Mantello Elastico'),text);
+ assert.equal(result.teams.p1[0].hp,hp,'La protezione annulla i danni diretti');
+ assert.ok(result.teams.p2[0].hp<enemyHp,'L’attaccante riceve parte del danno riflesso');
+ assert.match(text,/restituisce/);
+});
