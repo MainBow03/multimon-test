@@ -710,6 +710,16 @@ export function ascensionBotTurn(asc,role,chars,rng=Math.random){
   for(let i=0;i<28;i++){
    p=participant(next,role);if(!p.encounter)break;
    const e=p.encounter,hero=p.roster[e.active];
+   if(e.pendingReaction?.phase==='enemy'){
+    next=ascensionResolveEncounterReaction(next,role,chars,rng);
+    continue;
+   }
+   if(e.pendingReaction?.phase==='spirit'){
+    const moves=(ascensionFind(chars,e.spirit?.id)?.moves||[]).filter(Boolean);
+    const index=moves.findIndex(m=>m?.power>0);
+    next=ascensionPlayEncounter(next,role,{type:'attack',source:'spirit',index:Math.max(0,index)},chars,rng);
+    continue;
+   }
    if(e.kind==='wild'&&hero&&e.foeHp/e.foeMaxHp<.25&&p.prismaballs>0&&p.roster.length<9){
     next=ascensionPlayEncounter(next,role,{type:'ball'},chars,rng);
    }else if(e.kind==='wild'&&p.roster.length>=9){
