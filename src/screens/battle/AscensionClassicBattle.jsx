@@ -120,6 +120,7 @@ export function AscensionClassicBattle({
     if(!Number.isInteger(index)||index<0)return;
     if(duel)await onAction('duel-move',{type:'attack',index,
      fromIdx:view.field?.p1?.[commandingIdx],
+     targetPlayer:action.targetPlayer||'p2',
      targetIdx:Number.isInteger(action.targetIdx)?action.targetIdx:null});
     else await onAction('encounter',{type:'attack',index,
      source:commandingIdx===1?'spirit':'hero'});
