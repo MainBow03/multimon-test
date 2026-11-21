@@ -2,6 +2,7 @@
 // Le linee sono scritte per il carattere, i poteri o la storia del personaggio.
 // Una riga per ciascun ID registrato: il test controlla la copertura del roster.
 export const ULTIMON_ENTRANCE_LINES = Object.freeze({
+  "sovranoaurelion": "Ho convocato gli otto migliori al Colosseo. Ora vediamo chi osa sfidare la corona che porto!",
   "ametraline": "Tra una porta cucita e una gemma imperfetta, io scelgo la strada che nessuno osa percorrere!",
   "kida": "Il Cuore di Atlantide risponde a chi ha il coraggio di proteggerlo.",
   "rarity": "Oh, questa arena? Ha bisogno assolutamente di piu cristalli!",
