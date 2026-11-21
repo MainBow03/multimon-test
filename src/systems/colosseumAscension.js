@@ -3,6 +3,7 @@
 // doppie catture, monete negative e due vincitori dello stesso round.
 import {getMultiplier} from './typeSystem.js';
 import {calculateDamageImpl} from './battleSystem.js';
+import {ascensionNativeFighter,ascensionNativeTurn,ascensionNativeMoveAction} from './ascensionNativeBattle.js';
 import {ZODIAC_SPIRITS,normalizeZodiacSpirit,zodiacSecondaryRoll,
  addZodiacTrap,zodiacFlatStatBoost,cleanLucyDebuffs} from './zodiacSpirits.js';
 
@@ -29,7 +30,7 @@ const sample=(list,count,rng)=>{
  for(let i=a.length-1;i>0;i--){const j=rand(rng,i+1);[a[i],a[j]]=[a[j],a[i]];}
  return a.slice(0,count);
 };
-const legal=c=>Boolean(c?.id&&!c.isSummonOnly&&!c.isCampaignMonster&&!c.isSecretUnlock&&!c.fusionOf&&Array.isArray(c.moves)&&c.moves.length);
+const legal=c=>Boolean(c?.id&&!c.isSummonOnly&&!c.isCampaignMonster&&!c.isSecretUnlock&&!c.isAscensionBanned&&!c.fusionOf&&Array.isArray(c.moves)&&c.moves.length);
 export function ascensionStarterPool(chars){
  const legalChars=(chars||[]).filter(legal);
  const prices=legalChars.map(c=>Number(c.price)||0);
@@ -596,75 +597,97 @@ export function ascensionChooseLineup(asc,role,ids,chars){
 }
 function firstAlive(units){return units.findIndex(x=>x.hp>0);}
 function alive(units){return units.filter(x=>x.hp>0);}
-export function ascensionDuelAction(asc,role,moveIndex,chars,rng=Math.random){
+// Le sfide del torneo eseguono il motore CLASSICO (lo stesso di CPU, online,
+// locale e campagne). Il Colosseo gestisce soltanto bracket, livelli e premi.
+export function ascensionDuelAction(asc,role,choice,chars,rng=Math.random){
  return mutate(asc,next=>{
   const match=ascensionCurrentMatch(next),game=match?.game;
   if(!game||game.winner||!match.roles.includes(role))throw Error('Nessuna battaglia attiva.');
-  if(game.actions[role])throw Error('Hai già dato un comando questo turno.');
-  const switchChoice=moveIndex&&typeof moveIndex==='object'&&moveIndex.type==='switch';
-  if(switchChoice){
-   const units=game.units[role],count=match.stage==='finale'?2:1;
-   const active=units.map((m,i)=>m.hp>0?i:-1).filter(i=>i>=0).slice(0,count);
-   const from=Math.trunc(moveIndex.fromIdx),to=Math.trunc(moveIndex.index);
-   if(!Number.isInteger(to)||!Number.isInteger(from)||!units[to]||units[to].hp<=0||
-      !active.includes(from)||active.includes(to))throw Error('Cambio non valido.');
-   game.actions[role]={type:'switch',from,to};
+  const count=match.stage==='finale'?2:1;
+  const teams=match.roles.map(r=>game.units[r]||[]);
+  const livingField=role=>{
+   const saved=game.field?.[role];
+   if(Array.isArray(saved)){
+    const active=saved.filter(i=>game.units[role][i]?.hp>0);
+    if(active.length)return active;
+   }
+   return game.units[role].map((u,i)=>u.hp>0?i:-1).filter(i=>i>=0).slice(0,count);
+  };
+  const fields=Object.fromEntries(match.roles.map(r=>[r,livingField(r)]));
+  const readyInputs=game.actions||{};
+  const current=readyInputs[role]&&typeof readyInputs[role]==='object'?
+    readyInputs[role]:{};
+  const input=(choice&&typeof choice==='object')?choice:{type:'attack',index:choice};
+  const from=Number.isInteger(input.fromIdx)?input.fromIdx:
+    fields[role].find(i=>!current[i]);
+  if(!Number.isInteger(from)||!fields[role].includes(from)||current[from])
+   throw Error('Hai già comandato questo Multimon o non è attivo.');
+  if(input.type==='switch'){
+   const to=Math.trunc(input.index);
+   if(!Number.isInteger(to)||!game.units[role][to]||game.units[role][to].hp<=0||
+     fields[role].includes(to))throw Error('Cambio non valido.');
+   current[from]={type:'switch',fromIdx:from,toIdx:to};
   }else{
-   game.actions[role]={type:'attack',move:clamp(Math.trunc(moveIndex)||0,0,3)};
+   const char=ascensionFind(chars,game.units[role][from].id);
+   const idx=clamp(Math.trunc(input.index)||0,0,(char?.moves||[]).filter(Boolean).length-1);
+   if(!char?.moves?.filter(Boolean)[idx])throw Error('Mossa non disponibile.');
+   current[from]={type:'attack',moveIdx:idx,
+    targetIdx:Number.isInteger(input.targetIdx)?input.targetIdx:null};
   }
-  if(!match.roles.every(r=>game.actions[r]))return;
-  const sorted=[...match.roles].sort((a,b)=>{
-   const fa=ascensionFighterFromMember(game.units[a][firstAlive(game.units[a])],chars);
-   const fb=ascensionFighterFromMember(game.units[b][firstAlive(game.units[b])],chars);
-   return (fb?.spd||0)-(fa?.spd||0);
+  game.actions={...readyInputs,[role]:current};
+  // La finale 2v2 richiede un comando per ognuno dei DUE combattenti in campo.
+  const allReady=match.roles.every(r=>fields[r].every(i=>game.actions?.[r]?.[i]));
+  if(!allReady)return;
+  const allFighters=Object.fromEntries(match.roles.map(r=>[
+   r,game.units[r].map(u=>ascensionNativeFighter(u,chars))]));
+  const a=match.roles[0],b=match.roles[1];
+  const actionMap=(actor,enemy)=>Object.fromEntries(fields[actor].map((idx,slot)=>{
+   const chosen=game.actions[actor][idx];
+   if(chosen.type==='switch')return [idx,chosen];
+   const foeField=fields[enemy];
+   const validTarget=foeField.includes(chosen.targetIdx)?chosen.targetIdx:foeField[slot%foeField.length];
+   return [idx,ascensionNativeMoveAction(chosen.moveIdx,actor===a?'p2':'p1',validTarget)];
+  }));
+  const result=ascensionNativeTurn({
+   characters:chars,
+   teamOne:allFighters[a],teamTwo:allFighters[b],
+   fieldOne:fields[a],fieldTwo:fields[b],
+   actionsOne:actionMap(a,b),actionsTwo:actionMap(b,a),
+   names:[a,b],fieldSize:count,turn:game.turn,
+   weather:game.weather||null,tailwind:game.tailwind||{}
   });
-  const log=[];
-  for(const actor of sorted){
-   const queued=game.actions[actor];
-   if(queued.type==='switch'){
-    const units=game.units[actor];
-    const old=units[queued.from],fresh=units[queued.to];
-    units[queued.from]=fresh;units[queued.to]=old;
-    log.push('Cambio di squadra! Entra '+ascensionFind(chars,fresh.id).name+'.');
-    continue;
-   }
-   const targetRole=match.roles.find(r=>r!==actor);
-   const fieldSize=match.stage==='finale'?2:1;
-   for(let slot=0;slot<fieldSize;slot++){
-    const allyUnits=alive(game.units[actor]),enemies=alive(game.units[targetRole]);
-    if(!allyUnits.length||!enemies.length)break;
-    const me=allyUnits[Math.min(slot,allyUnits.length-1)];
-    if(slot>0&&me===allyUnits[0])break;
-    const enemy=enemies[Math.min(slot,enemies.length-1)];
-    const hero=ascensionFighterFromMember(me,chars);
-    const foe=ascensionFighterFromMember(enemy,chars);
-    const moves=(ascensionFind(chars,me.id).moves||[]).filter(Boolean);
-    const index=game.actions[actor].move;
-    const move=moves[index]||moves.find(m=>m.power>0)||moves[0];
-    executeAction(hero,foe,move,rng,log);
-    me.hp=hero.hp;enemy.hp=foe.hp;
-   }
+  for(const [nativeRole,actor] of [['p1',a],['p2',b]]){
+   game.units[actor]=result.teams[nativeRole].map(u=>({
+    id:u.id,level:u.level,hp:u.hp,battleState:u
+   }));
+   game.field??={};
+   game.field[actor]=result.field[nativeRole].filter(i=>
+    game.units[actor][i]?.hp>0&&!game.units[actor][i].battleState?.isSummonOnly);
   }
-  game.turn++;game.actions={};game.log=[...game.log,...log].slice(-10);
-  const defeated=match.roles.find(r=>!alive(game.units[r]).length);
+  game.weather=result.weather;
+  game.tailwind=result.tailwind;
+  game.playback={
+   nonce:(game.playback?.nonce||0)+1,
+   events:result.events.slice(-55),
+   startTeams:result.startTeams,startField:result.startField,
+   endTeams:result.teams,endField:result.field
+  };
+  game.turn++;game.actions={};
+  game.log=[...(game.log||[]),...result.log].slice(-22);
+  const defeated=match.roles.find(r=>!alive(game.units[r]).filter(
+    u=>!u.battleState?.isSummonOnly).length);
   const timeLimit=game.turn>=46;
   if(!defeated&&!timeLimit)return;
   const winner=defeated?match.roles.find(r=>r!==defeated):
-    match.roles.slice().sort((a,b)=>{
-      // A parità di turni prevale chi ha conservato più PS relativi.
-      // Evita scontri infiniti tra squadre con troppe mosse di cura.
-      const ratio=r=>game.units[r].reduce((n,m)=>n+m.hp/
-        Math.max(1,ascensionScaledMaxHp(ascensionFind(chars,m.id),m.level)),0);
-      return ratio(b)-ratio(a);
+    match.roles.slice().sort((x,y)=>{
+     const ratio=r=>game.units[r].reduce((sum,u)=>sum+
+       u.hp/Math.max(1,ascensionScaledMaxHp(ascensionFind(chars,u.id),u.level)),0);
+     return ratio(y)-ratio(x);
     })[0];
   if(timeLimit)game.log.push('Limite turni: vince la squadra con più PS rimasti.');
   match.wins[winner]=(match.wins[winner]||0)+1;
   game.winner=winner;
-  if(match.stage==='finale'||match.wins[winner]>=2){
-   match.winner=winner;
-  }
-  // Anche nei duelli BO3 la partita conclusa resta consultabile finché
-  // i contendenti non hanno visto e confermato la vittoria / sconfitta.
+  if(match.stage==='finale'||match.wins[winner]>=2)match.winner=winner;
   game.resultAcknowledged={};
  });
 }
