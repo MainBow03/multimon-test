@@ -4,6 +4,9 @@
 import {getMultiplier} from './typeSystem.js';
 import {calculateDamageImpl} from './battleSystem.js';
 import {ascensionNativeFighter,ascensionNativeTurn,ascensionNativeMoveAction} from './ascensionNativeBattle.js';
+import {createRealAscensionBattle,submitRealAscensionActions,resolveRealAscensionCpu,
+ advanceRealAscensionBattle,chooseRealAscensionReplacement,forceRealAscensionReplacement,
+ resolveRealAscensionCaptureCounter} from './ascensionRealBattle.js';
 import {ZODIAC_SPIRITS,normalizeZodiacSpirit,zodiacSecondaryRoll,
  addZodiacTrap,zodiacFlatStatBoost,cleanLucyDebuffs} from './zodiacSpirits.js';
 
@@ -803,7 +806,8 @@ export function ascensionBotTurn(asc,role,chars,rng=Math.random){
    const p=participant(asc,role),max=match.stage==='finale'?ASCENSION_FINAL_TEAM:3;
    return ascensionChooseLineup(asc,role,p.roster.slice().sort((a,b)=>b.level-a.level).slice(0,max).map(m=>m.id),chars);
   }
-  if(match.game.winner){
+  if(match.game?.classicRoom)return asc; // Il duello vero viene diretto dalla stanza classica.
+ if(match.game.winner){
    return match.game.resultAcknowledged?.[role]?asc:ascensionAcknowledgeDuelResult(asc,role);
   }
   const count=match.stage==='finale'?2:1;
@@ -832,7 +836,7 @@ export function ascensionSettleBots(asc,room,chars,rng=Math.random){
    else if(next.stage==='preparation')needed=!p.done||!!p.battleResult;
    else if(next.stage==='colosseum'){
     const m=ascensionCurrentMatch(next);
-    needed=Boolean(m&&m.roles.includes(role)&&!m.winner&&
+    needed=Boolean(m&&m.roles.includes(role)&&!m.winner&&!m.game?.classicRoom&&
       (!m.selection[role]||m.game?.winner&&!m.game.resultAcknowledged?.[role]||m.game&&(()=>{
        const field=m.game.field?.[role]||m.game.units[role].map((u,i)=>u.hp>0?i:-1).filter(i=>i>=0).slice(0,m.stage==='finale'?2:1);
        return field.some(idx=>!m.game.actions?.[role]?.[idx]);
@@ -843,6 +847,234 @@ export function ascensionSettleBots(asc,room,chars,rng=Math.random){
    if(after!==next){next=after;changed=true;}
   }
   if(!changed)break;
+ }
+ return next;
+}
+
+
+/**
+ * TRUE CLASSIC BATTLE SESSIONS — the mode never interprets or executes
+ * attacks after this point. Journey state selects opponents and awards EXP;
+ * the full classic Multimon room owns every command, effect and KO.
+ */
+function realSession(next,role){
+ if(next.stage==='preparation'){
+  const p=participant(next,role);
+  if(!p.encounter)throw Error('Nessun incontro nel percorso.');
+  return {container:p.encounter,battle:p.encounter.classicRoom,side:'p1',
+   role,player:p,duel:false};
+ }
+ if(next.stage==='colosseum'){
+  const match=ascensionCurrentMatch(next);
+  if(!match?.game||!match.roles.includes(role))
+   throw Error('Non stai partecipando a questo duello.');
+  const side=match.roles[0]===role?'p1':'p2';
+  return {container:match.game,battle:match.game.classicRoom,side,
+   role,match,duel:true};
+ }
+ throw Error('Nessuna battaglia classica attiva.');
+}
+export function ascensionCreateRealEncounter(asc,role,chars,room){
+ if(asc.stage!=='preparation')return asc;
+ return mutate(asc,next=>{
+  const p=participant(next,role),e=p.encounter;
+  if(!e||e.classicRoom)return;
+  const foe={id:e.foeId,level:e.foeLevel,hp:e.foeHp};
+  e.classicRoom=createRealAscensionBattle({
+   chars,teamOne:p.roster,teamTwo:[foe],
+   firstName:room?.players?.[role]||role,
+   secondName:e.kind==='trainer'?'Allenatore '+e.trainerName:'Multimon selvatico',
+   secondBot:true,fieldSize:1
+  });
+  e.classicRoom.ascensionCapture={
+   balls:p.prismaballs,canCapture:e.kind==='wild'&&p.prismaballs>0&&p.roster.length<9,
+   chance:null
+  };
+  e.classicRoom.ascensionEncounterKind=e.kind;
+  e.classicRoom.ascensionOwnerRole=role;
+  e.log=[...(e.log||[]),'⚔️ Battaglia classica: Velocità, priorità, mosse e turni condivisi.'];
+ });
+}
+export function ascensionCreateRealDuel(asc,chars,room){
+ if(asc.stage!=='colosseum')return asc;
+ return mutate(asc,next=>{
+  const m=ascensionCurrentMatch(next);
+  if(!m?.game||m.game.classicRoom||m.game.winner)return;
+  const [first,second]=m.roles;
+  const options={chars,fieldSize:m.stage==='finale'?2:1,
+   teamOne:m.game.units[first],teamTwo:m.game.units[second],
+   firstName:room?.players?.[first]||first,
+   secondName:room?.players?.[second]||second,
+   firstBot:!!room?.isBot?.[first],secondBot:!!room?.isBot?.[second]
+  };
+  m.game.classicRoom=createRealAscensionBattle(options);
+  m.game.classicSides={p1:first,p2:second};
+  m.game.log=[...(m.game.log||[]),'⚔️ Questa sfida usa il motore classico integrale di Multimon.'];
+ });
+}
+function synchronizeRealEncounter(p,e,chars){
+ const battle=e.classicRoom;
+ if(!battle)return;
+ p.roster.forEach((m,i)=>{if(battle.teams.p1?.[i])m.hp=battle.teams.p1[i].hp});
+ e.foeHp=battle.teams.p2?.[0]?.hp??e.foeHp;
+ e.turn=(battle.battleReport?.turns||0)+1;
+ const messages=(battle.events||[]).map(evt=>evt.text).filter(Boolean);
+ e.log=[...(e.log||[]),...messages].slice(-20);
+ e.status=battle.teams.p2?.[0]?.statuses?.[0]?.type||null;
+ e.statusTurns=battle.teams.p2?.[0]?.statuses?.[0]?.turns||0;
+ const active=battle.field.p1?.find(i=>i<p.roster.length&&battle.teams.p1?.[i]?.hp>0);
+ if(Number.isInteger(active))e.active=active;
+ e.classicRoom.ascensionCapture={
+  balls:p.prismaballs,canCapture:e.kind==='wild'&&p.prismaballs>0&&p.roster.length<9,
+  chance:null
+ };
+}
+function synchronizeRealDuel(m){
+ const battle=m.game?.classicRoom;
+ if(!battle)return;
+ for(const [side,role] of Object.entries(m.game.classicSides||{})){
+  if(!role)continue;
+  m.game.units[role]=(battle.teams[side]||[]).filter(c=>!c.isSummonOnly).map(c=>({
+   id:c.id,level:c.level||1,hp:c.hp,battleState:c
+  }));
+ }
+ m.game.turn=(battle.battleReport?.turns||0)+1;
+ m.game.log=[...(m.game.log||[]),...(battle.events||[]).map(evt=>evt.text).filter(Boolean)].slice(-30);
+}
+function concludeRealSession(next,s,chars){
+ const b=s.container.classicRoom;
+ if(b.status!=='gameover')return;
+ if(!s.duel){
+  synchronizeRealEncounter(s.player,s.container,chars);
+  const e=s.container,p=s.player;
+  const victory=(b.teams.p1||[]).some(c=>c.hp>0&&!c.isSummonOnly)&&
+   !(b.teams.p2||[]).some(c=>c.hp>0&&!c.isSummonOnly);
+  if(victory)ascensionWinEncounter(next,p,e,chars,['🏆 Hai vinto la battaglia classica!']);
+  else{
+   concludeEncounter(p,e,'defeat',chars,['La squadra è esausta.']);
+   p.notice='Squadra esausta. Riparti dal prossimo round.';
+  }
+ }else{
+  const m=s.match;
+  synchronizeRealDuel(m);
+  const left=(b.teams.p1||[]).some(c=>c.hp>0&&!c.isSummonOnly);
+  const right=(b.teams.p2||[]).some(c=>c.hp>0&&!c.isSummonOnly);
+  let winning=left&&!right?'p1':right&&!left?'p2':null;
+  if(!winning){
+   const ratio=side=>(b.teams[side]||[]).filter(c=>!c.isSummonOnly).reduce(
+    (sum,c)=>sum+c.hp/Math.max(1,c.maxHp),0);
+   winning=ratio('p1')>=ratio('p2')?'p1':'p2';
+  }
+  const winner=m.game.classicSides[winning];
+  m.wins[winner]=(m.wins[winner]||0)+1;
+  m.game.winner=winner;
+  m.game.resultAcknowledged={};
+  if(m.stage==='finale'||m.wins[winner]>=2)m.winner=winner;
+ }
+}
+export function ascensionRealSubmit(asc,role,sideActions,phase,chars){
+ return mutate(asc,next=>{
+  const s=realSession(next,role);
+  if(!s.battle)throw Error('La vera partita non è ancora stata creata.');
+  if(s.battle.phaseStartedAt!==phase)throw Error('Questo turno è già cambiato.');
+  s.container.classicRoom=submitRealAscensionActions(s.battle,s.side,sideActions,chars);
+  if(!s.duel)synchronizeRealEncounter(s.player,s.container,chars);
+  else synchronizeRealDuel(s.match);
+ });
+}
+export function ascensionRealAdvance(asc,role,phase,chars){
+ return mutate(asc,next=>{
+  const s=realSession(next,role);
+  if(!s.battle||s.battle.status!=='executing'||s.battle.phaseStartedAt!==phase)return;
+  s.container.classicRoom=advanceRealAscensionBattle(s.battle,phase);
+  if(s.container.classicRoom.status==='gameover')concludeRealSession(next,s,chars);
+ });
+}
+export function ascensionRealReplace(asc,role,index,chars,spiritId=null){
+ return mutate(asc,next=>{
+  const s=realSession(next,role);
+  if(!s.battle)throw Error('Nessun combattimento classico.');
+  s.container.classicRoom=chooseRealAscensionReplacement(s.battle,s.side,index,chars,spiritId);
+ });
+}
+export function ascensionRealForceReplace(asc,role,chars){
+ return mutate(asc,next=>{
+  const s=realSession(next,role);
+  if(!s.battle||s.battle.status!=='switching_phase')return;
+  s.container.classicRoom=forceRealAscensionReplacement(s.battle,chars);
+ });
+}
+export function ascensionRealCapture(asc,role,chars,rng=Math.random){
+ if(asc.stage!=='preparation')throw Error('Le Prismaball si usano solo nel percorso.');
+ return mutate(asc,next=>{
+  const p=participant(next,role),e=p.encounter,b=e?.classicRoom;
+  if(!e||!b||b.status!=='battling')throw Error('La battaglia non è pronta per catturare.');
+  if(e.kind!=='wild'||p.prismaballs<1||p.roster.length>=ASCENSION_MAX_TEAM)
+   throw Error('La cattura non è disponibile.');
+  if(p.roster.some(m=>m.id===e.foeId))throw Error('Hai già questo Multimon.');
+  synchronizeRealEncounter(p,e,chars);
+  const foe=ascensionFind(chars,e.foeId);
+  p.prismaballs--;
+  const chance=ascensionCaptureChance(e.foeHp,e.foeMaxHp,{
+   status:e.status,rare:Number(foe.price||0)>=250,veryRare:Number(foe.price||0)>=350
+  });
+  const captured=rng()<chance;
+  p.lastCapture={success:captured,failedAt:captured?3:1+rand(rng,3),
+   foeId:e.foeId,chance,nonce:(p.lastCapture?.nonce||0)+1};
+  if(captured){
+   p.roster.push(ascensionMember(e.foeId,e.foeLevel,chars));
+   p.captures++;
+   concludeEncounter(p,e,'capture',chars,['✨ '+foe.name+' si unisce alla squadra!']);
+   p.notice='Cattura riuscita! '+foe.name+' è nel tuo team.';
+  }else{
+   e.classicRoom.status='ascension_capture';
+   e.classicRoom.ascensionCapture={balls:p.prismaballs,canCapture:false};
+  }
+ });
+}
+export function ascensionRealCaptureContinue(asc,role,chars){
+ return mutate(asc,next=>{
+  const s=realSession(next,role);
+  if(s.duel||!s.battle||s.battle.status!=='ascension_capture')
+   throw Error('Nessuna Prismaball in attesa.');
+  s.container.classicRoom=resolveRealAscensionCaptureCounter(s.battle,chars);
+  synchronizeRealEncounter(s.player,s.container,chars);
+ });
+}
+export function ascensionRealFlee(asc,role,chars){
+ return mutate(asc,next=>{
+  const s=realSession(next,role),e=s.container,p=s.player;
+  if(s.duel||e.kind!=='wild'||!s.battle||s.battle.status!=='battling')
+   throw Error('Non puoi ritirarti da questa sfida.');
+  synchronizeRealEncounter(p,e,chars);
+  concludeEncounter(p,e,'retreat',chars,['Ti ritiri dal varco.']);
+  p.notice='Ritirata completata.';
+ });
+}
+export function ascensionRealBotDuels(asc,room,chars){
+ if(asc.stage!=='colosseum')return asc;
+ const m=ascensionCurrentMatch(asc);
+ if(!m?.game?.classicRoom||m.winner||!m.roles.every(r=>room.isBot?.[r]))
+  return asc;
+ let next=asc;
+ // With two CPU contestants no client should need to click 100 turns;
+ // nevertheless every single combat turn runs through calculateTurnImpl.
+ for(let i=0;i<60;i++){
+  const current=ascensionCurrentMatch(next);
+  if(!current?.game?.classicRoom||current.game.winner)break;
+  const b=current.game.classicRoom;
+  if(b.status==='battling'){
+   next=mutate(next,state=>{
+    const g=ascensionCurrentMatch(state).game;
+    g.classicRoom=resolveRealAscensionCpu(g.classicRoom,chars);
+   });
+  }else if(b.status==='executing'){
+   const role=current.roles[0];
+   next=ascensionRealAdvance(next,role,b.phaseStartedAt,chars);
+  }else if(b.status==='switching_phase'){
+   next=ascensionRealForceReplace(next,current.roles[0],chars);
+  }else if(b.status==='gameover')break;
+  else break;
  }
  return next;
 }
