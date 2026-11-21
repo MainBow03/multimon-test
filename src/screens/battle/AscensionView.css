@@ -173,3 +173,11 @@ button.ac-portrait{cursor:pointer}.ac-portrait.selected{border:2px solid #81efd3
 .ac-starters .ac-starter .ac-portrait>small{font-size:10px;color:#b4e6ed}
 @media(max-width:950px){.ac-starters .ac-starter .ac-portrait-frame{height:155px}}
 @media(max-width:610px){.ac-starters .ac-starter{padding:7px;gap:8px}.ac-starters .ac-starter .ac-starter-select{font-size:10px;padding:8px 5px;min-height:40px}.ac-starters .ac-starter .ac-portrait-frame{height:139px;min-height:122px}}
+
+.ac-sovereign-prize{margin:27px auto 5px;max-width:700px;display:grid;grid-template-columns:170px minmax(0,1fr);align-items:center;gap:18px;text-align:left;background:radial-gradient(ellipse at top right,#bd77e241,transparent 72%),linear-gradient(130deg,#211537,#34213e 55%,#28384a);border:2px solid #ffe0a8;border-radius:22px;padding:14px 21px;box-shadow:0 12px 45px #0c0c25aa,0 0 35px #e5bb8d2b}
+.ac-sovereign-prize img{width:165px;height:195px;object-fit:contain;border-radius:16px;box-shadow:0 0 25px #b989d548}
+.ac-sovereign-prize small{color:#ffe49e;font-size:11px;font-weight:1000;letter-spacing:.17em}
+.ac-sovereign-prize h3{font-size:clamp(20px,3vw,29px);font-weight:1000;margin:8px 0;color:#ffdfae}
+.ac-sovereign-prize p{color:#e9d8ff;font-size:13px;line-height:1.55}
+.ac-sovereign-prize strong{display:block;color:#9ef3d8;margin-top:14px;font-size:13px}
+@media(max-width:600px){.ac-sovereign-prize{grid-template-columns:95px minmax(0,1fr);padding:11px;gap:11px}.ac-sovereign-prize img{width:93px;height:130px}.ac-sovereign-prize h3{font-size:17px}.ac-sovereign-prize p{font-size:11px}.ac-sovereign-prize strong{font-size:11px}}
