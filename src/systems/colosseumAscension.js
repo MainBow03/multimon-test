@@ -459,34 +459,13 @@ export function ascensionPlayEncounter(asc,role,choice,chars,rng=Math.random){
    const actor=isSpirit?e.spirit:active;
    if(!actor||(isSpirit&&actor.hp<=0))throw Error('Spirito Stellare non disponibile.');
    const base=ascensionFind(chars,actor.id);
-   const moves=(base?.moves||[]).filter(Boolean),index=choice.index;
-   const move=moves[index];
-   if(!move)throw Error('Mossa non disponibile.');
-   const fighter=ascensionFighterFromMember(actor,chars);
-   if(isSpirit){
-    for(const [stat,factor] of Object.entries(e.spirit.buffs||{})){
-     if(Number.isFinite(fighter[stat]))fighter[stat]=Math.round(fighter[stat]*factor);
-    }
-    for(const [stat,extra] of Object.entries(e.spirit.flatBuff||{})){
-     if(Number.isFinite(fighter[stat]))fighter[stat]+=extra;
-    }
-   }
-   executeAction(fighter,foe,move,rng,log);
-   actor.hp=fighter.hp;e.foeHp=foe.hp;
-   if(foe.hp>0){
-    if(isSpirit)ascensionApplyZodiacMove(e,move,foe,chars,rng,log);
-    else{
-     for(const effect of [...(Array.isArray(move.statusEffects)?move.statusEffects:[]),
-       ...(move.statusEffect?[move.statusEffect]:[])]){
-      if(effect?.type&&rng()<(effect.chance??1)){
-       e.status=effect.type;e.statusTurns=effect.turns||2;
-       log.push('✨ '+foe.name+' è affetto da '+effect.type+'!');break;
-      }
-     }
-     if(move.zodiacForceSecondary)ascensionApplyZodiacMove(e,move,foe,chars,rng,log);
-    }
-   }
-   if(foe.hp<=0){ascensionWinEncounter(next,p,e,chars,log);return;}
+   const index=Math.trunc(choice.index),moves=(base?.moves||[]).filter(Boolean);
+   if(!Number.isInteger(index)||!moves[index])throw Error('Mossa non disponibile.');
+   // Come nelle lotte classiche: tutte le mosse vengono prima scelte,
+   // POI ordinate da priorità e Velocità nel vero motore.
+   if(isSpirit)e.queuedSpiritAction={type:'attack',index};
+   else e.queuedHeroAction={type:'attack',index};
+   log.push((base?.name||actor.id)+' prepara '+moves[index].name+'...');
   }else throw Error('Comando non valido.');
   e.spiritOpen=false;
   e.eventNonce=(e.eventNonce||0)+1;
@@ -505,49 +484,86 @@ export function ascensionResolveEncounterReaction(asc,role,chars,rng=Math.random
   if(!e||e.pendingReaction?.phase!=='enemy')throw Error('Nessuna reazione da risolvere.');
   const active=p.roster[e.active];
   if(!active)throw Error('Non ci sono Multimon da comandare.');
-  const foe=ascensionFighter(ascensionFind(chars,e.foeId),e.foeLevel);
-  foe.hp=e.foeHp;
-  const targetHero=ascensionFighterFromMember(active,chars);
-  const spirit=e.spirit?.hp>0?ascensionFighterFromMember(e.spirit,chars):null;
-  const targetSpirit=spirit&&rng()<.28;
-  const target=targetSpirit?spirit:targetHero;
-  const log=[];
-  const ai=trainerMove(foe,target,e.kind==='trainer'?e.trainer:'wild',rng);
-  if(['Addormentato','Congelato','Stordito'].includes(e.status)&&e.statusTurns>0){
-   log.push(foe.name+' non riesce ad agire: '+e.status+'!');
-  }else{
-   executeAction(foe,target,ai,rng,log);
+  const foeBase=ascensionFind(chars,e.foeId);
+  const players=p.roster.map((m,i)=>ascensionNativeFighter({
+   ...m,battleState:e.nativeUnits?.p1?.[i]||m.battleState
+  },chars));
+  const foe=ascensionNativeFighter({
+   id:e.foeId,level:e.foeLevel,hp:e.foeHp,battleState:e.nativeUnits?.p2?.[0]
+  },chars);
+  const actionsOne={};
+  if(e.queuedHeroAction){
+   const index=e.queuedHeroAction.index;
+   actionsOne[e.active]=ascensionNativeMoveAction(index,'p2',0);
   }
-  if(e.statusTurns>0){
-   e.statusTurns--;
-   if(e.statusTurns===0)e.status=null;
+  const spiritIndex=players.length;
+  if(e.spirit?.hp>0){
+   const spirit=ascensionNativeFighter({
+    ...e.spirit,battleState:e.nativeUnits?.p1?.[spiritIndex]||e.spirit.battleState
+   },chars);
+   spirit.isZodiacSpirit=true;spirit.zodiacOwner='p1';
+   spirit.zodiacLucyIdx=e.active;
+   players.push(spirit);
+   if(e.queuedSpiritAction)
+    actionsOne[spiritIndex]=ascensionNativeMoveAction(e.queuedSpiritAction.index,'p2',0);
   }
-  if(e.weatherTurns>0)e.weatherTurns--;
-  e.foeHp=foe.hp;
-  if(targetSpirit){
-   e.spirit.hp=target.hp;
-   if(e.spirit.hp<=0){
-    log.push('✨ Lo Spirito Stellare è esausto e lascia il campo!');
+  const fieldOne=[e.active,...(players[spiritIndex]?.isZodiacSpirit?[spiritIndex]:[])];
+  const moves=(foe.moves||[]).filter(Boolean);
+  const ai=trainerMove(foe,players[e.active],e.kind==='trainer'?e.trainer:'wild',rng);
+  const aiIndex=Math.max(0,moves.findIndex(m=>m.name===ai?.name));
+  const reaction=ascensionNativeTurn({
+   characters:chars,teamOne:players,teamTwo:[foe],
+   fieldOne,fieldTwo:[0],actionsOne,
+   actionsTwo:{0:ascensionNativeMoveAction(aiIndex,'p1',e.active)},
+   names:[p.role,e.kind==='trainer'?'Allenatore '+e.trainerName:'Selvatico'],
+   fieldSize:fieldOne.length,turn:e.turn,
+   weather:e.nativeWeather||null,tailwind:e.nativeTailwind||{}
+  });
+  const actual=reaction.teams.p1;
+  const foeUpdated=reaction.teams.p2[0];
+  p.roster.forEach((member,i)=>{
+   if(actual[i])member.hp=actual[i].hp;
+  });
+  e.foeHp=foeUpdated.hp;
+  e.nativeUnits={p1:actual,p2:reaction.teams.p2};
+  e.nativeWeather=reaction.weather;e.nativeTailwind=reaction.tailwind;
+  e.status=foeUpdated.statuses?.[0]?.type||null;
+  e.statusTurns=foeUpdated.statuses?.[0]?.turns||0;
+  if(e.spirit){
+   const spirit=actual[spiritIndex];
+   if(!spirit||spirit.hp<=0){
     e.spirit=null;e.spiritOpen=false;
+   }else{
+    e.spirit.hp=spirit.hp;
+    e.spirit.battleState=spirit;
    }
-  }else active.hp=target.hp;
-  const resultText=log.join(' ');
-  e.turn++;
-  e.eventNonce=(e.eventNonce||0)+1;
-  e.lastReaction={nonce:e.eventNonce,text:resultText};
-  e.pendingReaction=null;
-  if(active.hp<=0){
-   const nextActive=p.roster.findIndex(m=>m.hp>0);
-   if(nextActive<0){
-    concludeEncounter(p,e,'defeat',chars,[...log,'La tua squadra è esausta.']);
-    p.notice='Squadra esausta. Riparti dal prossimo round.';return;
-   }
-   e.active=nextActive;
-   e.spirit=null;e.spiritOpen=false;
-   log.push('Entra in campo '+ascensionFind(chars,p.roster[nextActive].id).name+'!');
-   if(p.roster[nextActive].id==='lucy')ascensionSummonLucySpirit(p,e,chars);
   }
-  e.log=[...(e.log||[]),...log].slice(-12);
+  e.queuedHeroAction=null;e.queuedSpiritAction=null;
+  const log=reaction.log||[];
+  e.eventNonce=(e.eventNonce||0)+1;
+  e.nativePlayback={nonce:e.eventNonce,
+   events:reaction.events,startTeams:reaction.startTeams,
+   startField:reaction.startField,endTeams:reaction.teams,endField:reaction.field};
+  e.lastReaction={nonce:e.eventNonce,text:log.slice(-2).join(' ')||'Il nemico ha agito!'};
+  e.pendingReaction=null;
+  if(e.foeHp<=0){
+   ascensionWinEncounter(next,p,e,chars,log);
+   return;
+  }
+  if(!p.roster.some(m=>m.hp>0)){
+   concludeEncounter(p,e,'defeat',chars,[...log,'La tua squadra è esausta.']);
+   p.notice='Squadra esausta. Riparti dal prossimo round.';
+   return;
+  }
+  if(p.roster[e.active]?.hp<=0){
+   e.active=p.roster.findIndex(m=>m.hp>0);
+   e.spirit=null;e.spiritOpen=false;
+   const arriving=ascensionFind(chars,p.roster[e.active].id);
+   log.push('Entra in campo '+arriving.name+'!');
+   if(arriving.id==='lucy')ascensionSummonLucySpirit(p,e,chars);
+  }
+  e.turn++;
+  e.log=[...(e.log||[]),...log].slice(-20);
  });
 }
 export function ascensionRoundReady(asc){return asc.stage==='preparation'&&asc.roles.every(r=>asc.participants[r].done&&!asc.participants[r].encounter&&!asc.participants[r].battleResult);}
