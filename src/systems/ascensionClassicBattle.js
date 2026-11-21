@@ -28,15 +28,15 @@ export function ascensionClassicView(room,role,chars){
  let mine,theirs,myActive,enemyActive,turn,log,canCommand,labels,capture=null;
  let commandingIdx=0,spiritSelection=null;
  if(encounter){
-  mine=participant.roster.map(member=>fighter(member,chars));
+  mine=participant.roster.map((member,i)=>ascensionNativeFighter({
+   ...member,battleState:encounter.nativeUnits?.p1?.[i]
+  },chars));
   const original=ascensionFind(chars,encounter.foeId);
-  const enemy=ascensionFighter(original,encounter.foeLevel);
-  enemy.hp=hp(encounter.foeHp);
-  enemy.moves=(enemy.moves||[]).filter(Boolean);
-  enemy.revealed=true;
+  const enemy=ascensionNativeFighter({
+   id:encounter.foeId,level:encounter.foeLevel,hp:encounter.foeHp,
+   battleState:encounter.nativeUnits?.p2?.[0]
+  },chars);
   enemy.adventureLevel=encounter.foeLevel;
-  enemy.heldItem=null;
-  enemy.statuses=encounter.status?[{type:encounter.status,turns:encounter.statusTurns||1}]:[];
   theirs=[enemy];
   myActive=[encounter.active];
   const isLucy=participant.roster[encounter.active]?.id==='lucy';
@@ -45,8 +45,11 @@ export function ascensionClassicView(room,role,chars){
    :isLucy&&encounter.spiritOpen!==false?ascensionFind(chars,'zodiac_aries'):null;
   if(spiritBase?.isSummonOnly){
    const spiritState=encounter.spirit;
-   const spirit=ascensionFighter(spiritBase,spiritState?.level||participant.roster[encounter.active].level);
-   if(spiritState)spirit.hp=hp(spiritState.hp);
+   const spirit=ascensionNativeFighter({
+    id:spiritBase.id,level:spiritState?.level||participant.roster[encounter.active].level,
+    hp:spiritState?.hp||0,
+    battleState:encounter.nativeUnits?.p1?.[mine.length]||spiritState?.battleState
+   },chars);
    spirit.isZodiacSpirit=true;
    spirit.zodiacOwner='p1';
    spirit.zodiacLucyIdx=encounter.active;
@@ -97,7 +100,8 @@ export function ascensionClassicView(room,role,chars){
   hyperUsed:{p1:true,p2:true},
   actions:{p1:{},p2:{}},inventory:{p1:{},p2:{}},
   battleReport:{turns:Math.max(0,turn-1)},
-  battleWeather:{type:'clear',turns:0},battleTailwind:{},
+  battleWeather:encounter?.nativeWeather||match?.game?.weather||{type:'clear',turns:0},
+  battleTailwind:encounter?.nativeTailwind||match?.game?.tailwind||{},
   fieldTraps:{},events:[],playerMastery:{},
   isRoguelikeCoop:false,isCampaignBattle:false,isAdventureBattle:false,
   isTrainingBattle:false,isTournamentEvent:false,
