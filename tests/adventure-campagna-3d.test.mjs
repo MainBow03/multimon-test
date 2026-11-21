@@ -189,7 +189,7 @@ test('3D: tutte le mesh del mondo sono renderizzabili, senza vertici infiniti o 
  assert.ok(unlocked.length>0);
  assert.notEqual(open.length,unlocked.length,'i portali devono cambiare dopo gli Emblemi');
 });
-test('Wiring 3D: render WebGL, mobile, App bridge, menu nuovo e nessun pacchetto CDN',()=>{
+test('Wiring 3D: renderer, mobile e salvataggi conservati anche con ingresso nascosto nel menu',()=>{
  const file=p=>readFileSync(new URL(p,import.meta.url),'utf8');
  const app=file('../src/App.jsx'),v=file('../src/screens/adventure/AdventureCampaignView.jsx'),
    renderer=file('../src/screens/adventure/AdventureWorldRenderer.js'),
@@ -205,6 +205,10 @@ test('Wiring 3D: render WebGL, mobile, App bridge, menu nuovo e nessun pacchetto
  assert.match(css,/adv-mobile-controls/);
  assert.match(app,/adventureBattleRoom\(adventureState/);
  assert.match(app,/adventureFinishBattle\(adventureState/);
- assert.match(menu,/card\('🌍','Campagna','Mondo 3D aperto/);
- assert.match(classic,/Campagna 3D/);
+ // La modalità rimane implementata, ma non compare più fra le scelte principali.
+ assert.match(app,/appMode === 'adventure_world'/);
+ assert.doesNotMatch(menu,/card\('🌍','Campagna','Mondo 3D aperto/);
+ assert.doesNotMatch(classic,/Campagna 3D/);
+ assert.match(menu,/card\('📖','Campagne'/);
+ assert.match(classic,/Modalità Campagne/);
 });
