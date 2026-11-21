@@ -785,11 +785,16 @@ export function ascensionBotTurn(asc,role,chars,rng=Math.random){
   if(match.game.winner){
    return match.game.resultAcknowledged?.[role]?asc:ascensionAcknowledgeDuelResult(asc,role);
   }
-  if(match.game.actions[role])return asc;
-  const unit=match.game.units[role][firstAlive(match.game.units[role])];
-  const moves=ascensionFind(chars,unit.id).moves||[];
+  const count=match.stage==='finale'?2:1;
+  const units=match.game.units[role];
+  const field=match.game.field?.[role]||units.map((m,i)=>m.hp>0?i:-1).filter(i=>i>=0).slice(0,count);
+  const from=field.find(idx=>!match.game.actions?.[role]?.[idx]);
+  if(from==null)return asc;
+  const unit=units[from];
+  const moves=(ascensionFind(chars,unit.id).moves||[]).filter(Boolean);
   const attacks=moves.map((m,i)=>m?.power>0?i:-1).filter(i=>i>=0);
-  return ascensionDuelAction(asc,role,attacks.length?attacks[rand(rng,attacks.length)]:0,chars,rng);
+  return ascensionDuelAction(asc,role,{type:'attack',fromIdx:from,
+   index:attacks.length?attacks[rand(rng,attacks.length)]:0},chars,rng);
  }
  return asc;
 }
@@ -807,7 +812,10 @@ export function ascensionSettleBots(asc,room,chars,rng=Math.random){
    else if(next.stage==='colosseum'){
     const m=ascensionCurrentMatch(next);
     needed=Boolean(m&&m.roles.includes(role)&&!m.winner&&
-      (!m.selection[role]||m.game?.winner&&!m.game.resultAcknowledged?.[role]||m.game&&!m.game.actions[role]));
+      (!m.selection[role]||m.game?.winner&&!m.game.resultAcknowledged?.[role]||m.game&&(()=>{
+       const field=m.game.field?.[role]||m.game.units[role].map((u,i)=>u.hp>0?i:-1).filter(i=>i>=0).slice(0,m.stage==='finale'?2:1);
+       return field.some(idx=>!m.game.actions?.[role]?.[idx]);
+      })()));
    }
    if(!needed)continue;
    const after=ascensionBotTurn(next,role,chars,rng);
