@@ -1210,6 +1210,21 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
               return result;
           };
 
+          // Premio esclusivo: il campione reale di Ascesa ottiene Aurelion
+          // una sola volta, anche al ritorno dal refresh o su un altro dispositivo.
+          useEffect(()=>{
+              const a=gameState.ascension;
+              if(gameState.gameMode!=='ascension'||a?.stage!=='finished'||
+                 a.champion!==playerRole||gameState.isBot?.[playerRole])return;
+              if(gameState.players?.[playerRole]!==playerName)return;
+              if(gameState.playerUids?.[playerRole] && user?.uid &&
+                 gameState.playerUids[playerRole]!==user.uid)return;
+              if(getPlayerData().unlockedChars?.includes('sovranoaurelion'))return;
+              updateLocalStats({unlockChar:'sovranoaurelion'});
+          },[gameState.gameMode,gameState.ascension?.stage,gameState.ascension?.champion,
+              gameState.players,gameState.playerUids,gameState.isBot,
+              playerRole,playerName,user?.uid,profileRevision]);
+
           // Il report di battaglia è identico per host e ospiti: ognuno
           // accredita soltanto le azioni del proprio giocatore. I checkpoint
           // impediscono di contare due volte refresh e aggiornamenti realtime.
