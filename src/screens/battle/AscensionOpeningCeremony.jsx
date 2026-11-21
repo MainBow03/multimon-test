@@ -13,6 +13,7 @@ export function AscensionOpeningCeremony({asc,room,role,characters,onFinish}){
    starter:character||{id:starterId,name:starterId||'Sconosciuto',img:''},
    bot:!!room.isBot?.[r]};
  }),[asc.roles,asc.participants,room.players,room.isBot,characters]);
+ const sovereign=characters.find(c=>c.id==='sovranoaurelion');
  const count=contenders.length;
  const introduction=step===0;
  const closing=step>count;
@@ -44,10 +45,10 @@ export function AscensionOpeningCeremony({asc,room,role,characters,onFinish}){
   </header>
   <section className="ac-ceremony-stage">
    <div className="ac-ceremony-sovereign">
-    <div className="ac-ceremony-sovereign-art" aria-hidden="true">
-     <span className="ac-ceremony-crown">♛</span>
-     <span className="ac-ceremony-face">✦</span>
-     <span className="ac-ceremony-cloak"/>
+    <div className="ac-ceremony-sovereign-art">
+     {sovereign?.img?<img className="ac-ceremony-sovereign-portrait"
+      src={sovereign.img} alt="Sovrano Aurelion" onError={onMultimonImageError}/>:
+      <span className="ac-ceremony-crown" aria-hidden="true">♛</span>}
     </div>
     <div className="ac-ceremony-royal-caption"><strong>{SOVEREIGN}</strong><small>Custode del Colosseo dei Mondi</small></div>
    </div>
