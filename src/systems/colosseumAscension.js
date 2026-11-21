@@ -101,7 +101,7 @@ export function ascensionCreate(room,chars,rng=Math.random){
  for(const role of roles){
   const options=sample(pool,5,rng).map(c=>c.id);
   participants[role]={role,options,roster:[],coins:100,prismaballs:ASCENSION_STARTING_BALLS,
-   done:false,encounter:null,battleResult:null,notice:'Scegli uno dei tuoi cinque starter.',captures:0,trainerWins:0,shopBuys:0};
+   done:false,encounter:null,battleResult:null,introSeen:false,notice:'Scegli uno dei tuoi cinque starter.',captures:0,trainerWins:0,shopBuys:0};
  }
  return {version:1,stage:'starters',round:1,act:1,participants,roles,
   bracket:[],matchIndex:0,champion:null,history:[],revision:0};
@@ -123,6 +123,17 @@ export function ascensionSelectStarter(asc,role,id,chars){
    next.stage='preparation';
    next.roles.forEach(r=>{next.participants[r].done=false;next.participants[r].notice='Round 1: scegli il tuo percorso.';});
   }
+ });
+}
+/** La cerimonia di apertura è personale: ogni allenatore vede gli otto annunci
+ * prima del suo primo percorso. Non interferisce con la progressione dei bot. */
+export function ascensionAcknowledgeOpening(asc,role){
+ if(asc.stage!=='preparation'||asc.round!==1)
+  throw Error('La cerimonia di apertura non è disponibile ora.');
+ if(!asc.participants?.[role])throw Error('Non fai parte di questa partita.');
+ if(asc.participants[role].introSeen)return asc;
+ return mutate(asc,next=>{
+  next.participants[role].introSeen=true;
  });
 }
 export function ascensionWildLevel(p){
