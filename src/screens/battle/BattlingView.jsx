@@ -25,7 +25,7 @@ const { chooseJuggernautFreeChoice, ownMasteryLevels, ChevronRight, ITEMS_DB, Lo
 if (gameState.status === 'battling' || gameState.status === 'executing') {
         const activeMatchPlayers = getActivePlayers();
         const grandFinale = ultimonIsFinalShowdown(gameState);
-        const isAscensionBattle=gameState.gameMode==='ascension';
+        const isAscensionBattle=gameState.gameMode==='ascension'||!!gameState.isAscensionNativeBattle;
         const bagAvailable = canUseBagItems(gameState);
         const feedbackKind = battleFeedbackKind(eventPlaybackText, !!eventPlaybackPassive);
         // Una regola di scena per ognuna delle 36 battaglie del Teatro,
