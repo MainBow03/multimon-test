@@ -331,22 +331,92 @@ export function ascensionAcknowledgeEncounterResult(asc,role){
   p.lastCapture=null;
  });
 }
+/** Conserva le ricompense anche dopo un KO al primo colpo. */
+function ascensionWinEncounter(next,p,e,chars,log){
+ const foeBase=ascensionFind(chars,e.foeId);
+ const xp=7+e.foeLevel*4+(e.kind==='trainer'?e.trainerRisk*3:0);
+ const coinsBefore=p.coins;
+ grantEncounterXp(p,e.active,xp,chars);
+ if(e.kind==='trainer'){
+  const reward=ASCENSION_TRAINER_STYLES.find(x=>x.id===e.trainer);
+  p.coins+=reward.coin+(next.round*2);
+  p.roster.forEach(m=>{if(m.level<ASCENSION_MAX_LEVEL)m.trainingHalves=(m.trainingHalves||0)+1;});
+  p.trainerWins++;
+  p.notice='Allenatore sconfitto! Tutti i Multimon +0,5 Punti Allenamento.';
+ }else{
+  p.coins+=10+next.round;
+  p.notice='Selvatico sconfitto: esperienza e monete ottenute, niente cattura.';
+ }
+ e.foeHp=0;
+ concludeEncounter(p,e,'victory',chars,[...log,foeBase.name+' è KO!'],{
+  coins:p.coins-coinsBefore,xp,training:e.kind==='trainer'?.5:0
+ });
+}
+function ascensionApplyZodiacMove(e,move,foe,chars,rng,log){
+ if(!e.spirit||e.spirit.hp<=0)return;
+ const applyStatus=(status,chance=1,turns=2)=>{
+  if(status&&foe.hp>0&&rng()<chance){
+   e.status=status;e.statusTurns=turns;
+   log.push('✨ '+foe.name+' è affetto da '+status+'!');
+  }
+ };
+ if(move.zodiacForceSecondary){
+  const effect=zodiacSecondaryRoll(e.spirit.id,rng);
+  if(effect.status)applyStatus(effect.status);
+  if(effect.buff){
+   e.spirit.buffs={...(e.spirit.buffs||{}),...effect.buff};
+   log.push('✨ '+ascensionFind(chars,e.spirit.id).name+' riceve un potenziamento!');
+  }
+  if(effect.flatBuff){
+   e.spirit.flatBuff={...(e.spirit.flatBuff||{}),...effect.flatBuff};
+   log.push('🛡️ Lo Spirito rafforza le proprie difese!');
+  }
+  if(effect.trapTurns){
+   e.status='Prigione Sotterranea';e.statusTurns=effect.trapTurns;
+   log.push('🕳️ Virgo intrappola '+foe.name+'!');
+  }
+  if(effect.rainTurns){e.weatherTurns=effect.rainTurns;log.push('🌧️ Aquarius richiama la pioggia!');}
+ }
+ if(move.zodiacCleanLucy)log.push('✨ Virgo protegge Lucy!');
+ if(move.zodiacTrapTurns){e.status='Prigione Sotterranea';e.statusTurns=move.zodiacTrapTurns;log.push('🕳️ Prigione Sotterranea per '+foe.name+'!');}
+ if(move.zodiacRainTurns){e.weatherTurns=move.zodiacRainTurns;log.push('🌧️ Aquarius richiama la pioggia!');}
+ for(const effect of [...(Array.isArray(move.statusEffects)?move.statusEffects:[]),...(move.statusEffect?[move.statusEffect]:[])]){
+  if(effect?.type)applyStatus(effect.type,effect.chance??1,effect.turns||2);
+ }
+}
+/** L'azione del giocatore viene registrata PRIMA della risposta del nemico.
+ * Il client anima il colpo e, in caso di Prismaball, attende la cattura.
+ * Solo ascensionResolveEncounterReaction può eseguire la replica avversaria. */
 export function ascensionPlayEncounter(asc,role,choice,chars,rng=Math.random){
  if(asc.stage!=='preparation')throw Error('Non sei in preparazione.');
  return mutate(asc,next=>{
   const p=participant(next,role),e=p.encounter;
   if(!e)throw Error('Non hai un incontro attivo.');
+  if(e.pendingReaction?.phase==='enemy')throw Error('Aspetta la risposta del Multimon avversario.');
+  const activeIdx=e.active;
+  let active=p.roster[activeIdx];
+  if(!active||active.hp<=0){
+   e.active=p.roster.findIndex(m=>m.hp>0);active=p.roster[e.active];
+  }
+  if(!active){
+   concludeEncounter(p,e,'defeat',chars,['Non hai più Multimon disponibili.']);
+   p.notice='Squadra esausta: questo round termina.';return;
+  }
+  if(active.id==='lucy'&&!e.spirit&&e.spiritOpen!==false)ascensionSummonLucySpirit(p,e,chars);
   const foeBase=ascensionFind(chars,e.foeId),foe=ascensionFighter(foeBase,e.foeLevel);
   foe.hp=e.foeHp;
-  let active=p.roster[e.active];
-  if(!active||active.hp<=0){e.active=p.roster.findIndex(m=>m.hp>0);active=p.roster[e.active];}
-  if(!active){concludeEncounter(p,e,'defeat',chars,['Non hai più Multimon disponibili.']);p.notice='Squadra esausta: questo round termina.';return;}
-  const hero=ascensionFighterFromMember(active,chars),log=[];
+  const log=[];
+  const spiritTurn=e.pendingReaction?.phase==='spirit';
   if(choice?.type==='switch'){
+   if(spiritTurn)throw Error('Lo Spirito deve scegliere una mossa.');
    const target=p.roster[choice.index];
-   if(!target||target.hp<=0)throw Error('Non puoi schierare un Multimon esausto.');
-   e.active=choice.index;log.push('Cambio! Entra '+ascensionFind(chars,target.id).name+'.');
+   if(!target||target.hp<=0||choice.index===e.active)throw Error('Non puoi schierare questo Multimon.');
+   e.active=choice.index;
+   e.spirit=null;e.spiritOpen=false;
+   log.push('Cambio! Entra '+ascensionFind(chars,target.id).name+'.');
+   if(target.id==='lucy')ascensionSummonLucySpirit(p,e,chars);
   }else if(choice?.type==='ball'){
+   if(spiritTurn)throw Error('Lucy deve terminare il turno con lo Spirito.');
    if(e.kind!=='wild')throw Error('Gli allenatori non sono catturabili.');
    if(p.prismaballs<=0)throw Error('Hai finito le Prismaball.');
    if(p.roster.length>=ASCENSION_MAX_TEAM)throw Error('Team pieno: massimo nove Multimon.');
@@ -354,9 +424,9 @@ export function ascensionPlayEncounter(asc,role,choice,chars,rng=Math.random){
    p.prismaballs--;
    const chance=ascensionCaptureChance(e.foeHp,e.foeMaxHp,{
     status:e.status,rare:Number(foeBase.price||0)>=250,veryRare:Number(foeBase.price||0)>=350});
-   const captured=rng()<chance;
-   const failedAt=captured?3:1+rand(rng,3);
-   p.lastCapture={success:captured,failedAt,foeId:e.foeId,chance,nonce:(p.lastCapture?.nonce||0)+1};
+   const captured=rng()<chance,failedAt=captured?3:1+rand(rng,3);
+   p.lastCapture={success:captured,failedAt,foeId:e.foeId,chance,
+    nonce:(p.lastCapture?.nonce||0)+1};
    if(captured){
     p.roster.push(ascensionMember(e.foeId,e.foeLevel,chars));
     p.captures++;
@@ -364,69 +434,108 @@ export function ascensionPlayEncounter(asc,role,choice,chars,rng=Math.random){
     p.notice='Sincronizzazione completa! '+foeBase.name+' entra nella tua squadra.';
     return;
    }
-   log.push('La Prismaball non completa la sincronizzazione!');
+   log.push('💎 '+foeBase.name+' sfugge alla Prismaball!');
   }else if(choice?.type==='flee'){
+   if(spiritTurn)throw Error('Completa prima l’azione dello Spirito.');
    if(e.kind==='trainer')throw Error('Non puoi fuggire dalla sfida allenatore.');
    concludeEncounter(p,e,'retreat',chars,['Ti ritiri dal varco.']);
-   p.notice='Ti ritiri dal varco senza catturare.';
-   return;
+   p.notice='Ti ritiri dal varco senza catturare.';return;
   }else if(choice?.type==='attack'){
-   const heroMoves=(ascensionFind(chars,active.id).moves||[]).filter(Boolean);
-   const move=heroMoves[choice.index];
+   const isSpirit=choice.source==='spirit';
+   if(isSpirit!==spiritTurn)throw Error('Questo Multimon non può agire in questa fase.');
+   if(!isSpirit&&e.pendingReaction)throw Error('Il turno è già in corso.');
+   const actor=isSpirit?e.spirit:active;
+   if(!actor||(isSpirit&&actor.hp<=0))throw Error('Spirito Stellare non disponibile.');
+   const base=ascensionFind(chars,actor.id);
+   const moves=(base?.moves||[]).filter(Boolean),index=choice.index;
+   const move=moves[index];
    if(!move)throw Error('Mossa non disponibile.');
-   executeAction(hero,foe,move,rng,log);
+   const fighter=ascensionFighterFromMember(actor,chars);
+   if(isSpirit){
+    for(const [stat,factor] of Object.entries(e.spirit.buffs||{})){
+     if(Number.isFinite(fighter[stat]))fighter[stat]=Math.round(fighter[stat]*factor);
+    }
+    for(const [stat,extra] of Object.entries(e.spirit.flatBuff||{})){
+     if(Number.isFinite(fighter[stat]))fighter[stat]+=extra;
+    }
+   }
+   executeAction(fighter,foe,move,rng,log);
+   actor.hp=fighter.hp;e.foeHp=foe.hp;
    if(foe.hp>0){
-    const effects=[...(Array.isArray(move.statusEffects)?move.statusEffects:[]),
-      ...(move.statusEffect?[move.statusEffect]:[])];
-    for(const effect of effects){
-     if(effect?.type&&rng()<(effect.chance??1)){
-      e.status=effect.type;e.statusTurns=effect.turns||2;
-      log.push('✨ '+foe.name+' è affetto da '+effect.type+'!');
-      break;
+    if(isSpirit)ascensionApplyZodiacMove(e,move,foe,chars,rng,log);
+    else{
+     for(const effect of [...(Array.isArray(move.statusEffects)?move.statusEffects:[]),
+       ...(move.statusEffect?[move.statusEffect]:[])]){
+      if(effect?.type&&rng()<(effect.chance??1)){
+       e.status=effect.type;e.statusTurns=effect.turns||2;
+       log.push('✨ '+foe.name+' è affetto da '+effect.type+'!');break;
+      }
      }
+     if(move.zodiacForceSecondary)ascensionApplyZodiacMove(e,move,foe,chars,rng,log);
     }
    }
-   active.hp=hero.hp;e.foeHp=foe.hp;
-   if(foe.hp<=0){
-    const xp=7+e.foeLevel*4+(e.kind==='trainer'?e.trainerRisk*3:0);
-    const coinsBefore=p.coins;
-    grantEncounterXp(p,e.active,xp,chars);
-    if(e.kind==='trainer'){
-     const reward=ASCENSION_TRAINER_STYLES.find(x=>x.id===e.trainer);
-     p.coins+=reward.coin+(next.round*2);
-     // 0.5 punti a TUTTI i membri, incluso chi non combatte.
-     p.roster.forEach(m=>{if(m.level<ASCENSION_MAX_LEVEL)m.trainingHalves=(m.trainingHalves||0)+1;});
-     p.trainerWins++;
-     p.notice='Allenatore sconfitto! Tutti i Multimon +0,5 Punti Allenamento.';
-    }else{
-     p.coins+=10+next.round;
-     p.notice='Selvatico sconfitto: esperienza e monete ottenute, niente cattura.';
-    }
-    concludeEncounter(p,e,'victory',chars,[foe.name+' è KO!'],{coins:p.coins-coinsBefore,xp,training:e.kind==='trainer'?.5:0});
-    return;
-   }
+   if(foe.hp<=0){ascensionWinEncounter(next,p,e,chars,log);return;}
   }else throw Error('Comando non valido.');
-  const current=p.roster[e.active],target=ascensionFighterFromMember(current,chars);
+  e.spiritOpen=false;
+  e.eventNonce=(e.eventNonce||0)+1;
+  e.log=[...(e.log||[]),...log].slice(-12);
+  const nextPhase=choice.type==='attack'&&choice.source!=='spirit'&&e.spirit?.hp>0?'spirit':'enemy';
+  e.pendingReaction={phase:nextPhase,reason:choice.type,nonce:e.eventNonce,
+   text:log.slice(-2).join(' ')||'Il turno continua.'};
+ });
+}
+/** La reazione avversaria è una SECONDA transazione, dopo l'animazione del colpo.
+ * Una Prismaball fallita NON infligge mai danno prima della fine del suo filmato. */
+export function ascensionResolveEncounterReaction(asc,role,chars,rng=Math.random){
+ if(asc.stage!=='preparation')throw Error('Non sei in preparazione.');
+ return mutate(asc,next=>{
+  const p=participant(next,role),e=p.encounter;
+  if(!e||e.pendingReaction?.phase!=='enemy')throw Error('Nessuna reazione da risolvere.');
+  const active=p.roster[e.active];
+  if(!active)throw Error('Non ci sono Multimon da comandare.');
+  const foe=ascensionFighter(ascensionFind(chars,e.foeId),e.foeLevel);
+  foe.hp=e.foeHp;
+  const targetHero=ascensionFighterFromMember(active,chars);
+  const spirit=e.spirit?.hp>0?ascensionFighterFromMember(e.spirit,chars):null;
+  const targetSpirit=spirit&&rng()<.28;
+  const target=targetSpirit?spirit:targetHero;
+  const log=[];
   const ai=trainerMove(foe,target,e.kind==='trainer'?e.trainer:'wild',rng);
   if(['Addormentato','Congelato','Stordito'].includes(e.status)&&e.statusTurns>0){
    log.push(foe.name+' non riesce ad agire: '+e.status+'!');
-  }else executeAction(foe,target,ai,rng,log);
+  }else{
+   executeAction(foe,target,ai,rng,log);
+  }
   if(e.statusTurns>0){
    e.statusTurns--;
    if(e.statusTurns===0)e.status=null;
   }
-  current.hp=target.hp;
-  if(current.hp<=0){
+  if(e.weatherTurns>0)e.weatherTurns--;
+  e.foeHp=foe.hp;
+  if(targetSpirit){
+   e.spirit.hp=target.hp;
+   if(e.spirit.hp<=0){
+    log.push('✨ Lo Spirito Stellare è esausto e lascia il campo!');
+    e.spirit=null;e.spiritOpen=false;
+   }
+  }else active.hp=target.hp;
+  const resultText=log.join(' ');
+  e.turn++;
+  e.eventNonce=(e.eventNonce||0)+1;
+  e.lastReaction={nonce:e.eventNonce,text:resultText};
+  e.pendingReaction=null;
+  if(active.hp<=0){
    const nextActive=p.roster.findIndex(m=>m.hp>0);
    if(nextActive<0){
-    e.foeHp=foe.hp;
     concludeEncounter(p,e,'defeat',chars,[...log,'La tua squadra è esausta.']);
     p.notice='Squadra esausta. Riparti dal prossimo round.';return;
    }
-   e.active=nextActive;log.push('Entra in campo '+ascensionFind(chars,p.roster[nextActive].id).name+'!');
+   e.active=nextActive;
+   e.spirit=null;e.spiritOpen=false;
+   log.push('Entra in campo '+ascensionFind(chars,p.roster[nextActive].id).name+'!');
+   if(p.roster[nextActive].id==='lucy')ascensionSummonLucySpirit(p,e,chars);
   }
-  e.foeHp=foe.hp;e.turn++;
-  e.log=[...e.log,...log].slice(-9);
+  e.log=[...(e.log||[]),...log].slice(-12);
  });
 }
 export function ascensionRoundReady(asc){return asc.stage==='preparation'&&asc.roles.every(r=>asc.participants[r].done&&!asc.participants[r].encounter&&!asc.participants[r].battleResult);}
