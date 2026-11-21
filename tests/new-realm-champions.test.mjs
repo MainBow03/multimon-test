@@ -85,10 +85,10 @@ test('Catalogo, vetrina e conteggio dopo 12 aggiunte',()=>{
  assert.deepEqual(RECENT_ARRIVALS_IDS.slice(15,27),IDS);
  assert.deepEqual(recentArrivalCharacters(CHARACTERS).slice(15,27).map(c=>c.id),IDS);
  const roster=CHARACTERS.filter(c=>!c.isSummonOnly&&!c.isCampaignMonster);
- assert.equal(roster.length,208);
+ assert.equal(roster.length,209);
  const count=type=>roster.filter(c=>c.types.includes(type)).length;
  assert.equal(count('Drago'),12);
- assert.equal(count('Buio'),14);
+ assert.equal(count('Buio'),15);
  assert.equal(count('Insetto'),14);
  assert.equal(count('Acqua'),19);
 });
