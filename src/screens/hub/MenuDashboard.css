@@ -476,3 +476,31 @@
  .mm-dash-player{flex-wrap:wrap}
  .mm-dash-first-name{order:3}
 }
+
+/* Le Campagne classiche sono nuovamente la scelta principale.
+   Il mondo 3D rimane nel codice ma non ha una voce nel menu. */
+.mm-dash-card-grid--adventure>.mm-dash-mode:first-child{
+ grid-column:1 / -1;
+ min-height:158px;
+ border:2px solid #abf9d1;
+ background:linear-gradient(110deg,#076b55,#0a7b82 54%,#244b92);
+ box-shadow:0 7px 0 #051b279c,0 16px 30px #031e2f80,inset 0 1px 0 #ffffff27;
+}
+.mm-dash-card-grid--adventure>.mm-dash-mode:first-child .mm-dash-mode-copy strong{
+ font-size:clamp(20px,2.5vw,28px);
+}
+.mm-dash-card-grid--adventure>.mm-dash-mode:first-child .mm-dash-mode-art{
+ width:min(180px,28%);
+ height:155px;
+ right:7px;
+ bottom:-3px;
+}
+@media(max-width:680px){
+ .mm-dash-card-grid--adventure>.mm-dash-mode:first-child{
+  grid-column:1 / -1;
+  min-height:137px;
+ }
+ .mm-dash-card-grid--adventure>.mm-dash-mode:first-child .mm-dash-mode-art{
+  height:122px;
+ }
+}
