@@ -994,8 +994,36 @@ export function ascensionRealAdvance(asc,role,phase,chars){
   const s=realSession(next,role);
   if(!s.battle||s.battle.status!=='executing'||s.battle.phaseStartedAt!==phase)return;
   s.container.classicRoom=advanceRealAscensionBattle(s.battle,phase);
+  // La regola storica dei 45 turni decide solo lo spareggio: tutti i
+  // quarantacinque turni precedenti usano comunque calculateTurnImpl.
+  if(s.duel&&s.container.classicRoom.status==='battling'&&
+     (s.container.classicRoom.battleReport?.turns||0)>=45){
+    s.container.classicRoom.status='gameover';
+    s.container.classicRoom.winner='Pareggio tecnico';
+  }
   if(s.container.classicRoom.status==='gameover')concludeRealSession(next,s,chars);
  });
+}
+export function ascensionRealFinalize(asc,role,chars){
+ return mutate(asc,next=>{
+  const s=realSession(next,role);
+  if(s.battle?.status==='gameover')concludeRealSession(next,s,chars);
+ });
+}
+export function ascensionRealForce(asc,role,chars){
+ const s=realSession(asc,role);
+ const b=s.battle;
+ if(!b||b.status!=='battling')throw Error('La battaglia non accetta lo skip.');
+ const actions={...(b.actions?.[s.side]||{})};
+ const enemy=s.side==='p1'?'p2':'p1';
+ for(const idx of b.field?.[s.side]||[]){
+  const member=b.teams[s.side]?.[idx];
+  if(!member||member.hp<=0||actions[idx])continue;
+  const moveIdx=Math.max(0,(member.moves||[]).findIndex(m=>m?.power>0&&(m.remainingUses??1)>0));
+  actions[idx]={type:'attack',moveIdx,targetPlayer:enemy,
+   targetIdx:b.field[enemy]?.[0]??0,targetFieldIdx:0};
+ }
+ return ascensionRealSubmit(asc,role,actions,b.phaseStartedAt,chars);
 }
 export function ascensionRealReplace(asc,role,index,chars,spiritId=null){
  return mutate(asc,next=>{
@@ -1066,7 +1094,7 @@ export function ascensionRealBotDuels(asc,room,chars){
  let next=asc;
  // With two CPU contestants no client should need to click 100 turns;
  // nevertheless every single combat turn runs through calculateTurnImpl.
- for(let i=0;i<60;i++){
+ for(let i=0;i<104;i++){
   const current=ascensionCurrentMatch(next);
   if(!current?.game?.classicRoom||current.game.winner)break;
   const b=current.game.classicRoom;
