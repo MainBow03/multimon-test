@@ -21,6 +21,7 @@ export function AscensionClassicBattle({
  const [isLogOpen,setLogOpen]=useState(false);
  const [busy,setBusy]=useState(false);
  const [playback,setPlayback]=useState('');
+ const [nativeFrame,setNativeFrame]=useState(null);
  const pressTimer=useRef(null),longPress=useRef(false),logEnd=useRef(null),seenCapture=useRef(null);
  const playbackTimer=useRef(null);
  const e=model?.encounter;
@@ -50,7 +51,7 @@ export function AscensionClassicBattle({
   return ()=>clearTimeout(timer);
  },[pendingNonce,pendingPhase,pendingReason,role]);
  useEffect(()=>{
-  if(!reactionNonce)return;
+  if(!reactionNonce||e?.nativePlayback)return;
   setPlayback(e?.lastReaction?.text||'Il nemico ha agito!');
   const timer=setTimeout(()=>setPlayback(''),1800);
   return ()=>clearTimeout(timer);
@@ -66,15 +67,48 @@ export function AscensionClassicBattle({
  const nativePlayback=view.ascensionPlayback;
  const nativePlaybackNonce=nativePlayback?.nonce||0;
  useEffect(()=>{
-  if(!duel||!nativePlaybackNonce)return;
+  if(!nativePlaybackNonce)return;
+  const snapshot={
+   teams:structuredClone(nativePlayback.startTeams||{}),
+   field:structuredClone(nativePlayback.startField||{})
+  };
+  setNativeFrame(snapshot);
   const events=(nativePlayback.events||[]).filter(evt=>evt?.text);
-  let index=0;
-  const timer=setInterval(()=>{
-   if(index>=events.length){setPlayback('');clearInterval(timer);return;}
-   setPlayback(String(events[index++].text));
-  },events.length>15?420:850);
-  return ()=>clearInterval(timer);
- },[duel,nativePlaybackNonce]);
+  const timers=[];
+  const duration=events.length>15?480:events.length>7?650:880;
+  events.forEach((evt,i)=>{
+   timers.push(setTimeout(()=>{
+    setPlayback(String(evt.text));
+    setNativeFrame(old=>{
+     if(!old)return old;
+     const next=structuredClone(old);
+     const owner=evt.player||evt.targetPlayer;
+     const idx=Number.isInteger(evt.targetIdx)?evt.targetIdx:
+      Number.isInteger(evt.charTeamIdx)?evt.charTeamIdx:null;
+     if(owner&&idx!=null&&next.teams?.[owner]?.[idx]){
+      const member=next.teams[owner][idx];
+      if(evt.type==='damage'&&Number.isFinite(evt.newHp))member.hp=evt.newHp;
+      if(evt.type==='status_update'&&Array.isArray(evt.statuses))
+       member.statuses=structuredClone(evt.statuses);
+     }
+     if(evt.type==='summon'&&evt.player&&Number.isInteger(evt.fieldIdx)&&evt.newChar){
+      next.teams[evt.player]??=[];
+      next.field[evt.player]??=[];
+      next.teams[evt.player][evt.fieldIdx]=structuredClone(evt.newChar);
+      if(!next.field[evt.player].includes(evt.fieldIdx))
+       next.field[evt.player].push(evt.fieldIdx);
+     }
+     if(evt.type==='switch'&&evt.player&&Number.isInteger(evt.pos)&&Number.isInteger(evt.newIdx)){
+      next.field[evt.player][evt.pos]=evt.newIdx;
+     }
+     return next;
+    });
+   },i*duration));
+  });
+  timers.push(setTimeout(()=>{setPlayback('');setNativeFrame(null)},
+   Math.max(900,events.length*duration+200)));
+  return ()=>timers.forEach(clearTimeout);
+ },[nativePlaybackNonce,role]);
  const submit=async action=>{
   if(!canCommand||busy||spectators)return;
   const type=action?.type;
@@ -110,7 +144,9 @@ export function AscensionClassicBattle({
   gameState:view,appMode,playerRole:activePlayer,
   isEventBattle:true,eventBattleCanForce:false,
   getActivePlayers:()=>['p1','p2'],
-  isPlayingEvents:!!playback,displayTeams:view.teams,displayField:view.field,
+  isPlayingEvents:!!playback,
+  displayTeams:nativeFrame?.teams||view.teams,
+  displayField:nativeFrame?.field||view.field,
   commandingIdx:canCommand&&!busy?commandingIdx:-1,
   combatLog:log.map(line=>({text:String(line),type:'normal'})),
   eventPlaybackPassive:null,eventPlaybackText:playback,screenFlash:false,
