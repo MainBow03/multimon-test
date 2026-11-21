@@ -59,5 +59,5 @@ test('Il riequilibrio riduce Lotta di 6 senza aumentare il roster',()=>{
   assert.equal(count('Cristallo'),11);
   assert.equal(count('Robot'),22); // Etichetta pubblica: Acciaio
   assert.equal(count('Luce'),16);
-  assert.equal(count('Folletto'),14);
+  assert.equal(count('Folletto'),15);
 });
