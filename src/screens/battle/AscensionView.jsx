@@ -40,8 +40,18 @@ function Arena({asc,room,role,chars,onAction,onHost,canHost,local,onNextPlayer})
  const match=ascensionCurrentMatch(asc);
  const [chosen,setChosen]=useState([]);
  useEffect(()=>setChosen([]),[asc.matchIndex,match?.gameNumber,role]);
- if(asc.stage==='finished')return <div className="ac-arena-win"><span>👑</span><h2>IL CAMPIONE DEL COLOSSEO</h2>
-  <h1>{room.players[asc.champion]}</h1><p>Otto partecipanti, un solo vincitore.</p></div>;
+ if(asc.stage==='finished')return <div className="ac-arena-win"><span>👑</span>
+  <h2>IL CAMPIONE DEL COLOSSEO</h2>
+  <h1>{room.players[asc.champion]}</h1>
+  <p>Otto partecipanti. Diciotto round. Un solo vincitore.</p>
+  <div className="ac-sovereign-prize">
+   <img src={character(chars,'sovranoaurelion').img} alt="Sovrano Aurelion" onError={onMultimonImageError}/>
+   <div><small>✦ RICOMPENSA ESCLUSIVA</small><h3>SOVRANO AURELION</h3>
+    <p>Buio / Folletto · Il custode del Colosseo entra nella collezione del campione!</p>
+    <strong>{asc.champion===role?'🏆 Multimon sbloccato nel tuo profilo!':'Solo il vincitore riceve Aurelion.'}</strong>
+   </div>
+  </div>
+ </div>;
  if(!match)return <div className="ac-panel">Il Colosseo sta formando gli incontri.</div>;
  const fighting=match.roles.includes(role),p=asc.participants[role],limit=match.stage==='finale'?ASCENSION_FINAL_TEAM:3;
  const wanted=Math.min(limit,p.roster.length),chosenByRoom=match.selection[role]||[];
