@@ -73,8 +73,27 @@ export function ascensionNativeTurn({
    if(!actor||actor.hp<=0||actor.passive?.type!=='on_enter')continue;
    if(actor.id==='lucy'&&state.teams[side].some(c=>c?.isZodiacSpirit))continue;
    actor.passiveUses=(actor.passiveUses||0)+1;
+   const beforeCount=state.teams[side].length;
    applyOnEnterPassiveImpl({CHARACTERS:characters},actor,side,idx,
     state.teams,state.field,entryEvents,'classica',state.settings,false);
+   // Gli alleati evocati all'ingresso ricevono la stessa scala di livello
+   // del padrone, senza iniziare a statistiche da livello massimo.
+   for(let i=beforeCount;i<state.teams[side].length;i++){
+    const summoned=state.teams[side][i];
+    if(!summoned?.id)continue;
+    const level=actor.level||1;
+    const original=characters.find(ch=>ch.id===summoned.id);
+    if(!original)continue;
+    const hp=Math.max(10,Math.round((original.maxHp||original.hp||100)*(.7+.04*(level-1))));
+    const scaled=ascensionNativeFighter({id:summoned.id,level,hp},characters);
+    Object.assign(scaled,{
+     isSummonOnly:true,isZodiacSpirit:!!summoned.isZodiacSpirit,
+     zodiacOwner:summoned.zodiacOwner,zodiacLucyIdx:summoned.zodiacLucyIdx
+    });
+    state.teams[side][i]=scaled;
+    const spawn=entryEvents.find(e=>e.type==='summon'&&e.player===side&&e.fieldIdx===i);
+    if(spawn)spawn.newChar=clone(scaled);
+   }
   }
  }
  const allActions={p1:clone(actionsOne||{}),p2:clone(actionsTwo||{})};
