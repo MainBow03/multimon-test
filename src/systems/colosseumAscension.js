@@ -677,8 +677,9 @@ export function ascensionDuelAction(asc,role,choice,chars,rng=Math.random){
     id:u.id,level:u.level,hp:u.hp,battleState:u
    }));
    game.field??={};
-   game.field[actor]=result.field[nativeRole].filter(i=>
-    game.units[actor][i]?.hp>0&&!game.units[actor][i].battleState?.isSummonOnly);
+   // Anche gli Spiriti di Lucy restano realmente sul campo e
+   // ricevono un comando, esattamente come nelle partite classiche.
+   game.field[actor]=result.field[nativeRole].filter(i=>game.units[actor][i]?.hp>0);
   }
   game.weather=result.weather;
   game.tailwind=result.tailwind;
