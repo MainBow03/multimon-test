@@ -86,7 +86,7 @@ import {ASCENSION_STATUS,ascensionSelectStarter,ascensionBeginAction,
  ascensionPlayEncounter,ascensionResolveEncounterReaction,ascensionSelectEncounterSpirit,ascensionAcknowledgeOpening,ascensionAcknowledgeEncounterResult,ascensionAcknowledgeDuelResult,ascensionTrain,ascensionBuy,ascensionNextRound,ascensionRoundReady,
  ascensionChooseLineup,ascensionDuelAction,ascensionCurrentMatch,ascensionAdvanceMatch,ascensionSettleBots,
  ascensionCreateRealEncounter,ascensionCreateRealDuel,ascensionRealSubmit,
- ascensionRealAdvance,ascensionRealReplace,ascensionRealForceReplace,
+ ascensionRealAdvance,ascensionRealReplace,ascensionRealForceReplace,ascensionRealAutoReplace,
  ascensionRealCapture,ascensionRealCaptureContinue,ascensionRealFlee,ascensionRealBotDuels,
  ascensionRealForce,ascensionRealFinalize}
  from './systems/colosseumAscension.js';
@@ -1694,6 +1694,8 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                   a=ascensionRealReplace(a,actor,value.index,CHARACTERS,value.spiritId||null);
                 else if(kind==='native-force-switch')
                   a=ascensionRealForceReplace(a,actor,CHARACTERS);
+                else if(kind==='native-auto-switch')
+                  a=ascensionRealAutoReplace(a,actor,value.phase,CHARACTERS);
                 else if(kind==='native-capture')
                   a=ascensionRealCapture(a,actor,CHARACTERS);
                 else if(kind==='native-capture-continue')
