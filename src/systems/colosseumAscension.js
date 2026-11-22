@@ -2,6 +2,7 @@
 // Funzioni pure e serializzabili: si usano in transazioni Firestore per evitare
 // doppie catture, monete negative e due vincitori dello stesso round.
 import {getMultiplier} from './typeSystem.js';
+import {equipAscensionStarterCloak} from './ascensionStarterCloak.js';
 import {calculateDamageImpl} from './battleSystem.js';
 import {ascensionNativeFighter,ascensionNativeTurn,ascensionNativeMoveAction} from './ascensionNativeBattle.js';
 import {createRealAscensionBattle,submitRealAscensionActions,resolveRealAscensionCpu,
@@ -121,7 +122,7 @@ export function ascensionSelectStarter(asc,role,id,chars){
   const p=participant(next,role);
   if(p.roster.length)throw Error('Starter già scelto.');
   if(!p.options.includes(id))throw Error('Questo starter non è tra i tuoi cinque.');
-  p.roster=[ascensionMember(id,1,chars)];
+  p.roster=[equipAscensionStarterCloak(ascensionMember(id,1,chars))];
   p.notice='Starter scelto! Preparati alla spedizione.';
   if(next.roles.every(r=>next.participants[r].roster.length===1)){
    next.stage='preparation';
@@ -609,7 +610,8 @@ export function ascensionChooseLineup(asc,role,ids,chars){
    match.game={turn:1,units:Object.fromEntries(match.roles.map(r=>[r,
     match.selection[r].map(id=>{
      const m=participant(next,r).roster.find(x=>x.id===id);
-     return {id,level:m.level,hp:ascensionScaledMaxHp(ascensionFind(chars,id),m.level)};
+     return {id,level:m.level,hp:ascensionScaledMaxHp(ascensionFind(chars,id),m.level),
+       ...(m.ascensionStarterCloak?{heldItem:m.heldItem,ascensionStarterCloak:true}:{})};
     })])),actions:{},log:['La battaglia comincia!'],winner:null};
   }
  });
@@ -885,7 +887,9 @@ export function ascensionCreateRealEncounter(asc,role,chars,room){
  if(asc.stage!=='preparation')return asc;
  return mutate(asc,next=>{
   const p=participant(next,role),e=p.encounter;
-  if(!e||e.classicRoom)return;
+  if(!e)return;
+  if(p.roster.length)p.roster[0]=equipAscensionStarterCloak(p.roster[0]);
+  if(e.classicRoom)return;
   const foe={id:e.foeId,level:e.foeLevel,hp:e.foeHp};
   e.classicRoom=createRealAscensionBattle({
    chars,teamOne:p.roster,teamTwo:[foe],
@@ -908,8 +912,16 @@ export function ascensionCreateRealDuel(asc,chars,room){
   const m=ascensionCurrentMatch(next);
   if(!m?.game||m.game.classicRoom||m.game.winner)return;
   const [first,second]=m.roles;
+  // Anche i tornei avviati prima dell'aggiornamento mantengono lo starter.
+  for(const role of [first,second]){
+   const p=participant(next,role);
+   if(p.roster.length)p.roster[0]=equipAscensionStarterCloak(p.roster[0]);
+  }
+  const withStarterCloak=role=>m.game.units[role].map(unit=>
+   unit.id===participant(next,role).roster[0]?.id
+    ?equipAscensionStarterCloak(unit):unit);
   const options={chars,fieldSize:m.stage==='finale'?2:1,
-   teamOne:m.game.units[first],teamTwo:m.game.units[second],
+   teamOne:withStarterCloak(first),teamTwo:withStarterCloak(second),
    firstName:room?.players?.[first]||first,
    secondName:room?.players?.[second]||second,
    firstBot:!!room?.isBot?.[first],secondBot:!!room?.isBot?.[second]
