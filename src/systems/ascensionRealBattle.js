@@ -182,10 +182,23 @@ export function resolveRealAscensionCpu(room,chars){
  return calculateNativeRoom(next,chars);
 }
 /** Replay is finished ONLY when the original battle animation has ended. */
-export function advanceRealAscensionBattle(room,phaseStartedAt){
+// CPU replacement is NOT a player input: the original shared recovery
+// engine automatically chooses the bot's living reserves (force=false).
+// Humans retain full control over their own substitutions.
+export function autoResolveRealAscensionReplacements(room,chars){
+ if(!room||room.status!=='switching_phase')return room;
+ const result=resolveSwitchingRoom(room,SIDES,Date.now(),false,
+  (char,p,i,teams,field,events,battle)=>
+    applyOnEnterPassiveImpl({CHARACTERS:chars},char,p,i,teams,field,events,
+      'classica',battle.settings,false));
+ return result?.patch?{...room,...result.patch}:room;
+}
+export function advanceRealAscensionBattle(room,phaseStartedAt,chars){
  if(room.status!=='executing'||room.phaseStartedAt!==phaseStartedAt)return room;
  const patch=nextPhaseAfterExecution(room,SIDES,Date.now());
- return patch?{...room,...patch}:room;
+ const updated=patch?{...room,...patch}:room;
+ // No extra "waiting for other players" screen when only a CPU must switch.
+ return autoResolveRealAscensionReplacements(updated,chars);
 }
 export function chooseRealAscensionReplacement(room,side,idx,chars,spiritId=null){
  if(room.status!=='switching_phase')throw Error('Nessuna sostituzione necessaria.');
@@ -203,6 +216,10 @@ export function chooseRealAscensionReplacement(room,side,idx,chars,spiritId=null
     applyOnEnterPassiveImpl({CHARACTERS:chars},char,p,i,teams,field,events,
       'classica',battle.settings,false));
  return patch?.patch?{...updated,...patch.patch}:updated;
+}
+// This also repairs sessions saved while a CPU was waiting on a replacement.
+export function recoverRealAscensionCpuReplacement(room,chars){
+ return autoResolveRealAscensionReplacements(room,chars);
 }
 export function forceRealAscensionReplacement(room,chars){
  const patch=resolveSwitchingRoom(room,SIDES,Date.now(),true,
