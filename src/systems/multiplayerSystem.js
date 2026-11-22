@@ -4,6 +4,7 @@ import {normalizeZodiacSpirit} from './zodiacSpirits.js';
 import { masteryVisibleLevels } from './masterySystem.js';
 import {equippedVictoryEffect} from './victoryCosmetics.js';
 import {isUltimonBanned} from './ultimonBans.js';
+import {selectCpuBotProfile,cpuBotDisplayName,cpuBotAvatarUrl} from '../data/cpuBotProfiles.js';
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
 export const handleAvatarUploadImpl = (ctx, e) => {
 const { setPlayerAvatarUrl } = ctx;
@@ -384,11 +385,11 @@ export const commitReplacementChoiceImpl = async (ctx,idx,zodiacSpiritId=null) =
 export const handleAddBotImpl = (ctx, slot) => {
 const { gameState, updateState } = ctx;
 
-            const botNum = Object.values(gameState.isBot).filter(Boolean).length + 1;
+            const identity=selectCpuBotProfile(gameState);
             updateState({
-                [`players.${slot}`]: `CPU Bot ${botNum}`,
+                [`players.${slot}`]: cpuBotDisplayName(identity),
                 [`playerUids.${slot}`]: null,
-                [`playerAvatars.${slot}`]: `https://api.dicebear.com/7.x/bottts/svg?seed=CpuBot${botNum}&backgroundColor=020617`,
+                [`playerAvatars.${slot}`]: cpuBotAvatarUrl(identity),
                 [`playerTitles.${slot}`]: '',
                 [`playerMastery.${slot}`]: {},
                 [`isBot.${slot}`]: true,
@@ -444,8 +445,9 @@ const { getPlayerData, initialGameState, playerAvatarUrl, playerName, playerTitl
             state.playerStrength.p1 = getPlayerData().strengthUpgrades || {};
             state.playerStrengthOwned.p1 = getPlayerData().unlockedChars || [];
             state.inventory.p1 = getPlayerData().inventory;
-            state.players.p2 = "Bot Supremo";
-            state.playerAvatars.p2 = 'https://api.dicebear.com/7.x/bottts/svg?seed=CpuBot&backgroundColor=020617';
+            const identity=selectCpuBotProfile(state);
+            state.players.p2=cpuBotDisplayName(identity);
+            state.playerAvatars.p2=cpuBotAvatarUrl(identity);
             state.isBot.p2 = true;
             state.inventory.p2 = { cura_totale: 1, pozione: 2 };
             setGameState(state);
