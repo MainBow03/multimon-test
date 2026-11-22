@@ -23,6 +23,8 @@ export function ascensionNativeFighter(member,chars){
   spAtk:stat(original.spAtk,original.atk),spDef:stat(original.spDef,original.def),
   revealed:true,acc:1,consecutiveProtect:0,passiveUses:0,statuses:[],
   zodiacSpiritId:member.zodiacSpiritId,
+  heldItem:member.heldItem||original.heldItem||null,
+  ascensionStarterCloak:!!member.ascensionStarterCloak,
   moves:(original.moves||[]).filter(Boolean).map(move=>({
    ...clone(move),...(move.maxUses!=null?{remainingUses:move.maxUses}: {})
   }))
@@ -44,6 +46,12 @@ export function ascensionNativeFighter(member,chars){
  fighter.hp=Math.max(0,Math.min(maxHp,Number(member.hp)||0));
  fighter.maxHp=maxHp;
  fighter.level=level;
+ // Il Mantello appartiene allo starter e deve seguire il portatore in tutte
+ // le battaglie del Colosseo, anche con il vecchio battleState salvato.
+ if(member.ascensionStarterCloak){
+  fighter.heldItem='mantello_invisibilita';
+  fighter.ascensionStarterCloak=true;
+ }
  return fighter;
 }
 export function ascensionNativeTurn({
