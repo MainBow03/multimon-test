@@ -11,8 +11,8 @@ export function AscensionOpeningCeremony({asc,room,role,characters,onFinish}){
   const character=characters.find(c=>c.id===starterId);
   return {id:r,position:i+1,name:room.players?.[r]||'Sfidante '+(i+1),
    starter:character||{id:starterId,name:starterId||'Sconosciuto',img:''},
-   bot:!!room.isBot?.[r]};
- }),[asc.roles,asc.participants,room.players,room.isBot,characters]);
+   avatar:room.playerAvatars?.[r]||'',bot:!!room.isBot?.[r]};
+ }),[asc.roles,asc.participants,room.players,room.playerAvatars,room.isBot,characters]);
  const sovereign=characters.find(c=>c.id==='sovranoaurelion');
  const count=contenders.length;
  const introduction=step===0;
@@ -63,7 +63,10 @@ export function AscensionOpeningCeremony({asc,room,role,characters,onFinish}){
         {subject.starter.img?<img src={subject.starter.img} alt={subject.starter.name} onError={onMultimonImageError}/>:
          <span className="ac-ceremony-fallback">✦</span>}
        </div>
-       <h1>{subject.name}</h1>
+       <div className="ac-ceremony-trainer">
+        {subject.avatar&&<img className="ac-ceremony-trainer-avatar" src={subject.avatar} alt="" />}
+        <h1>{subject.name}</h1>
+       </div>
        <div className="ac-ceremony-starter-name">✦ {subject.starter.name} <span>{subject.bot?'· CPU':''}</span></div>
        {subject.id===role&&<span className="ac-ceremony-you">IL TUO INGRESSO</span>}
       </>:
