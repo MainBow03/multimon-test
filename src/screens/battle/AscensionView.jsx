@@ -3,6 +3,7 @@ import {onMultimonImageError} from '../../systems/imageFallback.js';
 import {ASCENSION_FINAL_TEAM,ASCENSION_ROUNDS,ASCENSION_MAX_TEAM,ASCENSION_MAX_LEVEL,ASCENSION_SHOP,
  ascensionCaptureChance,ascensionCurrentMatch,ascensionFind,ascensionRoundReady,ascensionScaledMaxHp} from '../../systems/colosseumAscension.js';
 import {AscensionJourney} from './AscensionJourney.jsx';
+import {AscensionBracket} from './AscensionBracket.jsx';
 import './AscensionView.css';
 const character=(all,id)=>ascensionFind(all,id)||{name:id,img:'',moves:[],types:[]};
 const percentage=(hp,max)=>Math.max(0,Math.min(100,100*hp/Math.max(1,max)));
@@ -51,6 +52,7 @@ function Arena({asc,room,role,chars,onAction,onHost,canHost,local,onNextPlayer})
     <strong>{asc.champion===role?'🏆 Multimon sbloccato nel tuo profilo!':'Solo il vincitore riceve Aurelion.'}</strong>
    </div>
   </div>
+  <AscensionBracket asc={asc} room={room} currentMatchId={null}/>
  </div>;
  if(!match)return <div className="ac-panel">Il Colosseo sta formando gli incontri.</div>;
  const fighting=match.roles.includes(role),p=asc.participants[role],limit=match.stage==='finale'?ASCENSION_FINAL_TEAM:3;
@@ -93,9 +95,7 @@ function Arena({asc,room,role,chars,onAction,onHost,canHost,local,onNextPlayer})
       <strong>{m.name}</strong><small>{m.type} · {m.power>0?'Potenza '+m.power:'Supporto'}</small>
    </button>)}</div>}
   </div>}
-  <div className="ac-bracket">{asc.bracket.map(m=><div key={m.id} className={m.id===match.id?'active':''}>
-    <small>{m.stage.toUpperCase()}</small><strong>{m.roles.map(r=>room.players[r]).join(' vs ')}</strong>
-    <span>{m.winner?'✓ '+room.players[m.winner]:'In attesa'}</span></div>)}</div>
+  <AscensionBracket asc={asc} room={room} currentMatchId={match.id}/>
  </div>;
 }
 export function AscensionView({room,role,characters,onAction,onHost,onExit,canHost=false,local=false,onNextPlayer}){
