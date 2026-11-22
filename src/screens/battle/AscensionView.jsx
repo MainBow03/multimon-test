@@ -125,7 +125,10 @@ export function AscensionView({room,role,characters,onAction,onHost,onExit,canHo
    <div className="ac-round-track"><i style={{width:(stage==='starters'?0:showArena?100:100*asc.round/ASCENSION_ROUNDS)+'%'}}/></div>
   </div>
   <section className="ac-players"><h3>Gli otto contendenti</h3><div className="ac-player-grid">{asc.roles.map(r=>
-   <div className={'ac-player '+(role===r?'me':'')} key={r}><span>{room.isBot?.[r]?'🤖':'🎮'}</span>
+   <div className={'ac-player '+(role===r?'me':'')} key={r}>
+    {room.playerAvatars?.[r]
+      ?<img className="ac-player-avatar" src={room.playerAvatars[r]} alt={'Avatar di '+room.players[r]}/>
+      :<span>{room.isBot?.[r]?'🤖':'🎮'}</span>}
     <strong>{room.players[r]}</strong><small>{asc.participants[r]?.roster.length||0} Multimon {asc.participants[r]?.done?'✓':''}</small>
    </div>)}</div></section>
   {stage==='starters'?<section className="ac-panel">
