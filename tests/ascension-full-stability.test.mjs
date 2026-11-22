@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {CHARACTERS} from '../src/data/characters.js';
 import {
  createRealAscensionBattle,submitRealAscensionActions,resolveRealAscensionCpu,
@@ -176,4 +177,13 @@ test('Idempotenza dopo reconnect: avanzamento vecchio e comando duplicato non ri
   const actions={...after.actions.p1};
   assert.deepEqual(actions,{});
  }
+});
+
+test('Il replay può essere ripreso dopo un errore, senza riutilizzare bersagli del vecchio turno',()=>{
+ const ui=readFileSync(new URL('../src/screens/battle/AscensionClassicBattle.jsx',import.meta.url),'utf8');
+ assert.match(ui,/setTargeting\(null\);[\s\S]*?setSelectedTargets\(\[\]\);[\s\S]*?setPendingHyper\(false\)/);
+ assert.match(ui,/\[native\?\.phaseStartedAt,side\]/);
+ assert.match(ui,/Riprendi il turno se la battaglia è rimasta in attesa/);
+ assert.match(ui,/onAction\('native-advance',\{phase:native\.phaseStartedAt\}\)/);
+ assert.match(ui,/!cancelled&&!spectator&&onAction\('native-advance'/);
 });
