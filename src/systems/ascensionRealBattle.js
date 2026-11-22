@@ -8,6 +8,7 @@
  */
 import {initialGameState} from './gameState.js';
 import {ascensionNativeFighter} from './ascensionNativeBattle.js';
+import {activateAscensionStarterCloak} from './ascensionStarterCloak.js';
 import {calculateTurnImpl,calculateDamageImpl,generateCPUActionsForPlayerImpl,applyOnEnterPassiveImpl} from './battleSystem.js';
 import {getMultiplier} from './typeSystem.js';
 import {MOVES_DB} from '../data/moves.js';
@@ -51,8 +52,15 @@ export function createRealAscensionBattle({
  room.settings={...room.settings,fieldSize:n,teamSize:Math.max(teamOne.length,teamTwo.length)};
  room.players={...room.players,p1:firstName,p2:secondName};
  room.isBot={...room.isBot,p1:!!firstBot,p2:!!secondBot};
- room.teams={...room.teams,p1:teamOne.map(member=>ascensionNativeFighter(member,chars)),
-  p2:teamTwo.map(member=>ascensionNativeFighter(member,chars))};
+ const freshFighter=member=>{
+  const fighter=ascensionNativeFighter(member,chars);
+  // L'unico colpo protetto si ricarica all'INIZIO di una nuova lotta,
+  // mai al cambio turno o quando lo starter rientra dalla panchina.
+  if(member.ascensionStarterCloak)activateAscensionStarterCloak(fighter);
+  return fighter;
+ };
+ room.teams={...room.teams,p1:teamOne.map(freshFighter),
+  p2:teamTwo.map(freshFighter)};
  room.field={...room.field,p1:firstFields(room.teams.p1,n),p2:firstFields(room.teams.p2,n)};
  room.phaseStartedAt=Date.now();
  room.turnExpiresAt=Date.now()+92000;
