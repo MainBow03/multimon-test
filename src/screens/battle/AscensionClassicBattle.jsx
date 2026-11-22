@@ -48,8 +48,17 @@ export function AscensionClassicBattle({
  const [timeLeft,setTimeLeft]=useState(90);
  const submitting=useRef(false),pressTimer=useRef(null),longPress=useRef(false);
  const logEnd=useRef(null),playbackRef=useRef(null),seenCapture=useRef(null),autoCpuSwitchRef=useRef(null);
- const roomState=native?.status==='ascension_capture'
-  ?{...native,status:'executing'}:native;
+ // Il motore classico registra l'Iper solo quando risolve il turno, ma
+ // nella finale 2v2 il primo Multimon può averla già prenotata. Solo la
+ // VISUALIZZAZIONE considera lo slot consumato; lo stato di battaglia resta
+ // autentico e invariato.
+ const hyperReserved=!!native&&['p1','p2'].includes(side)&&
+  Object.values(native.actions?.[side]||{}).some(action=>action?.hyperize);
+ const roomState=!native?native:{
+  ...native,
+  ...(native.status==='ascension_capture'?{status:'executing'}:{}),
+  ...(hyperReserved?{hyperUsed:{...native.hyperUsed,[side]:true}}:{})
+ };
 
  useEffect(()=>{
   if(native||!encounter&&!duel||spectator)return;
