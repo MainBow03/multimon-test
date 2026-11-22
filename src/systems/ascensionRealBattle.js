@@ -158,6 +158,13 @@ export function submitRealAscensionActions(room,side,actions,chars){
   const c=room.teams?.[side]?.[idx];
   if(!c||c.hp<=0)throw Error('Questo Multimon è esausto.');
   if(details.type==='attack'){
+   // In una lotta doppia si può attivare UNA sola Forma Iper per squadra.
+   // Le due azioni vengono raccolte separatamente prima del pre-pass del
+   // motore classico: senza questo controllo entrambe possono prenotare
+   // l'Iper e il secondo attacco rischia di usare una mossa inesistente.
+   if(details.hyperize&&Object.entries(updated).some(([other,action])=>
+      Number(other)!==idx&&action?.hyperize))
+    throw Error('Forma Iper già prenotata da un altro Multimon della squadra.');
    // The standard UI can choose a new Hyper move before it has been
    // appended to c.moves. Validate against the same preview as commitActionImpl,
    // then let calculateTurnImpl transform and append it normally.
