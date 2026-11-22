@@ -2,7 +2,7 @@
 // Funzioni pure e serializzabili: si usano in transazioni Firestore per evitare
 // doppie catture, monete negative e due vincitori dello stesso round.
 import {getMultiplier} from './typeSystem.js';
-import {equipAscensionStarterCloak} from './ascensionStarterCloak.js';
+import {equipAscensionStarterCloak,activateAscensionStarterCloak} from './ascensionStarterCloak.js';
 import {calculateDamageImpl} from './battleSystem.js';
 import {ascensionNativeFighter,ascensionNativeTurn,ascensionNativeMoveAction} from './ascensionNativeBattle.js';
 import {createRealAscensionBattle,submitRealAscensionActions,resolveRealAscensionCpu,
@@ -991,11 +991,28 @@ function concludeRealSession(next,s,chars){
   if(m.stage==='finale'||m.wins[winner]>=2)m.winner=winner;
  }
 }
+function equipCloakInExistingRealBattle(next,session){
+ // Recupero partite iniziate prima della patch: non ricaricare mai la
+ // protezione dopo che è stata consumata in un turno precedente.
+ const battle=session.battle;
+ const owners=session.duel
+  ?Object.entries(session.match.game.classicSides||{})
+  :[['p1',session.role]];
+ for(const [side,role] of owners){
+  const p=participant(next,role),starter=p.roster[0];
+  if(!starter)continue;
+  if(!starter.ascensionStarterCloak)
+   p.roster[0]=equipAscensionStarterCloak(starter);
+  const holder=battle.teams?.[side]?.find(c=>c?.id===starter.id);
+  if(holder&&!holder.ascensionStarterCloak)activateAscensionStarterCloak(holder);
+ }
+}
 export function ascensionRealSubmit(asc,role,sideActions,phase,chars){
  return mutate(asc,next=>{
   const s=realSession(next,role);
   if(!s.battle)throw Error('La vera partita non è ancora stata creata.');
   if(s.battle.phaseStartedAt!==phase)throw Error('Questo turno è già cambiato.');
+  equipCloakInExistingRealBattle(next,s);
   s.container.classicRoom=submitRealAscensionActions(s.battle,s.side,sideActions,chars);
   if(!s.duel)synchronizeRealEncounter(s.player,s.container,chars);
   else synchronizeRealDuel(s.match);
