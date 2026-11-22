@@ -1088,28 +1088,46 @@ export function ascensionRealFlee(asc,role,chars){
 }
 export function ascensionRealBotDuels(asc,room,chars){
  if(asc.stage!=='colosseum')return asc;
- const m=ascensionCurrentMatch(asc);
- if(!m?.game?.classicRoom||m.winner||!m.roles.every(r=>room.isBot?.[r]))
-  return asc;
  let next=asc;
- // With two CPU contestants no client should need to click 100 turns;
- // nevertheless every single combat turn runs through calculateTurnImpl.
- for(let i=0;i<104;i++){
-  const current=ascensionCurrentMatch(next);
-  if(!current?.game?.classicRoom||current.game.winner)break;
-  const b=current.game.classicRoom;
-  if(b.status==='battling'){
-   next=mutate(next,state=>{
-    const g=ascensionCurrentMatch(state).game;
-    g.classicRoom=resolveRealAscensionCpu(g.classicRoom,chars);
-   });
-  }else if(b.status==='executing'){
-   const role=current.roles[0];
-   next=ascensionRealAdvance(next,role,b.phaseStartedAt,chars);
-  }else if(b.status==='switching_phase'){
-   next=ascensionRealForceReplace(next,current.roles[0],chars);
-  }else if(b.status==='gameover')break;
-  else break;
+ const botMatch=()=>ascensionCurrentMatch(next);
+ if(!botMatch()?.roles.every(r=>room.isBot?.[r]))return next;
+ // All-CPU matches have no observer required to press a button. Simulate
+ // their ENTIRE best-of-three using exactly the same classic turn engine.
+ for(let series=0;series<4;series++){
+  let match=botMatch();
+  if(!match||match.winner)break;
+  if(match.game?.winner){
+   next=ascensionSettleBots(next,room,chars);
+   continue; // Both bots confirm the previous result and pick the next team.
+  }
+  if(!match.game){
+   next=ascensionSettleBots(next,room,chars);
+   match=botMatch();
+   if(!match?.game)break;
+  }
+  if(!match.game.classicRoom)next=ascensionCreateRealDuel(next,chars,room);
+  for(let turn=0;turn<105;turn++){
+   match=botMatch();
+   const game=match?.game;
+   if(!game?.classicRoom||game.winner)break;
+   const b=game.classicRoom;
+   if(b.status==='battling'){
+    next=mutate(next,state=>{
+     const activeGame=ascensionCurrentMatch(state).game;
+     activeGame.classicRoom=resolveRealAscensionCpu(activeGame.classicRoom,chars);
+    });
+   }else if(b.status==='executing'){
+    next=ascensionRealAdvance(next,match.roles[0],b.phaseStartedAt,chars);
+   }else if(b.status==='switching_phase'){
+    next=ascensionRealForceReplace(next,match.roles[0],chars);
+   }else if(b.status==='gameover'){
+    next=ascensionRealFinalize(next,match.roles[0],chars);
+   }else break;
+  }
+  match=botMatch();
+  if(match?.winner)break;
+  if(!match?.game?.winner)break; // Genuine result has not been reached; avoid fake victory.
+  next=ascensionSettleBots(next,room,chars);
  }
  return next;
 }
