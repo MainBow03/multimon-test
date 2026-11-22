@@ -1753,6 +1753,11 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
             }catch(error){
               console.error('Ascesa del Colosseo',error);
               setSystemAlert('Ascesa del Colosseo: '+(error.message||error));
+              // IMPORTANT: the standard battle controller advances to the
+              // next fighter only when its updateState Promise succeeds.
+              // Swallowing a Firestore/validation failure used to leave the
+              // UI on "waiting" although no action was saved: a soft lock.
+              if(kind==='native-commit')throw error;
             }
           };
 
