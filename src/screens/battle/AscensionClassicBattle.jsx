@@ -1,4 +1,4 @@
-import React,{useEffect,useMemo,useRef,useState} from 'react';
+import React,{useEffect,useRef,useState} from 'react';
 import {renderBattlingView} from './BattlingView.jsx';
 import {renderSwitchingPhaseView} from './SwitchingPhaseView.jsx';
 import {PrismaballCapture} from './AscensionView.jsx';
@@ -81,7 +81,7 @@ export function AscensionClassicBattle({
  // Replay is literally playEventsAnimationImpl, NOT hand-timed imitations.
  useEffect(()=>{
   if(!native||native.status!=='executing')return;
-  const key=String(native.phaseStartedAt)+':'+native.events?.length;
+  const key=side+':'+String(native.phaseStartedAt)+':'+native.events?.length;
   if(playbackRef.current===key)return;
   playbackRef.current=key;
   let cancelled=false;
@@ -100,7 +100,7 @@ export function AscensionClassicBattle({
    if(side!=='p1')void advance();
   });
   return()=>{cancelled=true};
- },[native?.status,native?.phaseStartedAt,native?.events,side,role]);
+ },[native?.status,native?.phaseStartedAt,side]);
 
  const commitAction=details=>{
   if(!native||native.status!=='battling'||spectator||submitting.current)return;
