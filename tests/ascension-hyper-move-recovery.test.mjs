@@ -82,7 +82,9 @@ test('Gli errori Firestore non possono avanzare la selezione senza registrare la
  const controller=readFileSync(new URL('../src/systems/battleSystem.js',import.meta.url),'utf8');
  const wrapper=readFileSync(new URL('../src/screens/battle/AscensionClassicBattle.jsx',import.meta.url),'utf8');
  assert.match(app,/if\(kind==='native-commit'\)throw error/);
- assert.match(wrapper,/updateState:patch=>onAction\('native-commit'/);
+ assert.match(wrapper,/updateState:patch=>\{/);
+ assert.match(wrapper,/return onAction\('native-commit'/);
+ assert.match(wrapper,/setAwaitingAction\(\{side,teamIdx,phase\}\)/);
  assert.match(controller,/updateState\(\{ \[`actions\.\$\{playerRole\}`\]: myNewActions \}\)\.then/);
  assert.match(controller,/\.finally\(\(\) => \{\s*isSubmittingActionRef\.current = false/);
 });
