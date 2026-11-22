@@ -105,6 +105,9 @@ test('Ogni vittoria contro un allenatore dà 0,5 punti a TUTTI i Multimon',()=>{
  const b=ascensionTrain(a,'p1',p.roster[1].id,CHARACTERS);
  assert.equal(b.participants.p1.roster[1].level,before+1);
  assert.equal(b.participants.p1.roster[1].trainingHalves,0);
+ assert.equal(b.participants.p1.roster[0].level,p.roster[0].level+1,
+  'Il pulsante allena anche lo starter, non solo il Multimon cliccato');
+ assert.equal(b.participants.p1.roster[0].trainingHalves,0);
  assert.equal(b.participants.p1.done,true,'Allenarsi fra i round non consuma un turno extra');
 });
 
