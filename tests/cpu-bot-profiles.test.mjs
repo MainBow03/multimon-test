@@ -7,17 +7,18 @@ import {
  CPU_BOT_PROFILES,cpuBotDisplayName,cpuBotAvatarUrl,cpuBotByName,selectCpuBotProfile
 } from '../src/data/cpuBotProfiles.js';
 
-test('Solo i dieci bot cartoon approvati: 4 maschi, 4 femmine e 2 non-binary',()=>{
+test('Esattamente 20 bot cartoon in due serie: 9 maschi, 9 femmine e 2 non-binary',()=>{
  const profiles=CPU_BOT_PROFILES;
- assert.equal(profiles.length,10);
+ assert.equal(profiles.length,20);
  assert.deepEqual(profiles.map(x=>x.id),
-  ['nilo','brio','elio','rook','luma','mirea','dalia','vela','sol','kiri']);
- assert.equal(profiles.filter(x=>x.gender==='male').length,4);
- assert.equal(profiles.filter(x=>x.gender==='female').length,4);
+  ['nilo','brio','elio','rook','luma','mirea','dalia','vela','sol','kiri',
+   'timo','berto','paco','quill','otti','pippa','rina','fibi','zaza','cleo']);
+ assert.equal(profiles.filter(x=>x.gender==='male').length,9);
+ assert.equal(profiles.filter(x=>x.gender==='female').length,9);
  assert.equal(profiles.filter(x=>x.gender==='nonbinary').length,2);
- assert.equal(new Set(profiles.map(x=>x.name)).size,10);
+ assert.equal(new Set(profiles.map(x=>x.name)).size,20);
 });
-test('Dieci avatar WEBP locali reali, non link DiceBear o emoji',()=>{
+test('Venti avatar WEBP locali reali: i dieci vecchi e i dieci nuovi',()=>{
  for(const profile of CPU_BOT_PROFILES){
   const bytes=readFileSync(new URL('../public/cpu-bots/'+profile.id+'.webp',import.meta.url));
   assert.ok(bytes.length>5000,'Ritratto mancante o vuoto: '+profile.name);
@@ -37,7 +38,7 @@ test('Aggiungendo otto bot nella stessa lobby assegna nomi e ritratti diversi',(
   handleAddBotImpl({gameState:room,updateState:value=>{patch=value;}},side);
   assert.ok(patch);
   const name=patch['players.'+side];
-  assert.match(name,/^CPU (Nilo|Brio|Elio|Rook|Luma|Mirea|Dalia|Vela|Sol|Kiri)$/);
+  assert.ok(cpuBotByName(name),'Il nome CPU deve appartenere a uno dei 20 profili: '+name);
   assert.ok(!previous.has(name),'Nessun CPU deve ripetersi');
   assert.ok(patch['playerAvatars.'+side].endsWith('/cpu-bots/'+name.slice(4).toLowerCase()+'.webp'));
   assert.equal(patch['isBot.'+side],true);
@@ -61,7 +62,7 @@ test('Avvio singolo VS CPU usa un nome e il ritratto della stessa serie',()=>{
  assert.equal(game.isBot.p2,true);
  assert.equal(role,'p1');assert.equal(mode,'local_room');
 });
-test('La selezione salta i nomi già usati e resta nei dieci profili',()=>{
+test('La selezione salta i nomi già usati e resta nei venti profili',()=>{
  const used={players:{p1:'CPU Nilo',p2:'CPU Brio'}};
  for(const random of [0,.1,.4,.9,1]){
   const profile=selectCpuBotProfile(used,()=>random);
