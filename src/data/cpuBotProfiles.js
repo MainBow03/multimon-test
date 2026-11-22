@@ -1,4 +1,4 @@
-// Prima serie: dieci CPU originali, stilizzate cartoon (non anime).
+// Venti CPU originali in due serie da dieci, stilizzate cartoon (non anime).
 // Le immagini sono asset del gioco: non dipendono da DiceBear o da servizi esterni.
 // Quando aggiungiamo i prossimi gruppi, possiamo estendere questa lista.
 export const CPU_BOT_PROFILES=Object.freeze([
@@ -11,7 +11,18 @@ export const CPU_BOT_PROFILES=Object.freeze([
  {id:'dalia',name:'Dalia',gender:'female',description:'Esploratrice dal cappello da avventura'},
  {id:'vela',name:'Vela',gender:'female',description:'DJ dai capelli argento'},
  {id:'sol',name:'Sol',gender:'nonbinary',description:'Artista dai capelli verde menta'},
- {id:'kiri',name:'Kiri',gender:'nonbinary',description:'Gamer-barista dai capelli bicolore'}
+ {id:'kiri',name:'Kiri',gender:'nonbinary',description:'Gamer-barista dai capelli bicolore'},
+ // Seconda serie: 5 ragazzi e 5 ragazze, tutti con ritratti cartoon dedicati.
+ {id:'timo',name:'Timo',gender:'male',description:'Inventore di pozioni luminose con occhialoni e salopette gialla'},
+ {id:'berto',name:'Berto',gender:'male',description:'Costruttore di aquiloni dai capelli rossi e giacca azzurra'},
+ {id:'paco',name:'Paco',gender:'male',description:'Percussionista allegro con cappello verde e bacchette'},
+ {id:'quill',name:'Quill',gender:'male',description:'Cartografo con treccine, occhiali e una bussola'},
+ {id:'otti',name:'Otti',gender:'male',description:'Prestigiatore buffo dai capelli viola e papillon a pois'},
+ {id:'pippa',name:'Pippa',gender:'female',description:'Osservatrice di uccelli con trecce e binocolo rosa'},
+ {id:'rina',name:'Rina',gender:'female',description:'Artigiana di origami con caschetto nero e ciocche blu'},
+ {id:'fibi',name:'Fibi',gender:'female',description:'Creatrice di giocattoli con capelli biondi e salopette rosa'},
+ {id:'zaza',name:'Zaza',gender:'female',description:'Pattinatrice con casco azzurro e stelle dorate'},
+ {id:'cleo',name:'Cleo',gender:'female',description:'Meteorologa con capelli verdi e ombrello arcobaleno'}
 ]);
 
 export const cpuBotDisplayName=profile=>'CPU '+profile.name;
