@@ -12,6 +12,7 @@ import {activateAscensionStarterCloak} from './ascensionStarterCloak.js';
 import {calculateTurnImpl,calculateDamageImpl,generateCPUActionsForPlayerImpl,applyOnEnterPassiveImpl} from './battleSystem.js';
 import {getMultiplier} from './typeSystem.js';
 import {MOVES_DB} from '../data/moves.js';
+import {hyperPreviewMoves} from './hyperPreview.js';
 import {nextPhaseAfterExecution,resolveSwitchingRoom,prepareEmergencySwitch} from './roomRecovery.js';
 
 const clone=object=>structuredClone(object);
@@ -122,6 +123,20 @@ function calculateNativeRoom(room,chars){
  if(!computed)throw Error('Il motore classico non ha completato il turno.');
  return {...room,...computed};
 }
+/** Keep Hyper validation identical to the original move-selection menu.
+ * The UI previews new moves that calculateTurnImpl adds in its Hyper pre-pass;
+ * they intentionally do not exist in character.moves until that pre-pass. */
+export function realAscensionSelectedMove(room,side,idx,details){
+ const character=room.teams?.[side]?.[idx];
+ if(!character||details?.type!=='attack'||!Number.isInteger(details.moveIdx))
+  return null;
+ const wantsHyper=details.hyperize===true;
+ if(wantsHyper && (character.isHyper||room.hyperUsed?.[side]))
+  return null;
+ const available=hyperPreviewMoves(character,wantsHyper,MOVES_DB);
+ return available[details.moveIdx]||null;
+}
+
 /** Full original action objects: targets, swaps, Hyper, statuses and move slots. */
 export function submitRealAscensionActions(room,side,actions,chars){
  if(room.status!=='battling')throw Error('La battaglia non accetta comandi ora.');
@@ -139,10 +154,12 @@ export function submitRealAscensionActions(room,side,actions,chars){
   const c=room.teams?.[side]?.[idx];
   if(!c||c.hp<=0)throw Error('Questo Multimon è esausto.');
   if(details.type==='attack'){
-   if(!Number.isInteger(details.moveIdx)||!c.moves?.[details.moveIdx])
-    throw Error('Mossa non presente nel moveset.');
-   if(c.moves[details.moveIdx].remainingUses===0)
-    throw Error('Mossa esaurita.');
+   // The standard UI can choose a new Hyper move before it has been
+   // appended to c.moves. Validate against the same preview as commitActionImpl,
+   // then let calculateTurnImpl transform and append it normally.
+   const move=realAscensionSelectedMove(room,side,idx,details);
+   if(!move)throw Error('Mossa non disponibile. Riprova a selezionarla.');
+   if(move.remainingUses===0)throw Error('Mossa esaurita.');
   }else if(details.type==='switch'){
    if(!Number.isInteger(details.toIdx)||!room.teams[side]?.[details.toIdx]||
       room.teams[side][details.toIdx].hp<=0||room.field[side].includes(details.toIdx))
