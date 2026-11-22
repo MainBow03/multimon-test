@@ -94,11 +94,11 @@ test('Le animazioni sono sequenziali e il client aspetta la Prismaball prima del
  const game=readFileSync(new URL('../src/screens/battle/AscensionClassicBattle.jsx',import.meta.url),'utf8');
  const engine=readFileSync(new URL('../src/systems/colosseumAscension.js',import.meta.url),'utf8');
  const app=readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8');
- assert.match(game,/pendingReason==='ball'/);
- assert.match(game,/setTimeout\(\(\)=>/);
- assert.match(game,/ZodiacSpiritPicker/);
- assert.match(game,/commandingIdx===1\?'spirit':'hero'/);
- assert.match(engine,/ascensionResolveEncounterReaction/);
- assert.match(app,/kind==='encounter-spirit'/);
- assert.match(app,/kind==='encounter-reaction'/);
+ assert.match(game,/native\.status==='ascension_capture'/);
+ assert.match(game,/playEventsAnimationImpl\(/);
+ assert.match(game,/renderSwitchingPhaseView/);
+ assert.match(game,/commitActionImpl\(/);
+ assert.match(engine,/ascensionRealCaptureContinue/);
+ assert.match(app,/kind==='native-switch'/);
+ assert.match(app,/kind==='native-capture-continue'/);
 });
