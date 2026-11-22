@@ -145,12 +145,16 @@ export function submitRealAscensionActions(room,side,actions,chars){
  const validIndices=new Set(room.field[side]||[]);
  const received=actions&&typeof actions==='object'?actions:{};
  const updated={...current};
+ let acceptedNewAction=false;
  for(const [key,details] of Object.entries(received)){
   const idx=Number(key);
   if(!Number.isInteger(idx)||!validIndices.has(idx)||!details||typeof details!=='object')
    throw Error('Comando non valido per il Multimon attivo.');
-  if(current[idx]&&JSON.stringify(current[idx])!==JSON.stringify(details))
-   throw Error('Comando già confermato.');
+  // The classic controller sends the WHOLE local action map per click.
+  // During a 2v2, that map may carry a stale copy of the first fighter's
+  // already-confirmed move. The saved action is authoritative and immutable:
+  // never overwrite it, but do not reject the second fighter's new command.
+  if(Object.hasOwn(current,idx))continue;
   const c=room.teams?.[side]?.[idx];
   if(!c||c.hp<=0)throw Error('Questo Multimon è esausto.');
   if(details.type==='attack'){
@@ -168,7 +172,11 @@ export function submitRealAscensionActions(room,side,actions,chars){
    throw Error('Azione non consentita in Ascesa del Colosseo.');
   }
   updated[idx]=clone(details);
+  acceptedNewAction=true;
  }
+ // Idempotent retry or a stale duplicated click: no state corruption,
+ // no unnecessary damage calculation, and no "already confirmed" error.
+ if(!acceptedNewAction)return room;
  const next={...room,actions:{...room.actions,[side]:updated}};
  if(!realAscensionSideReady(next,side))return next;
  next.actions=addCpuCommands(next,chars);
