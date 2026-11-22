@@ -7,7 +7,8 @@ import {
  ascensionStarterPool,ascensionCreate,ascensionSelectStarter,ascensionFighterFromMember,
  ascensionWildLevel,ascensionCaptureChance,ascensionBeginAction,ascensionPlayEncounter,ascensionResolveEncounterReaction,
  ascensionTrain,ascensionBuy,ASCENSION_SHOP,ascensionRoundReady,ascensionNextRound,ascensionSettleBots,
- ascensionCurrentMatch,ascensionChooseLineup,ascensionDuelAction,ascensionAdvanceMatch
+ ascensionCurrentMatch,ascensionChooseLineup,ascensionDuelAction,ascensionAdvanceMatch,
+ ascensionCreateRealDuel,ascensionRealBotDuels
 } from '../src/systems/colosseumAscension.js';
 
 const roles=Array.from({length:8},(_,i)=>'p'+(i+1));
@@ -213,8 +214,12 @@ test('Un intero Colosseo con otto bot si conclude e incorona un solo vincitore',
  const rm=room();rm.isBot=Object.fromEntries(roles.map(r=>[r,true]));
  let a=ascensionNextRound({...completeRound(ready()),round:18},CHARACTERS);
  for(let i=0;i<7;i++){
-  for(let step=0;step<5&&!ascensionCurrentMatch(a)?.winner;step++)
+  for(let step=0;step<7&&!ascensionCurrentMatch(a)?.winner;step++){
    a=ascensionSettleBots(a,rm,CHARACTERS,()=>.22);
+   if(ascensionCurrentMatch(a)?.game&&!ascensionCurrentMatch(a).game.classicRoom)
+    a=ascensionCreateRealDuel(a,CHARACTERS,rm);
+   a=ascensionRealBotDuels(a,rm,CHARACTERS);
+  }
   assert.ok(ascensionCurrentMatch(a)?.winner,'Blocco partita '+(i+1));
   a=ascensionAdvanceMatch(a,CHARACTERS);
  }
