@@ -2446,21 +2446,6 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                         continue;
                     }
 
-                    // SOLO Ascesa del Colosseo: il primo attacco offensivo che
-                    // raggiunge uno starter viene bloccato interamente dal
-                    // Mantello dell'Invisibilità (anche se è multicolpo).
-                    // Questo avviene dopo la verifica della mira, quindi una
-                    // mossa mancata non spreca il mantello; e prima di danni,
-                    // alterazioni e debuff, così protegge davvero dagli OHKO.
-                    if (isEnemyTarget && gameState.isAscensionNativeBattle &&
-                        consumeAscensionStarterCloak(t.char,move)) {
-                        events.push({type:'text',text:
-                          '🫥 Mantello dell’Invisibilità! '+t.char.name+
-                          ' annulla completamente il primo attacco di '+attacker.name+'!'});
-                        attackSucceeded=true;
-                        continue;
-                    }
-
                     if (t.char.id.startsWith('celljr_') && isEnemyTarget) {
                         const teamAlive = workingTeams[t.player].filter(c => c.hp > 0);
                         if (teamAlive.some(c => c.id === 'natsu' || c.id === 'po')) {
@@ -2543,6 +2528,19 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             events.push({ type: 'text', text: `⚡ ${t.char.name} assorbe l'energia dell'attacco! Aumenta ${statTexts.join(" e ")}!`, isPassive: true, passiveChar: t.char.name, passiveName: t.char.passive.name });
                         }
                         
+                        continue;
+                    }
+
+                    // Il Mantello viene consumato SOLO da un attacco che avrebbe
+                    // raggiunto il bersaglio: non si spreca per attacchi mancati,
+                    // immunità di tipo o Protezione già attiva. Blocca l'intera
+                    // mossa (anche multicolpo), i danni e gli status conseguenti.
+                    if (isEnemyTarget && gameState.isAscensionNativeBattle &&
+                        consumeAscensionStarterCloak(t.char,move)) {
+                        events.push({type:'text',text:
+                          '🫥 Mantello dell’Invisibilità! '+t.char.name+
+                          ' annulla completamente il primo attacco di '+attacker.name+'!'});
+                        attackSucceeded=true;
                         continue;
                     }
 
