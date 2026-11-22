@@ -7,6 +7,7 @@ import {calculateDamageImpl} from './battleSystem.js';
 import {ascensionNativeFighter,ascensionNativeTurn,ascensionNativeMoveAction} from './ascensionNativeBattle.js';
 import {createRealAscensionBattle,submitRealAscensionActions,resolveRealAscensionCpu,
  advanceRealAscensionBattle,chooseRealAscensionReplacement,forceRealAscensionReplacement,
+ recoverRealAscensionCpuReplacement,
  resolveRealAscensionCaptureCounter} from './ascensionRealBattle.js';
 import {ZODIAC_SPIRITS,normalizeZodiacSpirit,zodiacSecondaryRoll,
  addZodiacTrap,zodiacFlatStatBoost,cleanLucyDebuffs} from './zodiacSpirits.js';
@@ -1034,7 +1035,7 @@ export function ascensionRealAdvance(asc,role,phase,chars){
  return mutate(asc,next=>{
   const s=realSession(next,role);
   if(!s.battle||s.battle.status!=='executing'||s.battle.phaseStartedAt!==phase)return;
-  s.container.classicRoom=advanceRealAscensionBattle(s.battle,phase);
+  s.container.classicRoom=advanceRealAscensionBattle(s.battle,phase,chars);
   // La regola storica dei 45 turni decide solo lo spareggio: tutti i
   // quarantacinque turni precedenti usano comunque calculateTurnImpl.
   if(s.duel&&s.container.classicRoom.status==='battling'&&
@@ -1071,6 +1072,19 @@ export function ascensionRealReplace(asc,role,index,chars,spiritId=null){
   const s=realSession(next,role);
   if(!s.battle)throw Error('Nessun combattimento classico.');
   s.container.classicRoom=chooseRealAscensionReplacement(s.battle,s.side,index,chars,spiritId);
+ });
+}
+// Safe and idempotent: a human in a persisted 'switching_phase' can
+// trigger this after reconnecting. Only CPU slots are auto-filled; this
+// never chooses a human player's reserve.
+export function ascensionRealAutoReplace(asc,role,phase,chars){
+ return mutate(asc,next=>{
+  const s=realSession(next,role);
+  if(!s.battle||s.battle.status!=='switching_phase'||
+     s.battle.phaseStartedAt!==phase)return;
+  s.container.classicRoom=recoverRealAscensionCpuReplacement(s.battle,chars);
+  if(s.container.classicRoom.status==='gameover')
+   concludeRealSession(next,s,chars);
  });
 }
 export function ascensionRealForceReplace(asc,role,chars){
