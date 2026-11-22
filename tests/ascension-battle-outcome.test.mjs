@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {CHARACTERS} from '../src/data/characters.js';
 import {
- ascensionCreate,ascensionSelectStarter,ascensionBeginAction,ascensionPlayEncounter,
+ ascensionCreate,ascensionSelectStarter,ascensionMember,ascensionBeginAction,ascensionPlayEncounter,
  ascensionAcknowledgeEncounterResult,ascensionResolveEncounterReaction,ascensionAcknowledgeDuelResult,
  ascensionRoundReady,ascensionNextRound,ascensionCurrentMatch,ascensionChooseLineup,
  ascensionDuelAction,ascensionSettleBots
@@ -70,14 +70,22 @@ test('Duello risolto al primo turno: risultato e punteggio restano finché entra
   participants:Object.fromEntries(roles.map(r=>[r,{...a.participants[r],done:true,encounter:null}]))},CHARACTERS);
  const m=ascensionCurrentMatch(a);
  const [left,right]=m.roles;
- a=ascensionChooseLineup(a,left,a.participants[left].roster.map(x=>x.id),CHARACTERS);
- a=ascensionChooseLineup(a,right,a.participants[right].roster.map(x=>x.id),CHARACTERS);
- // Uno dei due ha appena 1 PS. Chi vince, lo scontro deve essere visibile.
+ // Questo vecchio test del percorso legacy deve essere deterministico:
+ // gli starter selezionati casualmente possono avere mosse immuni al
+ // bersaglio, e il motor di danno usa Math.random (non il parametro rng).
+ a.participants[left].roster=[ascensionMember('sonic',1,CHARACTERS)];
+ a.participants[right].roster=[ascensionMember('luigi',1,CHARACTERS)];
+ a=ascensionChooseLineup(a,left,['sonic'],CHARACTERS);
+ a=ascensionChooseLineup(a,right,['luigi'],CHARACTERS);
  a.bracket[0].game.units[right][0].hp=1;
- const id=a.bracket[0].game.units[left][0].id;
- const moveIndex=CHARACTERS.find(c=>c.id===id).moves.findIndex(m=>m?.power>0);
- a=ascensionDuelAction(a,left,Math.max(0,moveIndex),CHARACTERS,()=>0);
- a=ascensionDuelAction(a,right,0,CHARACTERS,()=>0);
+ const moveIndex=CHARACTERS.find(c=>c.id==='sonic').moves.findIndex(m=>m?.power>0);
+ assert.ok(moveIndex>=0);
+ const oldRandom=Math.random;
+ try{
+  Math.random=()=>0;
+  a=ascensionDuelAction(a,left,moveIndex,CHARACTERS,()=>0);
+  a=ascensionDuelAction(a,right,0,CHARACTERS,()=>0);
+ }finally{Math.random=oldRandom;}
  const game=ascensionCurrentMatch(a).game;
  assert.ok(game?.winner,'Partita conclusa');
  assert.equal(game.turn,2,'La partita si è conclusa nel primo turno');
