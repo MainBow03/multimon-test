@@ -130,7 +130,8 @@ export function AscensionView({room,role,characters,onAction,onHost,onExit,canHo
    </div>)}</div></section>
   {stage==='starters'?<section className="ac-panel">
    <div className="ac-section-title"><small>✦ LE CINQUE ALTERNATIVE DEL DESTINO</small>
-    <h2>Seleziona un Multimon iniziale</h2><p>Personaggi base ed economici, cinque scelte private per ciascun giocatore.</p></div>
+    <h2>Seleziona un Multimon iniziale</h2><p>Personaggi base ed economici, cinque scelte private per ciascun giocatore.</p>
+    <p className="ac-notice">🫥 Bonus di Aurelion: tutti gli starter ricevono gratis il Mantello dell’Invisibilità. Il primo attacco offensivo ricevuto in ogni battaglia viene bloccato completamente, anche se è multicolpo!</p></div>
    <div className="ac-card-grid ac-starters">{p.options.map(id=><div key={id} className="ac-starter">
     <button type="button" className="ac-main ac-starter-select" disabled={p.roster.length>0} onClick={()=>onAction('starter',id)}>
       {p.roster.length?(p.roster[0].id===id?'✓ Il tuo starter':'Scelta completata'):'✦ Seleziona questo starter'}
