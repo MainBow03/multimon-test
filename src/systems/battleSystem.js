@@ -25,6 +25,7 @@ import {beginHakiGuard,tickHakiGuard,shortenHakiDebuff,hakiStatDebuffMultiplier,
   strawHatDefenseFactor,namiClimateFactor,applyNamiMirage,applyGuardPoint,
   reduceGuardPointDamage,clearZoroBlind,chopperEntryAid} from './strawHatEffects.js';
 import { applyPerfezioneBonus, firstHitProtectionFactor } from './nerfPassives.js';
+import {consumeAscensionStarterCloak} from './ascensionStarterCloak.js';
 import { isOnlineHealingLimited, isLimitedHealingItem, onlineHealingRemaining, ONLINE_HEAL_ITEM_LIMIT } from './onlineHealingLimit.js';
 import { consumeRaidShieldHit, createRaidShieldUpdateEvent, applyRaidShieldUpdateEvent } from './finalRaidBalance.js';
 import { activateRoguelikeBossShield } from './roguelikeBossPower.js';
@@ -2442,6 +2443,21 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                         if(triggerCloverDodge(t.char))
                             events.push({type:'text',text:`💄 ${t.char.name} attiva Istinto da Copertina: Attacco +12% dopo la schivata!`,
                               isPassive:true,passiveChar:t.char.name,passiveName:'Istinto da Copertina'});
+                        continue;
+                    }
+
+                    // SOLO Ascesa del Colosseo: il primo attacco offensivo che
+                    // raggiunge uno starter viene bloccato interamente dal
+                    // Mantello dell'Invisibilità (anche se è multicolpo).
+                    // Questo avviene dopo la verifica della mira, quindi una
+                    // mossa mancata non spreca il mantello; e prima di danni,
+                    // alterazioni e debuff, così protegge davvero dagli OHKO.
+                    if (isEnemyTarget && gameState.isAscensionNativeBattle &&
+                        consumeAscensionStarterCloak(t.char,move)) {
+                        events.push({type:'text',text:
+                          '🫥 Mantello dell’Invisibilità! '+t.char.name+
+                          ' annulla completamente il primo attacco di '+attacker.name+'!'});
+                        attackSucceeded=true;
                         continue;
                     }
 
