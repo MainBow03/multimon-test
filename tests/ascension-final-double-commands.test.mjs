@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {CHARACTERS} from '../src/data/characters.js';
+import {MOVES_DB} from '../src/data/moves.js';
+import {hyperPreviewMoves} from '../src/systems/hyperPreview.js';
 import {
  createRealAscensionBattle,submitRealAscensionActions
 } from '../src/systems/ascensionRealBattle.js';
@@ -99,4 +101,39 @@ test('La UI non mostra la seconda mossa finché Firestore non ha confermato la p
  assert.match(jsx,/native\.actions\?\.\[awaitingAction\.side\]\?\.\[awaitingAction\.teamIdx\]!==undefined/);
  assert.match(jsx,/setAwaitingAction\(\{side,teamIdx,phase\}\)/);
  assert.match(jsx,/onAction\('native-commit'/);
+});
+
+test('Finale 2v2: una sola Forma Iper prenotabile per squadra nello stesso turno',()=>{
+ const room=createRealAscensionBattle({
+  chars:CHARACTERS,
+  teamOne:['luigi','miku'].map(member),
+  teamTwo:['finn','sonic'].map(member),
+  fieldSize:2
+ });
+ const first=room.teams.p1[0],second=room.teams.p1[1];
+ const extraFirst=first.moves.length,extraSecond=second.moves.length;
+ assert.ok(hyperPreviewMoves(first,true,MOVES_DB)[extraFirst]);
+ assert.ok(hyperPreviewMoves(second,true,MOVES_DB)[extraSecond]);
+ const luigi={type:'attack',moveIdx:extraFirst,hyperize:true,
+  targetPlayer:'p2',targetIdx:0,targetFieldIdx:0};
+ const firstSubmitted=submitRealAscensionActions(room,'p1',{0:luigi},CHARACTERS);
+ assert.equal(firstSubmitted.status,'battling');
+ const miku={type:'attack',moveIdx:extraSecond,hyperize:true,
+  targetPlayer:'p2',targetIdx:0,targetFieldIdx:0};
+ assert.throws(()=>submitRealAscensionActions(firstSubmitted,'p1',{1:miku},CHARACTERS),
+  /Forma Iper già prenotata/);
+ assert.deepEqual(firstSubmitted.actions.p1,{0:luigi},
+  'La seconda richiesta non deve alterare il comando salvato di Luigi');
+ const normal={type:'attack',moveIdx:0,targetPlayer:'p2',targetIdx:0,targetFieldIdx:0};
+ let result=submitRealAscensionActions(firstSubmitted,'p1',{1:normal},CHARACTERS);
+ assert.equal(result.status,'battling');
+ result=submitRealAscensionActions(result,'p2',
+  {0:attack(result,'p2',0),1:attack(result,'p2',1)},CHARACTERS);
+ assert.equal(result.status,'executing');
+ assert.equal(result.hyperUsed.p1,true);
+ assert.equal(result.teams.p1[0].isHyper,true);
+ assert.equal(result.teams.p1[1].isHyper,false);
+ const jsx=readFileSync(new URL('../src/screens/battle/AscensionClassicBattle.jsx',import.meta.url),'utf8');
+ assert.match(jsx,/hyperReserved/);
+ assert.match(jsx,/Object.values\(native.actions\?\.\[side\]\|\|\{\}\)\.some/);
 });
