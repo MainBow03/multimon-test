@@ -132,7 +132,7 @@ test('Finale 2v2: una sola Forma Iper prenotabile per squadra nello stesso turno
  assert.equal(result.status,'executing');
  assert.equal(result.hyperUsed.p1,true);
  assert.equal(result.teams.p1[0].isHyper,true);
- assert.equal(result.teams.p1[1].isHyper,false);
+ assert.equal(Boolean(result.teams.p1[1].isHyper),false);
  const jsx=readFileSync(new URL('../src/screens/battle/AscensionClassicBattle.jsx',import.meta.url),'utf8');
  assert.match(jsx,/hyperReserved/);
  assert.match(jsx,/Object.values\(native.actions\?\.\[side\]\|\|\{\}\)\.some/);
