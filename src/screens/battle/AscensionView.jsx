@@ -1,6 +1,6 @@
 import React,{useEffect,useState,useRef} from 'react';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
-import {ASCENSION_FINAL_TEAM,ASCENSION_ROUNDS,ASCENSION_MAX_TEAM,ASCENSION_SHOP,
+import {ASCENSION_FINAL_TEAM,ASCENSION_ROUNDS,ASCENSION_MAX_TEAM,ASCENSION_MAX_LEVEL,ASCENSION_SHOP,
  ascensionCaptureChance,ascensionCurrentMatch,ascensionFind,ascensionRoundReady,ascensionScaledMaxHp} from '../../systems/colosseumAscension.js';
 import {AscensionJourney} from './AscensionJourney.jsx';
 import './AscensionView.css';
@@ -180,6 +180,14 @@ export function AscensionView({room,role,characters,onAction,onHost,onExit,canHo
     </div>:null}
    </section>
    <aside className="ac-panel ac-roster"><h3>La tua squadra <span>{p.roster.length}/9</span></h3>
+    {(()=>{
+     const ready=p.roster.filter(m=>m.level<ASCENSION_MAX_LEVEL&&(m.trainingHalves||0)>=2).length;
+     return <button type="button" className="ac-train ac-train-all"
+      disabled={!ready||!!p.encounter||!!p.battleResult}
+      onClick={()=>onAction('train',null)}>
+      ✦ Allena tutta la squadra · {ready} {ready===1?'Multimon pronto':'Multimon pronti'} (+1 livello ciascuno)
+     </button>;
+    })()}
     <div className="ac-roster-list">{p.roster.map((m,i)=><div className="ac-member" key={i}>
      <button type="button" className="ac-member-top" onClick={()=>setDetail(get(m.id))}>
       <img src={get(m.id).img} alt="" onError={onMultimonImageError}/>
@@ -187,8 +195,7 @@ export function AscensionView({room,role,characters,onAction,onHost,onExit,canHo
      </button>
      <div className="ac-health"><i style={{width:percentage(m.hp,ascensionScaledMaxHp(get(m.id),m.level))+'%'}}/></div>
      <div className="ac-member-stats"><span>EXP {m.xp}</span><span>Allenamento {(m.trainingHalves||0)/2} pt.</span></div>
-     {m.trainingHalves>=2&&m.level<10&&<button type="button" className="ac-train"
-       onClick={()=>onAction('train',m.id)}>✦ Allena +1 livello (−1 punto)</button>}
+
     </div>)}</div>
     <section className="ac-shop">
      <h4>🛍️ Mercato del Colosseo</h4>
