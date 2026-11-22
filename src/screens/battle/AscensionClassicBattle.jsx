@@ -1,6 +1,7 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {renderBattlingView} from './BattlingView.jsx';
 import {renderSwitchingPhaseView} from './SwitchingPhaseView.jsx';
+import {getRequiredSwitches} from '../../systems/roomRecovery.js';
 import {PrismaballCapture} from './AscensionView.jsx';
 import {AscensionEncounterReveal} from './AscensionEncounterReveal.jsx';
 import {MOVES_DB} from '../../data/moves.js';
@@ -41,7 +42,7 @@ export function AscensionClassicBattle({
  const [displayField,setDisplayField]=useState(null);
  const [timeLeft,setTimeLeft]=useState(90);
  const submitting=useRef(false),pressTimer=useRef(null),longPress=useRef(false);
- const logEnd=useRef(null),playbackRef=useRef(null),seenCapture=useRef(null);
+ const logEnd=useRef(null),playbackRef=useRef(null),seenCapture=useRef(null),autoCpuSwitchRef=useRef(null);
  const roomState=native?.status==='ascension_capture'
   ?{...native,status:'executing'}:native;
 
@@ -77,6 +78,22 @@ export function AscensionClassicBattle({
   seenCapture.current=key;
   setCapture(data);
  },[participant?.lastCapture?.nonce,native?.status,role]);
+
+ // Recover in-progress rooms from before the CPU-switch fix: if only the
+ // computer still has to replace a KO, resolve it without making a human
+ // choose a reserve or click the manual unblock button.
+ useEffect(()=>{
+  if(!native||native.status!=='switching_phase'||spectator)return;
+  const needed=getRequiredSwitches(native,['p1','p2']);
+  const waitingCpu=['p1','p2'].some(p=>
+   native.isBot?.[p] && (needed.need[p]||0)>(needed.valid[p]?.length||0));
+  if(!waitingCpu)return;
+  const key=String(native.phaseStartedAt)+':'+side;
+  if(autoCpuSwitchRef.current===key)return;
+  autoCpuSwitchRef.current=key;
+  void onAction('native-auto-switch',{phase:native.phaseStartedAt});
+ },[native?.status,native?.phaseStartedAt,native?.pendingSwitches?.p1,
+    native?.pendingSwitches?.p2,side,spectator]);
 
  // Replay is literally playEventsAnimationImpl, NOT hand-timed imitations.
  useEffect(()=>{
