@@ -88,7 +88,10 @@ test('Ascesa usa realmente BattlingView e non la vecchia arena finta',()=>{
  const adapter=readFileSync(new URL('../src/screens/battle/AscensionClassicBattle.jsx',import.meta.url),'utf8');
  const app=readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8');
  assert.match(adapter,/import \{renderBattlingView\} from '\.\/BattlingView\.jsx'/);
- assert.match(adapter,/renderBattlingView\(ctx\)/);
+ assert.match(adapter,/renderBattlingView\(common\)/);
+ assert.match(adapter,/commitActionImpl\(/);
+ assert.match(adapter,/playEventsAnimationImpl\(/);
+ assert.match(adapter,/renderSwitchingPhaseView\(/);
  assert.match(app,/inAscensionCombat/);
  assert.match(app,/AscensionClassicBattle/);
  assert.doesNotMatch(adapter,/AscensionBattleField/);
