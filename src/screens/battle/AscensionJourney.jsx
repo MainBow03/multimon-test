@@ -10,7 +10,8 @@ const ACTS=[
 export function AscensionJourney({round,roster,onAction,characters,finished=false}){
  const actIndex=Math.min(2,Math.floor((round-1)/6)),act=ACTS[actIndex];
  const hero=characters.find(c=>c.id===roster?.[0]?.id);
- const canTrain=roster.some(m=>m.trainingHalves>=2&&m.level<10);
+ const readyToTrain=roster.filter(m=>(m.trainingHalves||0)>=2&&m.level<10).length;
+ const canTrain=readyToTrain>0;
  return <div className={'ac-journey ac-journey--act-'+(actIndex+1)}>
   <section className="ac-journey-map" aria-label="Percorso verso il Colosseo">
    <div className="ac-journey-haze" aria-hidden="true"><span>✦</span><span>✧</span><span>✦</span></div>
@@ -72,8 +73,8 @@ export function AscensionJourney({round,roster,onAction,characters,finished=fals
      <span className="ac-journey-choice-number">03 · POTENZIA</span>
      <span className="ac-journey-choice-art" aria-hidden="true"><span className="ac-journey-choice-level">↑<b>LV</b></span></span>
      <strong>ALLENAMENTO</strong>
-     <small>Investi i punti allenamento in un nuovo livello.</small>
-     <span className="ac-journey-choice-prize">{canTrain?'💪 Disponibile · +1 livello':'🔒 Richiede 1 punto allenamento'}</span>
+     <small>Allena contemporaneamente tutti i Multimon con almeno 1 punto disponibile.</small>
+     <span className="ac-journey-choice-prize">{canTrain?'💪 '+readyToTrain+' pronti · +1 livello ciascuno':'🔒 Richiede 1 punto allenamento'}</span>
      <span className="ac-journey-choice-arrow" aria-hidden="true">↗</span>
     </button>
     <button type="button" className="ac-journey-choice ac-journey-choice--rest" onClick={()=>onAction('round','rest')}>
