@@ -2,6 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {renderBattlingView} from './BattlingView.jsx';
 import {renderSwitchingPhaseView} from './SwitchingPhaseView.jsx';
 import {getRequiredSwitches} from '../../systems/roomRecovery.js';
+import {ascensionNextCommandPosition,ascensionCommandProgress} from '../../systems/ascensionDoubleCommands.js';
 import {PrismaballCapture} from './AscensionView.jsx';
 import {AscensionEncounterReveal} from './AscensionEncounterReveal.jsx';
 import {MOVES_DB} from '../../data/moves.js';
@@ -32,7 +33,11 @@ export function AscensionClassicBattle({
  const [hovered,setHovered]=useState(null);
  const [logOpen,setLogOpen]=useState(false);
  const [combatLog,setCombatLog]=useState([]);
- const [commandingIdx,setCommandingIdx]=useState(0);
+ const [,setCommandingIdx]=useState(0);
+ // Block the next input until Firestore actually shows the previous action.
+ // The original controller optimistically advances, which is not safe for
+ // two simultaneous fighters in an online duel.
+ const [awaitingAction,setAwaitingAction]=useState(null);
  const [pendingHyper,setPendingHyper]=useState(false);
  const [playing,setPlaying]=useState(false);
  const [playbackText,setPlaybackText]=useState('');
@@ -51,17 +56,20 @@ export function AscensionClassicBattle({
   void onAction('native-init');
  },[!!native,!!encounter,!!duel,spectator,role]);
 
- // Same battle commands as everywhere else: commitActionImpl writes
- // actions.p1/p2, which are stored under the REAL room's actions field.
- const sideActions=native?.actions?.[side];
+ // A saved action is authoritative; the old local cursor can still be
+ // one character ahead during Firestore propagation. Never use it to select
+ // a second Multimon's move or overwrite an already submitted command.
+ const commandProgress=ascensionCommandProgress(native,side);
+ const commandingIdx=awaitingAction||playing||spectator
+  ?-1:ascensionNextCommandPosition(native,side);
  useEffect(()=>{
-  if(!native||spectator||playing||native.status!=='battling')return;
-  const field=native.field?.[side]||[];
-  const available=field.findIndex(idx=>
-   native.teams?.[side]?.[idx]?.hp>0&&!native.actions?.[side]?.[idx]);
-  setCommandingIdx(available);
- },[native?.status,native?.phaseStartedAt,side,sideActions,
-    native?.field?.[side],spectator,playing]);
+  if(!awaitingAction)return;
+  if(!native||native.status!=='battling'||
+     native.phaseStartedAt!==awaitingAction.phase||
+     native.actions?.[awaitingAction.side]?.[awaitingAction.teamIdx]!==undefined)
+   setAwaitingAction(null);
+ },[awaitingAction,native?.status,native?.phaseStartedAt,
+    native?.actions?.[side]]);
 
  useEffect(()=>{
   if(!native||native.status!=='battling')return;
@@ -120,7 +128,10 @@ export function AscensionClassicBattle({
  },[native?.status,native?.phaseStartedAt,side]);
 
  const commitAction=details=>{
-  if(!native||native.status!=='battling'||spectator||submitting.current)return;
+  if(!native||native.status!=='battling'||spectator||submitting.current||
+     awaitingAction||commandingIdx<0)return;
+  const teamIdx=native.field?.[side]?.[commandingIdx];
+  const phase=native.phaseStartedAt;
   return commitActionImpl({
    appMode:'online_room',commandingIdx,ITEMS_DB:battleContext.ITEMS_DB,
    MOVES_DB,
@@ -129,13 +140,20 @@ export function AscensionClassicBattle({
    setActionMenuMode:setMenu,setCommandingIdx,setPendingHyper,
    setPlayerRole:()=>{},setSelectedMultiTargets:setSelectedTargets,
    setTargetingMoveIdx:setTargeting,
-   updateState:patch=>onAction('native-commit',{
-    actions:patch['actions.'+side],phase:native.phaseStartedAt
-   })
+   updateState:patch=>{
+    setAwaitingAction({side,teamIdx,phase});
+    return onAction('native-commit',{
+     actions:patch['actions.'+side],phase
+    }).catch(error=>{
+     // A rejected transaction MUST not lock the other active Multimon.
+     setAwaitingAction(null);
+     throw error;
+    });
+   }
   },details);
  };
  const handleSelectMoveTarget=(targetPlayer,targetFieldIdx)=>{
-  if(!native||spectator||targeting==null)return;
+  if(!native||spectator||awaitingAction||commandingIdx<0||targeting==null)return;
   return handleSelectMoveTargetImpl({
    commandingIdx,commitAction,gameState:native,getActivePlayers:()=>['p1','p2'],
    getTournamentMatchOpponents:()=>[],MOVES_DB,
@@ -176,7 +194,7 @@ export function AscensionClassicBattle({
   selectedMultiTargets:selectedTargets,setSelectedMultiTargets:setSelectedTargets,
   hoveredMove:hovered,setHoveredMove:setHovered,
   isLogOpen:logOpen,setIsLogOpen:setLogOpen,logEndRef:logEnd,
-  combatLog,commandingIdx:playing?-1:commandingIdx,
+  combatLog,commandingIdx,
   isLongPressRef:longPress,pressTimerRef:pressTimer,
   pendingHyper,setPendingHyper,screenFlash:flash,
   commitAction,handleSelectMoveTarget,timeLeft,
@@ -191,6 +209,12 @@ export function AscensionClassicBattle({
      setShowLeaveConfirm:onExit
     })
    :renderBattlingView(common)}
+  {awaitingAction&&native.status==='battling'&&
+   <div role="status" className="fixed z-[70] bottom-44 inset-x-0 flex justify-center pointer-events-none px-5">
+    <div className="rounded-xl border border-cyan-300/70 bg-slate-950/95 text-cyan-100 px-5 py-3 text-sm font-black shadow-2xl text-center">
+     ⏳ Conferma del comando {commandProgress.ready+1}/{commandProgress.total}…
+    </div>
+   </div>}
   {appMode==='local_room'&&onNextPlayer&&duel&&
    <button type="button" onClick={onNextPlayer}
     className="fixed right-3 top-3 z-[70] rounded-xl bg-slate-900/95 border border-teal-400/60 text-teal-100 text-xs font-bold px-3 py-2 shadow-lg">
