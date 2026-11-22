@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {CHARACTERS} from '../src/data/characters.js';
 import {MOVES_DB} from '../src/data/moves.js';
 import {HYPER_BONUS_MOVES,hyperPreviewMoves} from '../src/systems/hyperPreview.js';
@@ -74,4 +75,14 @@ test('Indice errato non scrive azioni e non blocca la stanza: è possibile ripro
  assert.equal(retry.actions.p1[0].moveIdx,extraIndex);
  assert.equal(retry.actions.p1[0].hyperize,true);
  assert.equal(retry.status,'battling');
+});
+
+test('Gli errori Firestore non possono avanzare la selezione senza registrare la mossa',()=>{
+ const app=readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8');
+ const controller=readFileSync(new URL('../src/systems/battleSystem.js',import.meta.url),'utf8');
+ const wrapper=readFileSync(new URL('../src/screens/battle/AscensionClassicBattle.jsx',import.meta.url),'utf8');
+ assert.match(app,/if\(kind==='native-commit'\)throw error/);
+ assert.match(wrapper,/updateState:patch=>onAction\('native-commit'/);
+ assert.match(controller,/updateState\(\{ \[`actions\.\$\{playerRole\}`\]: myNewActions \}\)\.then/);
+ assert.match(controller,/\.finally\(\(\) => \{\s*isSubmittingActionRef\.current = false/);
 });
