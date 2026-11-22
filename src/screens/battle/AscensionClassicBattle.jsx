@@ -112,6 +112,15 @@ export function AscensionClassicBattle({
  },[native?.status,native?.phaseStartedAt,native?.pendingSwitches?.p1,
     native?.pendingSwitches?.p2,side,spectator]);
 
+ // Nuovo turno o nuovo sfidante: non riutilizzare vecchi bersagli,
+ // selezioni Iper e comandi della fase precedente dopo un refresh.
+ useEffect(()=>{
+  setTargeting(null);
+  setSelectedTargets([]);
+  setPendingHyper(false);
+  setMenu('moves');
+ },[native?.phaseStartedAt,side]);
+
  // Replay is literally playEventsAnimationImpl, NOT hand-timed imitations.
  useEffect(()=>{
   if(!native||native.status!=='executing')return;
@@ -120,7 +129,8 @@ export function AscensionClassicBattle({
   playbackRef.current=key;
   let cancelled=false;
   const phase=native.phaseStartedAt;
-  const advance=()=>!cancelled&&onAction('native-advance',{phase});
+  // Gli spettatori vedono il replay ma non possono scrivere nella stanza.
+  const advance=()=>!cancelled&&!spectator&&onAction('native-advance',{phase});
   if(!native.events?.length){void advance();return()=>{cancelled=true};}
   void playEventsAnimationImpl({
    appMode:'online_room',gameState:native,getActivePlayers:()=>['p1','p2'],
@@ -132,6 +142,12 @@ export function AscensionClassicBattle({
   }).then(()=>{
    // Same-snapshot idempotent transition; a p2 guest can recover an absent host.
    if(side!=='p1')void advance();
+  }).catch(error=>{
+   // Gli errori del renderer non devono lasciare una partita ferma in
+   // esecuzione: ripristina la UI e prova a passare alla fase successiva.
+   console.error('Riproduzione del turno del Colosseo:',error);
+   setPlaying(false);setDisplayTeams(null);setDisplayField(null);
+   void advance();
   });
   return()=>{cancelled=true};
  },[native?.status,native?.phaseStartedAt,side]);
@@ -223,6 +239,14 @@ export function AscensionClassicBattle({
     <div className="rounded-xl border border-cyan-300/70 bg-slate-950/95 text-cyan-100 px-5 py-3 text-sm font-black shadow-2xl text-center">
      ⏳ Conferma del comando {commandProgress.ready+1}/{commandProgress.total}…
     </div>
+   </div>}
+  {native.status==='executing'&&!playing&&!spectator&&
+   playbackRef.current===side+':'+String(native.phaseStartedAt)+':'+native.events?.length&&
+   <div className="fixed bottom-5 inset-x-0 z-[75] flex justify-center px-4">
+    <button type="button" onClick={()=>onAction('native-advance',{phase:native.phaseStartedAt})}
+     className="rounded-xl border border-amber-300/80 bg-slate-950/95 px-5 py-3 text-sm text-amber-100 font-black shadow-2xl hover:bg-slate-800">
+     ▶ Riprendi il turno se la battaglia è rimasta in attesa
+    </button>
    </div>}
   {appMode==='local_room'&&onNextPlayer&&duel&&
    <button type="button" onClick={onNextPlayer}
