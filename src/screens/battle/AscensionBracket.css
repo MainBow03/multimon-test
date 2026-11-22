@@ -1,0 +1,69 @@
+/* Il tabellone segue il percorso reale: quarti ↗ semifinali ↗ finale
+   (da entrambi i lati verso il centro). Compatibile con tablet e mobile. */
+.ac-tourney{position:relative;margin:30px 0 8px;padding:clamp(12px,2vw,22px);border:1px solid #e0c58b8a;border-radius:23px;background:radial-gradient(ellipse at 50% 20%,#8269c143,transparent 60%),radial-gradient(ellipse at 95% 100%,#0ca09e2b,transparent 48%),linear-gradient(155deg,#111c38,#19172c 58%,#101a32);box-shadow:inset 0 1px 0 #ffffff1d,0 16px 38px #0008;overflow:hidden}
+.ac-tourney:before{content:'✧   ♛   ✧';position:absolute;top:5px;left:50%;transform:translateX(-50%);font-size:40px;color:#d3b98c13;white-space:nowrap;letter-spacing:40px;pointer-events:none}
+.ac-tourney-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:0 2px 19px;border-bottom:1px solid #afc5ed38;position:relative;z-index:1}
+.ac-tourney-header>div:first-child{min-width:0}
+.ac-tourney-header small{font-size:10px;font-weight:1000;letter-spacing:.2em;color:#f2cf91}
+.ac-tourney-header h3{font-size:clamp(20px,2.7vw,28px);font-weight:1000;color:#fff;margin:5px 0 6px;text-shadow:0 4px 20px #c3a7ef4d}
+.ac-tourney-header p{color:#bcd4e7;font-size:11px;line-height:1.45}
+.ac-tourney-progress{width:145px;max-width:100%;text-align:center;padding:8px 13px;border:1px solid #b2a7df6b;border-radius:13px;background:#0b142fa6}
+.ac-tourney-progress strong{display:block;font-size:23px;color:#ffe2a7;line-height:1.1}
+.ac-tourney-progress strong span{font-size:13px;color:#97aacf}
+.ac-tourney-progress small{display:block;font-size:8px;letter-spacing:.11em;color:#bcdbdf;margin:5px 0 7px}
+.ac-tourney-progress-track{height:5px;border-radius:30px;background:#364363;overflow:hidden}
+.ac-tourney-progress-track i{display:block;height:100%;border-radius:30px;background:linear-gradient(90deg,#67dfd1,#f2c780);transition:width .4s}
+.ac-tourney-scroller{overflow-x:auto;overflow-y:hidden;max-width:100%;scrollbar-width:thin;scrollbar-color:#b7a4d8 #14213d;padding:15px 0 12px;outline-offset:3px}
+.ac-tourney-scroller:focus-visible{outline:2px solid #65e2d0;border-radius:10px}
+.ac-tourney-board{display:grid;grid-template-columns:minmax(174px,1fr) minmax(170px,.98fr) minmax(215px,1.22fr) minmax(170px,.98fr) minmax(174px,1fr);align-items:stretch;gap:20px;min-width:1030px;padding:2px 9px 4px;isolation:isolate}
+.ac-tourney-column{position:relative;display:flex;flex-direction:column;min-width:0;gap:11px}
+.ac-tourney-column h4{min-height:27px;font-size:10px;letter-spacing:.15em;font-weight:1000;text-align:center;color:#aeeadd;background:#1b315a9c;border:1px solid #8aafd45c;border-radius:20px;padding:7px 8px}
+.ac-tourney-column--semi-left h4,.ac-tourney-column--semi-right h4{color:#e4d0ff;background:#3329539c}
+.ac-tourney-column--grand-final h4{color:#ffe7a7;background:#593a457d;border-color:#e7b9829c}
+.ac-tourney-stack{display:flex;flex:1;flex-direction:column;justify-content:space-around;gap:18px;position:relative}
+.ac-tourney-column--grand-final .ac-tourney-stack{flex:0 0 auto}
+.ac-tourney-column--grand-final{justify-content:center}
+.ac-tourney-match{position:relative;min-width:0;background:linear-gradient(150deg,#233754ee,#131e3bea);border:1px solid #708ba7a8;border-radius:14px;padding:8px;box-shadow:0 8px 19px #060a2066;transition:box-shadow .2s,border-color .2s,transform .2s}
+.ac-tourney-match:hover{border-color:#a3ddd9;box-shadow:0 9px 25px #080c238c;transform:translateY(-2px)}
+.ac-tourney-match.is-active{border:2px solid #f8d992;background:linear-gradient(145deg,#4e486b,#273b57);box-shadow:0 0 0 2px #e7ba6d20,0 0 27px #e3bb7b50,0 10px 21px #070e2388;animation:ac-tourney-current 3s ease-in-out infinite}
+.ac-tourney-match.is-finished{border-color:#5dd5b8ba}
+.ac-tourney-match.is-upcoming{opacity:.72;border-style:dashed}
+.ac-bracket-match-top{display:flex;align-items:center;justify-content:space-between;gap:5px;margin:0 0 9px;font-size:9px;font-weight:950;letter-spacing:.06em}
+.ac-bracket-match-top span{color:#d1e9f3}
+.ac-bracket-match-top small{color:#9ac5d6;font-size:8px;font-weight:950;white-space:nowrap}
+.ac-tourney-match.is-active .ac-bracket-match-top small{color:#ffde91}
+.ac-tourney-match.is-finished .ac-bracket-match-top small{color:#a3f5d0}
+.ac-bracket-contestant{min-width:0;display:flex;align-items:center;gap:6px;border-radius:10px;padding:6px 5px;background:#0d1b38a8;border:1px solid #3f668e6b;min-height:46px}
+.ac-bracket-contestant.is-winner{border-color:#67e0b9e0;background:linear-gradient(110deg,#17615997,#24466ea5)}
+.ac-bracket-contestant.is-eliminated{opacity:.52;filter:saturate(.6)}
+.ac-bracket-contestant.is-placeholder{border-style:dashed}
+.ac-bracket-avatar{width:34px;height:34px;flex:0 0 34px;border-radius:10px;display:grid;place-items:center;overflow:hidden;background:linear-gradient(130deg,#4f5582,#256a81);border:1px solid #aed5f86c}
+.ac-bracket-avatar img{width:100%;height:100%;object-fit:cover}
+.ac-bracket-avatar span{color:#d7e4ed;font-size:19px}
+.ac-bracket-identity{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ac-bracket-identity strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;font-weight:950;color:#fff}
+.ac-bracket-identity small{font-size:8px;color:#aecce1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ac-bracket-win{color:#92f6c6;font-size:12px;font-weight:1000}
+.ac-bracket-score{font-weight:1000;color:#f7e1b0;font-size:14px;line-height:1;margin-left:auto}
+.ac-bracket-versus{font-size:8px;letter-spacing:.13em;color:#8ca9ce;font-weight:950;margin:2px auto;text-align:center}
+.ac-tourney-column--grand-final .ac-tourney-match{border:2px solid #e9c681;background:linear-gradient(150deg,#563c63,#1d2b52);box-shadow:0 0 32px #f2c9822a,0 11px 30px #0009;padding:11px}
+.ac-tourney-trophy{font-size:49px;line-height:1;text-align:center;filter:drop-shadow(0 0 22px #f7c57472);animation:ac-tourney-trophy 3.8s ease-in-out infinite}
+.ac-tourney-champion{text-align:center;padding:11px 7px;background:#4a34428f;border:1px solid #e7c5828c;border-radius:13px;margin-top:9px}
+.ac-tourney-champion span{display:block;color:#efd19e;letter-spacing:.1em;font-size:9px;font-weight:950}
+.ac-tourney-champion strong{display:block;margin-top:4px;font-size:14px;color:#fff;font-weight:950;overflow-wrap:anywhere}
+.ac-tourney-footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:13px 2px 0;border-top:1px solid #a2bce72c}
+.ac-tourney-footer span{color:#b9cede;font-size:10px;font-weight:800}
+.ac-tourney-column--quarters-left .ac-tourney-match:after,.ac-tourney-column--quarters-right .ac-tourney-match:after{content:'';position:absolute;top:50%;width:19px;border-top:2px solid #b9b4dd7a;pointer-events:none}
+.ac-tourney-column--quarters-left .ac-tourney-match:after{right:-21px}
+.ac-tourney-column--quarters-right .ac-tourney-match:after{left:-21px}
+.ac-tourney-column--semi-left .ac-tourney-stack:before,.ac-tourney-column--semi-right .ac-tourney-stack:before{content:'';position:absolute;top:25%;bottom:25%;border-left:2px solid #b9b4dd7a;pointer-events:none}
+.ac-tourney-column--semi-left .ac-tourney-stack:before{left:-11px}
+.ac-tourney-column--semi-right .ac-tourney-stack:before{right:-11px;left:auto}
+.ac-tourney-column--semi-left .ac-tourney-match:after,.ac-tourney-column--semi-right .ac-tourney-match:after{content:'';position:absolute;top:50%;width:20px;border-top:2px solid #dbc7a977;pointer-events:none}
+.ac-tourney-column--semi-left .ac-tourney-match:after{right:-21px}
+.ac-tourney-column--semi-right .ac-tourney-match:after{left:-21px}
+@keyframes ac-tourney-current{50%{box-shadow:0 0 0 2px #e7ba6d30,0 0 38px #f4c78373,0 9px 21px #070e2388}}
+@keyframes ac-tourney-trophy{50%{transform:translateY(-6px) rotate(-2deg);filter:drop-shadow(0 0 29px #f7c574a1)}}
+@media(max-width:850px){.ac-tourney{padding:12px}.ac-tourney-scroller{margin:0 -4px;padding:12px 4px 15px}.ac-tourney-header{gap:9px}.ac-tourney-header h3{font-size:21px}.ac-tourney-header p{font-size:10px}.ac-tourney-progress{width:110px}.ac-tourney-board{min-width:985px}.ac-tourney-footer span{font-size:9px}}
+@media(max-width:470px){.ac-tourney-header h3{font-size:19px}.ac-tourney-progress{width:100px;padding:6px}.ac-tourney-progress strong{font-size:19px}.ac-tourney-header>div:first-child{flex:1;min-width:160px}.ac-tourney-header small{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.ac-tourney-match.is-active,.ac-tourney-trophy{animation:none}.ac-tourney-match{transition:none}}
