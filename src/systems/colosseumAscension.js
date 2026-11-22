@@ -197,18 +197,31 @@ export function ascensionBuy(asc,role,itemId,memberId,chars){
 export function ascensionTrainingProgress(p,memberId){
  return p.roster.find(c=>c.id===memberId)?.trainingHalves||0;
 }
+// Ogni sessione usa un punto (due mezzi punti) PER ciascun Multimon idoneo.
+// Anche chi è esausto sale di livello, ma non viene rianimato gratuitamente.
+function ascensionTrainEntireRoster(p,chars){
+ const eligible=p.roster.filter(m=>m.level<ASCENSION_MAX_LEVEL&&(m.trainingHalves||0)>=2);
+ if(!eligible.length)throw Error('Nessun Multimon ha un punto allenamento da spendere.');
+ for(const m of eligible){
+  const before=ascensionScaledMaxHp(ascensionFind(chars,m.id),m.level);
+  const missing=Math.max(0,before-m.hp);
+  m.trainingHalves-=2;
+  m.level++;
+  m.hp=m.hp<=0?0:Math.max(1,ascensionScaledMaxHp(ascensionFind(chars,m.id),m.level)-missing);
+ }
+ return eligible.length;
+}
 export function ascensionTrain(asc,role,id,chars){
  if(asc.stage!=='preparation')throw Error('L allenamento è disponibile durante la preparazione.');
  return mutate(asc,next=>{
-  const p=participant(next,role),m=p.roster.find(x=>x.id===id);
-  if(!m)throw Error('Multimon non nella tua squadra.');
-  if(m.level>=ASCENSION_MAX_LEVEL)throw Error('Livello massimo raggiunto.');
-  if(m.trainingHalves<2)throw Error('Servono due mezzi punti allenamento.');
-  const hpBefore=ascensionScaledMaxHp(ascensionFind(chars,id),m.level);
-  const missing=Math.max(0,hpBefore-m.hp);
-  m.trainingHalves-=2;m.level++;
-  m.hp=m.hp<=0?0:Math.max(1,ascensionScaledMaxHp(ascensionFind(chars,id),m.level)-missing);
-  p.notice=ascensionFind(chars,id).name+' sale al livello '+m.level+'!';
+  const p=participant(next,role);
+  // Compatibilità con il vecchio tasto individuale: anche quel comando
+  // allena TUTTO il roster, purché l'ID richiesto appartenga alla squadra.
+  if(id!=null&&!p.roster.some(m=>m.id===id))
+   throw Error('Multimon non nella tua squadra.');
+  const trained=ascensionTrainEntireRoster(p,chars);
+  p.notice='Allenamento collettivo completato! '+trained+
+   (trained===1?' Multimon sale':' Multimon salgono')+' di 1 livello.';
  });
 }
 const expNeeded=level=>8+level*5;
@@ -271,13 +284,12 @@ export function ascensionBeginAction(asc,role,action,chars,rng=Math.random){
   }else if(action==='training'){
    if(!p.roster.some(c=>c.trainingHalves>=2&&c.level<ASCENSION_MAX_LEVEL))
     throw Error('Non hai ancora abbastanza punti allenamento. Sfida un allenatore!');
-   // Sessione assistita: i punti restano spendibili anche gratuitamente fra i round.
-   const eligible=p.roster.filter(m=>m.trainingHalves>=2&&m.level<10);
-   const preferred=eligible.sort((a,b)=>a.level-b.level)[0];
-   const missing=ascensionScaledMaxHp(ascensionFind(chars,preferred.id),preferred.level)-preferred.hp;
-   preferred.level++;preferred.trainingHalves-=2;
-   preferred.hp=preferred.hp<=0?0:Math.max(1,ascensionScaledMaxHp(ascensionFind(chars,preferred.id),preferred.level)-missing);
-   p.done=true;p.notice=ascensionFind(chars,preferred.id).name+' allenato: livello '+preferred.level+'!';
+   // Anche l'attività del percorso allena contemporaneamente chiunque
+   // abbia almeno 1 punto, senza scegliere arbitrariamente un solo compagno.
+   const trained=ascensionTrainEntireRoster(p,chars);
+   p.done=true;
+   p.notice='Allenamento di squadra! '+trained+
+    (trained===1?' Multimon ha':' Multimon hanno')+' guadagnato 1 livello.';
   }else throw Error('Attività non valida.');
  });
 }
