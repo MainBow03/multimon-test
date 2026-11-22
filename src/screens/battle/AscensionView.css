@@ -24,6 +24,7 @@
 .ac-player-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}
 .ac-player{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;border:1px solid #7998b552;background:#1b2d49;border-radius:13px;padding:8px 4px;min-width:0}
 .ac-player.me{border-color:#7bf1cf;box-shadow:inset 0 0 18px #5aebd025}
+.ac-player-avatar{width:54px;height:54px;max-width:100%;object-fit:cover;border:2px solid #86dbe5;border-radius:50%;background:#152241;box-shadow:0 3px 12px #0007}
 .ac-player>span{font-size:20px}.ac-player strong{font-size:11px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .ac-player small{font-size:10px;color:#b4cbe0}
 .ac-panel{padding:clamp(14px,2.5vw,25px)}
@@ -181,3 +182,5 @@ button.ac-portrait{cursor:pointer}.ac-portrait.selected{border:2px solid #81efd3
 .ac-sovereign-prize p{color:#e9d8ff;font-size:13px;line-height:1.55}
 .ac-sovereign-prize strong{display:block;color:#9ef3d8;margin-top:14px;font-size:13px}
 @media(max-width:600px){.ac-sovereign-prize{grid-template-columns:95px minmax(0,1fr);padding:11px;gap:11px}.ac-sovereign-prize img{width:93px;height:130px}.ac-sovereign-prize h3{font-size:17px}.ac-sovereign-prize p{font-size:11px}.ac-sovereign-prize strong{font-size:11px}}
+
+@media(max-width:680px){.ac-player-avatar{width:42px;height:42px}}
