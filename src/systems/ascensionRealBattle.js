@@ -158,6 +158,15 @@ export function submitRealAscensionActions(room,side,actions,chars){
   const c=room.teams?.[side]?.[idx];
   if(!c||c.hp<=0)throw Error('Questo Multimon è esausto.');
   if(details.type==='attack'){
+   // I bersagli manuali e le mosse ad area devono sempre restare dentro
+   // i due lati REALI della stanza classica. Un vecchio click su un campo
+   // ormai cambiato non deve mandare il calcolatore fuori indice.
+   if(details.targetPlayer!=null&&!SIDES.includes(details.targetPlayer))
+    throw Error('Bersaglio non valido. Seleziona nuovamente un Multimon.');
+   if(details.selectedTargets!=null&&
+     (!Array.isArray(details.selectedTargets)||
+       details.selectedTargets.some(t=>!SIDES.includes(t?.player)||!Number.isInteger(t?.idx))))
+    throw Error('Bersagli non validi. Riprova a selezionare la mossa.');
    // In una lotta doppia si può attivare UNA sola Forma Iper per squadra.
    // Le due azioni vengono raccolte separatamente prima del pre-pass del
    // motore classico: senza questo controllo entrambe possono prenotare
@@ -175,6 +184,11 @@ export function submitRealAscensionActions(room,side,actions,chars){
    if(!Number.isInteger(details.toIdx)||!room.teams[side]?.[details.toIdx]||
       room.teams[side][details.toIdx].hp<=0||room.field[side].includes(details.toIdx))
     throw Error('Cambio impossibile.');
+   // Nel 2v2 due Multimon non possono sostituirsi con la STESSA riserva:
+   // la normale UI può inviare due comandi distinti prima della risoluzione.
+   if(Object.entries(updated).some(([other,action])=>
+      Number(other)!==idx&&action?.type==='switch'&&action.toIdx===details.toIdx))
+    throw Error('Questa riserva è già stata scelta per un altro cambio.');
   }else if(details.type!=='combo_assist'){
    throw Error('Azione non consentita in Ascesa del Colosseo.');
   }
