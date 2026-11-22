@@ -79,6 +79,7 @@ import { initialGameState } from './systems/gameState.js';
 import { UltimonView } from './screens/battle/UltimonView.jsx';
 import {AscensionView} from './screens/battle/AscensionView.jsx';
 import {AscensionClassicBattle} from './screens/battle/AscensionClassicBattle.jsx';
+import {ascensionFirestorePayload} from './systems/ascensionFirestorePayload.js';
 import {AscensionBattleResult} from './screens/battle/AscensionBattleResult.jsx';
 import {AscensionOpeningCeremony} from './screens/battle/AscensionOpeningCeremony.jsx';
 import {ASCENSION_STATUS,ascensionSelectStarter,ascensionBeginAction,
@@ -1725,7 +1726,10 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
                    !ascensionCurrentMatch(a).game.classicRoom)
                   a=ascensionCreateRealDuel(a,CHARACTERS,room);
                 a=ascensionRealBotDuels(a,room,CHARACTERS);
-                return {ascension:a};
+                // Firestore rifiuta le proprietà opzionali undefined presenti in
+                // molti Multimon e nei loro moveset. Non modificare lo stato locale;
+                // ripulisci SOLO il payload condiviso prima di tx.update().
+                return {ascension:ascensionFirestorePayload(a)};
               };
               if(appMode==='local_room'){
                 await updateState(compute(gameState));return;
