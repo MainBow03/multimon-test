@@ -56,6 +56,9 @@ button.ac-portrait{cursor:pointer}.ac-portrait.selected{border:2px solid #81efd3
 .ac-health i{display:block;height:100%;background:linear-gradient(90deg,#4aca95,#aff3d3);transition:width .25s;border-radius:10px}
 .ac-member-stats{display:flex;justify-content:space-between;gap:7px;color:#d1e7f4;font-size:10px}
 .ac-train{margin-top:7px;border:1px solid #f8cf79;background:#7a592449;color:#ffe5af;font-size:11px;border-radius:10px;padding:7px 10px;font-weight:900}
+.ac-train-all{display:block;width:100%;padding:12px 13px;margin:0 0 12px;font-size:12px;line-height:1.45;text-align:center;background:linear-gradient(125deg,#76508f,#a35f46);border:1px solid #f5cc83;box-shadow:0 5px 15px #0c102d66;cursor:pointer;transition:transform .18s ease,filter .18s ease}
+.ac-train-all:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.1)}
+.ac-train-all:disabled{cursor:not-allowed;opacity:.46;filter:grayscale(.45);box-shadow:none}
 .ac-roster footer{margin-top:11px;font-size:12px;font-weight:850;color:#e5d7b7}
 .ac-micro{font-size:11px;color:#adc0d4;line-height:1.5}
 .ac-encounter-head{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:#94e8dd;font-weight:950}
