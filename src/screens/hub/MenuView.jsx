@@ -163,6 +163,10 @@ if (appMode === 'menu') {
                             <button onClick={()=>setAppMode('collection')} className="col-span-2 bg-gradient-to-r from-cyan-800 to-indigo-800 hover:from-cyan-700 hover:to-indigo-700 border border-cyan-500/50 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 text-sm shadow-md">
                                  ✨ Collezione Multimon · Ottenuti e mancanti
                             </button>
+                            <button type="button" onClick={()=>setAppMode('battle_teams')}
+                              className="col-span-2 bg-gradient-to-r from-violet-800 via-indigo-700 to-cyan-800 hover:brightness-110 border border-violet-400/60 rounded-xl py-3.5 text-white font-black text-sm shadow-md">
+                              ⚔️ Squadre Lotta · 3 squadre salvate per ogni dimensione
+                            </button>
                         </div>
                         <button type="button" onClick={()=>startWithModeGuide('chests',()=>{if(!playerName.trim())setSystemAlert('Inserisci il tuo nome per aprire i bauli!');else setAppMode('chests');})}
                           className="w-full mt-3 bg-gradient-to-r from-amber-800 via-yellow-700 to-amber-900 border border-amber-400/70 hover:brightness-110 rounded-xl py-4 text-white font-black shadow-[0_0_24px_rgba(251,191,36,.16)] flex justify-center items-center gap-3 transition-all">
