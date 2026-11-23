@@ -1,4 +1,5 @@
 import { CHAR_PRICES } from './prices.js';
+import {characterSeries, characterSeriesList} from './characterSeries.js';
 import { MOVES_DB } from './moves.js';
 import {AURELION_CHARACTER} from './colosseumSovereign.js';
 import { SIX_NEW_CHARACTERS } from './sixNewChampions.js';
@@ -320,5 +321,7 @@ export const CHARACTERS = [
 
 // Applicazione originale dei prezzi ai personaggi.
 CHARACTERS.forEach(c => {
+            c.series = characterSeries(c);
+            c.seriesList = characterSeriesList(c);
             if(CHAR_PRICES[c.id]) c.price = CHAR_PRICES[c.id];
         });
