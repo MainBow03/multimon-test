@@ -136,7 +136,8 @@ test('Menu nuovo, menu classico e draft offrono accesso alla squadra lotta salva
  assert.match(modern,/setAppMode\('battle_teams'\)/);
  assert.match(classic,/setAppMode\('battle_teams'\)/);
  assert.match(draft,/loadBattleTeamPreset\(chosen,draftableChars,myTeamSize,heldInventory\)/);
- assert.match(draft,/\['draft/);
+ assert.match(draft,/savedTeamSlots\.map/);
+ assert.match(draft,/updateState\(\{\[\`draft\.\$\{playerRole\}\`\]:restored\.team\}\)/);
  assert.match(draft,/updateLocalStats\(\{battleTeamPresetSave/);
  assert.match(manager,/Scegli una delle 3 squadre da/);
  assert.match(manager,/BATTLE_TEAM_PRESET_SLOTS/);
