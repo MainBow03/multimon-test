@@ -7,9 +7,10 @@ import { ZodiacSpiritPicker } from '../../components/ZodiacSpiritPicker.jsx';
 import { canEquipHeldItem } from '../../systems/heldEquipment.js';
 import { TEAM_ROLES, getCharacterRoles, filterTeamRoster, characterPrice } from '../../systems/teamBuilderFilters.js';
 import {isUltimonBanned,ultimonBannedIds} from '../../systems/ultimonBans.js';
+import {battleTeamPresetsAllowed,battleTeamSlots,loadBattleTeamPreset} from '../../systems/battleTeamPresets.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderDraftingView(ctx) {
-const { ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftRole, setDraftRole, draftPrice, setDraftPrice, draftFavorites, draftFavoritesOnly, setDraftFavoritesOnly, toggleDraftFavorite, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState } = ctx;
+const { ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftRole, setDraftRole, draftPrice, setDraftPrice, draftFavorites, draftFavoritesOnly, setDraftFavoritesOnly, toggleDraftFavorite, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState, updateLocalStats } = ctx;
 if (gameState.status === 'drafting') {
         if (playerRole === 'spectator') {
             return (
@@ -57,6 +58,34 @@ if (gameState.status === 'drafting') {
         const myUnlocked = IS_PREVIEW ? baseRoster.map(c => c.id) : (getPlayerData().unlockedChars || []);
         const draftableChars = baseRoster.filter(c => !c.isSummonOnly && !isUltimonBanned(gameState,c.id) && ((!c.price && !c.isSecretUnlock) || myUnlocked.includes(c.id)));
 
+        const savedTeamsEnabled=battleTeamPresetsAllowed(gameState)&&
+          !gameState.isBot?.[playerRole];
+        const savedTeamOwner=gameState.players?.[playerRole]||'Giocatore';
+        const savedTeamSlots=battleTeamSlots(getPlayerData(),savedTeamOwner,myTeamSize);
+        const loadSavedTeam=index=>{
+            const chosen=savedTeamSlots[index];
+            if(!chosen)return;
+            const restored=loadBattleTeamPreset(chosen,draftableChars,myTeamSize,heldInventory);
+            if(!restored.ok){setSystemAlert(restored.reason);return;}
+            updateState({[`draft.${playerRole}`]:restored.team});
+            if(restored.unequipped)
+              setSystemAlert('Squadra caricata, ma '+restored.unequipped+
+                ' strumenti non sono disponibili nel tuo inventario e sono stati rimossi.');
+        };
+        const saveCurrentTeam=index=>{
+            if(myDraft.length!==myTeamSize){
+              setSystemAlert('Completa prima tutti i '+myTeamSize+' Multimon.');return;
+            }
+            const result=updateLocalStats({battleTeamPresetSave:{
+              owner:savedTeamOwner,size:myTeamSize,slot:index,
+              name:savedTeamSlots[index]?.name||'Squadra '+(index+1),
+              members:myDraft
+            }});
+            setSystemAlert(result?.ok
+              ?'Formazione salvata nello slot '+(index+1)+' per '+myTeamSize+' Multimon!'
+              :(result?.reason||'Non è stato possibile salvare la squadra.'));
+        };
+
         const ultimonBans=gameState.gameMode==='ultimon'?ultimonBannedIds(gameState):[];
         const filteredDraftableChars = filterTeamRoster(draftableChars,{
             type:draftFilterType,search:draftSearch,sort:draftSort,role:draftRole,
@@ -84,6 +113,43 @@ if (gameState.status === 'drafting') {
                     </div>
                 </div>
 
+                {savedTeamsEnabled&&<details className="relative z-10 mb-3 shrink-0 rounded-2xl border border-violet-400/60 bg-indigo-950/70 px-3 py-2.5 shadow-lg">
+                  <summary className="cursor-pointer text-sm font-black text-violet-100 select-none">
+                    ⚔️ Squadre Lotta salvate · 3 slot da {myTeamSize} Multimon
+                    <span className="ml-2 text-xs font-medium text-cyan-200">
+                      {savedTeamSlots.filter(Boolean).length}/3 create · Tocca per aprire
+                    </span>
+                  </summary>
+                  <p className="my-2 text-xs text-indigo-200">Carica una formazione già preparata oppure salva la squadra attuale. Ogni dimensione ha tre slot indipendenti.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {savedTeamSlots.map((preset,index)=><div key={index}
+                      className="min-w-0 rounded-xl border border-indigo-300/40 bg-slate-950/75 p-2">
+                      <div className="text-xs font-black text-amber-200 truncate">
+                        {index+1}. {preset?.name||'Slot libero'}
+                      </div>
+                      <div className="flex flex-wrap gap-1 my-2 min-h-[27px]">
+                        {preset?.members?.map((m,j)=>{
+                          const pic=baseRoster.find(c=>c.id===m.id);
+                          return pic?<img key={m.id+'-'+j} src={pic.img}
+                            onError={onMultimonImageError} alt={pic.name}
+                            title={pic.name} className="h-7 w-7 rounded-md border border-slate-600 object-contain"/>:
+                            <span key={'unavailable-'+j} className="text-rose-300 text-xs">?</span>;
+                        })}
+                        {!preset&&<span className="text-[11px] text-slate-500">Ancora da salvare</span>}
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        <button type="button" disabled={!preset} onClick={()=>loadSavedTeam(index)}
+                          className="flex-1 rounded-lg border border-cyan-400/50 bg-cyan-950/70 px-2 py-1.5 text-[11px] font-black text-cyan-100 disabled:opacity-40">
+                          Carica
+                        </button>
+                        <button type="button" disabled={!isReady} onClick={()=>saveCurrentTeam(index)}
+                          className="flex-1 rounded-lg border border-amber-400/50 bg-amber-950/70 px-2 py-1.5 text-[11px] font-black text-amber-100 disabled:opacity-40">
+                          {preset?'Sovrascrivi':'Salva qui'}
+                        </button>
+                      </div>
+                    </div>)}
+                  </div>
+                </details>}
                 {gameState.isRoguelikeCoop && <div className="z-10 mb-3 rounded-xl border border-pink-400/40 bg-pink-950/35 px-4 py-2 text-sm font-bold text-pink-100">
                   🛡️ Scegli 2 Multimon: il primo combatterà, il secondo sarà la tua riserva. Potrai cambiarli in lotta o sostituire chi va KO.
                 </div>}
