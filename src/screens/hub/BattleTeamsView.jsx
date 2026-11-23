@@ -1,6 +1,7 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 import {typeDisplayName} from '../../systems/typeLabel.js';
+import {characterSeries,seriesMatches,seriesOptions} from '../../data/characterSeries.js';
 import {
  BATTLE_TEAM_MIN_SIZE,BATTLE_TEAM_MAX_SIZE,BATTLE_TEAM_PRESET_SLOTS,
  battleTeamSlots
@@ -17,6 +18,7 @@ export function BattleTeamsView({characters,profile,owner='Giocatore',isPreview=
  const [name,setName]=useState(()=>getDraft(profile,owner,5,0)?.name||'Squadra 1');
  const [search,setSearch]=useState('');
  const [type,setType]=useState('Tutti');
+ const [seriesFilter,setSeriesFilter]=useState('Tutti');
  const [feedback,setFeedback]=useState('');
  const slots=battleTeamSlots(profile,owner,size);
  const roster=useMemo(()=>characters.filter(c=>!c.isSummonOnly&&!c.isCampaignMonster&&
@@ -24,7 +26,8 @@ export function BattleTeamsView({characters,profile,owner='Giocatore',isPreview=
   [characters,isPreview,profile?.unlockedChars]);
  const lookup=useMemo(()=>new Map(characters.map(c=>[c.id,c])),[characters]);
  const selected=new Set(members.map(c=>c.id));
- const filtered=roster.filter(c=>(type==='Tutti'||c.types?.includes(type))&&
+ const filtered=roster.filter(c=>seriesMatches(c,seriesFilter)&&
+  (type==='Tutti'||c.types?.includes(type))&&
   (c.name||'').toLocaleLowerCase('it-IT').includes(search.trim().toLocaleLowerCase('it-IT')));
  const allTypes=['Tutti',...new Set(roster.flatMap(c=>c.types||[]))].sort((a,b)=>
   a==='Tutti'?-1:b==='Tutti'?1:a.localeCompare(b,'it'));
@@ -139,13 +142,23 @@ export function BattleTeamsView({characters,profile,owner='Giocatore',isPreview=
       {allTypes.map(t=><option key={t} value={t}>{typeDisplayName(t)}</option>)}
      </select></label>
     </div>
+    <div className="mb-3 rounded-xl border border-violet-400/30 bg-violet-950/30 p-3">
+     <label className="flex flex-wrap items-center gap-2 text-xs font-black text-violet-200">
+      <span>🌌 Serie / universo d’origine</span>
+      <select aria-label="Filtra Squadre Lotta per serie" value={seriesFilter} onChange={e=>setSeriesFilter(e.target.value)}
+       className="min-w-0 flex-1 rounded-lg border border-violet-400/40 bg-slate-950 p-2 text-white">
+       <option value="Tutti">Tutte le serie</option>
+       {seriesOptions(roster).map(series=><option key={series} value={series}>{series}</option>)}
+      </select>
+     </label>
+    </div>
     <div className="bt-roster">
      {filtered.map(c=><button key={c.id} type="button"
       disabled={selected.has(c.id)||members.length>=size}
       className={'bt-character'+(selected.has(c.id)?' is-selected':'')}
       onClick={()=>add(c)}>
       <img src={c.img} alt="" loading="lazy" onError={onMultimonImageError}/>
-      <strong>{c.name}</strong>
+      <strong>{c.name}</strong><small title={characterSeries(c)}>🌌 {characterSeries(c)}</small>
       <span className="bt-types">{(c.types||[]).map(t=><span key={t}
        className={typeStyles[t]||'bg-slate-600 text-white'}>{typeDisplayName(t)}</span>)}</span>
       <small>{selected.has(c.id)?'✓ Nella squadra':members.length>=size?'Squadra completa':'+ Aggiungi'}</small>
