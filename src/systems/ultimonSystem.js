@@ -235,13 +235,23 @@ export function finishUltimonDuel(room){
   if(p===outcome.winner)stats[p].wins++;
   else if(p===outcome.loser)stats[p].losses++;
  }
- // Se nessun combattente vincente è andato KO durante il duello,
- // premia UN SOLO superstite: per impostazione predefinita quello più ferito.
+ // Una Vittoria perfetta richiede che NESSUNO dei Multimon schierati
+ // sia stato mandato KO. Oltre al bonus individuale già esistente, tutti
+ // i superstiti rimasti in panchina recuperano il 10% dei loro PS massimi.
+ // I KO permanenti non vengono rianimati e la cura non supera maxHp.
  const cleanVictory=!!outcome.winner&&ko[outcome.winner]?.length===0;
  let bonusTarget=null;
+ let benchHealed=0;
  if(cleanVictory){
    const p=outcome.winner;
    const selected=u.selected?.[p]||[];
+   const deployed=new Set(selected);
+   for(const [index,member] of rosters[p].entries()){
+     if(deployed.has(index)||!alive(member))continue;
+     const before=member.hp;
+     member.hp=Math.min(member.maxHp,member.hp+Math.ceil(member.maxHp*.10));
+     if(member.hp>before)benchHealed++;
+   }
    const candidates=selected.filter(i=>rosters[p]?.[i]?.hp>0);
    const chosen=u.recoveryChoice?.role===p&&candidates.includes(u.recoveryChoice.index)
      ?u.recoveryChoice.index : candidates.sort((a,b)=>
@@ -260,7 +270,7 @@ export function finishUltimonDuel(room){
  const champion=survivors.length===1?survivors[0]:null;
  const record={round:u.round,pair:[...u.pair],format:u.format,
   winner:outcome.winner,loser:outcome.loser,ko,eliminated:newlyEliminated,
-  cleanVictory,bonusTarget,turns:room.battleReport?.turns||0,
+  cleanVictory,bonusTarget,benchHealed,turns:room.battleReport?.turns||0,
   surviving:Object.fromEntries(u.pair.map(p=>[p,ultimonAlive(rosters,p)]))};
  // Le eliminazioni definitive hanno una cerimonia dedicata prima del recap
  // o dei premi: un solo host avanza lo stato condiviso con una transazione.
