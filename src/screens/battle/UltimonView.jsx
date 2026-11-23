@@ -66,7 +66,7 @@ function ResultCard({room,summary=false}){
       </div>)}
    </div>}
    {last&&last.eliminated.length>0&&<p className="ultimon-eliminated">💀 Eliminate: {last.eliminated.map(p=>u.identities[p]?.name).join(' · ')}</p>}
-   {last&&winner&&<p className="ultimon-heal">💚 I superstiti schierati della squadra vincente recuperano il 30% dei PS massimi.{last.bonusTarget?' Vittoria perfetta! '+last.bonusTarget.name+' ottiene un ulteriore 10%.':''}</p>}
+   {last&&winner&&<p className="ultimon-heal">💚 I superstiti schierati della squadra vincente recuperano il 30% dei PS massimi.{last.cleanVictory?' Vittoria perfetta! Tutti i Multimon ancora vivi in panchina recuperano il 10% dei PS massimi.':''}{last.bonusTarget?' '+last.bonusTarget.name+' ottiene un ulteriore 10%.':''}</p>}
  </section>;
 }
 
@@ -405,8 +405,8 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onR
         <ResultCard room={room}/>
         {canChooseRecovery&&<section className="ultimon-customizer" style={{margin:'1rem auto'}}>
           <h3>💚 Vittoria perfetta! Scegli chi riceve +10% PS extra</h3>
-          <p>La scelta è gratuita, oltre al 30% di cura per tutti i superstiti schierati.
-            Se non scegli, il premio va automaticamente al superstite più ferito.</p>
+          <p>Oltre al 30% di cura per i superstiti schierati, tutti i Multimon ancora vivi in panchina recuperano automaticamente il 10% dei PS massimi.
+            Puoi assegnare un ulteriore 10% a un solo Multimon schierato; se non scegli, il premio va al più ferito.</p>
           <div className="ultimon-pick-grid">
             {selectableRecovery.map(index=>{
               const fighter=u.rosters[winnerRole][index];
