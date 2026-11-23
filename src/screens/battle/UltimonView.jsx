@@ -3,11 +3,26 @@ import React,{useEffect,useState} from 'react';
 import {ULTIMON_COLORS,ultimonPlayers,ultimonAlive,ultimonActive,ultimonLeaderboard,ultimonDuelOutcome,ultimonPicksReady,ultimonIsFinalShowdown,ultimonRivalry} from '../../systems/ultimonSystem.js';
 import {ultimonRewardForPlace} from '../../systems/ultimonRewards.js';
 import {ultimonTeamMvp} from '../../systems/ultimonMvp.js';
+import {TYPE_STYLES} from '../../systems/typeSystem.js';
 import {UltimonIntroView} from './UltimonIntroView.jsx';
 import {ultimonBanRoster,ultimonBanRoles,ultimonBannedIds,allUltimonBansReady} from '../../systems/ultimonBans.js';
 import './UltimonView.css';
 
 const alive=c=>c?.hp>0&&!c.isSummonOnly;
+
+// Usa gli stessi colori dei tipi dell'Enciclopedia. Sono sempre visibili
+// anche per i Multimon avversari e per quelli KO, così i nuovi giocatori
+// possono preparare gli schieramenti senza memorizzare il roster.
+export function UltimonTypeBadges({types,compact=false}){
+ const list=Array.isArray(types)?types.filter(Boolean):[];
+ if(!list.length)return null;
+ return <div className={'ultimon-type-badges'+(compact?' ultimon-type-badges--compact':'')}
+    role="group" aria-label={'Tipi: '+list.join(' e ')}>
+   {list.map((type,i)=><span key={type+'-'+i}
+     className={'ultimon-type-chip '+(TYPE_STYLES[type]||'bg-slate-600 text-white')}
+     title={'Tipo '+type}>{type}</span>)}
+ </div>;
+}
 function TeamCard({room,role,selected=false,rank=null}){
  const id=room.ultimon?.identities?.[role]||{};
  const team=room.ultimon?.rosters?.[role]||[];
@@ -27,6 +42,7 @@ function TeamCard({room,role,selected=false,rank=null}){
      {team.map((c,i)=><div key={i} className={'ultimon-fighter '+(!alive(c)?'ultimon-fighter--out':'')} title={c.name+' · '+Math.max(0,c.hp)+'/'+c.maxHp+' PS'}>
        <img src={c.img} onError={onMultimonImageError} alt={c.name} loading="lazy"/>
        <span>{c.name}</span>
+       <UltimonTypeBadges types={c.types} compact/>
        <small>{alive(c)?Math.ceil(c.hp)+' PS':'KO'}</small>
       </div>)}
     </div>
@@ -375,6 +391,7 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onR
               onClick={()=>setChosen(prev=>prev.includes(i)?prev.filter(x=>x!==i):
                  prev.length<u.format?[...prev,i]:prev)}>
               <img src={c.img} onError={onMultimonImageError} alt={c.name}/><strong>{c.name}</strong>
+              <UltimonTypeBadges types={c.types}/>
               <small>{alive(c)?Math.ceil(c.hp)+'/'+c.maxHp+' PS':'KO DEFINITIVO'}</small>
               {chosen.includes(i)&&<b>✓ SCHIERATO</b>}
             </button>)}</div>
@@ -397,6 +414,7 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onR
                 onClick={()=>onRecovery(winnerRole,index)}>
                 {fighter.img&&<img src={fighter.img} onError={onMultimonImageError} alt={fighter.name}/>}
                 <strong>{fighter.name}</strong>
+                <UltimonTypeBadges types={fighter.types}/>
                 <small>{Math.ceil(room.teams[winnerRole][u.selected[winnerRole].indexOf(index)].hp)} PS rimasti</small>
                 {u.recoveryChoice?.role===winnerRole&&u.recoveryChoice.index===index&&<b>✓ PREMIO SCELTO</b>}
               </button>;
