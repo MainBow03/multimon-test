@@ -18,7 +18,7 @@ import {onMultimonImageError} from '../../systems/imageFallback.js';
 const ECHO_FINAL_BOSS_HP = 4000;
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
-const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, campaignZodiacChoices, setCampaignZodiacChoices, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSeriesFilter, setDraftSeriesFilter, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
+const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, campaignZodiacChoices, setCampaignZodiacChoices, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, campaignSeriesFilter, setCampaignSeriesFilter, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
 if (appMode === 'campaign_team_select') {
         const equipInventory = getPlayerData().inventory || {};
         const assignCampaignItem = (id, itemId) => {
@@ -850,7 +850,7 @@ if (appMode === 'campaign_team_select') {
                 <div className="mb-3 rounded-xl border border-violet-400/35 bg-violet-950/25 p-3">
                     <label className="flex flex-wrap items-center gap-2 text-xs font-black text-violet-200">
                         <span>🌌 Serie / universo d’origine</span>
-                        <select aria-label="Filtra compagni della campagna per serie" value={draftSeriesFilter} onChange={e=>setDraftSeriesFilter(e.target.value)}
+                        <select aria-label="Filtra compagni della campagna per serie" value={campaignSeriesFilter} onChange={e=>setCampaignSeriesFilter(e.target.value)}
                             className="min-w-0 flex-1 rounded-lg border border-violet-400/40 bg-slate-950 p-2 text-white">
                             <option value="Tutti">Tutte le serie</option>
                             {seriesOptions(campaignState.roster.map(id=>CHARACTERS.find(c=>c.id===id)).filter(Boolean)).map(series=><option key={series} value={series}>{series}</option>)}
@@ -864,7 +864,7 @@ if (appMode === 'campaign_team_select') {
                         
                         let filteredRoster = rosterChars.filter(c => {
                             if (draftFilterType !== 'Tutti' && !c.types.includes(draftFilterType)) return false;
-                            if (!seriesMatches(c,draftSeriesFilter)) return false;
+                            if (!seriesMatches(c,campaignSeriesFilter)) return false;
                             if (draftSearch.trim() !== '' && !c.name.toLowerCase().includes(draftSearch.toLowerCase())) return false;
                             return true;
                         });
