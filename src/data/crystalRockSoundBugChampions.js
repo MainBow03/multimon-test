@@ -978,7 +978,7 @@ export const CRYSTAL_ROCK_SOUND_BUG_CHARACTERS = [
     "def": 82,
     "spDef": 108,
     "spd": 121,
-    "img": "https://s.tvp.pl/images/5/e/0/uid_5e0899d2849140d488df8b5b2ad1654b_width_1200_play_0_pos_0_gs_0_height_630.png",
+    "img": "https://i.pinimg.com/736x/91/bc/a0/91bca05304f215fb153ea64a5b4c83a1.jpg",
     "passive": {
       "name": "Nettare Curativo",
       "type": "nectar_healing",
