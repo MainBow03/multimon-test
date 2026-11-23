@@ -168,7 +168,7 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onR
    :playerRole;
  const picksAllowed=stage==='ultimon_pick'&&pair.includes(selectionRole)&&!u.picks?.[selectionRole]&&!room.isBot?.[selectionRole];
  useEffect(()=>{setName(identity.name||'');setColor(identity.color||ULTIMON_COLORS[0].hex);},[nameRole,identity.ready]);
- useEffect(()=>{setChosen([]);},[selectionRole,stage,u.round]);
+ useEffect(()=>{setChosen([]);setPickSeries('Tutti');},[selectionRole,stage,u.round]);
  useEffect(()=>{
    if(stage!=='ultimon_pair'&&stage!=='ultimon_format'){setRevealed(true);return;}
    setRevealed(false);
