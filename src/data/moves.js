@@ -11,12 +11,14 @@ import {EARTH_GRASS_MOVES} from './earthGrassChampions.js';
 import {NEW_REALM_MOVES} from './newRealmChampions.js';
 import {AMETRALINE_FUSION_MOVES} from './ametralineFusion.js';
 import {CRYSTAL_ROCK_SOUND_BUG_MOVES} from './crystalRockSoundBugChampions.js';
+import {FROZEN_ALCHEMIST_MOVES} from './frozenAlchemistChampions.js';
 
 export const MOVES_DB = {
   ...AURELION_MOVES,
   ...AMETRALINE_FUSION_MOVES,
   ...NEW_REALM_MOVES,
   ...CRYSTAL_ROCK_SOUND_BUG_MOVES,
+  ...FROZEN_ALCHEMIST_MOVES,
   'Trasformazione Fatata':{name:'Trasformazione Fatata',type:'Folletto',power:60,
     statusEffect:{type:'Stordito',chance:.6,turns:1},
     desc:'Cosmo trasforma il nemico in qualcosa di buffo: potenza 60, 60% di stordire.'},

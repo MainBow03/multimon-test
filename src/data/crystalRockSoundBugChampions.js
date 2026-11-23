@@ -922,7 +922,7 @@ export const CRYSTAL_ROCK_SOUND_BUG_CHARACTERS = [
     "def": 82,
     "spDef": 107,
     "spd": 105,
-    "img": "https://i.blogs.es/aaa610/diseno-sin-titulo-19-/840_560.jpeg",
+    "img": "https://i.pinimg.com/736x/72/ce/d0/72ced0b06c33ddcfe81401a9fcc464c7.jpg",
     "passive": {
       "name": "Musica dell Altrove",
       "type": "music_beyond",
