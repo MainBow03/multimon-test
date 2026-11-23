@@ -239,7 +239,8 @@ if (gameState.status === 'battling' || gameState.status === 'executing') {
                                     myTeamPlayers = activeMatchPlayers.filter(p => p !== juggPlayer);
                                 }
                             }
-                            isTargetable = myTeamPlayers.includes(teamPlayer);
+                            isTargetable = myTeamPlayers.includes(teamPlayer) &&
+                                !(move.humanShield && teamPlayer === playerRole && fieldIdx === commandingIdx);
                     } else if (gameState.gameMode === 'juggernaut' || gameState.gameMode === 'survival') {
                             const juggPlayer = gameState.settings.juggernautPlayer || (gameState.gameMode === 'survival' ? 'p2' : 'p1');
                             const myTeam = playerRole === juggPlayer ? [juggPlayer] : activeMatchPlayers.filter(p => p !== juggPlayer);
