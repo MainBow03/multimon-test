@@ -197,6 +197,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           
           const [catalogSort, setCatalogSort] = useState('alpha');
           const [catalogFilter, setCatalogFilter] = useState('Tutti');
+          const [catalogSeriesFilter, setCatalogSeriesFilter] = useState('Tutti');
           const [catalogSearch, setCatalogSearch] = useState('');
           const [shopCharSearch, setShopCharSearch] = useState('');
           const [shopCosmeticTab,setShopCosmeticTab]=useState('entrances');
@@ -204,6 +205,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 
           const [draftSearch, setDraftSearch] = useState('');
           const [draftFilterType, setDraftFilterType] = useState('Tutti');
+          const [draftSeriesFilter, setDraftSeriesFilter] = useState('Tutti');
           const [draftSort, setDraftSort] = useState('default');
           const [draftRole, setDraftRole] = useState('all');
           const [draftPrice, setDraftPrice] = useState('all');
@@ -2262,7 +2264,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (appMode === 'campaign_team_select') {
-  const __screen = renderCampaignTeamSelectView({ ITEMS_DB, campaignHeldItems, setCampaignHeldItems, campaignZodiacChoices, setCampaignZodiacChoices, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue });
+  const __screen = renderCampaignTeamSelectView({ ITEMS_DB, campaignHeldItems, setCampaignHeldItems, campaignZodiacChoices, setCampaignZodiacChoices, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSeriesFilter, setDraftSeriesFilter, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue });
   if (__screen !== undefined) return __screen;
 }
 
@@ -2338,7 +2340,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (appMode === 'catalog') {
-  const __screen = renderCatalogView({ ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Lock, MOVES_DB, TYPES, TYPE_STYLES, appMode, catalogFilter, catalogSearch, catalogSort, setAppMode, setCatalogFilter, setCatalogSearch, setCatalogSort });
+  const __screen = renderCatalogView({ ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Lock, MOVES_DB, TYPES, TYPE_STYLES, appMode, catalogFilter, catalogSeriesFilter, setCatalogSeriesFilter, catalogSearch, catalogSort, setAppMode, setCatalogFilter, setCatalogSearch, setCatalogSort });
   if (__screen !== undefined) return __screen;
 }
 
@@ -2432,7 +2434,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
     }
 
     if (gameState.status === 'drafting') {
-  const __screen = renderDraftingView({ ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftRole, setDraftRole, draftPrice, setDraftPrice, draftFavorites, draftFavoritesOnly, setDraftFavoritesOnly, toggleDraftFavorite, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState, updateLocalStats });
+  const __screen = renderDraftingView({ ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftSeriesFilter, setDraftSeriesFilter, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftRole, setDraftRole, draftPrice, setDraftPrice, draftFavorites, draftFavoritesOnly, setDraftFavoritesOnly, toggleDraftFavorite, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState, updateLocalStats });
   if (__screen !== undefined) return __screen;
 }
 
