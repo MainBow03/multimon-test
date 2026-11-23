@@ -88,5 +88,12 @@ test('Diamante: muro da 20%, rifrazione e bonus Cristallo',()=>{
  const normal=calculateDamageImpl({},defender,{...attacker,passive:null},move('Carota Esplosiva'),1,false,()=>.5);
  const resisted=calculateDamageImpl({},defender,attacker,move('Carota Esplosiva'),1,false,()=>.5);
  assert.ok(resisted<normal,'Corpo Petrosapien deve ridurre i danni');
- assert.equal(move('Schiacciata Pesante').statusEffect.chance,.1);
+ // Schiacciata Pesante è stata sostituita da Scudo Umano.
+ const humanShield=move('Scudo Umano');
+ assert.equal(humanShield.humanShield,true);
+ assert.equal(humanShield.targetMode,'ally');
+ assert.equal(humanShield.power,0);
+ assert.equal(humanShield.priority,5);
+ assert.ok(roster.diamante.moves.some(m=>m?.name==='Scudo Umano'));
+ assert.ok(!roster.diamante.moves.some(m=>m?.name==='Schiacciata Pesante'));
 });
