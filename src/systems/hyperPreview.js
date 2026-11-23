@@ -25,7 +25,8 @@ export const HYPER_BONUS_MOVES = Object.freeze({
   sage:['questo è il mio vero potenziale'],
   coraline:['Porta dell’Impossibile'],
   luigi:['Aspirazione Fantasma'],
-  miku:['Concerto Universale']
+  miku:['Concerto Universale'],
+  frillish:['Marea Gemella']
 });
 
 export function hyperPreviewMoves(character,pendingHyper,movesDb){
