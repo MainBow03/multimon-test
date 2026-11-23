@@ -1,4 +1,5 @@
 import {onMultimonImageError} from '../../systems/imageFallback.js';
+import {characterSeries,seriesMatches,seriesOptions} from '../../data/characterSeries.js';
 import React,{useEffect,useState} from 'react';
 import {ULTIMON_COLORS,ultimonPlayers,ultimonAlive,ultimonActive,ultimonLeaderboard,ultimonDuelOutcome,ultimonPicksReady,ultimonIsFinalShowdown,ultimonRivalry} from '../../systems/ultimonSystem.js';
 import {ultimonRewardForPlace} from '../../systems/ultimonRewards.js';
@@ -157,6 +158,8 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onR
  const [color,setColor]=useState(identity.color||ULTIMON_COLORS[0].hex);
  const [chosen,setChosen]=useState([]);
  const [banSearch,setBanSearch]=useState('');
+ const [banSeries,setBanSeries]=useState('Tutti');
+ const [pickSeries,setPickSeries]=useState('Tutti');
  const [banSelected,setBanSelected]=useState('');
  const [revealed,setRevealed]=useState(false);
  const [ceremonyStep,setCeremonyStep]=useState(0);
@@ -190,7 +193,7 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onR
  const bannedIds=ultimonBannedIds(room);
  const bannedSet=new Set(bannedIds);
  const bannedRoster=bannedIds.map(id=>banRoster.find(c=>c.id===id)).filter(Boolean);
- const banCandidates=banRoster.filter(c=>!bannedSet.has(c.id)&&
+ const banCandidates=banRoster.filter(c=>!bannedSet.has(c.id)&&seriesMatches(c,banSeries)&&
    (c.name||'').toLocaleLowerCase('it').includes(banSearch.trim().toLocaleLowerCase('it')));
  const banReady=stage==='ultimon_ban'&&allUltimonBansReady(room);
  const standings=ultimonLeaderboard(room);
@@ -258,13 +261,21 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onR
          <input id="ultimon-ban-search" className="ultimon-ban-search" type="search"
            value={banSearch} onChange={e=>setBanSearch(e.target.value)}
            placeholder="Cerca per nome..." autoComplete="off"/>
+         <div className="my-3 rounded-xl border border-violet-400/35 bg-violet-950/30 p-3">
+          <label className="flex flex-wrap items-center gap-2 text-sm font-bold text-violet-200">🌌 Serie / universo
+           <select aria-label="Filtra ban di Ultimon per serie" value={banSeries} onChange={e=>setBanSeries(e.target.value)} className="min-w-0 flex-1 rounded-lg border border-violet-400/40 bg-slate-950 p-2 text-white">
+            <option value="Tutti">Tutte le serie</option>
+            {seriesOptions(banRoster).map(series=><option key={series} value={series}>{series}</option>)}
+           </select>
+          </label>
+         </div>
          <div className="ultimon-ban-grid">
            {banCandidates.map(c=><button type="button" key={c.id}
              onClick={()=>setBanSelected(c.id)} aria-pressed={banSelected===c.id}
              className={'ultimon-ban-card '+(banSelected===c.id?'ultimon-ban-card--selected':'')}>
              <div className="ultimon-ban-image">{c.img&&<img src={c.img} onError={onMultimonImageError} alt="" loading="lazy"/>}</div>
              <strong>{c.name}</strong>
-             <small>{(c.types||[]).join(' · ')}</small>
+             <small>{(c.types||[]).join(' · ')}</small><small>🌌 {characterSeries(c)}</small>
              <span>{banSelected===c.id?'✓ SCELTO':'Seleziona'}</span>
            </button>)}
            {!banCandidates.length&&<p className="ultimon-ban-noresults">Nessun Multimon corrisponde alla ricerca.</p>}
@@ -385,13 +396,22 @@ export function UltimonView({room,appMode,playerRole,onBan,onIdentity,onPick,onR
          <span key={p}>{u.identities?.[p]?.name}: {u.picks?.[p]?.length===u.format?'✓ Pronto':'⌛ Scelta in corso'}</span>)}</div>
        {picksAllowed&&<section className="ultimon-customizer">
           <h3>Seleziona {u.format} Multimon per {room.players[selectionRole]}</h3>
-          <div className="ultimon-pick-grid">{(u.rosters?.[selectionRole]||[]).map((c,i)=>
+          <div className="my-3 rounded-xl border border-violet-400/35 bg-violet-950/30 p-3">
+           <label className="flex flex-wrap items-center gap-2 text-sm font-bold text-violet-200">🌌 Serie / universo
+            <select aria-label="Filtra schieramento Ultimon per serie" value={pickSeries} onChange={e=>setPickSeries(e.target.value)} className="min-w-0 flex-1 rounded-lg border border-violet-400/40 bg-slate-950 p-2 text-white">
+             <option value="Tutti">Tutte le serie</option>
+             {seriesOptions(u.rosters?.[selectionRole]||[]).map(series=><option key={series} value={series}>{series}</option>)}
+            </select>
+           </label>
+          </div>
+          <div className="ultimon-pick-grid">{(u.rosters?.[selectionRole]||[]).map((c,i)=>({c,i})).filter(({c})=>seriesMatches(c,pickSeries)).map(({c,i})=>
             <button key={i} disabled={!alive(c)} type="button"
               className={'ultimon-pick-fighter '+(chosen.includes(i)?'ultimon-pick-fighter--chosen':'')}
               onClick={()=>setChosen(prev=>prev.includes(i)?prev.filter(x=>x!==i):
                  prev.length<u.format?[...prev,i]:prev)}>
               <img src={c.img} onError={onMultimonImageError} alt={c.name}/><strong>{c.name}</strong>
               <UltimonTypeBadges types={c.types}/>
+              <small>🌌 {characterSeries(c)}</small>
               <small>{alive(c)?Math.ceil(c.hp)+'/'+c.maxHp+' PS':'KO DEFINITIVO'}</small>
               {chosen.includes(i)&&<b>✓ SCHIERATO</b>}
             </button>)}</div>
