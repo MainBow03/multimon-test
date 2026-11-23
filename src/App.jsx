@@ -37,6 +37,7 @@ import { renderStatsView } from './screens/hub/StatsView.jsx';
 import { renderTypeChartView } from './screens/hub/TypeChartView.jsx';
 import { renderCatalogView } from './screens/hub/CatalogView.jsx';
 import { CollectionView } from './screens/hub/CollectionView.jsx';
+import {BattleTeamsView} from './screens/hub/BattleTeamsView.jsx';
 import { renderLobbyView } from './screens/battle/LobbyView.jsx';
 import { renderDraftingView } from './screens/battle/DraftingView.jsx';
 import { renderSwitchingPhaseView } from './screens/battle/SwitchingPhaseView.jsx';
@@ -2340,6 +2341,23 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
   const __screen = renderCatalogView({ ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Lock, MOVES_DB, TYPES, TYPE_STYLES, appMode, catalogFilter, catalogSearch, catalogSort, setAppMode, setCatalogFilter, setCatalogSearch, setCatalogSort });
   if (__screen !== undefined) return __screen;
 }
+
+    if (appMode === 'battle_teams') {
+      return <BattleTeamsView
+        characters={CHARACTERS}
+        profile={getPlayerData()}
+        owner={playerName||'Giocatore'}
+        isPreview={IS_PREVIEW}
+        typeStyles={TYPE_STYLES}
+        onSave={payload=>updateLocalStats({battleTeamPresetSave:{
+          ...payload,owner:playerName||'Giocatore'
+        }})}
+        onDelete={payload=>updateLocalStats({battleTeamPresetDelete:{
+          ...payload,owner:playerName||'Giocatore'
+        }})}
+        onBack={()=>setAppMode('menu')}
+      />;
+    }
 
     if (appMode === 'collection') {
       return <CollectionView
