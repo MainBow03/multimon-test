@@ -268,6 +268,16 @@ export function generateStrategicCpuActions({
         continue;
       }
       if(move.targetMode==='ally'){
+        if(move.humanShield){
+          // Scudo Umano difende anche alleati senza danni già subiti.
+          for(const ally of activeAllies){
+            if(ally.player===player&&ally.idx===idx)continue;
+            const threat=1-hpRatio(ally.char);
+            consider({type:'attack',moveIdx,targetPlayer:ally.player,targetIdx:ally.idx,
+              targetFieldIdx:ally.fieldIdx},(42+threat*30)*style.support+random()*6);
+          }
+          continue;
+        }
         for(const ally of activeAllies){
           const need=1-hpRatio(ally.char);
           if(need>.23)consider({
