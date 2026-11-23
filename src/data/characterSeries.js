@@ -66,7 +66,7 @@ const SERIES_GROUPS = {
   "Pokémon": "snorlax roserade gardevoir charizard frillish flygon leafeon shaymin",
   "Resident Evil": "carlos leon",
   "RWBY": "weiss",
-  "Seth MacFarlane - I Griffin": "stewie",
+  "I Griffin": "stewie",
   "Shrek": "shrek",
   "Sonic the Hedgehog": "metalsonic blaze shadow sonic tails",
   "SpongeBob": "spongebob patrick plankton",
