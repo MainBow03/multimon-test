@@ -1616,6 +1616,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                                 char.moves.push({...MOVES_DB['Concerto Universale'],remainingUses:2});
                             }
 
+                            if (char.id === 'frillish' && MOVES_DB['Marea Gemella'] &&
+                                !char.moves.some(m => m.name === 'Marea Gemella')) {
+                                char.moves.push({ ...MOVES_DB['Marea Gemella'], remainingUses: 2 });
+                            }
+
                             if (char.id === 'coraline' && MOVES_DB['Porta dell’Impossibile']) {
                                 // La mossa nuova è disponibile nello stesso turno dell'Iper.
                                 // Tipi, passiva e mosse della Coraline normale restano invariati.
