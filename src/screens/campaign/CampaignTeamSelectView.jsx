@@ -1,4 +1,5 @@
 import {typeDisplayName} from '../../systems/typeLabel.js';
+import {characterSeries,seriesMatches,seriesOptions} from '../../data/characterSeries.js';
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { HeldEquipmentCard, HeldEquipmentGuide } from '../../components/HeldEquipmentPicker.jsx';
 import { ZodiacSpiritPicker } from '../../components/ZodiacSpiritPicker.jsx';
@@ -17,7 +18,7 @@ import {onMultimonImageError} from '../../systems/imageFallback.js';
 const ECHO_FINAL_BOSS_HP = 4000;
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCampaignTeamSelectView(ctx) {
-const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, campaignZodiacChoices, setCampaignZodiacChoices, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
+const { ITEMS_DB, campaignHeldItems, setCampaignHeldItems, campaignZodiacChoices, setCampaignZodiacChoices, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSeriesFilter, setDraftSeriesFilter, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue } = ctx;
 if (appMode === 'campaign_team_select') {
         const equipInventory = getPlayerData().inventory || {};
         const assignCampaignItem = (id, itemId) => {
@@ -845,12 +846,25 @@ if (appMode === 'campaign_team_select') {
                     </div>
                 </div>
 
+                {/* Selettore universo separato dai filtri normali della campagna. */}
+                <div className="mb-3 rounded-xl border border-violet-400/35 bg-violet-950/25 p-3">
+                    <label className="flex flex-wrap items-center gap-2 text-xs font-black text-violet-200">
+                        <span>🌌 Serie / universo d’origine</span>
+                        <select aria-label="Filtra compagni della campagna per serie" value={draftSeriesFilter} onChange={e=>setDraftSeriesFilter(e.target.value)}
+                            className="min-w-0 flex-1 rounded-lg border border-violet-400/40 bg-slate-950 p-2 text-white">
+                            <option value="Tutti">Tutte le serie</option>
+                            {seriesOptions(campaignState.roster.map(id=>CHARACTERS.find(c=>c.id===id)).filter(Boolean)).map(series=><option key={series} value={series}>{series}</option>)}
+                        </select>
+                    </label>
+                </div>
+
                 <div className="multimon-roster-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 mb-4 w-full max-h-[60dvh] overflow-y-auto content-start custom-scrollbar p-2 sm:p-3">
                     {(() => {
                         let rosterChars = campaignState.roster.map(id => CHARACTERS.find(c => c.id === id)).filter(Boolean);
                         
                         let filteredRoster = rosterChars.filter(c => {
                             if (draftFilterType !== 'Tutti' && !c.types.includes(draftFilterType)) return false;
+                            if (!seriesMatches(c,draftSeriesFilter)) return false;
                             if (draftSearch.trim() !== '' && !c.name.toLowerCase().includes(draftSearch.toLowerCase())) return false;
                             return true;
                         });
@@ -890,6 +904,7 @@ if (appMode === 'campaign_team_select') {
                                         <img src={char.img} alt={char.name} loading="lazy" className="w-full h-full object-contain drop-shadow-lg" />
                                     </div>
                                     <h4 className="font-bold text-sm sm:text-base mb-2 leading-snug line-clamp-2 min-h-[2.25em] break-words text-slate-100">{char.name}</h4>
+                                    <div className="mb-2 truncate text-[10px] font-bold text-violet-300" title={characterSeries(char)}>🌌 {characterSeries(char)}</div>
                                     <div className="flex flex-wrap gap-1 justify-center mb-3">
                                         {char.types.map(t => (
                                             <span key={t} className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase ${TYPE_STYLES[t] || 'bg-gray-500'}`}>{typeDisplayName(t)}</span>
