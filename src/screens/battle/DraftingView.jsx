@@ -1,4 +1,5 @@
 import {typeDisplayName} from '../../systems/typeLabel.js';
+import {characterSeries,seriesMatches,seriesOptions} from '../../data/characterSeries.js';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 import { ItemArtwork } from '../../components/ItemArtwork.jsx';
 import { TeamAdvisor } from '../../components/TeamAdvisor.jsx';
@@ -10,7 +11,7 @@ import {isUltimonBanned,ultimonBannedIds} from '../../systems/ultimonBans.js';
 import {battleTeamPresetsAllowed,battleTeamSlots,loadBattleTeamPreset} from '../../systems/battleTeamPresets.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderDraftingView(ctx) {
-const { ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftRole, setDraftRole, draftPrice, setDraftPrice, draftFavorites, draftFavoritesOnly, setDraftFavoritesOnly, toggleDraftFavorite, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState, updateLocalStats } = ctx;
+const { ArrowLeft, CHARACTERS, ITEMS_DB, FUSION_CHARACTERS, IS_PREVIEW, Loader2, Swords, TYPES, TYPE_STYLES, Unlock, appMode, draftFilterType, draftSeriesFilter, setDraftSeriesFilter, draftHoverInfo, draftLongPressRef, draftPressTimerRef, draftSearch, draftSort, draftRole, setDraftRole, draftPrice, setDraftPrice, draftFavorites, draftFavoritesOnly, setDraftFavoritesOnly, toggleDraftFavorite, draftTimeLeft, gameState, getDefaultAvatar, getPlayerData, getRequiredPlayers, handleDraftReroll, handlePick, handleSharedPick, leaveRoom, playerRole, setDraftFilterType, setDraftHoverInfo, setDraftSearch, setDraftSort, setPlayerRole, setSystemAlert, startBattle, updateState, updateLocalStats } = ctx;
 if (gameState.status === 'drafting') {
         if (playerRole === 'spectator') {
             return (
@@ -90,7 +91,7 @@ if (gameState.status === 'drafting') {
         const filteredDraftableChars = filterTeamRoster(draftableChars,{
             type:draftFilterType,search:draftSearch,sort:draftSort,role:draftRole,
             price:draftPrice,favoritesOnly:draftFavoritesOnly,favorites:draftFavorites
-        });
+        }).filter(c=>seriesMatches(c,draftSeriesFilter));
 
         const advisorChoices = gameState.settings.sharedDraft
           ? (gameState.sharedDraftPool || []).filter(item => item && item.pickedBy == null).map(item => item.char).filter(Boolean)
@@ -415,6 +416,17 @@ if (gameState.status === 'drafting') {
                                     </button>
                                     <span className="text-xs font-semibold text-slate-400" aria-live="polite">{filteredDraftableChars.length} Multimon trovati</span>
                                 </div>
+                                {/* Filtro serie separato dai filtri normali della squadra. */}
+                                <div className="mb-3 shrink-0 rounded-xl border border-violet-400/35 bg-violet-950/30 px-3 py-2.5">
+                                    <label className="flex flex-wrap items-center gap-2 text-xs font-black text-violet-200">
+                                        <span>🌌 Serie / universo d’origine</span>
+                                        <select aria-label="Filtra Multimon per serie nella scelta squadra" value={draftSeriesFilter} onChange={e=>setDraftSeriesFilter(e.target.value)}
+                                            className="min-w-0 flex-1 rounded-lg border border-violet-400/40 bg-slate-950 p-2 text-xs text-white">
+                                            <option value="Tutti">Tutte le serie</option>
+                                            {seriesOptions(draftableChars).map(series=><option key={series} value={series}>{series}</option>)}
+                                        </select>
+                                    </label>
+                                </div>
                                 <div className="multimon-roster-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 w-full flex-1 min-h-0 overflow-y-auto content-start custom-scrollbar p-2 sm:p-3">
                                     {filteredDraftableChars.length === 0 && <div className="col-span-full rounded-xl bg-slate-900 border border-slate-700 p-8 text-center text-slate-400">Nessun Multimon corrisponde ai filtri. Modifica ricerca, tipo, ruolo o prezzo.</div>}
                                     {filteredDraftableChars.map(char => {
@@ -465,6 +477,7 @@ if (gameState.status === 'drafting') {
                                                     <img src={char.img} onError={onMultimonImageError} alt={char.name} loading="lazy" className="w-full h-full object-contain drop-shadow-lg" />
                                                 </div>
                                                 <h4 className="font-bold text-sm sm:text-base mb-1 leading-snug line-clamp-2 min-h-[2.25em] break-words text-slate-100">{char.name}</h4>
+                                                <div className="mb-1 truncate text-[10px] font-bold text-violet-300" title={characterSeries(char)}>🌌 {characterSeries(char)}</div>
                                                 <div className="text-[10px] font-bold text-amber-300 mb-1">{characterPrice(char)} monete</div>
                                                 <div className="text-[9px] font-semibold text-cyan-300 mb-2 truncate" title={getCharacterRoles(char).join(', ')}>
                                                     {getCharacterRoles(char).map(id=>TEAM_ROLES.find(r=>r.id===id)?.label).filter(Boolean).join(' · ')}
