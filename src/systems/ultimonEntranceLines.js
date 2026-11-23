@@ -15,6 +15,8 @@ export const ULTIMON_ENTRANCE_LINES = Object.freeze({
   "goliath": "La notte e il nostro regno. E la nostra promessa e proteggere.",
   "mangiarocce": "C'e odore di pietra fresca... dopo il duello qualcuno offre il pranzo?",
   "miguelrivera": "Ogni famiglia ha una storia. La mia la suonero anche qui.",
+  "olaf": "Che bello, un torneo! Ho portato una valanga di neve e un sorriso per tutti!",
+  "edwardelric": "Non ho bisogno di tracciare un cerchio per la trasmutazione. Mi basta unire le mani!",
   "blackcanary": "Quando la citta alza la voce, qualcuno deve farsi sentire di piu.",
   "mayalape": "Ciao a tutti! Ho portato un po di miele per i miei amici!",
   "bluebeetle": "Khaji-Da, siamo pronti? Cerchiamo di non spaventare tutti all'ingresso!",

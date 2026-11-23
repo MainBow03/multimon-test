@@ -51,7 +51,7 @@ test('Olaf, Edward e Miguel hanno i dati e le immagini richiesti',()=>{
  assert.equal(miguel.img,'https://i.pinimg.com/736x/72/ce/d0/72ced0b06c33ddcfe81401a9fcc464c7.jpg');
  for(const c of [olaf,edward]){
    assert.equal(c.moves.length,4);
-   assert.ok(c.moves.every(m=>m&&m.name&&m.type&&m.maxUses>0));
+   assert.ok(c.moves.every(m=>m&&m.name&&m.type&&Number.isFinite(m.power)&&(m.maxUses==null||m.maxUses>0)));
    assert.equal(c.passive.type,'on_enter');
    assert.ok(c.price>0);
  }

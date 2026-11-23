@@ -14,6 +14,8 @@ export const MASTERY_CHARACTER_TITLES = Object.freeze({
   "goliath": "Sentinella della Citta Notturna",
   "mangiarocce": "Affamato di Intere Montagne",
   "miguelrivera": "Chitarrista dei Ricordi Immortali",
+  "olaf": "Il Cuore che Non Si Scioglie",
+  "edwardelric": "Alchimista della Verita",
   "blackcanary": "Voce che Spezza il Silenzio",
   "mayalape": "Messaggera del Nettare Dorato",
   "bluebeetle": "Custode dello Scarabeo Stellare",

@@ -82,7 +82,7 @@ test('Ricalcolo di 208 giocabili e Nuovi Arrivi nell ordine esatto',()=>{
  assert.deepEqual(RECENT_ARRIVALS_IDS.slice(0,15),ids);
  assert.deepEqual(recentArrivalCharacters(CHARACTERS).slice(0,15).map(c=>c.id),ids);
  const roster=CHARACTERS.filter(c=>!c.isSummonOnly&&!c.isCampaignMonster);
- assert.equal(roster.length,209);
+ assert.equal(roster.length,211);
  const count=t=>roster.filter(c=>c.types.includes(t)).length;
  assert.equal(count('Cristallo'),11);
  assert.equal(count('Roccia'),14);

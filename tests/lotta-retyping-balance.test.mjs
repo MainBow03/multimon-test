@@ -52,12 +52,12 @@ test('Chat Noir e le sue mosse di tipo Lotta restano invariati',()=>{
 
 test('Il riequilibrio riduce Lotta di 6 senza aumentare il roster',()=>{
   const roster=CHARACTERS.filter(c=>!c.isSummonOnly&&!c.isCampaignMonster);
-  assert.equal(roster.length,209);
+  assert.equal(roster.length,211);
   const count=type=>roster.filter(c=>c.types.includes(type)).length;
   assert.equal(count('Lotta'),28);
   assert.equal(count('Drago'),12);
   assert.equal(count('Cristallo'),11);
-  assert.equal(count('Robot'),22); // Etichetta pubblica: Acciaio
+  assert.equal(count('Robot'),23); // Edward aggiunge un Acciaio; 'Robot' resta l'ID storico
   assert.equal(count('Luce'),16);
   assert.equal(count('Folletto'),15);
 });

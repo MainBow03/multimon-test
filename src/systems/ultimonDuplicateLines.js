@@ -15,6 +15,8 @@ export const ULTIMON_DUPLICATE_REACTIONS=Object.freeze({
   "goliath": "Una seconda sentinella? La nostra responsabilita sara doppia.",
   "mangiarocce": "Un altro Mangiarocce? Il buffet di massi oggi non bastera!",
   "miguelrivera": "Suoniamo lo stesso accordo? Allora facciamo un duetto per ricordarlo.",
+  "olaf": "Un altro Olaf? Quanta allegria! Scommetto che con due di noi nevichera anche in piena estate!",
+  "edwardelric": "Un altro Alchimista d Acciaio? Non copiare le mie trasmutazioni: fammi vedere cosa sai inventare!",
   "blackcanary": "Con due urli uguali possiamo cambiare le regole del concerto.",
   "mayalape": "Un'altra Maya! Possiamo fare due volte il miele, che bello!",
   "bluebeetle": "Khaji-Da, controlla! Non voglio scoprire che lo Scarabeo ha un gemello.",

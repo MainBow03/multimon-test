@@ -17,6 +17,7 @@ export const RECENT_ARRIVALS_IDS=Object.freeze([
   'sasuke','naruto','diamantebianco','arievicente','sugino','elly',
   'sumo','charizard','megamind','sheldon','dante','ilcavaliere',
   'lucy','kirby','shrek','ciuchino','shinobu','juvia',
+  'olaf','edwardelric',
   'frozone' // Proposto, ma non ancora inserito: escluso automaticamente
 ]);
 export const recentArrivalCharacters=(characters,ids=RECENT_ARRIVALS_IDS)=>
