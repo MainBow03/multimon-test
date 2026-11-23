@@ -35,6 +35,13 @@ export const BERRY_FRILLISH_MOVES={
     targetCount:24,spoutLowHpPower:100,spoutLowHpThreshold:0.5,
     desc:'Colpisce tutti i nemici: potenza 70, oppure 100 contro ciascun bersaglio con meno del 50% dei suoi PS massimi.'
   },
+  // Tecnica esclusiva della Forma Iper: disponibile dopo la fusione.
+  'Marea Gemella': {
+    name:'Marea Gemella',type:'Acqua',power:90,accuracy:1,special:true,
+    targetCount:2,maxUses:2,strictUses:true,
+    hitStatDebuff:{spd:0.9,chance:0.2},
+    desc:'I due Frillish fusi scatenano una doppia marea spettrale: potenza 90 su fino a 2 nemici, 20% di ridurre la Velocità del 10%. Solo 2 utilizzi per battaglia.'
+  },
   'Palla Ombra (Frillish)':{
     name:'Palla Ombra',type:'Spettro',power:95,accuracy:1,special:true,
     desc:'Potenza 95. Un concentrato di energia spettrale colpisce un nemico.'
