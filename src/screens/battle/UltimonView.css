@@ -21,7 +21,7 @@
 .ultimon-team-title small{display:block;color:#94a3b8;font-size:11px}
 .ultimon-team-dot{display:inline-block;flex-shrink:0;width:14px;height:14px;border-radius:50%;background:var(--ultimon-team-color);box-shadow:0 0 12px var(--ultimon-team-color);border:1px solid #e2e8f0}
 .ultimon-count{background:#020617;white-space:nowrap;border:1px solid #334155;border-radius:8px;padding:4px 7px;font-size:11px;color:#e2e8f0;font-weight:900}
-.ultimon-fighter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(55px,1fr));gap:7px}
+.ultimon-fighter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(74px,1fr));gap:7px}
 .ultimon-fighter{display:flex;flex-direction:column;min-width:0;align-items:center;text-align:center;border:1px solid #475569;background:#02061780;border-radius:9px;padding:5px}
 .ultimon-fighter img{width:100%;height:57px;object-fit:contain}
 .ultimon-fighter span{font-size:9px;font-weight:800;line-height:1.15;margin-top:4px;overflow-wrap:anywhere}
@@ -491,3 +491,35 @@
  .ultimon-ban-confirm{justify-content:center;text-align:center}
  .ultimon-ban-human{min-width:140px}.ultimon-ban-excluded{width:100px;min-width:100px}}
 @media(prefers-reduced-motion:reduce){.ultimon-ban-card{transition:none}}
+
+
+/* Tipi visibili sotto ogni PNG in Ultimon, anche per l'avversario e i KO.
+   Mantieni i colori ufficiali TYPE_STYLES, senza nascondere i nomi lunghi. */
+.ultimon-type-badges{
+ display:flex;align-items:center;justify-content:center;align-content:center;
+ flex-wrap:wrap;gap:3px;width:100%;min-width:0;
+ margin:5px 0 4px;
+}
+.ultimon-type-badges .ultimon-type-chip{
+ display:inline-flex;align-items:center;justify-content:center;
+ min-width:0;max-width:100%;padding:3px 6px;
+ border-radius:7px;font-size:10px;font-weight:900;
+ line-height:1.2;letter-spacing:0;white-space:normal;
+ text-align:center;overflow-wrap:anywhere;
+ box-shadow:inset 0 1px 0 #ffffff27,0 1px 4px #0005;
+}
+.ultimon-type-badges--compact{gap:2px;margin:4px 0 3px}
+.ultimon-fighter .ultimon-type-badges--compact .ultimon-type-chip{
+ font-size:9px;font-weight:900;line-height:1.15;
+ padding:3px 4px;border-radius:6px;
+}
+.ultimon-pick-fighter .ultimon-type-badges{margin:7px 0 5px}
+.ultimon-fighter--out .ultimon-type-badges .ultimon-type-chip{
+ filter:grayscale(0);font-weight:900;
+}
+@media(max-width:600px){
+ .ultimon-fighter-grid{grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:6px}
+ .ultimon-pick-grid{grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:8px}
+ .ultimon-type-badges .ultimon-type-chip{font-size:9px;padding:3px 5px}
+ .ultimon-fighter .ultimon-type-badges--compact .ultimon-type-chip{font-size:8px}
+}
