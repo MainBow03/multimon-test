@@ -1,4 +1,5 @@
 import { MOVES_DB } from './moves.js';
+import {characterSeriesList} from './characterSeries.js';
 
 export const FUSION_CHARACTERS = [
   {id:'ametraline',name:'Ametraline',types:['Spettro','Cristallo'],
@@ -30,3 +31,9 @@ export const FUSION_CHARACTERS = [
           { id: 'braan', name: 'Braan', types: ['Oscuro', 'Buio'], hp: 195, maxHp: 195, atk: 230, def: 150, spd: 205, img: 'https://i.postimg.cc/4H15nFmT/Gemini-Generated-Image-vyon9vyon9vyon9v.png', fusionOf: ['brago', 'ban'], moves: [MOVES_DB['Colpo Letale di Ban'], MOVES_DB['Caccia della Volpe'], MOVES_DB['Dioga Gravidon'], MOVES_DB['Gravirei']] },
           { id: 'yoshgon', name: 'Yoshgon', types: ['Drago', 'Oscuro'], hp: 215, maxHp: 215, atk: 210, def: 165, spd: 160, img: 'https://i.postimg.cc/TK6yJc19/Gemini-Generated-Image-5gs5qz5gs5qz5gs5.png', fusionOf: ['yoshi', 'trigon'], moves: [MOVES_DB['Inferno demoniaco'], MOVES_DB['Artigli dell\'apocalisse'], MOVES_DB['Sali sulla mia schiena'], MOVES_DB['Colpo salterino']] }
         ];
+
+// Ogni fusione è ricercabile da entrambe le serie di origine.
+FUSION_CHARACTERS.forEach(c => {
+  c.seriesList = characterSeriesList(c);
+  c.series = c.seriesList.join(' × ');
+});
