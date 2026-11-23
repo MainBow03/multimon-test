@@ -206,6 +206,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
           const [draftSearch, setDraftSearch] = useState('');
           const [draftFilterType, setDraftFilterType] = useState('Tutti');
           const [draftSeriesFilter, setDraftSeriesFilter] = useState('Tutti');
+          const [campaignSeriesFilter, setCampaignSeriesFilter] = useState('Tutti');
           const [draftSort, setDraftSort] = useState('default');
           const [draftRole, setDraftRole] = useState('all');
           const [draftPrice, setDraftPrice] = useState('all');
@@ -2264,7 +2265,7 @@ import { ROOM_SESSION_KEY, roomRoleForUid, canRecoverRoom, phaseIsStale, isHostF
 }
 
     if (appMode === 'campaign_team_select') {
-  const __screen = renderCampaignTeamSelectView({ ITEMS_DB, campaignHeldItems, setCampaignHeldItems, campaignZodiacChoices, setCampaignZodiacChoices, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, draftSeriesFilter, setDraftSeriesFilter, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue });
+  const __screen = renderCampaignTeamSelectView({ ITEMS_DB, campaignHeldItems, setCampaignHeldItems, campaignZodiacChoices, setCampaignZodiacChoices, CHARACTERS, Swords, TYPES, TYPE_STYLES, activeCampaign, activeCampaignId, appMode, applyOnEnterPassive, campaignSelectedTeam, campaignState, draftFilterType, campaignSeriesFilter, setCampaignSeriesFilter, draftSearch, draftSort, getPlayerData, initialGameState, playerName, renderHealthBar, selectionDialogueTimerRef, setAppMode, setCampaignSelectedTeam, setCampaignState, setCombatLog, setCommandingIdx, setActionMenuMode, setTargetingMoveIdx, setSelectedMultiTargets, setPendingHyper, setIsPlayingEvents, setEventPlaybackText, setEventPlaybackPassive, setDraftFilterType, setDraftSearch, setDraftSort, setGameState, setIsLogOpen, setPlayerRole, setSystemAlert, setTeamSelectionDialogue, teamSelectionDialogue });
   if (__screen !== undefined) return __screen;
 }
 
