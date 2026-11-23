@@ -2,12 +2,14 @@ import {typeDisplayName} from '../../systems/typeLabel.js';
 import {getCatalogOverview} from '../../systems/catalogOverview.js';
 import {onMultimonImageError} from '../../systems/imageFallback.js';
 import {CORALINE_HYPER_IMAGE} from '../../systems/coralineHyperArtwork.js';
+import {FRILLISH_HYPER_IMAGE} from '../../systems/frillishHyperArtwork.js';
+import {characterSeriesList,seriesOptions,seriesMatches} from '../../data/characterSeries.js';
 // Schermata estratta senza alterare la struttura JSX originale.
 export function renderCatalogView(ctx) {
-const { ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Lock, MOVES_DB, TYPES, TYPE_STYLES, appMode, catalogFilter, catalogSearch, catalogSort, setAppMode, setCatalogFilter, setCatalogSearch, setCatalogSort } = ctx;
+const { ArrowLeft, CHARACTERS, FUSION_CHARACTERS, Lock, MOVES_DB, TYPES, TYPE_STYLES, appMode, catalogFilter, catalogSeriesFilter, setCatalogSeriesFilter, catalogSearch, catalogSort, setAppMode, setCatalogFilter, setCatalogSearch, setCatalogSort } = ctx;
 if (appMode === 'catalog') {
         let displayedChars = [...CHARACTERS];
-        const hyperIds = ['barry', 'gardevoir', 'astral', 'polterpup', 'spongebob', 'patrick', 'alphonse', 'ariana', 'bloom', 'gaston', 'jake', 'marceline', 'finn', 'natsu', 'juvia', 'laxus', 'bumblebee', 'corvina', 'entoma', 'garnet', 'darwin', 'brago', 'iris', 'sdentato', 'ladybug', 'bowser', 'rainbowdash', 'elsa', 'sheldon', 'charizard', 'maxcaulfield', 'chloeprice', 'dolli', 'zatchbell', 'yoshi', 'poisonivy', 'carlos', 'leon', 'sage', 'coraline', 'luigi', 'miku'];
+        const hyperIds = ['barry', 'gardevoir', 'astral', 'polterpup', 'spongebob', 'patrick', 'alphonse', 'ariana', 'bloom', 'gaston', 'jake', 'marceline', 'finn', 'natsu', 'juvia', 'laxus', 'bumblebee', 'corvina', 'entoma', 'garnet', 'darwin', 'brago', 'iris', 'sdentato', 'ladybug', 'bowser', 'rainbowdash', 'elsa', 'sheldon', 'charizard', 'maxcaulfield', 'chloeprice', 'dolli', 'zatchbell', 'yoshi', 'poisonivy', 'carlos', 'leon', 'sage', 'coraline', 'luigi', 'miku', 'frillish'];
         
         if (catalogFilter === 'Evocazioni') {
             displayedChars = displayedChars.filter(c => c.isSummonOnly);
@@ -28,6 +30,7 @@ if (appMode === 'catalog') {
                 char.isHyperInCatalog = true;
                 
                 // --- APPLICA MOSSE E TIPI IPER ---
+                if (char.id === 'frillish') { char.moves.push(MOVES_DB['Marea Gemella']); }
                 if (char.id === 'coraline') { char.moves.push(MOVES_DB['Porta dell’Impossibile']); }
                 if (char.id === 'luigi') { char.moves.push(MOVES_DB['Aspirazione Fantasma']); }
                 if (char.id === 'miku') { char.moves.push(MOVES_DB['Concerto Universale']); }
@@ -96,6 +99,7 @@ if (appMode === 'catalog') {
                 else if (char.id === 'carlos') char.img = "https://i.postimg.cc/mhmqbMVW/Gemini-Generated-Image-1wl7sn1wl7sn1wl7-(1).png"; // Carlos Iper
                 else if (char.id === 'leon') char.img = "https://i.postimg.cc/N540GdVZ/834bde13bf771897729c8fc78dfcb7cd-(1).jpg"; // Leon Iper
                 else if (char.id === 'sage') char.img = "https://i.pinimg.com/1200x/c8/94/13/c89413f6d9bfeacd9b036e496117f1f8.jpg"; // Sage Iper
+                else if (char.id === 'frillish') char.img = FRILLISH_HYPER_IMAGE;
                 else if (char.id === 'coraline') char.img = CORALINE_HYPER_IMAGE;
                 else if (char.id === 'luigi') char.img = 'https://i.pinimg.com/1200x/22/86/f9/2286f929ba8c9bc5bd63a96ccb266f2d.jpg';
                 else if (char.id === 'miku') char.img = 'https://i.pinimg.com/736x/4d/88/d9/4d88d9df93b4a62f43bc69bfd46eb250.jpg';
@@ -111,6 +115,10 @@ if (appMode === 'catalog') {
             if (catalogFilter !== 'Tutti') {
                 displayedChars = displayedChars.filter(c => c.types.includes(catalogFilter));
             }
+        }
+        // Filtro dedicato alle serie, indipendente da tipo, ricerca e categoria.
+        if (catalogSeriesFilter !== 'Tutti') {
+            displayedChars = displayedChars.filter(c => seriesMatches(c,catalogSeriesFilter));
         }
         if (catalogSearch.trim() !== '') {
             const searchLower = catalogSearch.toLowerCase();
@@ -212,16 +220,28 @@ if (appMode === 'catalog') {
                         </div>
                     </section>
 
+                    {/* Selettore degli universi: separato dai filtri tradizionali. */}
+                    <section aria-label="Filtra per serie o universo" className="rounded-2xl border border-violet-400/35 bg-gradient-to-r from-violet-950/55 to-slate-900/90 p-3 sm:p-4">
+                        <label className="flex flex-wrap items-center gap-3 text-sm font-bold text-violet-100">
+                            <span className="shrink-0">🌌 Serie / universo d’origine</span>
+                            <select aria-label="Seleziona serie o universo del Multimon" value={catalogSeriesFilter} onChange={e=>setCatalogSeriesFilter(e.target.value)}
+                                className="min-w-0 flex-1 rounded-xl border border-violet-400/40 bg-slate-950 px-3 py-2.5 text-white outline-none focus:border-violet-300">
+                                <option value="Tutti">Tutte le serie e gli universi</option>
+                                {seriesOptions([...CHARACTERS,...FUSION_CHARACTERS]).map(series=><option key={series} value={series}>{series}</option>)}
+                            </select>
+                        </label>
+                    </section>
+
                     <div className="flex flex-wrap items-center justify-between gap-2 px-1" role="status" aria-live="polite">
                         <div className="min-w-0">
                             <h2 className="text-lg font-black text-white sm:text-xl">{activeSection}</h2>
                             <p className="text-xs font-semibold text-slate-400">
                                 {displayedChars.length} {displayedChars.length === 1 ? 'risultato' : 'risultati'} visualizzati
-                                {catalogFilter === 'Tutti' && !catalogSearch.trim() ? ' · roster completo' : ' · totale roster: ' + overview.totalMultimon}
+                                {catalogFilter === 'Tutti' && catalogSeriesFilter === 'Tutti' && !catalogSearch.trim() ? ' · roster completo' : ' · totale roster: ' + overview.totalMultimon}
                             </p>
                         </div>
-                        {(catalogFilter !== 'Tutti' || catalogSearch.trim()) && <button type="button"
-                            onClick={() => { setCatalogFilter('Tutti'); setCatalogSearch(''); }}
+                        {(catalogFilter !== 'Tutti' || catalogSeriesFilter !== 'Tutti' || catalogSearch.trim()) && <button type="button"
+                            onClick={() => { setCatalogFilter('Tutti'); setCatalogSeriesFilter('Tutti'); setCatalogSearch(''); }}
                             className="rounded-full border border-cyan-400/35 bg-cyan-950/35 px-3 py-2 text-xs font-extrabold text-cyan-200 transition hover:border-cyan-300 hover:bg-cyan-900/50">
                             ✕ Ripristina filtri
                         </button>}
@@ -232,7 +252,7 @@ if (appMode === 'catalog') {
                             <span className="text-5xl" aria-hidden="true">🔎</span>
                             <h3 className="text-xl font-black text-white">Nessun Multimon trovato</h3>
                             <p className="max-w-md text-sm text-slate-400">Prova un altro nome oppure modifica i filtri per continuare l'esplorazione.</p>
-                            <button type="button" onClick={() => { setCatalogFilter('Tutti'); setCatalogSearch(''); }}
+                            <button type="button" onClick={() => { setCatalogFilter('Tutti'); setCatalogSeriesFilter('Tutti'); setCatalogSearch(''); }}
                                 className="rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-cyan-500">Mostra tutti i Multimon</button>
                         </div>
                     ) : (
@@ -266,6 +286,7 @@ if (appMode === 'catalog') {
                                     <div className="flex min-w-0 flex-1 flex-col gap-3 p-4">
                                         <div className="min-h-[68px]">
                                             <h3 className="line-clamp-2 break-words text-center text-base font-black leading-snug text-white sm:text-lg">{char.name}</h3>
+                                            <p className="mt-1 text-center text-[10px] font-semibold text-violet-300">🌌 {characterSeriesList(char).join(' × ')}</p>
                                             <div className="mt-2 flex min-h-6 flex-wrap items-center justify-center gap-1.5">
                                                 {char.types.map(t => <span key={t} className={'rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ' +
                                                     (TYPE_STYLES[t] || 'bg-slate-600 text-white')}>{typeDisplayName(t)}</span>)}
