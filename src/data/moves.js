@@ -456,7 +456,7 @@ export const MOVES_DB = {
 
           // NUOVE MOSSE KRATOS
           'Lame del Caos': { name: 'Lame del Caos', type: 'Lotta', power: 65, targetCount: 2, desc: 'Fende l\'aria con le sue lame incatenate, colpendo fino a 2 nemici.' },
-          'Rabbia di Sparta': { name: 'Rabbia di Sparta', type: 'Oscuro', power: 0, target: 'self', statBuff: { atk: 1.5, def: 1.5 }, heal: 0.2, desc: 'Scatena la sua furia divina: si cura del 20% e aumenta Attacco e Difesa del 50%.' },
+          'Rabbia di Sparta': { name: 'Rabbia di Sparta', type: 'Oscuro', power: 0, target: 'self', statBuff: { atk: 1.25, def: 1.25 }, heal: 0.2, desc: 'Scatena la sua furia divina: si cura del 20% e aumenta Attacco e Difesa del 25%.' },
           'Ascia Leviatano': { name: 'Ascia Leviatano', type: 'Ghiaccio', power: 85, statusEffect: { type: 'Congelato', chance: 0.3 }, desc: 'Scaglia la potente ascia magica. 30% di probabilità di congelare il nemico.' },
           'Furia Cieca': { name: 'Furia Cieca', type: 'Lotta', power: 120, ignoreDefBuffs: true, recharge: true, desc: 'Un attacco brutale che ignora le difese avversarie, ma richiede un turno di ricarica.' },
 
