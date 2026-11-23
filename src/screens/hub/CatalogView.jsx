@@ -183,6 +183,18 @@ if (appMode === 'catalog') {
                         </div>
                     </section>
 
+                    {/* Selettore degli universi: separato dai filtri tradizionali. */}
+                    <section aria-label="Filtra per serie o universo" className="rounded-2xl border border-violet-400/35 bg-gradient-to-r from-violet-950/55 to-slate-900/90 p-3 sm:p-4">
+                        <label className="flex flex-wrap items-center gap-3 text-sm font-bold text-violet-100">
+                            <span className="shrink-0">🌌 Serie / universo d’origine</span>
+                            <select aria-label="Seleziona serie o universo del Multimon" value={catalogSeriesFilter} onChange={e=>setCatalogSeriesFilter(e.target.value)}
+                                className="min-w-0 flex-1 rounded-xl border border-violet-400/40 bg-slate-950 px-3 py-2.5 text-white outline-none focus:border-violet-300">
+                                <option value="Tutti">Tutte le serie e gli universi</option>
+                                {seriesOptions([...CHARACTERS,...FUSION_CHARACTERS]).map(series=><option key={series} value={series}>{series}</option>)}
+                            </select>
+                        </label>
+                    </section>
+
                     <section className="rounded-2xl border border-slate-600/50 bg-slate-900/80 p-3 shadow-lg backdrop-blur-md sm:p-4" aria-label="Ricerca e filtri del catalogo">
                         <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(160px,210px)_minmax(150px,185px)] md:items-end">
                             <label className="block min-w-0">
@@ -218,18 +230,6 @@ if (appMode === 'catalog') {
                                 </select>
                             </label>
                         </div>
-                    </section>
-
-                    {/* Selettore degli universi: separato dai filtri tradizionali. */}
-                    <section aria-label="Filtra per serie o universo" className="rounded-2xl border border-violet-400/35 bg-gradient-to-r from-violet-950/55 to-slate-900/90 p-3 sm:p-4">
-                        <label className="flex flex-wrap items-center gap-3 text-sm font-bold text-violet-100">
-                            <span className="shrink-0">🌌 Serie / universo d’origine</span>
-                            <select aria-label="Seleziona serie o universo del Multimon" value={catalogSeriesFilter} onChange={e=>setCatalogSeriesFilter(e.target.value)}
-                                className="min-w-0 flex-1 rounded-xl border border-violet-400/40 bg-slate-950 px-3 py-2.5 text-white outline-none focus:border-violet-300">
-                                <option value="Tutti">Tutte le serie e gli universi</option>
-                                {seriesOptions([...CHARACTERS,...FUSION_CHARACTERS]).map(series=><option key={series} value={series}>{series}</option>)}
-                            </select>
-                        </label>
                     </section>
 
                     <div className="flex flex-wrap items-center justify-between gap-2 px-1" role="status" aria-live="polite">
