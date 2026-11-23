@@ -61,7 +61,7 @@ export const CHARACTERS = [
           { id:'diamante', name:'Diamante', types:['Cristallo'], hp:125,maxHp:125,atk:110,def:120,spDef:120,spd:70,
             img:'https://image.pngaaa.com/510/3127510-middle.png',
             passive:{name:'Corpo Petrosapien',type:'petrosapien_armor',damageReduction:0.15,desc:'Subisce il 15% di danni in meno da ogni attacco diretto.'},
-            moves:[MOVES_DB['Schegge Diamantine'],MOVES_DB['Muro Cristallino'],MOVES_DB['Rifrazione di Diamante'],MOVES_DB['Schiacciata Pesante']] },
+            moves:[MOVES_DB['Schegge Diamantine'],MOVES_DB['Muro Cristallino'],MOVES_DB['Rifrazione di Diamante'],MOVES_DB['Scudo Umano']] },
           { id: 'mahito', name: 'Mahito', types: ['Spettro'], hp: 105, maxHp: 105, atk: 115, spAtk: 115, def: 85, spd: 100,
             img: 'https://i.pinimg.com/736x/96/d7/f2/96d7f2beaf572d61713d20315f370b2d.jpg',
             passive: { name: 'Trasfigurazione Oziosa', type: 'mahito_soul', desc: 'Le mosse di contatto hanno il 30% di probabilità di infliggere Anima Distorta: -5% PS massimi a turno e +25% danni subiti da Mahito.' },
