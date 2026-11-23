@@ -11,6 +11,7 @@ import {purchaseVictoryEffect,equipVictoryEffect} from './victoryCosmetics.js';
 import {grantMultimonWelcomeKeys,redeemMultimonKey} from './multimonKeys.js';
 import {applyBattleUsageSnapshot,normalizeCareerProfile} from './careerStats.js';
 import {recordBalanceSnapshot} from './balanceRegistry.js';
+import {saveBattleTeamPreset,deleteBattleTeamPreset} from './battleTeamPresets.js';
 
 const masteryEligibleIds = new Set(CHARACTERS.filter(isMasteryEligible).map(char => char.id));
 // Moduli dei sistemi di Multimon: funzioni originali con contesto esplicito.
@@ -19,6 +20,14 @@ const { getPlayerData } = ctx;
 
               const key = `multiverse_rpg_global_profile`;
               let current = normalizeCareerProfile(getPlayerData(),CHARACTERS).profile;
+              if(updates.battleTeamPresetSave||updates.battleTeamPresetDelete){
+                  const result=updates.battleTeamPresetSave?
+                    saveBattleTeamPreset(current,updates.battleTeamPresetSave):
+                    deleteBattleTeamPreset(current,updates.battleTeamPresetDelete);
+                  if(!result.ok)return result;
+                  localStorage.setItem(key,JSON.stringify(result.profile));
+                  return {ok:true};
+              }
               if(updates.battleBalance){
                   const result=recordBalanceSnapshot(current,updates.battleBalance);
                   if(!result.changed)return {ok:true,changed:false};
