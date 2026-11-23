@@ -248,6 +248,7 @@ export function MenuDashboard({ctx}){
      <div className="mm-dash-section-title"><div><small>✦ PROGRESSIONE</small><h2>Costruisci la tua leggenda</h2></div><p>Più forti, più rari, più tuoi!</p></div>
      <div className={'mm-dash-card-grid mm-dash-card-grid--'+tab}>
       {card('✨','Collezione Multimon','I tuoi personaggi ottenuti e quelli ancora bloccati.',()=>setAppMode('collection'),'cyan')}
+      {card('⚔️','Squadre Lotta','Crea e salva fino a 3 formazioni per ogni numero di Multimon (1–10).',()=>setAppMode('battle_teams'),'violet')}
       {card('📚','Catalogo','Esplora i Multimon e le loro mosse.',()=>launch('catalog',()=>setAppMode('catalog')),'blue')}
       {card('💎','Prestigi e Padronanza','Livelli, titoli, ricompense estetiche.',()=>guarded('stats','mastery','ai prestigi'),'purple')}
       {card('⚡','Laboratorio','Allena Attacco, Difesa e Velocità.',()=>guarded('strength_lab','strength_lab','al laboratorio'),'cyan',(data.strengthPoints||0)+' Punti Forza')}
