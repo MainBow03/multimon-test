@@ -994,6 +994,15 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
               collectEchoSoul(workingTeams,workingField,char,targetPlayer,events,
                   {gameMode:gameState.gameMode,settings:gameState.settings});
               
+              // Scudo Umano termina se Diamante viene messo K.O.
+              activeMatchPlayers.forEach(role=>{
+                (workingTeams[role]||[]).forEach((ally,idx)=>{
+                  if(!ally?.statuses)return;
+                  const before=ally.statuses.length;
+                  ally.statuses=ally.statuses.filter(st=>!(st.type==='Scudo Umano'&&st.protectorPlayer===targetPlayer&&st.protectorIdx===targetIdx));
+                  if(ally.statuses.length!==before)updateStatusUI(role,idx);
+                });
+              });
               // --- RIMOZIONE STATUS IN_GROPPA SE YOSHI MUORE ---
               activeMatchPlayers.forEach(pAlly => {
                   if (workingTeams[pAlly]) {
@@ -1810,6 +1819,15 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                       attacker.acc = 1.0;
                       attacker.consecutiveProtect = 0;
 
+                      // Scudo Umano termina se Diamante viene sostituito.
+                      activeMatchPlayers.forEach(role=>{
+                        (workingTeams[role]||[]).forEach((ally,idx)=>{
+                          if(!ally?.statuses)return;
+                          const before=ally.statuses.length;
+                          ally.statuses=ally.statuses.filter(st=>!(st.type==='Scudo Umano'&&st.protectorPlayer===player&&st.protectorIdx===charTeamIdx));
+                          if(ally.statuses.length!==before)updateStatusUI(role,idx);
+                        });
+                      });
                       // --- RIMOZIONE STATUS IN_GROPPA SE YOSHI VIENE SOSTITUITO ---
                       activeMatchPlayers.forEach(pAlly => {
                           if (workingTeams[pAlly]) {
@@ -1994,7 +2012,11 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                     continue;
                   }
                 }
-                if((move.targetMode==='revive'||move.targetMode==='ally') &&
+                if(move.humanShield && action.targetPlayer===player && action.targetIdx===charTeamIdx){
+                   events.push({type:'text',text:attacker.name+' non può proteggere se stesso con Scudo Umano.'});
+                   continue;
+                 }
+                 if((move.targetMode==='revive'||move.targetMode==='ally') &&
                    !isLegalSupportTarget(
                      {gameMode:gameState.gameMode,settings:gameState.settings,
                        isRoguelikeCoop:gameState.isRoguelikeCoop,
@@ -2075,6 +2097,19 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                   events.push({type:'text',text:`👥 ${attacker.name} usa Doppio Fantasma: il prossimo attacco verrà evitato!`});
                   updateStatusUI(player,charTeamIdx);
                   continue;
+                }
+                if (move.humanShield) {
+                    const ally = workingTeams[action.targetPlayer]?.[action.targetIdx];
+                    const isOnField = workingField[action.targetPlayer]?.includes(action.targetIdx);
+                    if(!ally || ally.hp<=0 || !isOnField){
+                        events.push({type:'text',text:`🛡️ ${attacker.name} non trova un alleato da proteggere!`});
+                        continue;
+                    }
+                    ally.statuses = (ally.statuses||[]).filter(status=>status.type!=='Scudo Umano');
+                    ally.statuses.push({type:'Scudo Umano',turns:1,protectorPlayer:player,protectorIdx:charTeamIdx});
+                    updateStatusUI(action.targetPlayer,action.targetIdx);
+                    events.push({type:'text',text:`🛡️ ${attacker.name} usa Scudo Umano! Protegge ${ally.name} dagli attacchi diretti per questo turno (-15% danni intercettati).`});
+                    continue;
                 }
                 if (move.isProtect) {
                     let consec = attacker.consecutiveProtect || 0;
@@ -2336,6 +2371,27 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                          continue;
                     }
 
+                    // Scudo Umano intercetta i colpi diretti, non gli attacchi ad area.
+                    let isHumanShieldRedirected = false;
+                    const humanShield = t.char.statuses?.find(status=>status.type==='Scudo Umano');
+                    if(humanShield && attackingFoes.includes(t.player) &&
+                       (!move.targetCount || move.targetCount<4) && move.targetMode!=='ally'){
+                        const guardPlayer = humanShield.protectorPlayer;
+                        const guardIdx = humanShield.protectorIdx;
+                        const guard = workingTeams[guardPlayer]?.[guardIdx];
+                        const guardFieldIdx = workingField[guardPlayer]?.indexOf(guardIdx)??-1;
+                        if(guard?.id==='diamante' && guard.hp>0 && guardFieldIdx>=0){
+                            events.push({type:'text',text:`💎 Scudo Umano! ${guard.name} intercetta il colpo diretto a ${t.char.name} e subisce il 15% di danni in meno!`});
+                            t.char=guard;
+                            t.idx=guardIdx;
+                            t.player=guardPlayer;
+                            t.fieldIdx=guardFieldIdx;
+                            isHumanShieldRedirected=true;
+                        }else{
+                            t.char.statuses=t.char.statuses.filter(status=>status!==humanShield);
+                            updateStatusUI(t.player,t.idx);
+                        }
+                    }
                     // --- REDIRECT LOGIC (SALI SULLA MIA SCHIENA) ---
                     let isRedirectedDmgReduced = false;
                     let inGroppaStatus = t.char.statuses.find(s => s.type === 'In_Groppa');
@@ -2567,6 +2623,7 @@ const { CHARACTERS, FUSION_CHARACTERS, ITEMS_DB, MOVES_DB, appMode, calculateDam
                             dmg = Math.max(1, Math.floor(t.char.maxHp * move.percentDmgMax));
                         }
                         if (isRedirectedDmgReduced) dmg = Math.max(1, Math.floor(dmg * 0.5));
+                        if (isHumanShieldRedirected) dmg = Math.max(1, Math.floor(dmg * 0.85));
                         if (isFirstHitProtection) dmg = Math.max(1,Math.floor(dmg * firstHitProtectionFactor(t.char,true)));
                         
                         // --- PASSIVA RIDUZIONE DANNO IN BASE ALLA MOSSA SCELTA ---
@@ -2700,6 +2757,7 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                             
                             if (isMagnetic) hitDmg *= 2;
                             if (isRedirectedDmgReduced) hitDmg = Math.max(1, Math.floor(hitDmg * 0.5));
+                            if (isHumanShieldRedirected) hitDmg = Math.max(1, Math.floor(hitDmg * 0.85));
                             
                             // --- PASSIVA RIDUZIONE DANNO IN BASE ALLA MOSSA SCELTA ---
                             if (t.char.passive && t.char.passive.type === 'damage_reduction_on_move') {
@@ -4000,6 +4058,9 @@ let recoilDmg = Math.max(5, Math.floor(t.char.maxHp * 0.05));
                 updateStatusUI(target.player, target.charTeamIdx);
             }
 
+            // Scudo Umano dura solo fino alla fine del turno.
+            const humanIdx = char.statuses.findIndex(st=>st.type==='Scudo Umano');
+            if(humanIdx!==-1){char.statuses.splice(humanIdx,1);updateStatusUI(target.player,target.charTeamIdx);}
             let groppaIdx = char.statuses.findIndex(s => s.type === 'In_Groppa');
             if (groppaIdx !== -1) {
                 char.statuses.splice(groppaIdx, 1);
